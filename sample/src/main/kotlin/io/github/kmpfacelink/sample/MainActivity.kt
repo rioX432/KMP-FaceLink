@@ -6,6 +6,7 @@ import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.camera.view.PreviewView
 import androidx.compose.foundation.background
@@ -13,10 +14,14 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
@@ -68,6 +73,7 @@ class MainActivity : ComponentActivity() {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        enableEdgeToEdge()
         super.onCreate(savedInstanceState)
 
         lifecycleScope.launch {
@@ -133,7 +139,7 @@ private fun FaceTrackingScreen(
 
         // Overlay UI
         Column(modifier = Modifier.fillMaxSize()) {
-            // Top info bar
+            // Top info bar (with status bar inset)
             TopInfoBar(
                 state = state,
                 trackingData = trackingData,
@@ -144,7 +150,7 @@ private fun FaceTrackingScreen(
 
             Spacer(modifier = Modifier.weight(1f))
 
-            // Bottom blend shapes panel
+            // Bottom blend shapes panel (with navigation bar inset)
             BlendShapesPanel(trackingData = trackingData)
         }
     }
@@ -154,8 +160,10 @@ private fun FaceTrackingScreen(
 private fun CameraPreview(previewableFaceTracker: PreviewableFaceTracker) {
     AndroidView(
         factory = { context ->
-            PreviewView(context).also { previewView ->
-                previewableFaceTracker.setSurfaceProvider(previewView.surfaceProvider)
+            PreviewView(context).apply {
+                // Use TextureView for Compose compatibility (SurfaceView punches through)
+                implementationMode = PreviewView.ImplementationMode.COMPATIBLE
+                previewableFaceTracker.setSurfaceProvider(surfaceProvider)
             }
         },
         modifier = Modifier.fillMaxSize(),
@@ -176,6 +184,7 @@ private fun TopInfoBar(
         modifier = Modifier
             .fillMaxWidth()
             .background(overlayBg)
+            .windowInsetsPadding(WindowInsets.statusBars)
             .padding(12.dp),
     ) {
         Row(
@@ -232,6 +241,7 @@ private fun BlendShapesPanel(trackingData: FaceTrackingData?) {
             .height(200.dp)
             .background(overlayBg)
             .padding(8.dp)
+            .windowInsetsPadding(WindowInsets.navigationBars)
             .verticalScroll(scrollState),
     ) {
         Text(

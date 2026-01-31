@@ -203,16 +203,31 @@ internal class MediaPipeFaceTracker(
     }
 
     private fun imageProxyToBitmap(imageProxy: ImageProxy): Bitmap? {
-        val buffer = imageProxy.planes[0].buffer
-        val bytes = ByteArray(buffer.remaining())
-        buffer.get(bytes)
+        val plane = imageProxy.planes[0]
+        val buffer = plane.buffer
+        val width = imageProxy.width
+        val height = imageProxy.height
+        val rowStride = plane.rowStride
+        val pixelStride = plane.pixelStride // 4 for RGBA_8888
+        val expectedRowBytes = width * pixelStride
 
-        val bitmap = Bitmap.createBitmap(
-            imageProxy.width,
-            imageProxy.height,
-            Bitmap.Config.ARGB_8888,
-        )
-        bitmap.copyPixelsFromBuffer(java.nio.ByteBuffer.wrap(bytes))
+        val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+
+        if (rowStride == expectedRowBytes) {
+            // No row padding — copy directly
+            buffer.rewind()
+            bitmap.copyPixelsFromBuffer(buffer)
+        } else {
+            // Row padding present — repack without padding
+            val packed = java.nio.ByteBuffer.allocateDirect(expectedRowBytes * height)
+            for (y in 0 until height) {
+                buffer.position(y * rowStride)
+                buffer.limit(y * rowStride + expectedRowBytes)
+                packed.put(buffer)
+            }
+            packed.rewind()
+            bitmap.copyPixelsFromBuffer(packed)
+        }
 
         // Apply rotation
         val rotationDegrees = imageProxy.imageInfo.rotationDegrees
@@ -227,7 +242,7 @@ internal class MediaPipeFaceTracker(
     private fun onFaceLandmarkerResult(result: FaceLandmarkerResult, input: com.google.mediapipe.framework.image.MPImage) {
         val timestampMs = System.currentTimeMillis()
 
-        if (result.faceBlendshapes().isEmpty || result.faceBlendshapes().get().isEmpty()) {
+        if (!result.faceBlendshapes().isPresent || result.faceBlendshapes().get().isEmpty()) {
             _trackingData.tryEmit(FaceTrackingData.notTracking(timestampMs))
             return
         }

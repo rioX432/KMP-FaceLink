@@ -194,6 +194,7 @@ private fun CameraPreview(previewableFaceTracker: PreviewableFaceTracker) {
         factory = { context ->
             PreviewView(context).apply {
                 implementationMode = PreviewView.ImplementationMode.COMPATIBLE
+                scaleType = PreviewView.ScaleType.FILL_CENTER
                 previewableFaceTracker.setSurfaceProvider(surfaceProvider)
             }
         },

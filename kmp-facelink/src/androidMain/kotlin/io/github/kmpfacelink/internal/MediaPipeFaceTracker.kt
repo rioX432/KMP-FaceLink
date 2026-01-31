@@ -3,6 +3,7 @@ package io.github.kmpfacelink.internal
 import android.graphics.Bitmap
 import android.graphics.Matrix
 import android.util.Log
+import androidx.camera.core.AspectRatio
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.ImageProxy
@@ -149,9 +150,12 @@ internal class MediaPipeFaceTracker(
 
         val surfaceProvider = previewSurfaceProvider
         if (surfaceProvider != null) {
-            val preview = Preview.Builder().build().also {
-                it.surfaceProvider = surfaceProvider
-            }
+            @Suppress("DEPRECATION")
+            val preview = Preview.Builder()
+                .setTargetAspectRatio(AspectRatio.RATIO_4_3)
+                .build().also {
+                    it.surfaceProvider = surfaceProvider
+                }
             provider.bindToLifecycle(
                 platformContext.lifecycleOwner,
                 cameraSelector,

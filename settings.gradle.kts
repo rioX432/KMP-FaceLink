@@ -17,3 +17,4 @@ dependencyResolutionManagement {
 rootProject.name = "KMP-FaceLink"
 
 include(":kmp-facelink")
+include(":sample")

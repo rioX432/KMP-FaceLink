@@ -60,6 +60,7 @@ import io.github.kmpfacelink.api.TrackingState
 import io.github.kmpfacelink.api.createFaceTracker
 import io.github.kmpfacelink.internal.PreviewableFaceTracker
 import io.github.kmpfacelink.model.BlendShape
+import io.github.kmpfacelink.model.FaceLandmark
 import io.github.kmpfacelink.model.FaceTrackerConfig
 import io.github.kmpfacelink.model.FaceTrackingData
 import io.github.kmpfacelink.model.HeadTransform
@@ -157,6 +158,15 @@ private fun FaceTrackingScreen(
         // Camera preview (full screen background)
         if (faceTracker is PreviewableFaceTracker) {
             CameraPreview(previewableFaceTracker = faceTracker)
+        }
+
+        // Landmark overlay on camera preview
+        val currentLandmarks = trackingData?.takeIf { it.isTracking }?.landmarks
+        if (!currentLandmarks.isNullOrEmpty()) {
+            LandmarkOverlay(
+                landmarks = currentLandmarks,
+                modifier = Modifier.fillMaxSize(),
+            )
         }
 
         // Overlay UI
@@ -611,3 +621,106 @@ private fun BlendShapeBarRow(
         }
     }
 }
+
+// ---------------------------------------------------------------------------
+// Landmark overlay
+// ---------------------------------------------------------------------------
+
+@Composable
+private fun LandmarkOverlay(
+    landmarks: List<FaceLandmark>,
+    modifier: Modifier = Modifier,
+) {
+    Canvas(modifier = modifier) {
+        val w = size.width
+        val h = size.height
+
+        // Front camera preview is mirrored: flip x
+        fun lx(index: Int): Float = (1f - landmarks[index].x) * w
+        fun ly(index: Int): Float = landmarks[index].y * h
+
+        // Draw face mesh contour connections
+        val contourColor = Color(0xFF00FF88).copy(alpha = 0.5f)
+        val contourStroke = 1.dp.toPx()
+
+        fun drawContour(indices: IntArray, color: Color = contourColor) {
+            for (i in 0 until indices.size - 1) {
+                val a = indices[i]
+                val b = indices[i + 1]
+                if (a < landmarks.size && b < landmarks.size) {
+                    drawLine(
+                        color = color,
+                        start = Offset(lx(a), ly(a)),
+                        end = Offset(lx(b), ly(b)),
+                        strokeWidth = contourStroke,
+                    )
+                }
+            }
+        }
+
+        // Face oval
+        drawContour(FACE_OVAL)
+
+        // Eyes
+        drawContour(LEFT_EYE, Color(0xFF00CCFF).copy(alpha = 0.6f))
+        drawContour(RIGHT_EYE, Color(0xFF00CCFF).copy(alpha = 0.6f))
+
+        // Eyebrows
+        drawContour(LEFT_EYEBROW, Color(0xFFFFCC00).copy(alpha = 0.6f))
+        drawContour(RIGHT_EYEBROW, Color(0xFFFFCC00).copy(alpha = 0.6f))
+
+        // Lips
+        drawContour(LIPS_OUTER, Color(0xFFFF6688).copy(alpha = 0.6f))
+        drawContour(LIPS_INNER, Color(0xFFFF6688).copy(alpha = 0.6f))
+
+        // Irises
+        drawContour(LEFT_IRIS, Color(0xFF00CCFF).copy(alpha = 0.7f))
+        drawContour(RIGHT_IRIS, Color(0xFF00CCFF).copy(alpha = 0.7f))
+
+        // Draw all 478 landmark points
+        val dotRadius = 1.2f.dp.toPx()
+        val dotColor = Color(0xFF00FF88).copy(alpha = 0.35f)
+        for (lm in landmarks) {
+            drawCircle(
+                color = dotColor,
+                radius = dotRadius,
+                center = Offset((1f - lm.x) * w, lm.y * h),
+            )
+        }
+    }
+}
+
+// MediaPipe face mesh contour indices
+// See: https://github.com/google-ai-edge/mediapipe/blob/master/mediapipe/python/solutions/face_mesh_connections.py
+
+private val FACE_OVAL = intArrayOf(
+    10, 338, 297, 332, 284, 251, 389, 356, 454, 323, 361, 288,
+    397, 365, 379, 378, 400, 377, 152, 148, 176, 149, 150, 136,
+    172, 58, 132, 93, 234, 127, 162, 21, 54, 103, 67, 109, 10,
+)
+
+private val LEFT_EYE = intArrayOf(
+    33, 7, 163, 144, 145, 153, 154, 155, 133, 173, 157, 158, 159, 160, 161, 246, 33,
+)
+
+private val RIGHT_EYE = intArrayOf(
+    362, 382, 381, 380, 374, 373, 390, 249, 263, 466, 388, 387, 386, 385, 384, 398, 362,
+)
+
+private val LEFT_EYEBROW = intArrayOf(70, 63, 105, 66, 107, 55, 65, 52, 53, 46)
+
+private val RIGHT_EYEBROW = intArrayOf(300, 293, 334, 296, 336, 285, 295, 282, 283, 276)
+
+private val LIPS_OUTER = intArrayOf(
+    61, 146, 91, 181, 84, 17, 314, 405, 321, 375, 291,
+    409, 270, 269, 267, 0, 37, 39, 40, 185, 61,
+)
+
+private val LIPS_INNER = intArrayOf(
+    78, 95, 88, 178, 87, 14, 317, 402, 318, 324, 308,
+    415, 310, 311, 312, 13, 82, 81, 80, 191, 78,
+)
+
+private val LEFT_IRIS = intArrayOf(468, 469, 470, 471, 472, 468)
+
+private val RIGHT_IRIS = intArrayOf(473, 474, 475, 476, 477, 473)

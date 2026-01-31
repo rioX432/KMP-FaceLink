@@ -18,6 +18,7 @@ import io.github.kmpfacelink.api.FaceTracker
 import io.github.kmpfacelink.api.PlatformContext
 import io.github.kmpfacelink.api.TrackingState
 import io.github.kmpfacelink.model.BlendShapeData
+import io.github.kmpfacelink.model.FaceLandmark
 import io.github.kmpfacelink.model.FaceTrackerConfig
 import io.github.kmpfacelink.model.FaceTrackingData
 import io.github.kmpfacelink.model.CameraFacing
@@ -278,9 +279,23 @@ internal class MediaPipeFaceTracker(
             HeadTransform()
         }
 
+        // Extract landmarks (478 normalized points)
+        val landmarks = if (result.faceLandmarks().isNotEmpty()) {
+            result.faceLandmarks()[0].map { landmark ->
+                FaceLandmark(
+                    x = landmark.x(),
+                    y = landmark.y(),
+                    z = landmark.z(),
+                )
+            }
+        } else {
+            emptyList()
+        }
+
         val data = FaceTrackingData(
             blendShapes = blendShapes,
             headTransform = headTransform,
+            landmarks = landmarks,
             timestampMs = timestampMs,
             isTracking = true,
         )

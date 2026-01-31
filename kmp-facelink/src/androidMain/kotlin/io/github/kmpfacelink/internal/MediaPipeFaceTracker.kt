@@ -59,6 +59,11 @@ internal class MediaPipeFaceTracker(
     private var cameraProvider: ProcessCameraProvider? = null
     private var previewSurfaceProvider: Preview.SurfaceProvider? = null
 
+    @Volatile
+    private var lastImageWidth: Int = 0
+    @Volatile
+    private var lastImageHeight: Int = 0
+
     override fun setSurfaceProvider(surfaceProvider: Preview.SurfaceProvider) {
         previewSurfaceProvider = surfaceProvider
     }
@@ -190,6 +195,10 @@ internal class MediaPipeFaceTracker(
             return
         }
 
+        // Store rotated image dimensions for landmark coordinate mapping
+        lastImageWidth = bitmap.width
+        lastImageHeight = bitmap.height
+
         val mpImage = BitmapImageBuilder(bitmap).build()
         val frameTimeMs = imageProxy.imageInfo.timestamp / 1_000 // ns → µs, but MediaPipe wants ms
         val timestampMs = System.currentTimeMillis()
@@ -296,6 +305,8 @@ internal class MediaPipeFaceTracker(
             blendShapes = blendShapes,
             headTransform = headTransform,
             landmarks = landmarks,
+            sourceImageWidth = lastImageWidth,
+            sourceImageHeight = lastImageHeight,
             timestampMs = timestampMs,
             isTracking = true,
         )

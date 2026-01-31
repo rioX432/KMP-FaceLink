@@ -154,10 +154,12 @@ private fun FaceTrackingScreen(
         }
 
         // Landmark overlay on camera preview
-        val currentLandmarks = trackingData?.takeIf { it.isTracking }?.landmarks
-        if (!currentLandmarks.isNullOrEmpty()) {
+        val currentData = trackingData?.takeIf { it.isTracking && it.landmarks.isNotEmpty() }
+        if (currentData != null) {
             LandmarkOverlay(
-                landmarks = currentLandmarks,
+                landmarks = currentData.landmarks,
+                sourceImageWidth = currentData.sourceImageWidth,
+                sourceImageHeight = currentData.sourceImageHeight,
                 modifier = Modifier.fillMaxSize(),
             )
         }
@@ -364,15 +366,44 @@ private fun BlendShapeBarRow(
 @Composable
 private fun LandmarkOverlay(
     landmarks: List<FaceLandmark>,
+    sourceImageWidth: Int,
+    sourceImageHeight: Int,
     modifier: Modifier = Modifier,
 ) {
     Canvas(modifier = modifier) {
-        val w = size.width
-        val h = size.height
+        val viewW = size.width
+        val viewH = size.height
+
+        // Calculate FILL_CENTER mapping: match PreviewView scaling behavior.
+        // PreviewView scales the camera image to fill the view (may crop).
+        if (sourceImageWidth <= 0 || sourceImageHeight <= 0) return@Canvas
+
+        val imageAspect = sourceImageWidth.toFloat() / sourceImageHeight
+        val viewAspect = viewW / viewH
+
+        // Scale factor to fill both dimensions (larger of the two)
+        val scale: Float
+        val offsetX: Float
+        val offsetY: Float
+        if (imageAspect > viewAspect) {
+            // Image is wider relative to view → crop horizontally
+            scale = viewH / sourceImageHeight
+            val renderedW = sourceImageWidth * scale
+            offsetX = (renderedW - viewW) / 2f
+            offsetY = 0f
+        } else {
+            // Image is taller relative to view → crop vertically
+            scale = viewW / sourceImageWidth
+            val renderedH = sourceImageHeight * scale
+            offsetX = 0f
+            offsetY = (renderedH - viewH) / 2f
+        }
 
         // Front camera preview is mirrored: flip x
-        fun lx(index: Int): Float = (1f - landmarks[index].x) * w
-        fun ly(index: Int): Float = landmarks[index].y * h
+        fun lx(index: Int): Float =
+            (1f - landmarks[index].x) * sourceImageWidth * scale - offsetX
+        fun ly(index: Int): Float =
+            landmarks[index].y * sourceImageHeight * scale - offsetY
 
         // Draw face mesh contour connections
         val contourColor = Color(0xFF00FF88).copy(alpha = 0.5f)
@@ -416,10 +447,12 @@ private fun LandmarkOverlay(
         val dotRadius = 1.2f.dp.toPx()
         val dotColor = Color(0xFF00FF88).copy(alpha = 0.35f)
         for (lm in landmarks) {
+            val px = (1f - lm.x) * sourceImageWidth * scale - offsetX
+            val py = lm.y * sourceImageHeight * scale - offsetY
             drawCircle(
                 color = dotColor,
                 radius = dotRadius,
-                center = Offset((1f - lm.x) * w, lm.y * h),
+                center = Offset(px, py),
             )
         }
     }

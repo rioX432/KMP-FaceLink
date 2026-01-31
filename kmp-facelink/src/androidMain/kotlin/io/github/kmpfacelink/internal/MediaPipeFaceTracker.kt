@@ -252,7 +252,7 @@ internal class MediaPipeFaceTracker(
 
     companion object {
         private const val TAG = "MediaPipeFaceTracker"
-        private const val MODEL_ASSET_PATH = "face_landmarker_v2_with_blendshapes.task"
+        private const val MODEL_ASSET_PATH = "models/face_landmarker_v2_with_blendshapes.task"
         private const val CAMERA_WIDTH = 320
         private const val CAMERA_HEIGHT = 240
     }

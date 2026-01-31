@@ -12,3 +12,6 @@ local.properties
 /sample/build
 *.hprof
 progress.txt
+
+# MediaPipe model files (downloaded at build time)
+*.task

@@ -9,9 +9,11 @@ import io.github.kmpfacelink.model.BlendShapeData
 import io.github.kmpfacelink.model.FaceTrackerConfig
 import io.github.kmpfacelink.model.FaceTrackingData
 import io.github.kmpfacelink.model.HeadTransform
+import io.github.kmpfacelink.model.SmoothingConfig
+import io.github.kmpfacelink.util.BlendShapeSmoother
 import io.github.kmpfacelink.util.Calibrator
-import io.github.kmpfacelink.util.ExponentialMovingAverage
 import io.github.kmpfacelink.util.TransformUtils
+import io.github.kmpfacelink.util.createSmoother
 import kotlinx.cinterop.FloatVar
 import kotlinx.cinterop.get
 import kotlinx.cinterop.ptr
@@ -46,7 +48,8 @@ internal class ARKitFaceTracker(
     private val _state = MutableStateFlow(TrackingState.IDLE)
     override val state: StateFlow<TrackingState> = _state.asStateFlow()
 
-    private val smoother = ExponentialMovingAverage(config.smoothingFactor)
+    @kotlin.concurrent.Volatile
+    private var smoother: BlendShapeSmoother? = config.smoothingConfig.createSmoother()
     private val calibrator = Calibrator()
 
     private var arSession: ARSession? = null
@@ -87,7 +90,11 @@ internal class ARKitFaceTracker(
 
     override fun resetCalibration() {
         calibrator.reset()
-        smoother.reset()
+        smoother?.reset()
+    }
+
+    override fun updateSmoothing(config: SmoothingConfig) {
+        smoother = config.createSmoother()
     }
 
     private fun processFaceAnchor(faceAnchor: ARFaceAnchor) {
@@ -105,9 +112,7 @@ internal class ARKitFaceTracker(
         }
 
         // Apply smoothing
-        if (config.enableSmoothing) {
-            blendShapes = smoother.smooth(blendShapes)
-        }
+        smoother?.let { blendShapes = it.smooth(blendShapes, timestampMs) }
 
         // Extract head transform from simd_float4x4
         val headTransform = extractTransform(faceAnchor)

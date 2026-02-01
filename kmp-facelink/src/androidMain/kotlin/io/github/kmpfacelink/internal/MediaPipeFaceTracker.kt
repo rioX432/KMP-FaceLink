@@ -24,9 +24,11 @@ import io.github.kmpfacelink.model.FaceLandmark
 import io.github.kmpfacelink.model.FaceTrackerConfig
 import io.github.kmpfacelink.model.FaceTrackingData
 import io.github.kmpfacelink.model.HeadTransform
+import io.github.kmpfacelink.model.SmoothingConfig
+import io.github.kmpfacelink.util.BlendShapeSmoother
 import io.github.kmpfacelink.util.Calibrator
-import io.github.kmpfacelink.util.ExponentialMovingAverage
 import io.github.kmpfacelink.util.TransformUtils
+import io.github.kmpfacelink.util.createSmoother
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -52,7 +54,8 @@ internal class MediaPipeFaceTracker(
     private val _state = MutableStateFlow(TrackingState.IDLE)
     override val state: StateFlow<TrackingState> = _state.asStateFlow()
 
-    private val smoother = ExponentialMovingAverage(config.smoothingFactor)
+    @Volatile
+    private var smoother: BlendShapeSmoother? = config.smoothingConfig.createSmoother()
     private val calibrator = Calibrator()
     private val analysisExecutor = Executors.newSingleThreadExecutor()
 
@@ -100,7 +103,11 @@ internal class MediaPipeFaceTracker(
 
     override fun resetCalibration() {
         calibrator.reset()
-        smoother.reset()
+        smoother?.reset()
+    }
+
+    override fun updateSmoothing(config: SmoothingConfig) {
+        smoother = config.createSmoother()
     }
 
     private fun initFaceLandmarker() {
@@ -281,9 +288,7 @@ internal class MediaPipeFaceTracker(
         }
 
         // Apply smoothing
-        if (config.enableSmoothing) {
-            blendShapes = smoother.smooth(blendShapes)
-        }
+        smoother?.let { blendShapes = it.smooth(blendShapes, timestampMs) }
 
         // Extract head transform
         val headTransform = if (result.facialTransformationMatrixes().isPresent &&

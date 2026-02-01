@@ -1,6 +1,7 @@
 package io.github.kmpfacelink.api
 
 import io.github.kmpfacelink.model.FaceTrackingData
+import io.github.kmpfacelink.model.SmoothingConfig
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
 
@@ -55,6 +56,13 @@ public interface FaceTracker {
      * Reset calibration data to defaults.
      */
     public fun resetCalibration()
+
+    /**
+     * Change the smoothing filter at runtime.
+     *
+     * @param config The new smoothing configuration to apply
+     */
+    public fun updateSmoothing(config: SmoothingConfig)
 }
 
 /**

@@ -11,6 +11,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.camera.view.PreviewView
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -27,10 +28,15 @@ import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.CornerRadius
@@ -56,6 +62,7 @@ import io.github.kmpfacelink.model.FaceLandmark
 import io.github.kmpfacelink.model.FaceTrackerConfig
 import io.github.kmpfacelink.model.FaceTrackingData
 import io.github.kmpfacelink.model.HeadTransform
+import io.github.kmpfacelink.model.SmoothingConfig
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 
@@ -65,8 +72,7 @@ class MainActivity : ComponentActivity() {
         createFaceTracker(
             platformContext = PlatformContext(this, this),
             config = FaceTrackerConfig(
-                enableSmoothing = true,
-                smoothingFactor = 0.4f,
+                smoothingConfig = SmoothingConfig.Ema(alpha = 0.4f),
             ),
         )
     }
@@ -169,10 +175,10 @@ private fun FaceTrackingScreen(
             TopBar(
                 state = state,
                 headTransform = trackingData?.headTransform,
-                isTracking = isTracking,
                 onStartClick = onStartClick,
                 onStopClick = onStopClick,
             )
+            SmoothingFilterChips(faceTracker = faceTracker)
 
             Spacer(modifier = Modifier.weight(1f))
 
@@ -209,10 +215,10 @@ private fun CameraPreview(previewableFaceTracker: PreviewableFaceTracker) {
 private fun TopBar(
     state: TrackingState,
     headTransform: HeadTransform?,
-    isTracking: Boolean,
     onStartClick: () -> Unit,
     onStopClick: () -> Unit,
 ) {
+    val isTracking = state == TrackingState.TRACKING
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -246,6 +252,41 @@ private fun TopBar(
             fontSize = 12.sp,
             fontFamily = FontFamily.Monospace,
         )
+    }
+}
+
+@Composable
+private fun SmoothingFilterChips(faceTracker: FaceTracker) {
+    var selectedFilter by remember { mutableStateOf("EMA") }
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(Color.Black.copy(alpha = 0.5f))
+            .padding(horizontal = 12.dp, vertical = 4.dp),
+    ) {
+        listOf("None", "EMA", "1Euro").forEach { label ->
+            FilterChip(
+                selected = selectedFilter == label,
+                onClick = {
+                    selectedFilter = label
+                    val config = when (label) {
+                        "None" -> SmoothingConfig.None
+                        "EMA" -> SmoothingConfig.Ema()
+                        "1Euro" -> SmoothingConfig.OneEuro()
+                        else -> return@FilterChip
+                    }
+                    faceTracker.updateSmoothing(config)
+                },
+                label = { Text(label, fontSize = 12.sp) },
+                colors = FilterChipDefaults.filterChipColors(
+                    containerColor = Color.White.copy(alpha = 0.15f),
+                    labelColor = Color.White,
+                    selectedContainerColor = Color.White.copy(alpha = 0.35f),
+                    selectedLabelColor = Color.White,
+                ),
+            )
+        }
     }
 }
 

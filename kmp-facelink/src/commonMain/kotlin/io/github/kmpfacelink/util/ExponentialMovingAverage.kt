@@ -11,7 +11,7 @@ import io.github.kmpfacelink.model.BlendShapeData
  *
  * @param alpha Smoothing factor (0.0–1.0). Higher = less smoothing, lower = more smoothing.
  */
-internal class ExponentialMovingAverage(private val alpha: Float = 0.5f) {
+internal class ExponentialMovingAverage(private val alpha: Float = 0.5f) : BlendShapeSmoother {
 
     private var previousValues: MutableMap<BlendShape, Float>? = null
 
@@ -36,7 +36,9 @@ internal class ExponentialMovingAverage(private val alpha: Float = 0.5f) {
         return smoothed
     }
 
-    fun reset() {
+    override fun smooth(data: BlendShapeData, timestampMs: Long): BlendShapeData = smooth(data)
+
+    override fun reset() {
         previousValues = null
     }
 }

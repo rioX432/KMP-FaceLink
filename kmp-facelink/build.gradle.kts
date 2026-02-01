@@ -1,6 +1,11 @@
 plugins {
     alias(libs.plugins.kotlin.multiplatform)
     alias(libs.plugins.android.kotlin.multiplatform.library)
+    alias(libs.plugins.dokka)
+}
+
+dokka {
+    moduleName.set("KMP-FaceLink")
 }
 
 kotlin {

@@ -4,6 +4,7 @@ plugins {
     alias(libs.plugins.android.application) apply false
     alias(libs.plugins.kotlin.android) apply false
     alias(libs.plugins.detekt)
+    alias(libs.plugins.dokka)
 }
 
 val detektFormatting = libs.detekt.formatting
@@ -17,6 +18,7 @@ detekt {
 
 dependencies {
     detektPlugins(detektFormatting)
+    dokka(project(":kmp-facelink"))
 }
 
 subprojects {

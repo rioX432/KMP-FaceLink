@@ -15,7 +15,7 @@ KMP-FaceLink is a Kotlin Multiplatform library that provides a unified face trac
 
 # Test
 ./gradlew :kmp-facelink:allTests    # Run all tests
-./gradlew :kmp-facelink:testDebugUnitTest  # Android unit tests
+./gradlew :kmp-facelink:allTests            # All platform tests
 
 # Sample app
 ./gradlew :sample:installDebug      # Install Android sample app

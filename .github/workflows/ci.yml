@@ -26,23 +26,8 @@ jobs:
 
       - run: ./gradlew detekt
 
-  test-android:
-    name: Test (Android)
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-java@v4
-        with:
-          distribution: zulu
-          java-version: 17
-
-      - uses: gradle/actions/setup-gradle@v4
-
-      - run: ./gradlew :kmp-facelink:testDebugUnitTest
-
-  test-ios:
-    name: Test (iOS)
+  test:
+    name: Test
     runs-on: macos-15
     steps:
       - uses: actions/checkout@v4
@@ -60,7 +45,7 @@ jobs:
           key: konan-${{ runner.os }}-${{ hashFiles('gradle/libs.versions.toml') }}
           restore-keys: konan-${{ runner.os }}-
 
-      - run: ./gradlew :kmp-facelink:iosSimulatorArm64Test
+      - run: ./gradlew :kmp-facelink:allTests
 
   build:
     name: Build
@@ -75,4 +60,4 @@ jobs:
 
       - uses: gradle/actions/setup-gradle@v4
 
-      - run: ./gradlew :kmp-facelink:assembleDebug :sample:assembleDebug
+      - run: ./gradlew :kmp-facelink:assemble :sample:assembleDebug

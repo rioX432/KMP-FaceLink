@@ -8,6 +8,7 @@ androidxCore = "1.16.0"
 androidxLifecycle = "2.9.0"
 composeBom = "2025.12.00"
 activityCompose = "1.9.3"
+detekt = "1.23.8"
 
 [libraries]
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines" }
@@ -21,6 +22,7 @@ androidx-lifecycle-runtime = { module = "androidx.lifecycle:lifecycle-runtime-kt
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
 compose-bom = { module = "androidx.compose:compose-bom", version.ref = "composeBom" }
 activity-compose = { module = "androidx.activity:activity-compose", version.ref = "activityCompose" }
+detekt-formatting = { module = "io.gitlab.arturbosch.detekt:detekt-formatting", version.ref = "detekt" }
 
 [plugins]
 kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
@@ -28,3 +30,4 @@ android-kotlin-multiplatform-library = { id = "com.android.kotlin.multiplatform.
 android-application = { id = "com.android.application", version.ref = "agp" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }

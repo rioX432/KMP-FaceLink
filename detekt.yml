@@ -1,0 +1,54 @@
+complexity:
+  TooManyFunctions:
+    active: true
+    thresholdInClasses: 15
+    thresholdInFiles: 15
+
+exceptions:
+  TooGenericExceptionCaught:
+    active: true
+    allowedExceptionNameRegex: '_|(ignore|expected).*'
+    exceptionNames:
+      - 'ArrayIndexOutOfBoundsException'
+      - 'Error'
+      - 'IllegalMonitorStateException'
+      - 'IndexOutOfBoundsException'
+      - 'NullPointerException'
+      - 'RuntimeException'
+      - 'Throwable'
+    # Exception is used intentionally when wrapping platform APIs (CameraX, MediaPipe)
+
+naming:
+  FunctionNaming:
+    active: true
+    functionPattern: '[a-z][a-zA-Z0-9]*'
+    ignoreAnnotated:
+      - 'Composable'
+
+style:
+  ReturnCount:
+    active: true
+    max: 5
+  MaxLineLength:
+    active: true
+    maxLineLength: 150
+    excludeCommentStatements: true
+  MagicNumber:
+    active: true
+    ignoreNumbers:
+      - '-1'
+      - '0'
+      - '1'
+      - '2'
+      - '16'
+      - '1000'
+    ignoreAnnotated:
+      - 'Composable'
+    ignoreEnums: true
+    ignorePropertyDeclaration: true
+    ignoreLocalVariableDeclaration: true
+    ignoreCompanionObjectPropertyDeclaration: true
+    ignoreNamedArgument: true
+  LoopWithTooManyJumpStatements:
+    active: true
+    maxJumpCount: 2

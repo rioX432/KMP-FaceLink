@@ -26,10 +26,14 @@ internal object TransformUtils {
     fun fromMatrix(matrix: FloatArray): HeadTransform {
         require(matrix.size == 16) { "Matrix must have 16 elements, got ${matrix.size}" }
 
-        // Rotation matrix elements
-        val r00 = matrix[0]; val r01 = matrix[4]; val r02 = matrix[8]
-        val r10 = matrix[1]; val r11 = matrix[5]; val r12 = matrix[9]
-        val r20 = matrix[2]; val r21 = matrix[6]; val r22 = matrix[10]
+        // Rotation matrix elements (column-major)
+        val r00 = matrix[0]
+        val r10 = matrix[1]
+        val r20 = matrix[2]
+        val r11 = matrix[5]
+        val r12 = matrix[9]
+        val r21 = matrix[6]
+        val r22 = matrix[10]
 
         // Euler angle extraction (ZYX convention)
         val sy = sqrt(r00 * r00 + r10 * r10)

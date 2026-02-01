@@ -166,7 +166,9 @@ internal class ARKitFaceTracker(
     }
 
     private companion object {
+        private const val MS_PER_SECOND = 1000
+
         fun currentTimeMillis(): Long =
-            (NSDate().timeIntervalSince1970 * 1000).toLong()
+            (NSDate().timeIntervalSince1970 * MS_PER_SECOND).toLong()
     }
 }

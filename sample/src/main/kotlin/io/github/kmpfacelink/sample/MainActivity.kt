@@ -37,7 +37,6 @@ import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.font.FontFamily
@@ -237,7 +236,7 @@ private fun TopBar(
         }
         val ht = headTransform
         val headText = if (ht != null) {
-            String.format("P=%.1f  Y=%.1f  R=%.1f", ht.pitch, ht.yaw, ht.roll)
+            String.format(java.util.Locale.US, "P=%.1f  Y=%.1f  R=%.1f", ht.pitch, ht.yaw, ht.roll)
         } else {
             "P=0.0  Y=0.0  R=0.0"
         }

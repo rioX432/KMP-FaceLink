@@ -19,10 +19,10 @@ import io.github.kmpfacelink.api.FaceTracker
 import io.github.kmpfacelink.api.PlatformContext
 import io.github.kmpfacelink.api.TrackingState
 import io.github.kmpfacelink.model.BlendShapeData
+import io.github.kmpfacelink.model.CameraFacing
 import io.github.kmpfacelink.model.FaceLandmark
 import io.github.kmpfacelink.model.FaceTrackerConfig
 import io.github.kmpfacelink.model.FaceTrackingData
-import io.github.kmpfacelink.model.CameraFacing
 import io.github.kmpfacelink.model.HeadTransform
 import io.github.kmpfacelink.util.Calibrator
 import io.github.kmpfacelink.util.ExponentialMovingAverage
@@ -62,6 +62,7 @@ internal class MediaPipeFaceTracker(
 
     @Volatile
     private var lastImageWidth: Int = 0
+
     @Volatile
     private var lastImageHeight: Int = 0
 
@@ -204,7 +205,6 @@ internal class MediaPipeFaceTracker(
         lastImageHeight = bitmap.height
 
         val mpImage = BitmapImageBuilder(bitmap).build()
-        val frameTimeMs = imageProxy.imageInfo.timestamp / 1_000 // ns → µs, but MediaPipe wants ms
         val timestampMs = System.currentTimeMillis()
 
         try {
@@ -257,7 +257,11 @@ internal class MediaPipeFaceTracker(
         }
     }
 
-    private fun onFaceLandmarkerResult(result: FaceLandmarkerResult, input: com.google.mediapipe.framework.image.MPImage) {
+    @Suppress("UnusedParameter")
+    private fun onFaceLandmarkerResult(
+        result: FaceLandmarkerResult,
+        input: com.google.mediapipe.framework.image.MPImage,
+    ) {
         val timestampMs = System.currentTimeMillis()
 
         if (!result.faceBlendshapes().isPresent || result.faceBlendshapes().get().isEmpty()) {

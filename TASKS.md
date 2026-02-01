@@ -15,7 +15,7 @@ GitHub Issues と連動したタスクリスト。
 
 | # | Issue | Status | Summary |
 |---|-------|--------|---------|
-| 3 | [One Euro Filter](https://github.com/rioX432/KMP-FaceLink/issues/3) | TODO | 適応的スムージングフィルタ追加 |
+| 3 | [One Euro Filter](https://github.com/rioX432/KMP-FaceLink/issues/3) | DONE | 適応的スムージングフィルタ追加 |
 | 9 | [MediaPipe blend shape accuracy](https://github.com/rioX432/KMP-FaceLink/issues/9) | TODO | 低精度パラメータ改善 |
 | 12 | [Thread safety](https://github.com/rioX432/KMP-FaceLink/issues/12) | TODO | 並行処理の安全性強化 |
 

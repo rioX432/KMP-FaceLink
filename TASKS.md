@@ -8,7 +8,7 @@ GitHub Issues と連動したタスクリスト。
 | # | Issue | Status | Summary |
 |---|-------|--------|---------|
 | 5 | [CI/CD with GitHub Actions](https://github.com/rioX432/KMP-FaceLink/issues/5) | DONE | GitHub Actions CI + detekt 導入 |
-| 10 | [KDoc API documentation](https://github.com/rioX432/KMP-FaceLink/issues/10) | TODO | Dokka + 全 public API の KDoc |
+| 10 | [KDoc API documentation](https://github.com/rioX432/KMP-FaceLink/issues/10) | DONE | Dokka + 全 public API の KDoc |
 | 4 | [Publish to Maven Central](https://github.com/rioX432/KMP-FaceLink/issues/4) | TODO | maven-publish + XCFramework 配布 |
 
 ## Face Tracking 改善

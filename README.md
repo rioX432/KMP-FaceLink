@@ -45,6 +45,10 @@ Provides a unified set of facial parameters including:
 - **Jaw**: open, forward, left/right
 - **Head**: rotation (pitch, yaw, roll) + position (x, y, z)
 
+## Documentation
+
+API documentation is available at **[riox432.github.io/KMP-FaceLink](https://riox432.github.io/KMP-FaceLink/)**.
+
 ## Tech Stack
 
 - Kotlin Multiplatform (KMP)

@@ -3,6 +3,7 @@ package io.github.kmpfacelink.internal
 import android.graphics.Bitmap
 import android.graphics.Matrix
 import android.util.Log
+import androidx.camera.core.AspectRatio
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.ImageProxy
@@ -18,6 +19,7 @@ import io.github.kmpfacelink.api.FaceTracker
 import io.github.kmpfacelink.api.PlatformContext
 import io.github.kmpfacelink.api.TrackingState
 import io.github.kmpfacelink.model.BlendShapeData
+import io.github.kmpfacelink.model.FaceLandmark
 import io.github.kmpfacelink.model.FaceTrackerConfig
 import io.github.kmpfacelink.model.FaceTrackingData
 import io.github.kmpfacelink.model.CameraFacing
@@ -39,7 +41,7 @@ import kotlin.coroutines.resumeWithException
 internal class MediaPipeFaceTracker(
     private val platformContext: PlatformContext,
     private val config: FaceTrackerConfig,
-) : FaceTracker {
+) : FaceTracker, PreviewableFaceTracker {
 
     private val _trackingData = MutableSharedFlow<FaceTrackingData>(
         replay = 1,
@@ -56,6 +58,16 @@ internal class MediaPipeFaceTracker(
 
     private var faceLandmarker: FaceLandmarker? = null
     private var cameraProvider: ProcessCameraProvider? = null
+    private var previewSurfaceProvider: Preview.SurfaceProvider? = null
+
+    @Volatile
+    private var lastImageWidth: Int = 0
+    @Volatile
+    private var lastImageHeight: Int = 0
+
+    override fun setSurfaceProvider(surfaceProvider: Preview.SurfaceProvider) {
+        previewSurfaceProvider = surfaceProvider
+    }
 
     override suspend fun start() {
         if (_state.value == TrackingState.TRACKING || _state.value == TrackingState.STARTING) return
@@ -135,11 +147,28 @@ internal class MediaPipeFaceTracker(
             }
 
         provider.unbindAll()
-        provider.bindToLifecycle(
-            platformContext.lifecycleOwner,
-            cameraSelector,
-            imageAnalysis,
-        )
+
+        val surfaceProvider = previewSurfaceProvider
+        if (surfaceProvider != null) {
+            @Suppress("DEPRECATION")
+            val preview = Preview.Builder()
+                .setTargetAspectRatio(AspectRatio.RATIO_4_3)
+                .build().also {
+                    it.surfaceProvider = surfaceProvider
+                }
+            provider.bindToLifecycle(
+                platformContext.lifecycleOwner,
+                cameraSelector,
+                preview,
+                imageAnalysis,
+            )
+        } else {
+            provider.bindToLifecycle(
+                platformContext.lifecycleOwner,
+                cameraSelector,
+                imageAnalysis,
+            )
+        }
     }
 
     private suspend fun getCameraProvider(): ProcessCameraProvider =
@@ -170,6 +199,10 @@ internal class MediaPipeFaceTracker(
             return
         }
 
+        // Store rotated image dimensions for landmark coordinate mapping
+        lastImageWidth = bitmap.width
+        lastImageHeight = bitmap.height
+
         val mpImage = BitmapImageBuilder(bitmap).build()
         val frameTimeMs = imageProxy.imageInfo.timestamp / 1_000 // ns → µs, but MediaPipe wants ms
         val timestampMs = System.currentTimeMillis()
@@ -184,16 +217,35 @@ internal class MediaPipeFaceTracker(
     }
 
     private fun imageProxyToBitmap(imageProxy: ImageProxy): Bitmap? {
-        val buffer = imageProxy.planes[0].buffer
-        val bytes = ByteArray(buffer.remaining())
-        buffer.get(bytes)
+        val plane = imageProxy.planes[0]
+        val buffer = plane.buffer
+        val width = imageProxy.width
+        val height = imageProxy.height
+        val rowStride = plane.rowStride
+        val pixelStride = plane.pixelStride // 4 for RGBA_8888
+        val expectedRowBytes = width * pixelStride
 
-        val bitmap = Bitmap.createBitmap(
-            imageProxy.width,
-            imageProxy.height,
-            Bitmap.Config.ARGB_8888,
-        )
-        bitmap.copyPixelsFromBuffer(java.nio.ByteBuffer.wrap(bytes))
+        val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+
+        if (rowStride == expectedRowBytes) {
+            // No row padding — copy directly
+            buffer.rewind()
+            bitmap.copyPixelsFromBuffer(buffer)
+        } else {
+            // Row padding present — repack without padding.
+            // Buffer layout: rows 0..N-2 have rowStride bytes each,
+            // last row has only expectedRowBytes (no trailing padding).
+            val packed = java.nio.ByteBuffer.allocateDirect(expectedRowBytes * height)
+            val rowData = ByteArray(rowStride)
+            buffer.rewind()
+            for (y in 0 until height) {
+                val bytesToRead = if (y < height - 1) rowStride else expectedRowBytes
+                buffer.get(rowData, 0, bytesToRead)
+                packed.put(rowData, 0, expectedRowBytes)
+            }
+            packed.rewind()
+            bitmap.copyPixelsFromBuffer(packed)
+        }
 
         // Apply rotation
         val rotationDegrees = imageProxy.imageInfo.rotationDegrees
@@ -208,7 +260,7 @@ internal class MediaPipeFaceTracker(
     private fun onFaceLandmarkerResult(result: FaceLandmarkerResult, input: com.google.mediapipe.framework.image.MPImage) {
         val timestampMs = System.currentTimeMillis()
 
-        if (result.faceBlendshapes().isEmpty || result.faceBlendshapes().get().isEmpty()) {
+        if (!result.faceBlendshapes().isPresent || result.faceBlendshapes().get().isEmpty()) {
             _trackingData.tryEmit(FaceTrackingData.notTracking(timestampMs))
             return
         }
@@ -240,9 +292,25 @@ internal class MediaPipeFaceTracker(
             HeadTransform()
         }
 
+        // Extract landmarks (478 normalized points)
+        val landmarks = if (result.faceLandmarks().isNotEmpty()) {
+            result.faceLandmarks()[0].map { landmark ->
+                FaceLandmark(
+                    x = landmark.x(),
+                    y = landmark.y(),
+                    z = landmark.z(),
+                )
+            }
+        } else {
+            emptyList()
+        }
+
         val data = FaceTrackingData(
             blendShapes = blendShapes,
             headTransform = headTransform,
+            landmarks = landmarks,
+            sourceImageWidth = lastImageWidth,
+            sourceImageHeight = lastImageHeight,
             timestampMs = timestampMs,
             isTracking = true,
         )

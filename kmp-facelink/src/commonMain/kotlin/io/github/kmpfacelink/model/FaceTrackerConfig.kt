@@ -9,11 +9,16 @@ package io.github.kmpfacelink.model
  *           Deprecated — use [smoothingConfig] instead.
  * @property smoothingFactor Exponential moving average factor (0.0–1.0).
  *           Deprecated — use [smoothingConfig] instead.
+ * @property enhancerConfig Blend shape enhancer configuration for improving low-accuracy
+ *           MediaPipe parameters using geometric landmark calculations.
+ *           Defaults to [BlendShapeEnhancerConfig.Default]. Use [BlendShapeEnhancerConfig.None]
+ *           to disable. Has no effect on iOS (ARKit).
  * @property enableCalibration Enable per-session calibration (default: false)
  * @property cameraFacing Which camera to use
  */
 public data class FaceTrackerConfig(
     val smoothingConfig: SmoothingConfig = SmoothingConfig.Ema(),
+    val enhancerConfig: BlendShapeEnhancerConfig = BlendShapeEnhancerConfig.Default(),
     @Deprecated("Use smoothingConfig instead", replaceWith = ReplaceWith("smoothingConfig"))
     val enableSmoothing: Boolean = true,
     @Deprecated("Use smoothingConfig instead", replaceWith = ReplaceWith("smoothingConfig"))

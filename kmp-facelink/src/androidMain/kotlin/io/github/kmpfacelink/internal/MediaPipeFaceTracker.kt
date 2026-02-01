@@ -25,6 +25,7 @@ import io.github.kmpfacelink.model.FaceTrackerConfig
 import io.github.kmpfacelink.model.FaceTrackingData
 import io.github.kmpfacelink.model.HeadTransform
 import io.github.kmpfacelink.model.SmoothingConfig
+import io.github.kmpfacelink.util.BlendShapeEnhancer
 import io.github.kmpfacelink.util.BlendShapeSmoother
 import io.github.kmpfacelink.util.Calibrator
 import io.github.kmpfacelink.util.TransformUtils
@@ -56,6 +57,7 @@ internal class MediaPipeFaceTracker(
 
     @Volatile
     private var smoother: BlendShapeSmoother? = config.smoothingConfig.createSmoother()
+    private val enhancer: BlendShapeEnhancer? = BlendShapeEnhancer.create(config.enhancerConfig)
     private val calibrator = Calibrator()
     private val analysisExecutor = Executors.newSingleThreadExecutor()
 
@@ -276,11 +278,27 @@ internal class MediaPipeFaceTracker(
             return
         }
 
+        // Extract landmarks (478 normalized points) — needed for enhancer
+        val landmarks = if (result.faceLandmarks().isNotEmpty()) {
+            result.faceLandmarks()[0].map { landmark ->
+                FaceLandmark(
+                    x = landmark.x(),
+                    y = landmark.y(),
+                    z = landmark.z(),
+                )
+            }
+        } else {
+            emptyList()
+        }
+
         // Extract blend shapes
         val categories = result.faceBlendshapes().get()[0].map { category ->
             category.categoryName() to category.score()
         }
         var blendShapes: BlendShapeData = BlendShapeMapper.mapFromMediaPipe(categories)
+
+        // Enhance low-accuracy blend shapes using geometric landmark calculations
+        enhancer?.let { blendShapes = it.enhance(blendShapes, landmarks) }
 
         // Apply calibration
         if (config.enableCalibration) {
@@ -299,19 +317,6 @@ internal class MediaPipeFaceTracker(
             TransformUtils.fromMatrix(flatMatrix)
         } else {
             HeadTransform()
-        }
-
-        // Extract landmarks (478 normalized points)
-        val landmarks = if (result.faceLandmarks().isNotEmpty()) {
-            result.faceLandmarks()[0].map { landmark ->
-                FaceLandmark(
-                    x = landmark.x(),
-                    y = landmark.y(),
-                    z = landmark.z(),
-                )
-            }
-        } else {
-            emptyList()
         }
 
         val data = FaceTrackingData(

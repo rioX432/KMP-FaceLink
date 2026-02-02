@@ -34,6 +34,7 @@ class FaceTrackingViewModel: ObservableObject {
     @Published var isTracking = false
 
     private var tracker: FaceTracker?
+    private var observeTasks: [Task<Void, Never>] = []
 
     init() {
         let config = FaceTrackerConfig(
@@ -68,6 +69,7 @@ class FaceTrackingViewModel: ObservableObject {
 
     private func stopTracking() {
         guard let tracker = tracker else { return }
+        cancelObserveTasks()
         Task {
             try await tracker.stop()
             isTracking = false
@@ -76,12 +78,46 @@ class FaceTrackingViewModel: ObservableObject {
     }
 
     private func observeData() {
-        // Note: Collecting Kotlin Flow from Swift requires
-        // SKIE or a Flow wrapper. This is a simplified example.
-        // In production, use SKIE or a custom CFlow wrapper.
+        guard let tracker = tracker else { return }
+
+        let dataTask = Task { [weak self] in
+            for await data in tracker.trackingData {
+                guard let self, !Task.isCancelled else { break }
+                let head = data.headTransform
+                self.headRotationText = String(
+                    format: "Head: P=%.1f Y=%.1f R=%.1f",
+                    head.pitch, head.yaw, head.roll
+                )
+                let lines = data.blendShapes.sorted { $0.key.name < $1.key.name }
+                    .map { "\($0.key.arKitName): \(String(format: "%.3f", $0.value.floatValue))" }
+                self.blendShapesText = lines.joined(separator: "\n")
+            }
+        }
+
+        let stateTask = Task { [weak self] in
+            for await state in tracker.state {
+                guard let self, !Task.isCancelled else { break }
+                switch state {
+                case .idle: self.statusText = "Idle"
+                case .starting: self.statusText = "Starting..."
+                case .tracking: self.statusText = "Tracking"
+                case .stopped: self.statusText = "Stopped"
+                case .error: self.statusText = "Error"
+                default: self.statusText = "Unknown"
+                }
+            }
+        }
+
+        observeTasks = [dataTask, stateTask]
+    }
+
+    private func cancelObserveTasks() {
+        observeTasks.forEach { $0.cancel() }
+        observeTasks = []
     }
 
     deinit {
+        cancelObserveTasks()
         tracker?.release()
     }
 }

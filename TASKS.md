@@ -22,7 +22,7 @@ GitHub Issues と連動したタスクリスト。
 
 | # | Issue | Status | Summary |
 |---|-------|--------|---------|
-| 11 | [SKIE plugin](https://github.com/rioX432/KMP-FaceLink/issues/11) | TODO | Swift-Kotlin Flow interop |
+| 11 | [SKIE plugin](https://github.com/rioX432/KMP-FaceLink/issues/11) | DONE | Swift-Kotlin Flow interop |
 | 2 | [iOS sample app](https://github.com/rioX432/KMP-FaceLink/issues/2) | TODO | Xcode プロジェクト構築 |
 
 ## Multi-Tracking（将来）

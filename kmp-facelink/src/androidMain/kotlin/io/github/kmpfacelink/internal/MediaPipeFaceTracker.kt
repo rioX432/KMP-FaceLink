@@ -28,8 +28,10 @@ import io.github.kmpfacelink.model.SmoothingConfig
 import io.github.kmpfacelink.util.BlendShapeEnhancer
 import io.github.kmpfacelink.util.BlendShapeSmoother
 import io.github.kmpfacelink.util.Calibrator
+import io.github.kmpfacelink.util.PlatformLock
 import io.github.kmpfacelink.util.TransformUtils
 import io.github.kmpfacelink.util.createSmoother
+import io.github.kmpfacelink.util.withLock
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -38,9 +40,12 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.suspendCancellableCoroutine
 import java.util.concurrent.Executors
+import kotlin.concurrent.atomics.AtomicInt
+import kotlin.concurrent.atomics.ExperimentalAtomicApi
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 
+@OptIn(ExperimentalAtomicApi::class)
 internal class MediaPipeFaceTracker(
     private val platformContext: PlatformContext,
     private val config: FaceTrackerConfig,
@@ -55,7 +60,9 @@ internal class MediaPipeFaceTracker(
     private val _state = MutableStateFlow(TrackingState.IDLE)
     override val state: StateFlow<TrackingState> = _state.asStateFlow()
 
-    @Volatile
+    private val pipelineLock = PlatformLock()
+    private val released = AtomicInt(0)
+
     private var smoother: BlendShapeSmoother? = config.smoothingConfig.createSmoother()
     private val enhancer: BlendShapeEnhancer? = BlendShapeEnhancer.create(config.enhancerConfig)
     private val calibrator = Calibrator()
@@ -76,8 +83,11 @@ internal class MediaPipeFaceTracker(
     }
 
     override suspend fun start() {
-        if (_state.value == TrackingState.TRACKING || _state.value == TrackingState.STARTING) return
-        _state.value = TrackingState.STARTING
+        pipelineLock.withLock {
+            check(released.load() == 0) { "Cannot start a released tracker" }
+            if (_state.value == TrackingState.TRACKING || _state.value == TrackingState.STARTING) return
+            _state.value = TrackingState.STARTING
+        }
 
         try {
             initFaceLandmarker()
@@ -96,20 +106,27 @@ internal class MediaPipeFaceTracker(
     }
 
     override fun release() {
-        cameraProvider?.unbindAll()
-        faceLandmarker?.close()
-        faceLandmarker = null
-        analysisExecutor.shutdown()
-        _state.value = TrackingState.STOPPED
+        released.store(1)
+        pipelineLock.withLock {
+            cameraProvider?.unbindAll()
+            faceLandmarker?.close()
+            faceLandmarker = null
+            analysisExecutor.shutdown()
+            _state.value = TrackingState.STOPPED
+        }
     }
 
     override fun resetCalibration() {
-        calibrator.reset()
-        smoother?.reset()
+        pipelineLock.withLock {
+            calibrator.reset()
+            smoother?.reset()
+        }
     }
 
     override fun updateSmoothing(config: SmoothingConfig) {
-        smoother = config.createSmoother()
+        pipelineLock.withLock {
+            smoother = config.createSmoother()
+        }
     }
 
     private fun initFaceLandmarker() {
@@ -297,16 +314,23 @@ internal class MediaPipeFaceTracker(
         }
         var blendShapes: BlendShapeData = BlendShapeMapper.mapFromMediaPipe(categories)
 
-        // Enhance low-accuracy blend shapes using geometric landmark calculations
-        enhancer?.let { blendShapes = it.enhance(blendShapes, landmarks) }
+        // Pipeline: enhance → calibrate → smooth (protected by lock)
+        val processedBlendShapes = pipelineLock.withLock {
+            if (released.load() != 0) return
 
-        // Apply calibration
-        if (config.enableCalibration) {
-            blendShapes = calibrator.calibrate(blendShapes)
+            // Enhance low-accuracy blend shapes using geometric landmark calculations
+            enhancer?.let { blendShapes = it.enhance(blendShapes, landmarks) }
+
+            // Apply calibration
+            if (config.enableCalibration) {
+                blendShapes = calibrator.calibrate(blendShapes)
+            }
+
+            // Apply smoothing
+            smoother?.let { blendShapes = it.smooth(blendShapes, timestampMs) }
+
+            blendShapes
         }
-
-        // Apply smoothing
-        smoother?.let { blendShapes = it.smooth(blendShapes, timestampMs) }
 
         // Extract head transform
         val headTransform = if (result.facialTransformationMatrixes().isPresent &&
@@ -320,7 +344,7 @@ internal class MediaPipeFaceTracker(
         }
 
         val data = FaceTrackingData(
-            blendShapes = blendShapes,
+            blendShapes = processedBlendShapes,
             headTransform = headTransform,
             landmarks = landmarks,
             sourceImageWidth = lastImageWidth,

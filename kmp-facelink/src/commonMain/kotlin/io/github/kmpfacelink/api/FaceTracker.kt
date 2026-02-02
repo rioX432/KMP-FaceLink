@@ -12,6 +12,15 @@ import kotlinx.coroutines.flow.StateFlow
  * - Android: MediaPipe Face Landmarker + CameraX
  * - iOS: ARKit ARFaceTrackingConfiguration
  *
+ * ## Threading model
+ *
+ * - [trackingData] and [state] are safe to collect from any thread.
+ * - [start] and [stop] are suspend functions intended to be called from the main thread.
+ * - [updateSmoothing], [resetCalibration], and [release] are thread-safe and can be called
+ *   from any thread. Internally, the processing pipeline and mutation methods share a single
+ *   lock to ensure data consistency.
+ * - Calling any method after [release] throws [IllegalStateException].
+ *
  * Usage:
  * ```kotlin
  * val tracker = FaceTracker.create(config)

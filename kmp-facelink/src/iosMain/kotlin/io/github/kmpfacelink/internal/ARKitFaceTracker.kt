@@ -12,8 +12,10 @@ import io.github.kmpfacelink.model.HeadTransform
 import io.github.kmpfacelink.model.SmoothingConfig
 import io.github.kmpfacelink.util.BlendShapeSmoother
 import io.github.kmpfacelink.util.Calibrator
+import io.github.kmpfacelink.util.PlatformLock
 import io.github.kmpfacelink.util.TransformUtils
 import io.github.kmpfacelink.util.createSmoother
+import io.github.kmpfacelink.util.withLock
 import kotlinx.cinterop.FloatVar
 import kotlinx.cinterop.get
 import kotlinx.cinterop.ptr
@@ -34,7 +36,10 @@ import platform.Foundation.NSError
 import platform.Foundation.NSNumber
 import platform.Foundation.timeIntervalSince1970
 import platform.darwin.NSObject
+import kotlin.concurrent.atomics.AtomicInt
+import kotlin.concurrent.atomics.ExperimentalAtomicApi
 
+@OptIn(ExperimentalAtomicApi::class)
 internal class ARKitFaceTracker(
     private val config: FaceTrackerConfig,
 ) : FaceTracker {
@@ -48,7 +53,9 @@ internal class ARKitFaceTracker(
     private val _state = MutableStateFlow(TrackingState.IDLE)
     override val state: StateFlow<TrackingState> = _state.asStateFlow()
 
-    @kotlin.concurrent.Volatile
+    private val pipelineLock = PlatformLock()
+    private val released = AtomicInt(0)
+
     private var smoother: BlendShapeSmoother? = config.smoothingConfig.createSmoother()
     private val calibrator = Calibrator()
 
@@ -56,8 +63,11 @@ internal class ARKitFaceTracker(
     private val sessionDelegate = FaceTrackingDelegate()
 
     override suspend fun start() {
-        if (_state.value == TrackingState.TRACKING || _state.value == TrackingState.STARTING) return
-        _state.value = TrackingState.STARTING
+        pipelineLock.withLock {
+            check(released.load() == 0) { "Cannot start a released tracker" }
+            if (_state.value == TrackingState.TRACKING || _state.value == TrackingState.STARTING) return
+            _state.value = TrackingState.STARTING
+        }
 
         if (!ARFaceTrackingConfiguration.isSupported) {
             _state.value = TrackingState.ERROR
@@ -82,19 +92,26 @@ internal class ARKitFaceTracker(
     }
 
     override fun release() {
-        arSession?.pause()
-        arSession?.delegate = null
-        arSession = null
-        _state.value = TrackingState.STOPPED
+        released.store(1)
+        pipelineLock.withLock {
+            arSession?.pause()
+            arSession?.delegate = null
+            arSession = null
+            _state.value = TrackingState.STOPPED
+        }
     }
 
     override fun resetCalibration() {
-        calibrator.reset()
-        smoother?.reset()
+        pipelineLock.withLock {
+            calibrator.reset()
+            smoother?.reset()
+        }
     }
 
     override fun updateSmoothing(config: SmoothingConfig) {
-        smoother = config.createSmoother()
+        pipelineLock.withLock {
+            smoother = config.createSmoother()
+        }
     }
 
     private fun processFaceAnchor(faceAnchor: ARFaceAnchor) {
@@ -106,19 +123,26 @@ internal class ARKitFaceTracker(
         val rawBlendShapes = faceAnchor.blendShapes as? Map<String, NSNumber> ?: emptyMap()
         var blendShapes: BlendShapeData = mapARKitBlendShapes(rawBlendShapes)
 
-        // Apply calibration
-        if (config.enableCalibration) {
-            blendShapes = calibrator.calibrate(blendShapes)
-        }
+        // Pipeline: calibrate → smooth (protected by lock)
+        val processedBlendShapes = pipelineLock.withLock {
+            if (released.load() != 0) return
 
-        // Apply smoothing
-        smoother?.let { blendShapes = it.smooth(blendShapes, timestampMs) }
+            // Apply calibration
+            if (config.enableCalibration) {
+                blendShapes = calibrator.calibrate(blendShapes)
+            }
+
+            // Apply smoothing
+            smoother?.let { blendShapes = it.smooth(blendShapes, timestampMs) }
+
+            blendShapes
+        }
 
         // Extract head transform from simd_float4x4
         val headTransform = extractTransform(faceAnchor)
 
         val data = FaceTrackingData(
-            blendShapes = blendShapes,
+            blendShapes = processedBlendShapes,
             headTransform = headTransform,
             timestampMs = timestampMs,
             isTracking = true,

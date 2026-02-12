@@ -22,7 +22,7 @@ Thank you for your interest in contributing! This guide will help you get starte
 ./gradlew :kmp-facelink:build
 
 # Android sample app
-./gradlew :sample:installDebug
+./gradlew :androidApp:installDebug
 ```
 
 ## Code Style

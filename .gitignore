@@ -9,7 +9,7 @@
 .cxx
 local.properties
 /kmp-facelink/build
-/sample/build
+/androidApp/build
 *.hprof
 .kotlin/
 progress.txt

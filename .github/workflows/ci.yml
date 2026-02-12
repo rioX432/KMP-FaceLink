@@ -60,4 +60,4 @@ jobs:
 
       - uses: gradle/actions/setup-gradle@v4
 
-      - run: ./gradlew :kmp-facelink:assemble :sample:assembleDebug
+      - run: ./gradlew :kmp-facelink:assemble :androidApp:assembleDebug

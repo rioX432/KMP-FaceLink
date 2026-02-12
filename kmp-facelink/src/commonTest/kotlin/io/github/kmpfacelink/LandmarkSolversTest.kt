@@ -208,18 +208,46 @@ class LandmarkSolversTest {
     @Test
     fun mouthDimple_neutral_low() {
         val lm = neutralFace()
-        val value = LandmarkSolvers.solveMouthDimpleLeft(lm)
-        assertInRange(value, 0f, 0.5f)
+        val left = LandmarkSolvers.solveMouthDimpleLeft(lm)
+        val right = LandmarkSolvers.solveMouthDimpleRight(lm)
+        assertInRange(left, 0f, 0.5f)
+        assertInRange(right, 0f, 0.5f)
     }
 
     @Test
-    fun mouthDimple_pulled_highValue() {
+    fun mouthDimple_symmetric_equalValues() {
         val lm = neutralFace().toMutableList()
-        // Pull mouth corners outward
+        // Pull both corners outward equally
         lm[61] = FaceLandmark(0.40f, 0.60f, -0.02f)
         lm[291] = FaceLandmark(0.60f, 0.60f, -0.02f)
-        val value = LandmarkSolvers.solveMouthDimpleLeft(lm)
-        assertTrue(value > 0.2f, "Pulled mouth corners should produce higher value, got $value")
+        val left = LandmarkSolvers.solveMouthDimpleLeft(lm)
+        val right = LandmarkSolvers.solveMouthDimpleRight(lm)
+        assertApprox(left, right, 0.01f)
+        assertTrue(left > 0.2f, "Pulled mouth corners should produce higher value, got $left")
+    }
+
+    @Test
+    fun mouthDimple_asymmetric_differentValues() {
+        val lm = neutralFace().toMutableList()
+        // Pull only left corner outward (lower X), keep right corner neutral
+        lm[61] = FaceLandmark(0.42f, 0.60f, -0.02f)
+        // lm[291] stays at 0.56f (neutral)
+        val left = LandmarkSolvers.solveMouthDimpleLeft(lm)
+        val right = LandmarkSolvers.solveMouthDimpleRight(lm)
+        assertTrue(
+            left > right,
+            "Left dimple should be greater than right when only left is pulled, " +
+                "left=$left, right=$right",
+        )
+    }
+
+    @Test
+    fun mouthDimpleRight_pulled_highValue() {
+        val lm = neutralFace().toMutableList()
+        // Pull only right corner outward (higher X)
+        lm[291] = FaceLandmark(0.62f, 0.60f, -0.02f)
+        val right = LandmarkSolvers.solveMouthDimpleRight(lm)
+        assertTrue(right > 0.2f, "Pulled right corner should produce higher value, got $right")
     }
 
     // ── Edge cases ──
@@ -234,5 +262,6 @@ class LandmarkSolversTest {
         assertApprox(0f, LandmarkSolvers.solveJawLeft(lm), 0.01f)
         assertApprox(0f, LandmarkSolvers.solveCheekPuff(lm), 0.01f)
         assertApprox(0f, LandmarkSolvers.solveMouthDimpleLeft(lm), 0.01f)
+        assertApprox(0f, LandmarkSolvers.solveMouthDimpleRight(lm), 0.01f)
     }
 }

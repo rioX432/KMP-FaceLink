@@ -1,7 +1,5 @@
 package io.github.kmpfacelink.internal
 
-import android.graphics.Bitmap
-import android.graphics.Matrix
 import android.util.Log
 import androidx.camera.core.AspectRatio
 import androidx.camera.core.CameraSelector
@@ -225,42 +223,6 @@ internal class MediaPipeHandTracker(
         }
 
         imageProxy.close()
-    }
-
-    private fun imageProxyToBitmap(imageProxy: ImageProxy): Bitmap? {
-        val plane = imageProxy.planes[0]
-        val buffer = plane.buffer
-        val width = imageProxy.width
-        val height = imageProxy.height
-        val rowStride = plane.rowStride
-        val pixelStride = plane.pixelStride
-        val expectedRowBytes = width * pixelStride
-
-        val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
-
-        if (rowStride == expectedRowBytes) {
-            buffer.rewind()
-            bitmap.copyPixelsFromBuffer(buffer)
-        } else {
-            val packed = java.nio.ByteBuffer.allocateDirect(expectedRowBytes * height)
-            val rowData = ByteArray(rowStride)
-            buffer.rewind()
-            for (y in 0 until height) {
-                val bytesToRead = if (y < height - 1) rowStride else expectedRowBytes
-                buffer.get(rowData, 0, bytesToRead)
-                packed.put(rowData, 0, expectedRowBytes)
-            }
-            packed.rewind()
-            bitmap.copyPixelsFromBuffer(packed)
-        }
-
-        val rotationDegrees = imageProxy.imageInfo.rotationDegrees
-        return if (rotationDegrees != 0) {
-            val matrix = Matrix().apply { postRotate(rotationDegrees.toFloat()) }
-            Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true)
-        } else {
-            bitmap
-        }
     }
 
     @Suppress("UnusedParameter")

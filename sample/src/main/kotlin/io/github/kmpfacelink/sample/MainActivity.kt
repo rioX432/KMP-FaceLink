@@ -792,28 +792,17 @@ private fun FaceLandmarkOverlay(
 
         if (sourceImageWidth <= 0 || sourceImageHeight <= 0) return@Canvas
 
-        val imageAspect = sourceImageWidth.toFloat() / sourceImageHeight
-        val viewAspect = viewW / viewH
+        // FILL_CENTER mapping: scale to fill the view, center the overflow.
+        // Uses max() so the image covers both dimensions (matching PreviewView).
+        val scaleFactor = maxOf(viewW / sourceImageWidth, viewH / sourceImageHeight)
+        val offsetX = (viewW - sourceImageWidth * scaleFactor) / 2f
+        val offsetY = (viewH - sourceImageHeight * scaleFactor) / 2f
 
-        val scale: Float
-        val offsetX: Float
-        val offsetY: Float
-        if (imageAspect > viewAspect) {
-            scale = viewH / sourceImageHeight
-            val renderedW = sourceImageWidth * scale
-            offsetX = (renderedW - viewW) / 2f
-            offsetY = 0f
-        } else {
-            scale = viewW / sourceImageWidth
-            val renderedH = sourceImageHeight * scale
-            offsetX = 0f
-            offsetY = (renderedH - viewH) / 2f
-        }
-
+        // No x-flip needed: image is pre-mirrored before MediaPipe processing
         fun lx(index: Int): Float =
-            landmarks[index].x * sourceImageWidth * scale - offsetX
+            landmarks[index].x * sourceImageWidth * scaleFactor + offsetX
         fun ly(index: Int): Float =
-            landmarks[index].y * sourceImageHeight * scale - offsetY
+            landmarks[index].y * sourceImageHeight * scaleFactor + offsetY
 
         val contourColor = Color(0xFF00FF88).copy(alpha = 0.5f)
         val contourStroke = 1.dp.toPx()
@@ -846,8 +835,8 @@ private fun FaceLandmarkOverlay(
         val dotRadius = 1.2f.dp.toPx()
         val dotColor = Color(0xFF00FF88).copy(alpha = 0.35f)
         for (lm in landmarks) {
-            val px = lm.x * sourceImageWidth * scale - offsetX
-            val py = lm.y * sourceImageHeight * scale - offsetY
+            val px = lm.x * sourceImageWidth * scaleFactor + offsetX
+            val py = lm.y * sourceImageHeight * scaleFactor + offsetY
             drawCircle(
                 color = dotColor,
                 radius = dotRadius,

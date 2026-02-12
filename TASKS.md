@@ -17,6 +17,7 @@ On completion, update status to `DONE` and close the corresponding GitHub Issue.
 | 3 | [One Euro Filter](https://github.com/rioX432/KMP-FaceLink/issues/3) | DONE | Adaptive smoothing filter |
 | 9 | [MediaPipe blend shape accuracy](https://github.com/rioX432/KMP-FaceLink/issues/9) | DONE | Improve low-accuracy parameters |
 | 12 | [Thread safety](https://github.com/rioX432/KMP-FaceLink/issues/12) | DONE | Concurrency safety improvements |
+| 20 | [Landmark overlay alignment](https://github.com/rioX432/KMP-FaceLink/issues/20) | DONE | Fix overlay-preview coordinate mismatch |
 
 ## iOS
 

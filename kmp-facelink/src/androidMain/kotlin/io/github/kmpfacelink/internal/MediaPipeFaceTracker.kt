@@ -1,14 +1,12 @@
 package io.github.kmpfacelink.internal
 
 import android.util.Log
-import android.util.Size
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.ImageProxy
 import androidx.camera.core.Preview
 import androidx.camera.core.resolutionselector.AspectRatioStrategy
 import androidx.camera.core.resolutionselector.ResolutionSelector
-import androidx.camera.core.resolutionselector.ResolutionStrategy
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.content.ContextCompat
 import com.google.mediapipe.framework.image.BitmapImageBuilder
@@ -178,8 +176,12 @@ internal class MediaPipeFaceTracker(
             CameraFacing.BACK -> CameraSelector.DEFAULT_BACK_CAMERA
         }
 
+        val resolutionSelector = ResolutionSelector.Builder()
+            .setAspectRatioStrategy(AspectRatioStrategy.RATIO_4_3_FALLBACK_AUTO_STRATEGY)
+            .build()
+
         val imageAnalysis = ImageAnalysis.Builder()
-            .setResolutionSelector(buildAnalysisResolutionSelector())
+            .setResolutionSelector(resolutionSelector)
             .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
             .setOutputImageFormat(ImageAnalysis.OUTPUT_IMAGE_FORMAT_RGBA_8888)
             .build()
@@ -190,7 +192,7 @@ internal class MediaPipeFaceTracker(
         val surfaceProvider = previewSurfaceProvider
         if (surfaceProvider != null) {
             val preview = Preview.Builder()
-                .setResolutionSelector(buildPreviewResolutionSelector())
+                .setResolutionSelector(resolutionSelector)
                 .build().also { it.surfaceProvider = surfaceProvider }
             provider.bindToLifecycle(
                 platformContext.lifecycleOwner,
@@ -206,32 +208,6 @@ internal class MediaPipeFaceTracker(
             )
         }
     }
-
-    private fun buildAnalysisResolutionSelector(): ResolutionSelector =
-        ResolutionSelector.Builder()
-            .setAspectRatioStrategy(
-                AspectRatioStrategy(
-                    androidx.camera.core.AspectRatio.RATIO_4_3,
-                    AspectRatioStrategy.FALLBACK_RULE_AUTO,
-                ),
-            )
-            .setResolutionStrategy(
-                ResolutionStrategy(
-                    Size(CAMERA_WIDTH, CAMERA_HEIGHT),
-                    ResolutionStrategy.FALLBACK_RULE_CLOSEST_HIGHER_THEN_LOWER,
-                ),
-            )
-            .build()
-
-    private fun buildPreviewResolutionSelector(): ResolutionSelector =
-        ResolutionSelector.Builder()
-            .setAspectRatioStrategy(
-                AspectRatioStrategy(
-                    androidx.camera.core.AspectRatio.RATIO_4_3,
-                    AspectRatioStrategy.FALLBACK_RULE_AUTO,
-                ),
-            )
-            .build()
 
     private suspend fun getCameraProvider(): ProcessCameraProvider =
         suspendCancellableCoroutine { cont ->
@@ -353,7 +329,5 @@ internal class MediaPipeFaceTracker(
     companion object {
         private const val TAG = "MediaPipeFaceTracker"
         private const val MODEL_ASSET_PATH = "models/face_landmarker_v2_with_blendshapes.task"
-        private const val CAMERA_WIDTH = 320
-        private const val CAMERA_HEIGHT = 240
     }
 }

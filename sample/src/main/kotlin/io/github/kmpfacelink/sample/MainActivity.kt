@@ -492,7 +492,7 @@ private fun HandLandmarkOverlay(
         fun pos(joint: HandJoint): Offset? {
             val lm = landmarkMap[joint] ?: return null
             // Front camera preview is mirrored: flip x
-            val px = (1f - lm.x) * sourceImageWidth * scale - offsetX
+            val px = lm.x * sourceImageWidth * scale - offsetX
             val py = lm.y * sourceImageHeight * scale - offsetY
             return Offset(px, py)
         }
@@ -811,7 +811,7 @@ private fun FaceLandmarkOverlay(
         }
 
         fun lx(index: Int): Float =
-            (1f - landmarks[index].x) * sourceImageWidth * scale - offsetX
+            landmarks[index].x * sourceImageWidth * scale - offsetX
         fun ly(index: Int): Float =
             landmarks[index].y * sourceImageHeight * scale - offsetY
 
@@ -846,7 +846,7 @@ private fun FaceLandmarkOverlay(
         val dotRadius = 1.2f.dp.toPx()
         val dotColor = Color(0xFF00FF88).copy(alpha = 0.35f)
         for (lm in landmarks) {
-            val px = (1f - lm.x) * sourceImageWidth * scale - offsetX
+            val px = lm.x * sourceImageWidth * scale - offsetX
             val py = lm.y * sourceImageHeight * scale - offsetY
             drawCircle(
                 color = dotColor,

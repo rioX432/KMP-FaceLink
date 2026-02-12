@@ -1,15 +1,19 @@
 package io.github.kmpfacelink.internal
 
 import android.util.Log
-import androidx.camera.core.AspectRatio
+import android.util.Size
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.ImageProxy
 import androidx.camera.core.Preview
+import androidx.camera.core.resolutionselector.AspectRatioStrategy
+import androidx.camera.core.resolutionselector.ResolutionSelector
+import androidx.camera.core.resolutionselector.ResolutionStrategy
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.content.ContextCompat
 import com.google.mediapipe.framework.image.BitmapImageBuilder
 import com.google.mediapipe.tasks.core.BaseOptions
+import com.google.mediapipe.tasks.core.Delegate
 import com.google.mediapipe.tasks.vision.core.RunningMode
 import com.google.mediapipe.tasks.vision.handlandmarker.HandLandmarker
 import com.google.mediapipe.tasks.vision.handlandmarker.HandLandmarkerResult
@@ -60,6 +64,7 @@ internal class MediaPipeHandTracker(
     private var smoother: HandLandmarkSmoother? = config.smoothingConfig.createHandSmoother()
     private val isFrontCamera = config.cameraFacing == CameraFacing.FRONT
     private val analysisExecutor = Executors.newSingleThreadExecutor()
+    private val imageConverter = ImageProxyConverter()
 
     private var handLandmarker: HandLandmarker? = null
     private var cameraProvider: ProcessCameraProvider? = null
@@ -104,6 +109,7 @@ internal class MediaPipeHandTracker(
             cameraProvider?.unbindAll()
             handLandmarker?.close()
             handLandmarker = null
+            imageConverter.release()
             analysisExecutor.shutdown()
             _state.value = TrackingState.STOPPED
         }
@@ -115,9 +121,21 @@ internal class MediaPipeHandTracker(
         }
     }
 
+    @Suppress("TooGenericExceptionCaught") // MediaPipe GPU delegate throws RuntimeException
     private fun initHandLandmarker() {
+        // Try GPU delegate first, fall back to CPU on failure
+        handLandmarker = try {
+            createLandmarker(Delegate.GPU)
+        } catch (e: RuntimeException) {
+            Log.w(TAG, "GPU delegate unavailable, falling back to CPU", e)
+            createLandmarker(Delegate.CPU)
+        }
+    }
+
+    private fun createLandmarker(delegate: Delegate): HandLandmarker {
         val baseOptions = BaseOptions.builder()
             .setModelAssetPath(MODEL_ASSET_PATH)
+            .setDelegate(delegate)
             .build()
 
         val options = HandLandmarker.HandLandmarkerOptions.builder()
@@ -133,7 +151,7 @@ internal class MediaPipeHandTracker(
             }
             .build()
 
-        handLandmarker = HandLandmarker.createFromOptions(platformContext.context, options)
+        return HandLandmarker.createFromOptions(platformContext.context, options)
     }
 
     private suspend fun startCamera() {
@@ -145,28 +163,20 @@ internal class MediaPipeHandTracker(
             CameraFacing.BACK -> CameraSelector.DEFAULT_BACK_CAMERA
         }
 
-        @Suppress("DEPRECATION")
         val imageAnalysis = ImageAnalysis.Builder()
-            .setTargetResolution(android.util.Size(CAMERA_WIDTH, CAMERA_HEIGHT))
+            .setResolutionSelector(buildAnalysisResolutionSelector())
             .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
             .setOutputImageFormat(ImageAnalysis.OUTPUT_IMAGE_FORMAT_RGBA_8888)
             .build()
-            .also { analysis ->
-                analysis.setAnalyzer(analysisExecutor) { imageProxy ->
-                    processFrame(imageProxy)
-                }
-            }
+            .also { it.setAnalyzer(analysisExecutor, ::processFrame) }
 
         provider.unbindAll()
 
         val surfaceProvider = previewSurfaceProvider
         if (surfaceProvider != null) {
-            @Suppress("DEPRECATION")
             val preview = Preview.Builder()
-                .setTargetAspectRatio(AspectRatio.RATIO_4_3)
-                .build().also {
-                    it.surfaceProvider = surfaceProvider
-                }
+                .setResolutionSelector(buildPreviewResolutionSelector())
+                .build().also { it.surfaceProvider = surfaceProvider }
             provider.bindToLifecycle(
                 platformContext.lifecycleOwner,
                 cameraSelector,
@@ -181,6 +191,32 @@ internal class MediaPipeHandTracker(
             )
         }
     }
+
+    private fun buildAnalysisResolutionSelector(): ResolutionSelector =
+        ResolutionSelector.Builder()
+            .setAspectRatioStrategy(
+                AspectRatioStrategy(
+                    androidx.camera.core.AspectRatio.RATIO_4_3,
+                    AspectRatioStrategy.FALLBACK_RULE_AUTO,
+                ),
+            )
+            .setResolutionStrategy(
+                ResolutionStrategy(
+                    Size(CAMERA_WIDTH, CAMERA_HEIGHT),
+                    ResolutionStrategy.FALLBACK_RULE_CLOSEST_HIGHER_THEN_LOWER,
+                ),
+            )
+            .build()
+
+    private fun buildPreviewResolutionSelector(): ResolutionSelector =
+        ResolutionSelector.Builder()
+            .setAspectRatioStrategy(
+                AspectRatioStrategy(
+                    androidx.camera.core.AspectRatio.RATIO_4_3,
+                    AspectRatioStrategy.FALLBACK_RULE_AUTO,
+                ),
+            )
+            .build()
 
     private suspend fun getCameraProvider(): ProcessCameraProvider =
         suspendCancellableCoroutine { cont ->
@@ -204,7 +240,7 @@ internal class MediaPipeHandTracker(
             return
         }
 
-        val bitmap = imageProxyToBitmap(imageProxy)
+        val bitmap = imageConverter.convert(imageProxy, mirrorHorizontally = isFrontCamera)
         if (bitmap == null) {
             imageProxy.close()
             return

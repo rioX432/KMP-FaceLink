@@ -17,27 +17,21 @@ internal object HandLandmarkMapper {
 
     /**
      * Map MediaPipe handedness category name to [Handedness].
-     * MediaPipe reports handedness from the camera's perspective,
-     * so for front camera we flip: "Left" → RIGHT, "Right" → LEFT.
+     *
+     * The image is pre-mirrored before MediaPipe processing for the front camera,
+     * so MediaPipe sees an already-mirrored image and reports the correct handedness
+     * from the user's perspective. No flip is needed.
      *
      * @param categoryName MediaPipe handedness string ("Left" or "Right")
-     * @param isFrontCamera Whether the front camera is active
+     * @param isFrontCamera Retained for API compatibility (unused after pre-mirror)
      */
-    fun mapHandedness(categoryName: String, isFrontCamera: Boolean): Handedness {
-        val raw = when (categoryName) {
+    @Suppress("UNUSED_PARAMETER")
+    fun mapHandedness(categoryName: String, isFrontCamera: Boolean): Handedness =
+        when (categoryName) {
             "Left" -> Handedness.LEFT
             "Right" -> Handedness.RIGHT
             else -> Handedness.UNKNOWN
         }
-
-        // Front camera shows a mirrored image, so MediaPipe reports
-        // the hand as seen (mirrored). Flip to get the actual hand.
-        return if (isFrontCamera && raw != Handedness.UNKNOWN) {
-            if (raw == Handedness.LEFT) Handedness.RIGHT else Handedness.LEFT
-        } else {
-            raw
-        }
-    }
 
     /**
      * Convert a list of MediaPipe normalized landmarks to [HandLandmarkPoint] list.

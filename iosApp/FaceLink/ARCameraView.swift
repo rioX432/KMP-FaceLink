@@ -2,10 +2,15 @@ import SwiftUI
 import ARKit
 import SceneKit
 
-/// SwiftUI wrapper for ARSCNView that displays camera preview with face mesh overlay
+/// SwiftUI wrapper for ARSCNView that displays camera preview with face mesh overlay.
+///
+/// When an external `ARSession` is provided (from `ARKitFaceTracker.getARSession()`),
+/// the view uses that session instead of creating its own — avoiding dual-session
+/// conflicts on the TrueDepth camera.
 struct ARCameraView: UIViewRepresentable {
     @Binding var isRunning: Bool
     @Binding var showLandmarks: Bool
+    var externalSession: ARSession?
 
     func makeUIView(context: Context) -> ARSCNView {
         let sceneView = ARSCNView()
@@ -13,11 +18,20 @@ struct ARCameraView: UIViewRepresentable {
         sceneView.automaticallyUpdatesLighting = true
         sceneView.showsStatistics = false
         context.coordinator.sceneView = sceneView
+
+        // If an external session is provided, use it instead of the default one
+        if let session = externalSession {
+            sceneView.session = session
+        }
+
         return sceneView
     }
 
     func updateUIView(_ sceneView: ARSCNView, context: Context) {
         context.coordinator.showLandmarks = showLandmarks
+
+        // When using an external session, the tracker controls start/stop — nothing to do here.
+        if externalSession != nil { return }
 
         if isRunning {
             startSession(sceneView)
@@ -32,8 +46,8 @@ struct ARCameraView: UIViewRepresentable {
 
     private func startSession(_ sceneView: ARSCNView) {
         guard ARFaceTrackingConfiguration.isSupported else { return }
-        guard sceneView.session.configuration == nil else { return }
 
+        // Allow restart after pause (removed the configuration==nil guard that blocked restarts)
         let configuration = ARFaceTrackingConfiguration()
         configuration.isLightEstimationEnabled = true
         configuration.maximumNumberOfTrackedFaces = 1
@@ -84,6 +98,6 @@ struct ARCameraView: UIViewRepresentable {
 }
 
 #Preview {
-    ARCameraView(isRunning: .constant(true), showLandmarks: .constant(true))
+    ARCameraView(isRunning: .constant(true), showLandmarks: .constant(true), externalSession: nil)
         .ignoresSafeArea()
 }

@@ -5,10 +5,6 @@ package io.github.kmpfacelink.model
  *
  * @property smoothingConfig Smoothing filter configuration. Use [SmoothingConfig.None],
  *           [SmoothingConfig.Ema], or [SmoothingConfig.OneEuro].
- * @property enableSmoothing Apply temporal smoothing to reduce jitter (default: true).
- *           Deprecated — use [smoothingConfig] instead.
- * @property smoothingFactor Exponential moving average factor (0.0–1.0).
- *           Deprecated — use [smoothingConfig] instead.
  * @property enhancerConfig Blend shape enhancer configuration for improving low-accuracy
  *           MediaPipe parameters using geometric landmark calculations.
  *           Defaults to [BlendShapeEnhancerConfig.Default]. Use [BlendShapeEnhancerConfig.None]
@@ -19,10 +15,6 @@ package io.github.kmpfacelink.model
 public data class FaceTrackerConfig(
     val smoothingConfig: SmoothingConfig = SmoothingConfig.Ema(),
     val enhancerConfig: BlendShapeEnhancerConfig = BlendShapeEnhancerConfig.Default(),
-    @Deprecated("Use smoothingConfig instead", replaceWith = ReplaceWith("smoothingConfig"))
-    val enableSmoothing: Boolean = true,
-    @Deprecated("Use smoothingConfig instead", replaceWith = ReplaceWith("smoothingConfig"))
-    val smoothingFactor: Float = 0.5f,
     val enableCalibration: Boolean = false,
     val cameraFacing: CameraFacing = CameraFacing.FRONT,
 )
@@ -38,7 +30,11 @@ public sealed class SmoothingConfig {
      * Exponential Moving Average filter.
      * @param alpha Smoothing factor (0.0–1.0). Higher = less smoothing.
      */
-    public data class Ema(val alpha: Float = 0.5f) : SmoothingConfig()
+    public data class Ema(val alpha: Float = 0.5f) : SmoothingConfig() {
+        init {
+            require(alpha in 0f..1f) { "alpha must be in 0.0..1.0, was $alpha" }
+        }
+    }
 
     /**
      * One Euro adaptive low-pass filter.

@@ -1,14 +1,10 @@
 package io.github.kmpfacelink.internal
 
+import android.os.SystemClock
 import android.util.Log
-import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.ImageProxy
 import androidx.camera.core.Preview
-import androidx.camera.core.resolutionselector.AspectRatioStrategy
-import androidx.camera.core.resolutionselector.ResolutionSelector
-import androidx.camera.lifecycle.ProcessCameraProvider
-import androidx.core.content.ContextCompat
 import com.google.mediapipe.framework.image.BitmapImageBuilder
 import com.google.mediapipe.tasks.core.BaseOptions
 import com.google.mediapipe.tasks.core.Delegate
@@ -38,12 +34,9 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.suspendCancellableCoroutine
 import java.util.concurrent.Executors
 import kotlin.concurrent.atomics.AtomicInt
 import kotlin.concurrent.atomics.ExperimentalAtomicApi
-import kotlin.coroutines.resume
-import kotlin.coroutines.resumeWithException
 
 @OptIn(ExperimentalAtomicApi::class)
 internal class MediaPipeFaceTracker(
@@ -68,10 +61,10 @@ internal class MediaPipeFaceTracker(
     private val calibrator = Calibrator()
     private val analysisExecutor = Executors.newSingleThreadExecutor()
     private val imageConverter = ImageProxyConverter()
+    private val cameraManager = CameraXManager(platformContext)
     private val isFrontCamera = config.cameraFacing == CameraFacing.FRONT
 
     private var faceLandmarker: FaceLandmarker? = null
-    private var cameraProvider: ProcessCameraProvider? = null
     private var previewSurfaceProvider: Preview.SurfaceProvider? = null
 
     @Volatile
@@ -103,24 +96,29 @@ internal class MediaPipeFaceTracker(
     }
 
     override suspend fun stop() {
-        cameraProvider?.unbindAll()
-        _state.value = TrackingState.STOPPED
+        pipelineLock.withLock {
+            cameraManager.unbindAll()
+            faceLandmarker?.close()
+            faceLandmarker = null
+            _state.value = TrackingState.STOPPED
+        }
     }
 
     override fun release() {
         released.store(1)
         pipelineLock.withLock {
-            cameraProvider?.unbindAll()
+            cameraManager.unbindAll()
             faceLandmarker?.close()
             faceLandmarker = null
             imageConverter.release()
             analysisExecutor.shutdown()
-            _state.value = TrackingState.STOPPED
+            _state.value = TrackingState.RELEASED
         }
     }
 
     override fun resetCalibration() {
         pipelineLock.withLock {
+            check(released.load() == 0) { "Cannot reset calibration on a released tracker" }
             calibrator.reset()
             smoother?.reset()
         }
@@ -128,6 +126,7 @@ internal class MediaPipeFaceTracker(
 
     override fun updateSmoothing(config: SmoothingConfig) {
         pipelineLock.withLock {
+            check(released.load() == 0) { "Cannot update smoothing on a released tracker" }
             smoother = config.createSmoother()
         }
     }
@@ -168,61 +167,19 @@ internal class MediaPipeFaceTracker(
     }
 
     private suspend fun startCamera() {
-        val provider = getCameraProvider()
-        cameraProvider = provider
-
-        val cameraSelector = when (config.cameraFacing) {
-            CameraFacing.FRONT -> CameraSelector.DEFAULT_FRONT_CAMERA
-            CameraFacing.BACK -> CameraSelector.DEFAULT_BACK_CAMERA
-        }
-
-        val resolutionSelector = ResolutionSelector.Builder()
-            .setAspectRatioStrategy(AspectRatioStrategy.RATIO_4_3_FALLBACK_AUTO_STRATEGY)
-            .build()
-
         val imageAnalysis = ImageAnalysis.Builder()
-            .setResolutionSelector(resolutionSelector)
+            .setResolutionSelector(CameraXManager.buildAnalysisResolutionSelector())
             .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
             .setOutputImageFormat(ImageAnalysis.OUTPUT_IMAGE_FORMAT_RGBA_8888)
             .build()
             .also { it.setAnalyzer(analysisExecutor, ::processFrame) }
 
-        provider.unbindAll()
-
-        val surfaceProvider = previewSurfaceProvider
-        if (surfaceProvider != null) {
-            val preview = Preview.Builder()
-                .setResolutionSelector(resolutionSelector)
-                .build().also { it.surfaceProvider = surfaceProvider }
-            provider.bindToLifecycle(
-                platformContext.lifecycleOwner,
-                cameraSelector,
-                preview,
-                imageAnalysis,
-            )
-        } else {
-            provider.bindToLifecycle(
-                platformContext.lifecycleOwner,
-                cameraSelector,
-                imageAnalysis,
-            )
-        }
+        cameraManager.startCamera(
+            cameraFacing = config.cameraFacing,
+            imageAnalysis = imageAnalysis,
+            surfaceProvider = previewSurfaceProvider,
+        )
     }
-
-    private suspend fun getCameraProvider(): ProcessCameraProvider =
-        suspendCancellableCoroutine { cont ->
-            val future = ProcessCameraProvider.getInstance(platformContext.context)
-            future.addListener(
-                {
-                    try {
-                        cont.resume(future.get())
-                    } catch (e: Exception) {
-                        cont.resumeWithException(e)
-                    }
-                },
-                ContextCompat.getMainExecutor(platformContext.context),
-            )
-        }
 
     private fun processFrame(imageProxy: ImageProxy) {
         val landmarker = faceLandmarker
@@ -242,7 +199,7 @@ internal class MediaPipeFaceTracker(
         lastImageHeight = bitmap.height
 
         val mpImage = BitmapImageBuilder(bitmap).build()
-        val timestampMs = System.currentTimeMillis()
+        val timestampMs = SystemClock.elapsedRealtime()
 
         try {
             landmarker.detectAsync(mpImage, timestampMs)
@@ -250,6 +207,8 @@ internal class MediaPipeFaceTracker(
             Log.w(TAG, "detectAsync failed", e)
         }
 
+        // Return bitmap to pool after detectAsync (MediaPipe copies data internally)
+        imageConverter.returnBitmap(bitmap)
         imageProxy.close()
     }
 
@@ -258,7 +217,7 @@ internal class MediaPipeFaceTracker(
         result: FaceLandmarkerResult,
         input: com.google.mediapipe.framework.image.MPImage,
     ) {
-        val timestampMs = System.currentTimeMillis()
+        val timestampMs = SystemClock.elapsedRealtime()
 
         if (!result.faceBlendshapes().isPresent || result.faceBlendshapes().get().isEmpty()) {
             _trackingData.tryEmit(FaceTrackingData.notTracking(timestampMs))

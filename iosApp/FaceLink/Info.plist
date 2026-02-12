@@ -24,7 +24,6 @@
 	<dict/>
 	<key>UIRequiredDeviceCapabilities</key>
 	<array>
-		<string>arkit</string>
 		<string>front-facing-camera</string>
 	</array>
 </dict>

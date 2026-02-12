@@ -40,6 +40,8 @@ import platform.AVFoundation.position
 import platform.CoreMedia.CMSampleBufferGetImageBuffer
 import platform.CoreMedia.CMSampleBufferRef
 import platform.CoreMedia.CMTimeMake
+import platform.CoreVideo.CVPixelBufferGetHeight
+import platform.CoreVideo.CVPixelBufferGetWidth
 import platform.CoreVideo.kCVPixelBufferPixelFormatTypeKey
 import platform.CoreVideo.kCVPixelFormatType_420YpCbCr8BiPlanarFullRange
 import platform.Foundation.NSDate
@@ -97,7 +99,10 @@ internal class VisionHandTracker(
         }
 
         try {
-            setupCaptureSession()
+            // Reuse existing capture session on restart, or create a new one
+            if (captureSession == null) {
+                setupCaptureSession()
+            }
             captureSession?.startRunning()
             _state.value = TrackingState.TRACKING
         } catch (e: Exception) {
@@ -107,8 +112,10 @@ internal class VisionHandTracker(
     }
 
     override suspend fun stop() {
-        captureSession?.stopRunning()
-        _state.value = TrackingState.STOPPED
+        pipelineLock.withLock {
+            captureSession?.stopRunning()
+            _state.value = TrackingState.STOPPED
+        }
     }
 
     override fun release() {
@@ -116,12 +123,13 @@ internal class VisionHandTracker(
         pipelineLock.withLock {
             captureSession?.stopRunning()
             captureSession = null
-            _state.value = TrackingState.STOPPED
+            _state.value = TrackingState.RELEASED
         }
     }
 
     override fun updateSmoothing(config: SmoothingConfig) {
         pipelineLock.withLock {
+            check(released.load() == 0) { "Cannot update smoothing on a released tracker" }
             smoother = config.createHandSmoother()
         }
     }
@@ -174,7 +182,15 @@ internal class VisionHandTracker(
     }
 
     private fun configureCameraFrameRate(device: AVCaptureDevice) {
-        device.lockForConfiguration(null)
+        @Suppress("SwallowedException")
+        val locked = try {
+            device.lockForConfiguration(null)
+            true
+        } catch (_: Exception) {
+            false
+        }
+        if (!locked) return
+
         val frameDuration = CMTimeMake(value = 1, timescale = TARGET_FPS)
         device.setActiveVideoMinFrameDuration(frameDuration)
         device.setActiveVideoMaxFrameDuration(frameDuration)
@@ -192,6 +208,10 @@ internal class VisionHandTracker(
             val pixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) ?: return
             val timestampMs = currentTimeMillis()
 
+            // Get source image dimensions from pixel buffer
+            val imageWidth = CVPixelBufferGetWidth(pixelBuffer).toInt()
+            val imageHeight = CVPixelBufferGetHeight(pixelBuffer).toInt()
+
             val observations = detectHands(pixelBuffer, timestampMs) ?: return
 
             var hands = observations.map { observation -> mapObservation(observation) }
@@ -206,6 +226,8 @@ internal class VisionHandTracker(
             _trackingData.tryEmit(
                 HandTrackingData(
                     hands = processedHands,
+                    sourceImageWidth = imageWidth,
+                    sourceImageHeight = imageHeight,
                     timestampMs = timestampMs,
                     isTracking = true,
                 ),

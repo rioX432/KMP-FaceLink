@@ -1,4 +1,5 @@
 import SwiftUI
+import ARKit
 import KMPFaceLink
 
 enum TrackingMode: String, CaseIterable {
@@ -42,9 +43,13 @@ struct FaceTrackingContentView: View {
 
     var body: some View {
         ZStack {
-            // Camera preview background
-            ARCameraView(isRunning: $viewModel.isTracking, showLandmarks: $showLandmarks)
-                .ignoresSafeArea()
+            // Camera preview — uses tracker's ARSession to avoid dual-session conflict
+            ARCameraView(
+                isRunning: $viewModel.isTracking,
+                showLandmarks: $showLandmarks,
+                externalSession: viewModel.arSession
+            )
+            .ignoresSafeArea()
 
             // Tracking overlay
             VStack {
@@ -181,6 +186,7 @@ class FaceTrackingViewModel: ObservableObject {
     @Published var headRotationText = "P: 0.0  Y: 0.0  R: 0.0"
     @Published var blendShapesText = "Tap Start to begin tracking..."
     @Published var isTracking = false
+    @Published var arSession: ARSession?
 
     private var tracker: FaceTracker?
     private var observeTasks: [Task<Void, Never>] = []
@@ -194,8 +200,6 @@ class FaceTrackingViewModel: ObservableObject {
                 deadZoneOverrides: companion.defaultDeadZoneMap,
                 geometricBlendWeight: 0.7
             ),
-            enableSmoothing: true,
-            smoothingFactor: 0.4,
             enableCalibration: false,
             cameraFacing: .front
         )
@@ -221,6 +225,7 @@ class FaceTrackingViewModel: ObservableObject {
         guard let tracker = tracker else { return }
         Task {
             try await tracker.start()
+            arSession = FaceTrackerARSessionKt.getARSession(tracker)
             isTracking = true
             statusText = "Tracking"
             observeData()
@@ -263,6 +268,7 @@ class FaceTrackingViewModel: ObservableObject {
                 case .tracking: self.statusText = "Tracking"
                 case .stopped: self.statusText = "Stopped"
                 case .error: self.statusText = "Error"
+                case .released: self.statusText = "Released"
                 default: self.statusText = "Unknown"
                 }
             }

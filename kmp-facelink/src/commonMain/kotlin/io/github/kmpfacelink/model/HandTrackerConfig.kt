@@ -13,4 +13,8 @@ public data class HandTrackerConfig(
     val maxHands: Int = 2,
     val enableGestureRecognition: Boolean = true,
     val cameraFacing: CameraFacing = CameraFacing.FRONT,
-)
+) {
+    init {
+        require(maxHands in 1..2) { "maxHands must be 1 or 2, was $maxHands" }
+    }
+}

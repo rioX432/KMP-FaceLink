@@ -92,4 +92,7 @@ public enum class TrackingState {
 
     /** Unrecoverable error occurred */
     ERROR,
+
+    /** Resources released — tracker cannot be used */
+    RELEASED,
 }

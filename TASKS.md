@@ -37,6 +37,16 @@ On completion, update status to `DONE` and close the corresponding GitHub Issue.
 | 7 | [Body tracking (Phase 3)](https://github.com/rioX432/KMP-FaceLink/issues/7) | TODO | Pose estimation |
 | 8 | [Holistic tracking (Phase 4)](https://github.com/rioX432/KMP-FaceLink/issues/8) | TODO | Face + Hands + Body integration |
 
+## Technology Improvements
+
+| # | Issue | Status | Summary |
+|---|-------|--------|---------|
+| 34 | [Update MediaPipe to v0.10.32](https://github.com/rioX432/KMP-FaceLink/issues/34) | TODO | Dependency update + regression testing |
+| 35 | [Increase Android camera resolution](https://github.com/rioX432/KMP-FaceLink/issues/35) | TODO | Higher input resolution for better detection |
+| 36 | [Improve geometric blend shape solvers](https://github.com/rioX432/KMP-FaceLink/issues/36) | TODO | Per-side solvers, near-zero tuning |
+| 37 | [Investigate N-euro Predictor](https://github.com/rioX432/KMP-FaceLink/issues/37) | TODO | Neural smoothing filter research |
+| 38 | [Evaluate MediaPipe Holistic Landmarker](https://github.com/rioX432/KMP-FaceLink/issues/38) | TODO | Single pipeline for Face + Hand + Pose |
+
 ## Publishing (Last)
 
 | # | Issue | Status | Summary |

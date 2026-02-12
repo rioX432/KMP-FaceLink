@@ -17,6 +17,7 @@ import io.github.kmpfacelink.util.TransformUtils
 import io.github.kmpfacelink.util.createSmoother
 import io.github.kmpfacelink.util.withLock
 import kotlinx.cinterop.FloatVar
+import kotlinx.cinterop.ObjCSignatureOverride
 import kotlinx.cinterop.get
 import kotlinx.cinterop.ptr
 import kotlinx.cinterop.reinterpret
@@ -59,7 +60,15 @@ internal class ARKitFaceTracker(
     private var smoother: BlendShapeSmoother? = config.smoothingConfig.createSmoother()
     private val calibrator = Calibrator()
 
-    private var arSession: ARSession? = null
+    // Initial capacity hint for blend shape map to avoid rehashing
+    private val blendShapeMapCapacity = BlendShape.entries.size
+
+    /**
+     * The underlying ARSession, exposed for camera preview sharing.
+     * Only non-null after [start] has been called.
+     */
+    internal var arSession: ARSession? = null
+        private set
     private val sessionDelegate = FaceTrackingDelegate()
 
     override suspend fun start() {
@@ -74,9 +83,11 @@ internal class ARKitFaceTracker(
             throw UnsupportedOperationException("ARFaceTracking is not supported on this device")
         }
 
-        val session = ARSession()
-        session.delegate = sessionDelegate
-        arSession = session
+        // Reuse existing session on restart, or create a new one
+        val session = arSession ?: ARSession().also {
+            it.delegate = sessionDelegate
+            arSession = it
+        }
 
         val configuration = ARFaceTrackingConfiguration().apply {
             lightEstimationEnabled = false
@@ -87,8 +98,10 @@ internal class ARKitFaceTracker(
     }
 
     override suspend fun stop() {
-        arSession?.pause()
-        _state.value = TrackingState.STOPPED
+        pipelineLock.withLock {
+            arSession?.pause()
+            _state.value = TrackingState.STOPPED
+        }
     }
 
     override fun release() {
@@ -97,12 +110,13 @@ internal class ARKitFaceTracker(
             arSession?.pause()
             arSession?.delegate = null
             arSession = null
-            _state.value = TrackingState.STOPPED
+            _state.value = TrackingState.RELEASED
         }
     }
 
     override fun resetCalibration() {
         pipelineLock.withLock {
+            check(released.load() == 0) { "Cannot reset calibration on a released tracker" }
             calibrator.reset()
             smoother?.reset()
         }
@@ -110,6 +124,7 @@ internal class ARKitFaceTracker(
 
     override fun updateSmoothing(config: SmoothingConfig) {
         pipelineLock.withLock {
+            check(released.load() == 0) { "Cannot update smoothing on a released tracker" }
             smoother = config.createSmoother()
         }
     }
@@ -152,7 +167,7 @@ internal class ARKitFaceTracker(
     }
 
     private fun mapARKitBlendShapes(rawBlendShapes: Map<String, NSNumber>): BlendShapeData {
-        val result = mutableMapOf<BlendShape, Float>()
+        val result = HashMap<BlendShape, Float>(blendShapeMapCapacity)
 
         for ((key, value) in rawBlendShapes) {
             val shape = BlendShape.fromArKitName(key) ?: continue
@@ -180,6 +195,7 @@ internal class ARKitFaceTracker(
     }
 
     private inner class FaceTrackingDelegate : NSObject(), ARSessionDelegateProtocol {
+        @ObjCSignatureOverride
         override fun session(session: ARSession, didUpdateAnchors: List<*>) {
             for (anchor in didUpdateAnchors) {
                 if (anchor is ARFaceAnchor) {
@@ -189,6 +205,17 @@ internal class ARKitFaceTracker(
             }
         }
 
+        @ObjCSignatureOverride
+        override fun session(session: ARSession, didRemoveAnchors: List<*>) {
+            for (anchor in didRemoveAnchors) {
+                if (anchor is ARFaceAnchor) {
+                    _trackingData.tryEmit(FaceTrackingData.notTracking(currentTimeMillis()))
+                    break
+                }
+            }
+        }
+
+        @ObjCSignatureOverride
         override fun session(session: ARSession, didFailWithError: NSError) {
             _state.value = TrackingState.ERROR
         }

@@ -32,7 +32,7 @@ internal class OneEuroFilter(
         // First frame or same timestamp — pass through
         if (lastTimestampMs < 0 || timestampMs <= lastTimestampMs) {
             lastTimestampMs = timestampMs
-            val result = mutableMapOf<BlendShape, Float>()
+            val result = HashMap<BlendShape, Float>(data.size)
             for ((shape, value) in data) {
                 states[shape] = ShapeState(value, 0f)
                 result[shape] = value
@@ -43,7 +43,7 @@ internal class OneEuroFilter(
         val dt = (timestampMs - lastTimestampMs) / 1000f // seconds
         lastTimestampMs = timestampMs
 
-        val result = mutableMapOf<BlendShape, Float>()
+        val result = HashMap<BlendShape, Float>(data.size)
         for ((shape, rawValue) in data) {
             val state = states[shape]
             if (state == null) {

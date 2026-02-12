@@ -1,16 +1,10 @@
 package io.github.kmpfacelink.internal
 
+import android.os.SystemClock
 import android.util.Log
-import android.util.Size
-import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.ImageProxy
 import androidx.camera.core.Preview
-import androidx.camera.core.resolutionselector.AspectRatioStrategy
-import androidx.camera.core.resolutionselector.ResolutionSelector
-import androidx.camera.core.resolutionselector.ResolutionStrategy
-import androidx.camera.lifecycle.ProcessCameraProvider
-import androidx.core.content.ContextCompat
 import com.google.mediapipe.framework.image.BitmapImageBuilder
 import com.google.mediapipe.tasks.core.BaseOptions
 import com.google.mediapipe.tasks.core.Delegate
@@ -36,12 +30,9 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.suspendCancellableCoroutine
 import java.util.concurrent.Executors
 import kotlin.concurrent.atomics.AtomicInt
 import kotlin.concurrent.atomics.ExperimentalAtomicApi
-import kotlin.coroutines.resume
-import kotlin.coroutines.resumeWithException
 
 @OptIn(ExperimentalAtomicApi::class)
 internal class MediaPipeHandTracker(
@@ -65,9 +56,9 @@ internal class MediaPipeHandTracker(
     private val isFrontCamera = config.cameraFacing == CameraFacing.FRONT
     private val analysisExecutor = Executors.newSingleThreadExecutor()
     private val imageConverter = ImageProxyConverter()
+    private val cameraManager = CameraXManager(platformContext)
 
     private var handLandmarker: HandLandmarker? = null
-    private var cameraProvider: ProcessCameraProvider? = null
     private var previewSurfaceProvider: Preview.SurfaceProvider? = null
 
     @Volatile
@@ -99,24 +90,29 @@ internal class MediaPipeHandTracker(
     }
 
     override suspend fun stop() {
-        cameraProvider?.unbindAll()
-        _state.value = TrackingState.STOPPED
+        pipelineLock.withLock {
+            cameraManager.unbindAll()
+            handLandmarker?.close()
+            handLandmarker = null
+            _state.value = TrackingState.STOPPED
+        }
     }
 
     override fun release() {
         released.store(1)
         pipelineLock.withLock {
-            cameraProvider?.unbindAll()
+            cameraManager.unbindAll()
             handLandmarker?.close()
             handLandmarker = null
             imageConverter.release()
             analysisExecutor.shutdown()
-            _state.value = TrackingState.STOPPED
+            _state.value = TrackingState.RELEASED
         }
     }
 
     override fun updateSmoothing(config: SmoothingConfig) {
         pipelineLock.withLock {
+            check(released.load() == 0) { "Cannot update smoothing on a released tracker" }
             smoother = config.createHandSmoother()
         }
     }
@@ -155,83 +151,19 @@ internal class MediaPipeHandTracker(
     }
 
     private suspend fun startCamera() {
-        val provider = getCameraProvider()
-        cameraProvider = provider
-
-        val cameraSelector = when (config.cameraFacing) {
-            CameraFacing.FRONT -> CameraSelector.DEFAULT_FRONT_CAMERA
-            CameraFacing.BACK -> CameraSelector.DEFAULT_BACK_CAMERA
-        }
-
         val imageAnalysis = ImageAnalysis.Builder()
-            .setResolutionSelector(buildAnalysisResolutionSelector())
+            .setResolutionSelector(CameraXManager.buildAnalysisResolutionSelector())
             .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
             .setOutputImageFormat(ImageAnalysis.OUTPUT_IMAGE_FORMAT_RGBA_8888)
             .build()
             .also { it.setAnalyzer(analysisExecutor, ::processFrame) }
 
-        provider.unbindAll()
-
-        val surfaceProvider = previewSurfaceProvider
-        if (surfaceProvider != null) {
-            val preview = Preview.Builder()
-                .setResolutionSelector(buildPreviewResolutionSelector())
-                .build().also { it.surfaceProvider = surfaceProvider }
-            provider.bindToLifecycle(
-                platformContext.lifecycleOwner,
-                cameraSelector,
-                preview,
-                imageAnalysis,
-            )
-        } else {
-            provider.bindToLifecycle(
-                platformContext.lifecycleOwner,
-                cameraSelector,
-                imageAnalysis,
-            )
-        }
+        cameraManager.startCamera(
+            cameraFacing = config.cameraFacing,
+            imageAnalysis = imageAnalysis,
+            surfaceProvider = previewSurfaceProvider,
+        )
     }
-
-    private fun buildAnalysisResolutionSelector(): ResolutionSelector =
-        ResolutionSelector.Builder()
-            .setAspectRatioStrategy(
-                AspectRatioStrategy(
-                    androidx.camera.core.AspectRatio.RATIO_4_3,
-                    AspectRatioStrategy.FALLBACK_RULE_AUTO,
-                ),
-            )
-            .setResolutionStrategy(
-                ResolutionStrategy(
-                    Size(CAMERA_WIDTH, CAMERA_HEIGHT),
-                    ResolutionStrategy.FALLBACK_RULE_CLOSEST_HIGHER_THEN_LOWER,
-                ),
-            )
-            .build()
-
-    private fun buildPreviewResolutionSelector(): ResolutionSelector =
-        ResolutionSelector.Builder()
-            .setAspectRatioStrategy(
-                AspectRatioStrategy(
-                    androidx.camera.core.AspectRatio.RATIO_4_3,
-                    AspectRatioStrategy.FALLBACK_RULE_AUTO,
-                ),
-            )
-            .build()
-
-    private suspend fun getCameraProvider(): ProcessCameraProvider =
-        suspendCancellableCoroutine { cont ->
-            val future = ProcessCameraProvider.getInstance(platformContext.context)
-            future.addListener(
-                {
-                    try {
-                        cont.resume(future.get())
-                    } catch (e: Exception) {
-                        cont.resumeWithException(e)
-                    }
-                },
-                ContextCompat.getMainExecutor(platformContext.context),
-            )
-        }
 
     private fun processFrame(imageProxy: ImageProxy) {
         val landmarker = handLandmarker
@@ -250,7 +182,7 @@ internal class MediaPipeHandTracker(
         lastImageHeight = bitmap.height
 
         val mpImage = BitmapImageBuilder(bitmap).build()
-        val timestampMs = System.currentTimeMillis()
+        val timestampMs = SystemClock.elapsedRealtime()
 
         try {
             landmarker.detectAsync(mpImage, timestampMs)
@@ -258,6 +190,8 @@ internal class MediaPipeHandTracker(
             Log.w(TAG, "detectAsync failed", e)
         }
 
+        // Return bitmap to pool after detectAsync (MediaPipe copies data internally)
+        imageConverter.returnBitmap(bitmap)
         imageProxy.close()
     }
 
@@ -266,7 +200,7 @@ internal class MediaPipeHandTracker(
         result: HandLandmarkerResult,
         input: com.google.mediapipe.framework.image.MPImage,
     ) {
-        val timestampMs = System.currentTimeMillis()
+        val timestampMs = SystemClock.elapsedRealtime()
 
         if (result.landmarks().isEmpty()) {
             _trackingData.tryEmit(HandTrackingData.notTracking(timestampMs))
@@ -326,7 +260,5 @@ internal class MediaPipeHandTracker(
     companion object {
         private const val TAG = "MediaPipeHandTracker"
         private const val MODEL_ASSET_PATH = "models/hand_landmarker.task"
-        private const val CAMERA_WIDTH = 320
-        private const val CAMERA_HEIGHT = 240
     }
 }

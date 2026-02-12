@@ -18,6 +18,12 @@ internal class ImageProxyConverter {
     private val bitmapPool = BitmapPool()
     private val transformMatrix = Matrix()
 
+    // Cached buffers for stride-mismatch path to avoid per-frame allocation
+    private var packedBuffer: java.nio.ByteBuffer? = null
+    private var packedBufferCapacity: Int = 0
+    private var rowData: ByteArray? = null
+    private var rowDataCapacity: Int = 0
+
     fun convert(imageProxy: ImageProxy, mirrorHorizontally: Boolean = false): Bitmap? {
         val fullWidth = imageProxy.width
         val fullHeight = imageProxy.height
@@ -82,22 +88,45 @@ internal class ImageProxyConverter {
             buffer.rewind()
             dest.copyPixelsFromBuffer(buffer)
         } else {
-            val packed = java.nio.ByteBuffer.allocateDirect(expectedRowBytes * fullHeight)
-            val rowData = ByteArray(rowStride)
+            val requiredCapacity = expectedRowBytes * fullHeight
+            val packed = if (packedBufferCapacity >= requiredCapacity) {
+                packedBuffer!!.also { it.clear() }
+            } else {
+                java.nio.ByteBuffer.allocateDirect(requiredCapacity).also {
+                    packedBuffer = it
+                    packedBufferCapacity = requiredCapacity
+                }
+            }
+            val row = if (rowDataCapacity >= rowStride) {
+                rowData!!
+            } else {
+                ByteArray(rowStride).also {
+                    rowData = it
+                    rowDataCapacity = rowStride
+                }
+            }
             buffer.rewind()
             for (y in 0 until fullHeight) {
                 val bytesToRead = if (y < fullHeight - 1) rowStride else expectedRowBytes
-                buffer.get(rowData, 0, bytesToRead)
-                packed.put(rowData, 0, expectedRowBytes)
+                buffer.get(row, 0, bytesToRead)
+                packed.put(row, 0, expectedRowBytes)
             }
             packed.rewind()
             dest.copyPixelsFromBuffer(packed)
         }
     }
 
+    fun returnBitmap(bitmap: Bitmap) {
+        bitmapPool.returnBitmap(bitmap)
+    }
+
     fun release() {
         sourceBitmap?.recycle()
         sourceBitmap = null
         bitmapPool.clear()
+        packedBuffer = null
+        packedBufferCapacity = 0
+        rowData = null
+        rowDataCapacity = 0
     }
 }

@@ -47,8 +47,37 @@ On completion, update status to `DONE` and close the corresponding GitHub Issue.
 | 37 | [Investigate N-euro Predictor](https://github.com/rioX432/KMP-FaceLink/issues/37) | CLOSED | Not feasible — requires LSTM + no reference impl |
 | 38 | [Evaluate MediaPipe Holistic Landmarker](https://github.com/rioX432/KMP-FaceLink/issues/38) | CLOSED | Not ready — runtime crashes, revisit in 0.11.x |
 
-## Publishing (Last)
+## Phase 1: SDK Extension Modules (Q1–Q2 2026)
 
 | # | Issue | Status | Summary |
 |---|-------|--------|---------|
+| 44 | [Extension strategy documentation](https://github.com/rioX432/KMP-FaceLink/issues/44) | TODO | Strategy doc, roadmap, competitive analysis |
+| 42 | [kmp-facelink-avatar module](https://github.com/rioX432/KMP-FaceLink/issues/42) | TODO | Live2D parameter mapping (BlendShape → ParamAngleX etc.) |
+| 43 | [kmp-facelink-actions module](https://github.com/rioX432/KMP-FaceLink/issues/43) | TODO | Gesture/expression trigger system with debounce |
+| 45 | [kmp-facelink-effects module](https://github.com/rioX432/KMP-FaceLink/issues/45) | TODO | Real-time face effects engine (TikTok-style filters) |
+| 46 | [Sample Live2D avatar](https://github.com/rioX432/KMP-FaceLink/issues/46) | TODO | Bundled avatar for demo + integration reference |
 | 4 | [Publish to Maven Central](https://github.com/rioX432/KMP-FaceLink/issues/4) | TODO | maven-publish + XCFramework distribution |
+
+## Phase 2: Native Rendering (Q3–Q4 2026)
+
+| # | Issue | Status | Summary |
+|---|-------|--------|---------|
+| 47 | [SDK API stability review](https://github.com/rioX432/KMP-FaceLink/issues/47) | TODO | Audit public APIs, semver policy, stability annotations |
+| 48 | [kmp-facelink-live2d module](https://github.com/rioX432/KMP-FaceLink/issues/48) | TODO | Live2D Cubism SDK Native KMP wrapper |
+| 7 | [Body tracking](https://github.com/rioX432/KMP-FaceLink/issues/7) | TODO | Pose estimation |
+
+## Phase 3: Communication (Q1–Q2 2027)
+
+| # | Issue | Status | Summary |
+|---|-------|--------|---------|
+| 49 | [kmp-facelink-stream module](https://github.com/rioX432/KMP-FaceLink/issues/49) | TODO | WebSocket streaming (VTubeStudio/aituber-kit/Open-LLM-VTuber) |
+| 8 | [Holistic tracking](https://github.com/rioX432/KMP-FaceLink/issues/8) | TODO | Face + Hands + Body integration |
+
+## Phase 4: Voice & LLM (Q3–Q4 2027)
+
+| # | Issue | Status | Summary |
+|---|-------|--------|---------|
+| 50 | [kmp-facelink-voice module](https://github.com/rioX432/KMP-FaceLink/issues/50) | TODO | ASR (Whisper) / TTS (VOICEVOX, ElevenLabs) + lip sync |
+| 51 | [kmp-facelink-llm module](https://github.com/rioX432/KMP-FaceLink/issues/51) | TODO | LLM streaming API (OpenAI, Anthropic, Gemini) |
+
+Note: Commercial app (Mobile-LLM-VTuber) is tracked in its own private repo.

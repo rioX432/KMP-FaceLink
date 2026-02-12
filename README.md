@@ -133,9 +133,23 @@ API documentation is available at **[riox432.github.io/KMP-FaceLink](https://rio
 - SKIE (Swift-Kotlin Flow interop)
 - Kotlin Coroutines / Flow
 
+## Roadmap
+
+KMP-FaceLink is evolving from a pure tracking library into a modular Mobile VTuber SDK:
+
+| Module | Purpose | Status |
+|---|---|---|
+| `kmp-facelink` (core) | Face & hand tracking API | Available |
+| `kmp-facelink-avatar` | BlendShape → Live2D/VRM parameter conversion | Planned |
+| `kmp-facelink-actions` | Gesture/expression → action triggers | Planned |
+| `kmp-facelink-effects` | Real-time face effects (TikTok-style filters) | Planned |
+| `kmp-facelink-stream` | WebSocket streaming to desktop backends | Future |
+
+See [docs/extension-strategy.md](docs/extension-strategy.md) for the full strategy.
+
 ## Status
 
-**Active development** — face tracking and hand tracking are functional on both platforms. Body tracking (Phase 3) is planned.
+**Active development** — face tracking and hand tracking are functional on both platforms. Avatar parameter mapping and gesture action modules are next.
 
 ## Contributing
 

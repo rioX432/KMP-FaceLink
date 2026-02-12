@@ -7,6 +7,7 @@ package io.github.kmpfacelink.internal
 
 import io.github.kmpfacelink.api.HandTracker
 import io.github.kmpfacelink.api.TrackingState
+import io.github.kmpfacelink.model.CameraFacing
 import io.github.kmpfacelink.model.HandGesture
 import io.github.kmpfacelink.model.HandTrackerConfig
 import io.github.kmpfacelink.model.HandTrackingData
@@ -26,19 +27,27 @@ import kotlinx.coroutines.flow.asStateFlow
 import platform.AVFoundation.AVCaptureConnection
 import platform.AVFoundation.AVCaptureDevice
 import platform.AVFoundation.AVCaptureDeviceInput
+import platform.AVFoundation.AVCaptureDevicePositionBack
+import platform.AVFoundation.AVCaptureDevicePositionFront
 import platform.AVFoundation.AVCaptureOutput
 import platform.AVFoundation.AVCaptureSession
-import platform.AVFoundation.AVCaptureSessionPresetMedium
+import platform.AVFoundation.AVCaptureSessionPreset352x288
 import platform.AVFoundation.AVCaptureVideoDataOutput
 import platform.AVFoundation.AVCaptureVideoDataOutputSampleBufferDelegateProtocol
+import platform.AVFoundation.AVCaptureVideoOrientationPortrait
 import platform.AVFoundation.AVMediaTypeVideo
+import platform.AVFoundation.position
 import platform.CoreMedia.CMSampleBufferGetImageBuffer
 import platform.CoreMedia.CMSampleBufferRef
+import platform.CoreMedia.CMTimeMake
+import platform.CoreVideo.kCVPixelBufferPixelFormatTypeKey
+import platform.CoreVideo.kCVPixelFormatType_420YpCbCr8BiPlanarFullRange
 import platform.Foundation.NSDate
+import platform.Foundation.NSNumber
 import platform.Foundation.timeIntervalSince1970
 import platform.Vision.VNDetectHumanHandPoseRequest
 import platform.Vision.VNHumanHandPoseObservation
-import platform.Vision.VNImageRequestHandler
+import platform.Vision.VNSequenceRequestHandler
 import platform.darwin.NSObject
 import platform.darwin.dispatch_queue_create
 import kotlin.concurrent.atomics.AtomicInt
@@ -60,9 +69,23 @@ internal class VisionHandTracker(
 
     private val pipelineLock = PlatformLock()
     private val released = AtomicInt(0)
+    private val processing = AtomicInt(0)
 
     private var smoother: HandLandmarkSmoother? = config.smoothingConfig.createHandSmoother()
-    private var captureSession: AVCaptureSession? = null
+    private val handPoseRequest = VNDetectHumanHandPoseRequest().apply {
+        @Suppress("CAST_NEVER_SUCCEEDS")
+        maximumHandCount = config.maxHands.toULong()
+        // Pin to revision 1 for consistent, faster performance across iOS versions
+        revision = HAND_POSE_REVISION
+    }
+    private val sequenceHandler = VNSequenceRequestHandler()
+
+    /**
+     * The underlying AVCaptureSession, exposed for camera preview in the iOS sample app.
+     * Only available after [start] has been called.
+     */
+    var captureSession: AVCaptureSession? = null
+        private set
     private val videoOutputDelegate = VideoOutputDelegate()
     private val videoQueue = dispatch_queue_create("io.github.kmpfacelink.hand.video", null)
 
@@ -103,12 +126,24 @@ internal class VisionHandTracker(
         }
     }
 
+    @Suppress("LongMethod")
     private fun setupCaptureSession() {
         val session = AVCaptureSession()
-        session.sessionPreset = AVCaptureSessionPresetMedium
+        session.sessionPreset = AVCaptureSessionPreset352x288
 
-        val device = AVCaptureDevice.defaultDeviceWithMediaType(AVMediaTypeVideo)
+        val position = when (config.cameraFacing) {
+            CameraFacing.FRONT -> AVCaptureDevicePositionFront
+            CameraFacing.BACK -> AVCaptureDevicePositionBack
+        }
+
+        val device = AVCaptureDevice.devicesWithMediaType(AVMediaTypeVideo)
+            .filterIsInstance<AVCaptureDevice>()
+            .firstOrNull { it.position == position }
+            ?: AVCaptureDevice.defaultDeviceWithMediaType(AVMediaTypeVideo)
             ?: throw UnsupportedOperationException("No camera available")
+
+        // Limit frame rate to 15 fps to keep Vision processing responsive
+        configureCameraFrameRate(device)
 
         val input = AVCaptureDeviceInput.deviceInputWithDevice(device, null)
             ?: throw UnsupportedOperationException("Cannot create camera input")
@@ -118,6 +153,10 @@ internal class VisionHandTracker(
         }
 
         val videoOutput = AVCaptureVideoDataOutput()
+        // Force YUV pixel format for optimal Vision framework processing
+        videoOutput.videoSettings = mapOf<Any?, Any>(
+            kCVPixelBufferPixelFormatTypeKey to NSNumber(unsignedInt = kCVPixelFormatType_420YpCbCr8BiPlanarFullRange),
+        )
         videoOutput.setSampleBufferDelegate(videoOutputDelegate, videoQueue)
         videoOutput.alwaysDiscardsLateVideoFrames = true
 
@@ -125,55 +164,71 @@ internal class VisionHandTracker(
             session.addOutput(videoOutput)
         }
 
+        // Set video orientation to portrait for correct coordinate mapping
+        val connection = videoOutput.connectionWithMediaType(AVMediaTypeVideo)
+        if (connection != null && connection.isVideoOrientationSupported()) {
+            connection.videoOrientation = AVCaptureVideoOrientationPortrait
+        }
+
         captureSession = session
+    }
+
+    private fun configureCameraFrameRate(device: AVCaptureDevice) {
+        device.lockForConfiguration(null)
+        val frameDuration = CMTimeMake(value = 1, timescale = TARGET_FPS)
+        device.setActiveVideoMinFrameDuration(frameDuration)
+        device.setActiveVideoMaxFrameDuration(frameDuration)
+        device.unlockForConfiguration()
     }
 
     @Suppress("ReturnCount")
     private fun processVideoFrame(sampleBuffer: CMSampleBufferRef?) {
         if (sampleBuffer == null || _state.value != TrackingState.TRACKING) return
 
-        val pixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) ?: return
-        val timestampMs = currentTimeMillis()
+        // Skip frame if previous one is still being processed
+        if (!processing.compareAndSet(expectedValue = 0, newValue = 1)) return
 
-        val observations = detectHands(pixelBuffer, timestampMs) ?: return
+        try {
+            val pixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) ?: return
+            val timestampMs = currentTimeMillis()
 
-        var hands = observations.map { observation -> mapObservation(observation) }
+            val observations = detectHands(pixelBuffer, timestampMs) ?: return
 
-        // Apply smoothing (protected by lock)
-        val processedHands = pipelineLock.withLock {
-            if (released.load() != 0) return
-            smoother?.let { hands = it.smooth(hands, timestampMs) }
-            hands
+            var hands = observations.map { observation -> mapObservation(observation) }
+
+            // Apply smoothing (protected by lock)
+            val processedHands = pipelineLock.withLock {
+                if (released.load() != 0) return
+                smoother?.let { hands = it.smooth(hands, timestampMs) }
+                hands
+            }
+
+            _trackingData.tryEmit(
+                HandTrackingData(
+                    hands = processedHands,
+                    timestampMs = timestampMs,
+                    isTracking = true,
+                ),
+            )
+        } finally {
+            processing.store(0)
         }
-
-        _trackingData.tryEmit(
-            HandTrackingData(
-                hands = processedHands,
-                timestampMs = timestampMs,
-                isTracking = true,
-            ),
-        )
     }
 
     private fun detectHands(
         pixelBuffer: platform.CoreVideo.CVPixelBufferRef,
         timestampMs: Long,
     ): List<VNHumanHandPoseObservation>? {
-        val request = VNDetectHumanHandPoseRequest()
-        @Suppress("CAST_NEVER_SUCCEEDS")
-        request.maximumHandCount = config.maxHands.toULong()
-
-        val handler = VNImageRequestHandler(pixelBuffer, options = emptyMap<Any?, Any>())
-
+        // Use VNSequenceRequestHandler to avoid per-frame handler allocation overhead
         try {
-            handler.performRequests(listOf(request), null)
+            sequenceHandler.performRequests(listOf(handPoseRequest), onCVPixelBuffer = pixelBuffer, error = null)
         } catch (_: Exception) {
             _trackingData.tryEmit(HandTrackingData.notTracking(timestampMs))
             return null
         }
 
         @Suppress("UNCHECKED_CAST")
-        val observations = request.results as? List<VNHumanHandPoseObservation>
+        val observations = handPoseRequest.results as? List<VNHumanHandPoseObservation>
 
         if (observations.isNullOrEmpty()) {
             _trackingData.tryEmit(HandTrackingData.notTracking(timestampMs))
@@ -215,6 +270,8 @@ internal class VisionHandTracker(
 
     private companion object {
         private const val MS_PER_SECOND = 1000
+        private const val TARGET_FPS = 15
+        private const val HAND_POSE_REVISION = 1UL
 
         fun currentTimeMillis(): Long =
             (NSDate().timeIntervalSince1970 * MS_PER_SECOND).toLong()

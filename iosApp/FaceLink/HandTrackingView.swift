@@ -71,7 +71,7 @@ class HandTrackingViewModel: ObservableObject {
     @Published var isTracking = false
     @Published var latestData: HandTrackingData? = nil
 
-    private(set) var captureSession: AVCaptureSession?
+    @Published private(set) var captureSession: AVCaptureSession?
 
     private var tracker: HandTracker?
     private var observeTasks: [Task<Void, Never>] = []
@@ -89,7 +89,7 @@ class HandTrackingViewModel: ObservableObject {
         )
         self.tracker = handTracker
 
-        // Access capture session if available (for camera preview)
+        // Capture session is set after start() — see startTracking()
         self.captureSession = nil
     }
 
@@ -105,6 +105,8 @@ class HandTrackingViewModel: ObservableObject {
         guard let tracker = tracker else { return }
         Task {
             try await tracker.start()
+            // Capture session is available after start()
+            self.captureSession = HandTrackerCaptureSessionKt.getCaptureSession(tracker)
             isTracking = true
             statusText = "Tracking"
             observeData()
@@ -185,19 +187,18 @@ struct HandCameraPreview: UIViewRepresentable {
     func makeUIView(context: Context) -> UIView {
         let view = UIView()
         view.backgroundColor = .black
-
-        if let session = session {
-            let previewLayer = AVCaptureVideoPreviewLayer(session: session)
-            previewLayer.videoGravity = .resizeAspectFill
-            previewLayer.frame = view.bounds
-            view.layer.addSublayer(previewLayer)
-            context.coordinator.previewLayer = previewLayer
-        }
-
         return view
     }
 
     func updateUIView(_ uiView: UIView, context: Context) {
+        // Attach preview layer when session becomes available
+        if let session = session, context.coordinator.previewLayer == nil {
+            let previewLayer = AVCaptureVideoPreviewLayer(session: session)
+            previewLayer.videoGravity = .resizeAspectFill
+            previewLayer.frame = uiView.bounds
+            uiView.layer.addSublayer(previewLayer)
+            context.coordinator.previewLayer = previewLayer
+        }
         context.coordinator.previewLayer?.frame = uiView.bounds
     }
 

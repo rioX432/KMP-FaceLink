@@ -43,9 +43,9 @@ On completion, update status to `DONE` and close the corresponding GitHub Issue.
 |---|-------|--------|---------|
 | 34 | [Update MediaPipe to v0.10.32](https://github.com/rioX432/KMP-FaceLink/issues/34) | DONE | Dependency update + regression testing |
 | 35 | [Increase Android camera resolution](https://github.com/rioX432/KMP-FaceLink/issues/35) | DONE | Higher input resolution for better detection |
-| 36 | [Improve geometric blend shape solvers](https://github.com/rioX432/KMP-FaceLink/issues/36) | TODO | Per-side solvers, near-zero tuning |
-| 37 | [Investigate N-euro Predictor](https://github.com/rioX432/KMP-FaceLink/issues/37) | TODO | Neural smoothing filter research |
-| 38 | [Evaluate MediaPipe Holistic Landmarker](https://github.com/rioX432/KMP-FaceLink/issues/38) | TODO | Single pipeline for Face + Hand + Pose |
+| 36 | [Improve geometric blend shape solvers](https://github.com/rioX432/KMP-FaceLink/issues/36) | DONE | Per-side solvers, near-zero tuning |
+| 37 | [Investigate N-euro Predictor](https://github.com/rioX432/KMP-FaceLink/issues/37) | CLOSED | Not feasible — requires LSTM + no reference impl |
+| 38 | [Evaluate MediaPipe Holistic Landmarker](https://github.com/rioX432/KMP-FaceLink/issues/38) | CLOSED | Not ready — runtime crashes, revisit in 0.11.x |
 
 ## Publishing (Last)
 

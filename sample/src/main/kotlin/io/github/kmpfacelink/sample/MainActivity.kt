@@ -53,31 +53,58 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import io.github.kmpfacelink.api.FaceTracker
+import io.github.kmpfacelink.api.HandTracker
 import io.github.kmpfacelink.api.PlatformContext
 import io.github.kmpfacelink.api.TrackingState
 import io.github.kmpfacelink.api.createFaceTracker
+import io.github.kmpfacelink.api.createHandTracker
 import io.github.kmpfacelink.internal.PreviewableFaceTracker
+import io.github.kmpfacelink.internal.PreviewableHandTracker
 import io.github.kmpfacelink.model.BlendShape
 import io.github.kmpfacelink.model.FaceLandmark
 import io.github.kmpfacelink.model.FaceTrackerConfig
 import io.github.kmpfacelink.model.FaceTrackingData
+import io.github.kmpfacelink.model.HandGesture
+import io.github.kmpfacelink.model.HandJoint
+import io.github.kmpfacelink.model.HandLandmarkPoint
+import io.github.kmpfacelink.model.HandTrackerConfig
+import io.github.kmpfacelink.model.HandTrackingData
 import io.github.kmpfacelink.model.HeadTransform
 import io.github.kmpfacelink.model.SmoothingConfig
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 
+private enum class TrackingMode { FACE, HAND }
+
 class MainActivity : ComponentActivity() {
+
+    private val platformContext by lazy { PlatformContext(this, this) }
 
     private val faceTracker by lazy {
         createFaceTracker(
-            platformContext = PlatformContext(this, this),
+            platformContext = platformContext,
             config = FaceTrackerConfig(
                 smoothingConfig = SmoothingConfig.Ema(alpha = 0.4f),
             ),
         )
     }
 
-    private val trackingDataState = MutableStateFlow<FaceTrackingData?>(null)
+    private val handTracker by lazy {
+        createHandTracker(
+            platformContext = platformContext,
+            config = HandTrackerConfig(
+                smoothingConfig = SmoothingConfig.Ema(alpha = 0.4f),
+            ),
+        )
+    }
+
+    private val faceTrackingDataState = MutableStateFlow<FaceTrackingData?>(null)
+    private val handTrackingDataState = MutableStateFlow<HandTrackingData?>(null)
+    private val trackingModeState = MutableStateFlow(TrackingMode.FACE)
+
+    private var faceCollectorJob: Job? = null
+    private var handCollectorJob: Job? = null
 
     private val cameraPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission(),
@@ -93,19 +120,47 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
 
-        lifecycleScope.launch {
-            faceTracker.trackingData.collect { data ->
-                trackingDataState.value = data
-            }
-        }
-
         setContent {
-            FaceTrackingScreen(
+            val mode by trackingModeState.collectAsState()
+            MainScreen(
+                mode = mode,
                 faceTracker = faceTracker,
-                trackingDataState = trackingDataState,
+                handTracker = handTracker,
+                faceTrackingDataState = faceTrackingDataState,
+                handTrackingDataState = handTrackingDataState,
+                onModeChange = { newMode -> switchMode(newMode) },
                 onStartClick = { requestCameraAndStart() },
                 onStopClick = { stopTracking() },
             )
+        }
+    }
+
+    private fun switchMode(newMode: TrackingMode) {
+        val currentMode = trackingModeState.value
+        if (currentMode == newMode) return
+
+        val wasTracking = when (currentMode) {
+            TrackingMode.FACE -> faceTracker.state.value == TrackingState.TRACKING
+            TrackingMode.HAND -> handTracker.state.value == TrackingState.TRACKING
+        }
+
+        if (wasTracking) {
+            lifecycleScope.launch {
+                when (currentMode) {
+                    TrackingMode.FACE -> {
+                        faceCollectorJob?.cancel()
+                        faceTracker.stop()
+                    }
+                    TrackingMode.HAND -> {
+                        handCollectorJob?.cancel()
+                        handTracker.stop()
+                    }
+                }
+                trackingModeState.value = newMode
+                startTracking()
+            }
+        } else {
+            trackingModeState.value = newMode
         }
     }
 
@@ -121,47 +176,138 @@ class MainActivity : ComponentActivity() {
 
     private fun startTracking() {
         lifecycleScope.launch {
-            faceTracker.start()
+            when (trackingModeState.value) {
+                TrackingMode.FACE -> {
+                    faceCollectorJob = lifecycleScope.launch {
+                        faceTracker.trackingData.collect { data ->
+                            faceTrackingDataState.value = data
+                        }
+                    }
+                    faceTracker.start()
+                }
+                TrackingMode.HAND -> {
+                    handCollectorJob = lifecycleScope.launch {
+                        handTracker.trackingData.collect { data ->
+                            handTrackingDataState.value = data
+                        }
+                    }
+                    handTracker.start()
+                }
+            }
         }
     }
 
     private fun stopTracking() {
         lifecycleScope.launch {
-            faceTracker.stop()
+            when (trackingModeState.value) {
+                TrackingMode.FACE -> {
+                    faceCollectorJob?.cancel()
+                    faceTracker.stop()
+                }
+                TrackingMode.HAND -> {
+                    handCollectorJob?.cancel()
+                    handTracker.stop()
+                }
+            }
         }
     }
 
     override fun onDestroy() {
         super.onDestroy()
         faceTracker.release()
+        handTracker.release()
     }
 }
 
 // ---------------------------------------------------------------------------
-// Screen
+// Main Screen
+// ---------------------------------------------------------------------------
+
+@Suppress("LongParameterList")
+@Composable
+private fun MainScreen(
+    mode: TrackingMode,
+    faceTracker: FaceTracker,
+    handTracker: HandTracker,
+    faceTrackingDataState: MutableStateFlow<FaceTrackingData?>,
+    handTrackingDataState: MutableStateFlow<HandTrackingData?>,
+    onModeChange: (TrackingMode) -> Unit,
+    onStartClick: () -> Unit,
+    onStopClick: () -> Unit,
+) {
+    when (mode) {
+        TrackingMode.FACE -> FaceTrackingScreen(
+            faceTracker = faceTracker,
+            trackingDataState = faceTrackingDataState,
+            onModeChange = onModeChange,
+            onStartClick = onStartClick,
+            onStopClick = onStopClick,
+        )
+        TrackingMode.HAND -> HandTrackingScreen(
+            handTracker = handTracker,
+            trackingDataState = handTrackingDataState,
+            onModeChange = onModeChange,
+            onStartClick = onStartClick,
+            onStopClick = onStopClick,
+        )
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Mode toggle
+// ---------------------------------------------------------------------------
+
+@Composable
+private fun ModeToggle(
+    currentMode: TrackingMode,
+    onModeChange: (TrackingMode) -> Unit,
+) {
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(Color.Black.copy(alpha = 0.6f))
+            .padding(horizontal = 12.dp, vertical = 4.dp),
+    ) {
+        TrackingMode.entries.forEach { mode ->
+            FilterChip(
+                selected = currentMode == mode,
+                onClick = { onModeChange(mode) },
+                label = { Text(mode.name, fontSize = 12.sp) },
+                colors = FilterChipDefaults.filterChipColors(
+                    containerColor = Color.White.copy(alpha = 0.15f),
+                    labelColor = Color.White,
+                    selectedContainerColor = Color(0xFF4488FF).copy(alpha = 0.6f),
+                    selectedLabelColor = Color.White,
+                ),
+            )
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Face Tracking Screen (existing)
 // ---------------------------------------------------------------------------
 
 @Composable
 private fun FaceTrackingScreen(
     faceTracker: FaceTracker,
     trackingDataState: MutableStateFlow<FaceTrackingData?>,
+    onModeChange: (TrackingMode) -> Unit,
     onStartClick: () -> Unit,
     onStopClick: () -> Unit,
 ) {
     val state by faceTracker.state.collectAsState()
     val trackingData by trackingDataState.collectAsState()
-    val isTracking = state == TrackingState.TRACKING
 
     Box(modifier = Modifier.fillMaxSize()) {
-        // Camera preview (full screen background)
         if (faceTracker is PreviewableFaceTracker) {
             CameraPreview(previewableFaceTracker = faceTracker)
         }
 
-        // Landmark overlay on camera preview
         val currentData = trackingData?.takeIf { it.isTracking && it.landmarks.isNotEmpty() }
         if (currentData != null) {
-            LandmarkOverlay(
+            FaceLandmarkOverlay(
                 landmarks = currentData.landmarks,
                 sourceImageWidth = currentData.sourceImageWidth,
                 sourceImageHeight = currentData.sourceImageHeight,
@@ -169,20 +315,18 @@ private fun FaceTrackingScreen(
             )
         }
 
-        // Overlay UI
         Column(modifier = Modifier.fillMaxSize()) {
-            // Top bar
             TopBar(
                 state = state,
                 headTransform = trackingData?.headTransform,
                 onStartClick = onStartClick,
                 onStopClick = onStopClick,
             )
+            ModeToggle(currentMode = TrackingMode.FACE, onModeChange = onModeChange)
             SmoothingFilterChips(faceTracker = faceTracker)
 
             Spacer(modifier = Modifier.weight(1f))
 
-            // Bottom blend shape bars
             BlendShapeBars(
                 trackingData = trackingData,
                 modifier = Modifier
@@ -192,6 +336,237 @@ private fun FaceTrackingScreen(
         }
     }
 }
+
+// ---------------------------------------------------------------------------
+// Hand Tracking Screen
+// ---------------------------------------------------------------------------
+
+@Suppress("LongMethod")
+@Composable
+private fun HandTrackingScreen(
+    handTracker: HandTracker,
+    trackingDataState: MutableStateFlow<HandTrackingData?>,
+    onModeChange: (TrackingMode) -> Unit,
+    onStartClick: () -> Unit,
+    onStopClick: () -> Unit,
+) {
+    val state by handTracker.state.collectAsState()
+    val trackingData by trackingDataState.collectAsState()
+    val isTracking = state == TrackingState.TRACKING
+
+    Box(modifier = Modifier.fillMaxSize()) {
+        if (handTracker is PreviewableHandTracker) {
+            HandCameraPreview(previewableHandTracker = handTracker)
+        }
+
+        val currentData = trackingData?.takeIf { it.isTracking && it.hands.isNotEmpty() }
+        if (currentData != null) {
+            for (hand in currentData.hands) {
+                HandLandmarkOverlay(
+                    landmarks = hand.landmarks,
+                    sourceImageWidth = currentData.sourceImageWidth,
+                    sourceImageHeight = currentData.sourceImageHeight,
+                    modifier = Modifier.fillMaxSize(),
+                )
+            }
+        }
+
+        Column(modifier = Modifier.fillMaxSize()) {
+            // Top bar
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(Color.Black.copy(alpha = 0.7f))
+                    .windowInsetsPadding(WindowInsets.statusBars)
+                    .padding(horizontal = 12.dp, vertical = 8.dp),
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(
+                        text = "Status: $state",
+                        color = Color.White,
+                        fontSize = 14.sp,
+                        modifier = Modifier.weight(1f),
+                    )
+                    Button(onClick = { if (isTracking) onStopClick() else onStartClick() }) {
+                        Text(if (isTracking) "Stop" else "Start")
+                    }
+                }
+
+                // Gesture display
+                val gestureText = currentData?.hands?.joinToString(" | ") { hand ->
+                    val h = hand.handedness.name
+                    val g = if (hand.gesture != HandGesture.NONE) {
+                        "${hand.gesture.name} (${(hand.gestureConfidence * 100).toInt()}%)"
+                    } else {
+                        "—"
+                    }
+                    "$h: $g"
+                } ?: "No hands detected"
+                Text(
+                    text = gestureText,
+                    color = Color.White.copy(alpha = 0.8f),
+                    fontSize = 12.sp,
+                    fontFamily = FontFamily.Monospace,
+                )
+            }
+
+            ModeToggle(currentMode = TrackingMode.HAND, onModeChange = onModeChange)
+
+            Spacer(modifier = Modifier.weight(1f))
+
+            // Hand count info
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(Color.Black.copy(alpha = 0.7f))
+                    .windowInsetsPadding(WindowInsets.navigationBars)
+                    .padding(horizontal = 8.dp, vertical = 4.dp),
+            ) {
+                val handsCount = currentData?.hands?.size ?: 0
+                Text(
+                    text = if (handsCount > 0) "Hands detected: $handsCount" else "Tap Start to begin hand tracking",
+                    color = Color.White.copy(alpha = 0.6f),
+                    fontSize = 12.sp,
+                    modifier = Modifier.padding(8.dp),
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun HandCameraPreview(previewableHandTracker: PreviewableHandTracker) {
+    AndroidView(
+        factory = { context ->
+            PreviewView(context).apply {
+                implementationMode = PreviewView.ImplementationMode.COMPATIBLE
+                scaleType = PreviewView.ScaleType.FILL_CENTER
+                previewableHandTracker.setSurfaceProvider(surfaceProvider)
+            }
+        },
+        modifier = Modifier.fillMaxSize(),
+    )
+}
+
+// ---------------------------------------------------------------------------
+// Hand Landmark Overlay
+// ---------------------------------------------------------------------------
+
+@Suppress("LongMethod")
+@Composable
+private fun HandLandmarkOverlay(
+    landmarks: List<HandLandmarkPoint>,
+    sourceImageWidth: Int,
+    sourceImageHeight: Int,
+    modifier: Modifier = Modifier,
+) {
+    Canvas(modifier = modifier) {
+        val viewW = size.width
+        val viewH = size.height
+
+        if (sourceImageWidth <= 0 || sourceImageHeight <= 0) return@Canvas
+
+        val imageAspect = sourceImageWidth.toFloat() / sourceImageHeight
+        val viewAspect = viewW / viewH
+
+        val scale: Float
+        val offsetX: Float
+        val offsetY: Float
+        if (imageAspect > viewAspect) {
+            scale = viewH / sourceImageHeight
+            val renderedW = sourceImageWidth * scale
+            offsetX = (renderedW - viewW) / 2f
+            offsetY = 0f
+        } else {
+            scale = viewW / sourceImageWidth
+            val renderedH = sourceImageHeight * scale
+            offsetX = 0f
+            offsetY = (renderedH - viewH) / 2f
+        }
+
+        val landmarkMap = landmarks.associateBy { it.joint }
+
+        fun pos(joint: HandJoint): Offset? {
+            val lm = landmarkMap[joint] ?: return null
+            // Front camera preview is mirrored: flip x
+            val px = (1f - lm.x) * sourceImageWidth * scale - offsetX
+            val py = lm.y * sourceImageHeight * scale - offsetY
+            return Offset(px, py)
+        }
+
+        // Draw skeleton connections
+        val boneColor = Color(0xFF00FF88).copy(alpha = 0.7f)
+        val boneStroke = 2.dp.toPx()
+
+        fun drawBone(from: HandJoint, to: HandJoint) {
+            val a = pos(from) ?: return
+            val b = pos(to) ?: return
+            drawLine(color = boneColor, start = a, end = b, strokeWidth = boneStroke)
+        }
+
+        // Wrist to each finger MCP
+        drawBone(HandJoint.WRIST, HandJoint.THUMB_CMC)
+        drawBone(HandJoint.WRIST, HandJoint.INDEX_FINGER_MCP)
+        drawBone(HandJoint.WRIST, HandJoint.MIDDLE_FINGER_MCP)
+        drawBone(HandJoint.WRIST, HandJoint.RING_FINGER_MCP)
+        drawBone(HandJoint.WRIST, HandJoint.PINKY_MCP)
+
+        // Thumb chain
+        drawBone(HandJoint.THUMB_CMC, HandJoint.THUMB_MCP)
+        drawBone(HandJoint.THUMB_MCP, HandJoint.THUMB_IP)
+        drawBone(HandJoint.THUMB_IP, HandJoint.THUMB_TIP)
+
+        // Index finger chain
+        drawBone(HandJoint.INDEX_FINGER_MCP, HandJoint.INDEX_FINGER_PIP)
+        drawBone(HandJoint.INDEX_FINGER_PIP, HandJoint.INDEX_FINGER_DIP)
+        drawBone(HandJoint.INDEX_FINGER_DIP, HandJoint.INDEX_FINGER_TIP)
+
+        // Middle finger chain
+        drawBone(HandJoint.MIDDLE_FINGER_MCP, HandJoint.MIDDLE_FINGER_PIP)
+        drawBone(HandJoint.MIDDLE_FINGER_PIP, HandJoint.MIDDLE_FINGER_DIP)
+        drawBone(HandJoint.MIDDLE_FINGER_DIP, HandJoint.MIDDLE_FINGER_TIP)
+
+        // Ring finger chain
+        drawBone(HandJoint.RING_FINGER_MCP, HandJoint.RING_FINGER_PIP)
+        drawBone(HandJoint.RING_FINGER_PIP, HandJoint.RING_FINGER_DIP)
+        drawBone(HandJoint.RING_FINGER_DIP, HandJoint.RING_FINGER_TIP)
+
+        // Pinky chain
+        drawBone(HandJoint.PINKY_MCP, HandJoint.PINKY_PIP)
+        drawBone(HandJoint.PINKY_PIP, HandJoint.PINKY_DIP)
+        drawBone(HandJoint.PINKY_DIP, HandJoint.PINKY_TIP)
+
+        // MCP connections across palm
+        drawBone(HandJoint.INDEX_FINGER_MCP, HandJoint.MIDDLE_FINGER_MCP)
+        drawBone(HandJoint.MIDDLE_FINGER_MCP, HandJoint.RING_FINGER_MCP)
+        drawBone(HandJoint.RING_FINGER_MCP, HandJoint.PINKY_MCP)
+
+        // Draw landmark points
+        val dotRadius = 3.dp.toPx()
+        val tipColor = Color(0xFFFF6B6B)
+        val jointColor = Color(0xFF00CCFF)
+        val tipJoints = setOf(
+            HandJoint.THUMB_TIP,
+            HandJoint.INDEX_FINGER_TIP,
+            HandJoint.MIDDLE_FINGER_TIP,
+            HandJoint.RING_FINGER_TIP,
+            HandJoint.PINKY_TIP,
+        )
+
+        for (lm in landmarks) {
+            val p = pos(lm.joint) ?: continue
+            val color = if (lm.joint in tipJoints) tipColor else jointColor
+            drawCircle(color = color, radius = dotRadius, center = p)
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Camera Preview (Face)
+// ---------------------------------------------------------------------------
 
 @Composable
 private fun CameraPreview(previewableFaceTracker: PreviewableFaceTracker) {
@@ -401,11 +776,11 @@ private fun BlendShapeBarRow(
 }
 
 // ---------------------------------------------------------------------------
-// Landmark overlay
+// Face Landmark overlay
 // ---------------------------------------------------------------------------
 
 @Composable
-private fun LandmarkOverlay(
+private fun FaceLandmarkOverlay(
     landmarks: List<FaceLandmark>,
     sourceImageWidth: Int,
     sourceImageHeight: Int,
@@ -415,38 +790,31 @@ private fun LandmarkOverlay(
         val viewW = size.width
         val viewH = size.height
 
-        // Calculate FILL_CENTER mapping: match PreviewView scaling behavior.
-        // PreviewView scales the camera image to fill the view (may crop).
         if (sourceImageWidth <= 0 || sourceImageHeight <= 0) return@Canvas
 
         val imageAspect = sourceImageWidth.toFloat() / sourceImageHeight
         val viewAspect = viewW / viewH
 
-        // Scale factor to fill both dimensions (larger of the two)
         val scale: Float
         val offsetX: Float
         val offsetY: Float
         if (imageAspect > viewAspect) {
-            // Image is wider relative to view → crop horizontally
             scale = viewH / sourceImageHeight
             val renderedW = sourceImageWidth * scale
             offsetX = (renderedW - viewW) / 2f
             offsetY = 0f
         } else {
-            // Image is taller relative to view → crop vertically
             scale = viewW / sourceImageWidth
             val renderedH = sourceImageHeight * scale
             offsetX = 0f
             offsetY = (renderedH - viewH) / 2f
         }
 
-        // Front camera preview is mirrored: flip x
         fun lx(index: Int): Float =
             (1f - landmarks[index].x) * sourceImageWidth * scale - offsetX
         fun ly(index: Int): Float =
             landmarks[index].y * sourceImageHeight * scale - offsetY
 
-        // Draw face mesh contour connections
         val contourColor = Color(0xFF00FF88).copy(alpha = 0.5f)
         val contourStroke = 1.dp.toPx()
 
@@ -465,26 +833,16 @@ private fun LandmarkOverlay(
             }
         }
 
-        // Face oval
         drawContour(FACE_OVAL)
-
-        // Eyes
         drawContour(LEFT_EYE, Color(0xFF00CCFF).copy(alpha = 0.6f))
         drawContour(RIGHT_EYE, Color(0xFF00CCFF).copy(alpha = 0.6f))
-
-        // Eyebrows
         drawContour(LEFT_EYEBROW, Color(0xFFFFCC00).copy(alpha = 0.6f))
         drawContour(RIGHT_EYEBROW, Color(0xFFFFCC00).copy(alpha = 0.6f))
-
-        // Lips
         drawContour(LIPS_OUTER, Color(0xFFFF6688).copy(alpha = 0.6f))
         drawContour(LIPS_INNER, Color(0xFFFF6688).copy(alpha = 0.6f))
-
-        // Irises
         drawContour(LEFT_IRIS, Color(0xFF00CCFF).copy(alpha = 0.7f))
         drawContour(RIGHT_IRIS, Color(0xFF00CCFF).copy(alpha = 0.7f))
 
-        // Draw all 478 landmark points
         val dotRadius = 1.2f.dp.toPx()
         val dotColor = Color(0xFF00FF88).copy(alpha = 0.35f)
         for (lm in landmarks) {
@@ -500,7 +858,6 @@ private fun LandmarkOverlay(
 }
 
 // MediaPipe face mesh contour indices
-// See: https://github.com/google-ai-edge/mediapipe/blob/master/mediapipe/python/solutions/face_mesh_connections.py
 
 private val FACE_OVAL = intArrayOf(
     10, 338, 297, 332, 284, 251, 389, 356, 454, 323, 361, 288,

@@ -80,9 +80,9 @@ internal object LandmarkSolvers {
     private const val PUFF_LOW = 0.0f
     private const val PUFF_HIGH = 0.08f
 
-    // Mouth dimple: mouth-width-to-IOD expansion above neutral baseline.
-    private const val DIMPLE_LOW = 0.01f
-    private const val DIMPLE_HIGH = 0.12f
+    // Mouth dimple: per-side half-width-to-IOD expansion above neutral baseline.
+    private const val DIMPLE_LOW = 0.005f
+    private const val DIMPLE_HIGH = 0.06f
 
     // Number of vertical lid distance samples for EAR calculation
     private const val EAR_SAMPLE_COUNT = 3f
@@ -204,18 +204,26 @@ internal object LandmarkSolvers {
     fun solveMouthDimpleLeft(landmarks: List<FaceLandmark>): Float {
         val iod = iod(landmarks)
         if (iod <= 0f) return 0f
-        val mouthWidth = distance2D(landmarks[MOUTH_LEFT], landmarks[MOUTH_RIGHT])
-        val ratio = mouthWidth / iod
-        val pull = ratio - NEUTRAL_MOUTH_IOD_RATIO
+        val centerX = landmarks[NOSE_BRIDGE].x
+        val halfWidth = centerX - landmarks[MOUTH_LEFT].x
+        val ratio = halfWidth / iod
+        val pull = ratio - NEUTRAL_MOUTH_HALF_IOD_RATIO
         return remap(pull, DIMPLE_LOW, DIMPLE_HIGH)
     }
 
     /** Solve mouthDimpleRight: right mouth corner pulled laterally outward. */
-    fun solveMouthDimpleRight(landmarks: List<FaceLandmark>): Float =
-        solveMouthDimpleLeft(landmarks) // symmetric: uses same mouth width
+    fun solveMouthDimpleRight(landmarks: List<FaceLandmark>): Float {
+        val iod = iod(landmarks)
+        if (iod <= 0f) return 0f
+        val centerX = landmarks[NOSE_BRIDGE].x
+        val halfWidth = landmarks[MOUTH_RIGHT].x - centerX
+        val ratio = halfWidth / iod
+        val pull = ratio - NEUTRAL_MOUTH_HALF_IOD_RATIO
+        return remap(pull, DIMPLE_LOW, DIMPLE_HIGH)
+    }
 
     // ── Neutral ratio baselines ──
     // Approximate ratios for a neutral expression. Tuned via empirical testing.
     private const val NEUTRAL_CHEEK_IOD_RATIO = 3.15f
-    private const val NEUTRAL_MOUTH_IOD_RATIO = 0.78f
+    private const val NEUTRAL_MOUTH_HALF_IOD_RATIO = 0.39f
 }

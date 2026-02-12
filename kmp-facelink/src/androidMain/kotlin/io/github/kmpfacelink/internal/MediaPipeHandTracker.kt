@@ -15,24 +15,20 @@ import com.google.mediapipe.framework.image.BitmapImageBuilder
 import com.google.mediapipe.tasks.core.BaseOptions
 import com.google.mediapipe.tasks.core.Delegate
 import com.google.mediapipe.tasks.vision.core.RunningMode
-import com.google.mediapipe.tasks.vision.facelandmarker.FaceLandmarker
-import com.google.mediapipe.tasks.vision.facelandmarker.FaceLandmarkerResult
-import io.github.kmpfacelink.api.FaceTracker
+import com.google.mediapipe.tasks.vision.handlandmarker.HandLandmarker
+import com.google.mediapipe.tasks.vision.handlandmarker.HandLandmarkerResult
+import io.github.kmpfacelink.api.HandTracker
 import io.github.kmpfacelink.api.PlatformContext
 import io.github.kmpfacelink.api.TrackingState
-import io.github.kmpfacelink.model.BlendShapeData
 import io.github.kmpfacelink.model.CameraFacing
-import io.github.kmpfacelink.model.FaceLandmark
-import io.github.kmpfacelink.model.FaceTrackerConfig
-import io.github.kmpfacelink.model.FaceTrackingData
-import io.github.kmpfacelink.model.HeadTransform
+import io.github.kmpfacelink.model.HandTrackerConfig
+import io.github.kmpfacelink.model.HandTrackingData
 import io.github.kmpfacelink.model.SmoothingConfig
-import io.github.kmpfacelink.util.BlendShapeEnhancer
-import io.github.kmpfacelink.util.BlendShapeSmoother
-import io.github.kmpfacelink.util.Calibrator
+import io.github.kmpfacelink.model.TrackedHand
+import io.github.kmpfacelink.util.GestureClassifier
+import io.github.kmpfacelink.util.HandLandmarkSmoother
 import io.github.kmpfacelink.util.PlatformLock
-import io.github.kmpfacelink.util.TransformUtils
-import io.github.kmpfacelink.util.createSmoother
+import io.github.kmpfacelink.util.createHandSmoother
 import io.github.kmpfacelink.util.withLock
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -48,16 +44,16 @@ import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 
 @OptIn(ExperimentalAtomicApi::class)
-internal class MediaPipeFaceTracker(
+internal class MediaPipeHandTracker(
     private val platformContext: PlatformContext,
-    private val config: FaceTrackerConfig,
-) : FaceTracker, PreviewableFaceTracker {
+    private val config: HandTrackerConfig,
+) : HandTracker, PreviewableHandTracker {
 
-    private val _trackingData = MutableSharedFlow<FaceTrackingData>(
+    private val _trackingData = MutableSharedFlow<HandTrackingData>(
         replay = 1,
         extraBufferCapacity = 1,
     )
-    override val trackingData: Flow<FaceTrackingData> = _trackingData.asSharedFlow()
+    override val trackingData: Flow<HandTrackingData> = _trackingData.asSharedFlow()
 
     private val _state = MutableStateFlow(TrackingState.IDLE)
     override val state: StateFlow<TrackingState> = _state.asStateFlow()
@@ -65,14 +61,12 @@ internal class MediaPipeFaceTracker(
     private val pipelineLock = PlatformLock()
     private val released = AtomicInt(0)
 
-    private var smoother: BlendShapeSmoother? = config.smoothingConfig.createSmoother()
-    private val enhancer: BlendShapeEnhancer? = BlendShapeEnhancer.create(config.enhancerConfig)
-    private val calibrator = Calibrator()
+    private var smoother: HandLandmarkSmoother? = config.smoothingConfig.createHandSmoother()
+    private val isFrontCamera = config.cameraFacing == CameraFacing.FRONT
     private val analysisExecutor = Executors.newSingleThreadExecutor()
     private val imageConverter = ImageProxyConverter()
-    private val isFrontCamera = config.cameraFacing == CameraFacing.FRONT
 
-    private var faceLandmarker: FaceLandmarker? = null
+    private var handLandmarker: HandLandmarker? = null
     private var cameraProvider: ProcessCameraProvider? = null
     private var previewSurfaceProvider: Preview.SurfaceProvider? = null
 
@@ -94,11 +88,11 @@ internal class MediaPipeFaceTracker(
         }
 
         try {
-            initFaceLandmarker()
+            initHandLandmarker()
             startCamera()
             _state.value = TrackingState.TRACKING
         } catch (e: Exception) {
-            Log.e(TAG, "Failed to start face tracking", e)
+            Log.e(TAG, "Failed to start hand tracking", e)
             _state.value = TrackingState.ERROR
             throw e
         }
@@ -113,31 +107,24 @@ internal class MediaPipeFaceTracker(
         released.store(1)
         pipelineLock.withLock {
             cameraProvider?.unbindAll()
-            faceLandmarker?.close()
-            faceLandmarker = null
+            handLandmarker?.close()
+            handLandmarker = null
             imageConverter.release()
             analysisExecutor.shutdown()
             _state.value = TrackingState.STOPPED
         }
     }
 
-    override fun resetCalibration() {
-        pipelineLock.withLock {
-            calibrator.reset()
-            smoother?.reset()
-        }
-    }
-
     override fun updateSmoothing(config: SmoothingConfig) {
         pipelineLock.withLock {
-            smoother = config.createSmoother()
+            smoother = config.createHandSmoother()
         }
     }
 
     @Suppress("TooGenericExceptionCaught") // MediaPipe GPU delegate throws RuntimeException
-    private fun initFaceLandmarker() {
+    private fun initHandLandmarker() {
         // Try GPU delegate first, fall back to CPU on failure
-        faceLandmarker = try {
+        handLandmarker = try {
             createLandmarker(Delegate.GPU)
         } catch (e: RuntimeException) {
             Log.w(TAG, "GPU delegate unavailable, falling back to CPU", e)
@@ -145,28 +132,26 @@ internal class MediaPipeFaceTracker(
         }
     }
 
-    private fun createLandmarker(delegate: Delegate): FaceLandmarker {
+    private fun createLandmarker(delegate: Delegate): HandLandmarker {
         val baseOptions = BaseOptions.builder()
             .setModelAssetPath(MODEL_ASSET_PATH)
             .setDelegate(delegate)
             .build()
 
-        val options = FaceLandmarker.FaceLandmarkerOptions.builder()
+        val options = HandLandmarker.HandLandmarkerOptions.builder()
             .setBaseOptions(baseOptions)
             .setRunningMode(RunningMode.LIVE_STREAM)
-            .setNumFaces(1)
-            .setMinFaceDetectionConfidence(0.5f)
+            .setNumHands(config.maxHands)
+            .setMinHandDetectionConfidence(0.5f)
             .setMinTrackingConfidence(0.5f)
-            .setMinFacePresenceConfidence(0.5f)
-            .setOutputFaceBlendshapes(true)
-            .setOutputFacialTransformationMatrixes(true)
-            .setResultListener(::onFaceLandmarkerResult)
+            .setMinHandPresenceConfidence(0.5f)
+            .setResultListener(::onHandLandmarkerResult)
             .setErrorListener { error ->
-                Log.e(TAG, "FaceLandmarker error: ${error.message}", error)
+                Log.e(TAG, "HandLandmarker error: ${error.message}", error)
             }
             .build()
 
-        return FaceLandmarker.createFromOptions(platformContext.context, options)
+        return HandLandmarker.createFromOptions(platformContext.context, options)
     }
 
     private suspend fun startCamera() {
@@ -249,7 +234,7 @@ internal class MediaPipeFaceTracker(
         }
 
     private fun processFrame(imageProxy: ImageProxy) {
-        val landmarker = faceLandmarker
+        val landmarker = handLandmarker
         if (landmarker == null || _state.value != TrackingState.TRACKING) {
             imageProxy.close()
             return
@@ -261,7 +246,6 @@ internal class MediaPipeFaceTracker(
             return
         }
 
-        // Store rotated image dimensions for landmark coordinate mapping
         lastImageWidth = bitmap.width
         lastImageHeight = bitmap.height
 
@@ -278,69 +262,58 @@ internal class MediaPipeFaceTracker(
     }
 
     @Suppress("UnusedParameter")
-    private fun onFaceLandmarkerResult(
-        result: FaceLandmarkerResult,
+    private fun onHandLandmarkerResult(
+        result: HandLandmarkerResult,
         input: com.google.mediapipe.framework.image.MPImage,
     ) {
         val timestampMs = System.currentTimeMillis()
 
-        if (!result.faceBlendshapes().isPresent || result.faceBlendshapes().get().isEmpty()) {
-            _trackingData.tryEmit(FaceTrackingData.notTracking(timestampMs))
+        if (result.landmarks().isEmpty()) {
+            _trackingData.tryEmit(HandTrackingData.notTracking(timestampMs))
             return
         }
 
-        // Extract landmarks (478 normalized points) — needed for enhancer
-        val landmarks = if (result.faceLandmarks().isNotEmpty()) {
-            result.faceLandmarks()[0].map { landmark ->
-                FaceLandmark(
-                    x = landmark.x(),
-                    y = landmark.y(),
-                    z = landmark.z(),
-                )
+        var hands = mutableListOf<TrackedHand>()
+
+        for (i in result.landmarks().indices) {
+            val landmarks = HandLandmarkMapper.mapLandmarks(result.landmarks()[i])
+
+            val handedness = if (result.handednesses().isNotEmpty() && i < result.handednesses().size) {
+                val category = result.handednesses()[i]
+                if (category.isNotEmpty()) {
+                    HandLandmarkMapper.mapHandedness(category[0].categoryName(), isFrontCamera)
+                } else {
+                    io.github.kmpfacelink.model.Handedness.UNKNOWN
+                }
+            } else {
+                io.github.kmpfacelink.model.Handedness.UNKNOWN
             }
-        } else {
-            emptyList()
+
+            val (gesture, confidence) = if (config.enableGestureRecognition) {
+                GestureClassifier.classify(landmarks)
+            } else {
+                io.github.kmpfacelink.model.HandGesture.NONE to 0f
+            }
+
+            hands.add(
+                TrackedHand(
+                    handedness = handedness,
+                    landmarks = landmarks,
+                    gesture = gesture,
+                    gestureConfidence = confidence,
+                ),
+            )
         }
 
-        // Extract blend shapes
-        val categories = result.faceBlendshapes().get()[0].map { category ->
-            category.categoryName() to category.score()
-        }
-        var blendShapes: BlendShapeData = BlendShapeMapper.mapFromMediaPipe(categories)
-
-        // Pipeline: enhance → calibrate → smooth (protected by lock)
-        val processedBlendShapes = pipelineLock.withLock {
+        // Apply smoothing (protected by lock)
+        val processedHands = pipelineLock.withLock {
             if (released.load() != 0) return
-
-            // Enhance low-accuracy blend shapes using geometric landmark calculations
-            enhancer?.let { blendShapes = it.enhance(blendShapes, landmarks) }
-
-            // Apply calibration
-            if (config.enableCalibration) {
-                blendShapes = calibrator.calibrate(blendShapes)
-            }
-
-            // Apply smoothing
-            smoother?.let { blendShapes = it.smooth(blendShapes, timestampMs) }
-
-            blendShapes
+            smoother?.let { hands = it.smooth(hands, timestampMs).toMutableList() }
+            hands.toList()
         }
 
-        // Extract head transform
-        val headTransform = if (result.facialTransformationMatrixes().isPresent &&
-            result.facialTransformationMatrixes().get().isNotEmpty()
-        ) {
-            // MediaPipe returns flat column-major float array (16 elements)
-            val flatMatrix = result.facialTransformationMatrixes().get()[0]
-            TransformUtils.fromMatrix(flatMatrix)
-        } else {
-            HeadTransform()
-        }
-
-        val data = FaceTrackingData(
-            blendShapes = processedBlendShapes,
-            headTransform = headTransform,
-            landmarks = landmarks,
+        val data = HandTrackingData(
+            hands = processedHands,
             sourceImageWidth = lastImageWidth,
             sourceImageHeight = lastImageHeight,
             timestampMs = timestampMs,
@@ -351,8 +324,8 @@ internal class MediaPipeFaceTracker(
     }
 
     companion object {
-        private const val TAG = "MediaPipeFaceTracker"
-        private const val MODEL_ASSET_PATH = "models/face_landmarker_v2_with_blendshapes.task"
+        private const val TAG = "MediaPipeHandTracker"
+        private const val MODEL_ASSET_PATH = "models/hand_landmarker.task"
         private const val CAMERA_WIDTH = 320
         private const val CAMERA_HEIGHT = 240
     }

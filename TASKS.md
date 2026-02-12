@@ -32,7 +32,7 @@ On completion, update status to `DONE` and close the corresponding GitHub Issue.
 
 | # | Issue | Status | Summary |
 |---|-------|--------|---------|
-| 6 | [Hand tracking (Phase 2)](https://github.com/rioX432/KMP-FaceLink/issues/6) | TODO | Hand landmarks + gestures |
+| 6 | [Hand tracking (Phase 2)](https://github.com/rioX432/KMP-FaceLink/issues/6) | DONE | Hand landmarks + gestures |
 | 7 | [Body tracking (Phase 3)](https://github.com/rioX432/KMP-FaceLink/issues/7) | TODO | Pose estimation |
 | 8 | [Holistic tracking (Phase 4)](https://github.com/rioX432/KMP-FaceLink/issues/8) | TODO | Face + Hands + Body integration |
 

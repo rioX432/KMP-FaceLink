@@ -1,7 +1,39 @@
 import SwiftUI
 import KMPFaceLink
 
+enum TrackingMode: String, CaseIterable {
+    case face = "Face"
+    case hand = "Hand"
+}
+
 struct ContentView: View {
+    @State private var selectedMode: TrackingMode = .face
+
+    var body: some View {
+        VStack(spacing: 0) {
+            // Mode picker
+            Picker("Mode", selection: $selectedMode) {
+                ForEach(TrackingMode.allCases, id: \.self) { mode in
+                    Text(mode.rawValue).tag(mode)
+                }
+            }
+            .pickerStyle(.segmented)
+            .padding(.horizontal)
+            .padding(.top, 8)
+            .background(Color.black)
+
+            // Content
+            switch selectedMode {
+            case .face:
+                FaceTrackingContentView()
+            case .hand:
+                HandTrackingView()
+            }
+        }
+    }
+}
+
+struct FaceTrackingContentView: View {
     @StateObject private var viewModel = FaceTrackingViewModel()
     @StateObject private var smoothingSettings = SmoothingSettings()
     @State private var showBlendShapes = false

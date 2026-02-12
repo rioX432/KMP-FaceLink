@@ -45,8 +45,15 @@ public interface FaceTracker {
     public val state: StateFlow<TrackingState>
 
     /**
+     * Human-readable error message when [state] is [TrackingState.ERROR], null otherwise.
+     */
+    public val errorMessage: StateFlow<String?>
+
+    /**
      * Start face tracking (camera + processing pipeline).
      * No-op if already started.
+     *
+     * @throws IllegalStateException if called after [release]
      */
     public suspend fun start()
 
@@ -63,6 +70,8 @@ public interface FaceTracker {
 
     /**
      * Reset calibration data to defaults.
+     *
+     * @throws IllegalStateException if called after [release]
      */
     public fun resetCalibration()
 
@@ -70,6 +79,7 @@ public interface FaceTracker {
      * Change the smoothing filter at runtime.
      *
      * @param config The new smoothing configuration to apply
+     * @throws IllegalStateException if called after [release]
      */
     public fun updateSmoothing(config: SmoothingConfig)
 }

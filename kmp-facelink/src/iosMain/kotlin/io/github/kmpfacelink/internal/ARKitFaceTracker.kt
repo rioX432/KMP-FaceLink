@@ -54,6 +54,9 @@ internal class ARKitFaceTracker(
     private val _state = MutableStateFlow(TrackingState.IDLE)
     override val state: StateFlow<TrackingState> = _state.asStateFlow()
 
+    private val _errorMessage = MutableStateFlow<String?>(null)
+    override val errorMessage: StateFlow<String?> = _errorMessage.asStateFlow()
+
     private val pipelineLock = PlatformLock()
     private val released = AtomicInt(0)
 
@@ -79,6 +82,7 @@ internal class ARKitFaceTracker(
         }
 
         if (!ARFaceTrackingConfiguration.isSupported) {
+            _errorMessage.value = "ARFaceTracking is not supported on this device"
             _state.value = TrackingState.ERROR
             throw UnsupportedOperationException("ARFaceTracking is not supported on this device")
         }
@@ -217,6 +221,7 @@ internal class ARKitFaceTracker(
 
         @ObjCSignatureOverride
         override fun session(session: ARSession, didFailWithError: NSError) {
+            _errorMessage.value = didFailWithError.localizedDescription
             _state.value = TrackingState.ERROR
         }
     }

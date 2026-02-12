@@ -9,11 +9,12 @@ import io.github.kmpfacelink.model.Handedness
  */
 internal object HandLandmarkMapper {
 
+    private val indexToJoint: Map<Int, HandJoint> = HandJoint.entries.associateBy { it.index }
+
     /**
      * Map MediaPipe landmark index (0–20) to [HandJoint].
-     * MediaPipe indices directly correspond to [HandJoint] ordinals.
      */
-    fun mapJoint(index: Int): HandJoint? = HandJoint.entries.getOrNull(index)
+    fun mapJoint(index: Int): HandJoint? = indexToJoint[index]
 
     /**
      * Map MediaPipe handedness category name to [Handedness].

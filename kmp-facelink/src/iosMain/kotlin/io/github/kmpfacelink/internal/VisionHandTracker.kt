@@ -69,6 +69,9 @@ internal class VisionHandTracker(
     private val _state = MutableStateFlow(TrackingState.IDLE)
     override val state: StateFlow<TrackingState> = _state.asStateFlow()
 
+    private val _errorMessage = MutableStateFlow<String?>(null)
+    override val errorMessage: StateFlow<String?> = _errorMessage.asStateFlow()
+
     private val pipelineLock = PlatformLock()
     private val released = AtomicInt(0)
     private val processing = AtomicInt(0)
@@ -106,6 +109,7 @@ internal class VisionHandTracker(
             captureSession?.startRunning()
             _state.value = TrackingState.TRACKING
         } catch (e: Exception) {
+            _errorMessage.value = e.message ?: e.toString()
             _state.value = TrackingState.ERROR
             throw e
         }

@@ -33,8 +33,15 @@ public interface HandTracker {
     public val state: StateFlow<TrackingState>
 
     /**
+     * Human-readable error message when [state] is [TrackingState.ERROR], null otherwise.
+     */
+    public val errorMessage: StateFlow<String?>
+
+    /**
      * Start hand tracking (camera + processing pipeline).
      * No-op if already started.
+     *
+     * @throws IllegalStateException if called after [release]
      */
     public suspend fun start()
 
@@ -52,6 +59,7 @@ public interface HandTracker {
      * Change the smoothing filter at runtime.
      *
      * @param config The new smoothing configuration to apply
+     * @throws IllegalStateException if called after [release]
      */
     public fun updateSmoothing(config: SmoothingConfig)
 }

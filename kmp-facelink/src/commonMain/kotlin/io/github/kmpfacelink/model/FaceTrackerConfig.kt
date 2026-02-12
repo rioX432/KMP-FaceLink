@@ -46,13 +46,22 @@ public sealed class SmoothingConfig {
         val minCutoff: Float = 1.0f,
         val beta: Float = 0.007f,
         val dCutoff: Float = 1.0f,
-    ) : SmoothingConfig()
+    ) : SmoothingConfig() {
+        init {
+            require(minCutoff > 0f) { "minCutoff must be positive, was $minCutoff" }
+            require(beta >= 0f) { "beta must be non-negative, was $beta" }
+            require(dCutoff > 0f) { "dCutoff must be positive, was $dCutoff" }
+        }
+    }
 }
 
 /**
  * Camera facing direction.
  */
 public enum class CameraFacing {
+    /** Front-facing (selfie) camera. Supported on both Android and iOS. */
     FRONT,
+
+    /** Rear camera. Supported on Android only. iOS face tracking requires the TrueDepth front camera. */
     BACK,
 }

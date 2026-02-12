@@ -1,49 +1,125 @@
 # KMP-FaceLink
 
-Unified face tracking API for Kotlin Multiplatform (KMP).
+Unified face and hand tracking API for Kotlin Multiplatform (KMP).
 
-Wraps platform-specific face tracking SDKs — **MediaPipe** (Android) and **ARKit** (iOS) — into a single shared Kotlin API, providing a consistent stream of facial blend shapes and head transform data across platforms.
+Wraps platform-specific tracking SDKs — **MediaPipe** (Android) and **ARKit / Vision** (iOS) — into a single shared Kotlin API, providing a consistent stream of facial blend shapes, head transforms, and hand landmarks across platforms.
 
 ## Motivation
 
-Building a VTuber or AR app with KMP today means writing separate face tracking code for each platform. KMP-FaceLink eliminates this duplication by providing one API that works on both Android and iOS.
+Building a VTuber or AR app with KMP today means writing separate tracking code for each platform. KMP-FaceLink eliminates this duplication by providing one API that works on both Android and iOS.
 
-## Features (Planned)
+## Features
 
-- Unified face tracking API in `commonMain`
-- **Android**: MediaPipe Face Landmarker integration
-- **iOS**: ARKit ARFaceTrackingConfiguration integration
-- 52+ ARKit-compatible blend shape parameters
-- Head position and rotation (6DoF)
+- Unified face & hand tracking API in `commonMain`
+- **Android**: MediaPipe Face Landmarker / Hand Landmarker + CameraX
+- **iOS**: ARKit face tracking + Vision hand pose estimation
+- 52 ARKit-compatible blend shape parameters
+- Head position and rotation (6DoF) with 4×4 transform matrix
+- 21-joint hand landmarks with gesture classification
+- One Euro / EMA adaptive smoothing filters
 - Calibration support
-- Real-time performance (targeting 30-60fps)
+- Real-time performance (30–60 fps)
+
+## Quick Start
+
+### Android (Kotlin)
+
+```kotlin
+// In your Activity / Fragment
+val platformContext = PlatformContext(context, lifecycleOwner)
+val tracker = createFaceTracker(platformContext)
+
+lifecycleScope.launch {
+    tracker.start()
+    tracker.trackingData.collect { data ->
+        if (data.isTracking) {
+            val jawOpen = data.blendShapes[BlendShape.JAW_OPEN]
+            val headYaw = data.headTransform.yaw
+            // Drive your avatar...
+        }
+    }
+}
+
+// When done
+lifecycle.addObserver(LifecycleEventObserver { _, event ->
+    if (event == Lifecycle.Event.ON_DESTROY) tracker.release()
+})
+```
+
+### iOS (Swift via SKIE)
+
+```swift
+import KMPFaceLink
+
+let tracker = FaceTrackerFactory_iosKt.createFaceTracker(
+    platformContext: PlatformContext(),
+    config: FaceTrackerConfig(
+        smoothingConfig: SmoothingConfig.Ema(alpha: 0.4),
+        enhancerConfig: BlendShapeEnhancerConfig.Default(),
+        enableCalibration: false,
+        cameraFacing: .front
+    )
+)
+
+Task {
+    try await tracker.start()
+    for await data in tracker.trackingData {
+        if data.isTracking {
+            // Use data.blendShapes, data.headTransform
+        }
+    }
+}
+```
+
+### Hand Tracking
+
+Hand tracking is also available via `createHandTracker()`:
+
+```kotlin
+val handTracker = createHandTracker(platformContext)
+handTracker.start()
+handTracker.trackingData.collect { data ->
+    for (hand in data.hands) {
+        // hand.landmarks, hand.handedness, hand.gesture
+    }
+}
+```
+
+## Platform Requirements
+
+### Android
+- **CAMERA** permission (declared in manifest + requested at runtime)
+- MediaPipe model files in `assets/models/` (see sample app)
+- Min SDK 24
+
+### iOS
+- **NSCameraUsageDescription** in Info.plist
+- TrueDepth front camera required for face tracking
+- iOS 17.0+
+- ARKit capability in entitlements (face tracking)
 
 ## Architecture
 
 ```
 commonMain/
-├── FaceTracker.kt          # Public API interface
-├── FaceTrackingData.kt     # Unified data model
-├── BlendShape.kt           # Blend shape definitions
-└── CalibrationConfig.kt    # Calibration settings
+├── api/
+│   ├── FaceTracker.kt          # Public face tracking interface
+│   └── HandTracker.kt          # Public hand tracking interface
+├── model/
+│   ├── FaceTrackingData.kt     # Unified face data model
+│   ├── HandTrackingData.kt     # Unified hand data model
+│   ├── BlendShape.kt           # 52 blend shape definitions
+│   └── HandJoint.kt            # 21 hand joint definitions
+└── util/                       # Smoothing, calibration
 
 androidMain/
-└── MediaPipeFaceTracker.kt # MediaPipe implementation
+├── MediaPipeFaceTracker.kt     # MediaPipe + CameraX
+└── MediaPipeHandTracker.kt
 
 iosMain/
-└── ARKitFaceTracker.kt     # ARKit implementation
+├── ARKitFaceTracker.kt         # ARKit
+└── VisionHandTracker.kt        # Vision framework
 ```
-
-## Blend Shape Parameters
-
-Provides a unified set of facial parameters including:
-
-- **Eyes**: blink, gaze direction, squint, wide
-- **Brows**: inner up, down, outer up
-- **Mouth**: open, smile, pucker, funnel, and more
-- **Cheeks**: puff, squint
-- **Jaw**: open, forward, left/right
-- **Head**: rotation (pitch, yaw, roll) + position (x, y, z)
 
 ## Documentation
 
@@ -52,17 +128,18 @@ API documentation is available at **[riox432.github.io/KMP-FaceLink](https://rio
 ## Tech Stack
 
 - Kotlin Multiplatform (KMP)
-- MediaPipe Face Landmarker (Android)
-- ARKit (iOS)
+- MediaPipe Face / Hand Landmarker (Android)
+- ARKit + Vision framework (iOS)
+- SKIE (Swift-Kotlin Flow interop)
 - Kotlin Coroutines / Flow
 
 ## Status
 
-**Early stage** — architecture design and API definition in progress.
+**Active development** — face tracking and hand tracking are functional on both platforms. Body tracking (Phase 3) is planned.
 
 ## Contributing
 
-Contributions are welcome! Please open an issue to discuss your ideas before submitting a PR.
+See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
 ## License
 

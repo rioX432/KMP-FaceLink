@@ -14,7 +14,8 @@ package io.github.kmpfacelink.model
  * @property positionY Translation along Y-axis (up/down)
  * @property positionZ Translation along Z-axis (forward/backward)
  * @property transformMatrix Raw 4×4 transformation matrix (column-major order, 16 floats).
- *           Null if the platform does not provide it.
+ *           Available on both Android (MediaPipe) and iOS (ARKit) when a face is detected.
+ *           Null when no face is tracked (e.g., [FaceTrackingData.notTracking]).
  */
 public data class HeadTransform(
     val pitch: Float = 0f,

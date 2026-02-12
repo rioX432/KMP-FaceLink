@@ -1,10 +1,12 @@
 package io.github.kmpfacelink.internal
 
+import android.util.Size
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.Preview
 import androidx.camera.core.resolutionselector.AspectRatioStrategy
 import androidx.camera.core.resolutionselector.ResolutionSelector
+import androidx.camera.core.resolutionselector.ResolutionStrategy
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.content.ContextCompat
 import io.github.kmpfacelink.api.PlatformContext
@@ -40,7 +42,7 @@ internal class CameraXManager(
 
         if (surfaceProvider != null) {
             val preview = Preview.Builder()
-                .setResolutionSelector(resolutionSelector)
+                .setResolutionSelector(previewResolutionSelector)
                 .build().also { it.surfaceProvider = surfaceProvider }
             provider.bindToLifecycle(
                 platformContext.lifecycleOwner,
@@ -77,10 +79,23 @@ internal class CameraXManager(
         }
 
     companion object {
-        private val resolutionSelector = ResolutionSelector.Builder()
+        private const val ANALYSIS_WIDTH = 640
+        private const val ANALYSIS_HEIGHT = 480
+
+        private val analysisResolutionSelector = ResolutionSelector.Builder()
+            .setAspectRatioStrategy(AspectRatioStrategy.RATIO_4_3_FALLBACK_AUTO_STRATEGY)
+            .setResolutionStrategy(
+                ResolutionStrategy(
+                    Size(ANALYSIS_WIDTH, ANALYSIS_HEIGHT),
+                    ResolutionStrategy.FALLBACK_RULE_CLOSEST_HIGHER_THEN_LOWER,
+                ),
+            )
+            .build()
+
+        private val previewResolutionSelector = ResolutionSelector.Builder()
             .setAspectRatioStrategy(AspectRatioStrategy.RATIO_4_3_FALLBACK_AUTO_STRATEGY)
             .build()
 
-        fun buildAnalysisResolutionSelector(): ResolutionSelector = resolutionSelector
+        fun buildAnalysisResolutionSelector(): ResolutionSelector = analysisResolutionSelector
     }
 }

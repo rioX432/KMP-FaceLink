@@ -592,3 +592,86 @@ Sample apps (demo only)                    - App Store distribution
 4. **Modular** — import only what you need (core only, or core + avatar, or full stack)
 5. **Face effects as SDK** — TikTok-style face filters as a programmable library, not a closed app
 6. **KMP ecosystem** — single codebase, Kotlin + Swift consumers, Gradle dependency management
+
+---
+
+## 8. AI Cost Strategy
+
+Voice-first AI companion apps are expensive to run. Every conversation turn costs money across LLM, TTS, and ASR. Sustainable operation requires a deliberate cost architecture.
+
+### Cost Per Conversation Turn (Cloud APIs)
+
+| Service | Unit price | Per response | Notes |
+|---|---|---|---|
+| LLM (GPT-4o) | ~$2.50/1M input tokens | ~$0.005 | ~2K tokens with context |
+| TTS (ElevenLabs) | ~$0.30/1K chars | ~$0.03 | ~100 chars per response |
+| ASR (Whisper API) | $0.006/min | ~$0.001 | ~10 sec per user utterance |
+| **Total per turn** | | **~$0.04** | |
+
+At 30 turns/day: **~$1.20/day = ~$36/month per active user**. A $5/month subscription does not cover this.
+
+### Cost Reduction Strategies
+
+#### 1. On-Device Processing (Zero Marginal Cost)
+
+| Component | Cloud | On-device alternative | Savings |
+|---|---|---|---|
+| ASR | Whisper API ($0.006/min) | Whisper.cpp | 100% |
+| TTS | ElevenLabs ($0.30/1K chars) | On-device VOICEVOX / system TTS | 100% |
+| LLM (casual) | GPT-4o ($2.50/1M tokens) | Gemma 3 / Phi-4 on-device | 100% |
+
+**On-device stack eliminates ~90% of API costs** for typical casual conversations.
+
+#### 2. Hybrid LLM Routing
+
+Not every conversation needs GPT-4o. Route intelligently:
+
+```
+User speaks → ASR (on-device) → Intent classification (on-device, tiny model)
+    │
+    ├── Casual chat ("How are you?", "What's for dinner?")
+    │   → On-device small LLM (Gemma 3 2B / Phi-4 mini)
+    │   → Cost: $0
+    │
+    ├── Complex conversation (advice, deep topics, creative)
+    │   → Cloud LLM (GPT-4o / Claude)
+    │   → Cost: ~$0.005/turn
+    │
+    └── Scripted response (greetings, reactions, time-based)
+        → Template selection (no LLM needed)
+        → Cost: $0
+```
+
+#### 3. Avatar Idle Behavior (No AI Cost)
+
+The avatar's daily routine (reading, cooking, sleeping, etc.) is **purely scripted/procedural**:
+
+- Activity schedule based on real-world time (morning → coffee, afternoon → reading, night → sleeping)
+- Random idle animations and status messages from a predefined pool
+- Occasional "thoughts" displayed as text bubbles — selected from templates, not generated
+- LLM is invoked **only when the user taps Talk**
+
+#### 4. Token Optimization
+
+- **Short persona prompts** — concise system prompts (<200 tokens) instead of verbose character descriptions
+- **Sliding context window** — keep only last N turns in context, summarize older history
+- **Response length control** — persona configured for brief, casual responses (50-100 chars typical)
+- **Streaming with early stop** — if user interrupts, stop generation immediately
+
+### Pricing Model vs. Cost
+
+| Tier | Price | Allowed usage | Estimated cost/user/month |
+|---|---|---|---|
+| Free | $0 | 10 voice turns/day, on-device only | ~$0 |
+| Pro | $4.99/mo | Unlimited, cloud LLM available | ~$3-8 (varies by usage) |
+| Pro+ | $9.99/mo | Unlimited, premium TTS (ElevenLabs), priority | ~$8-15 |
+
+**Key insight**: Free tier is sustainable at $0 cost because everything runs on-device. Pro tier is viable because hybrid routing keeps average cost well below the subscription price.
+
+### SDK Implications
+
+The on-device strategy affects SDK module design:
+
+- `kmp-facelink-voice`: Must support both on-device (Whisper.cpp, VOICEVOX) and cloud (API) backends behind the same interface
+- `kmp-facelink-llm`: Must support on-device models (ONNX Runtime / llama.cpp) alongside cloud APIs, with transparent routing
+- These are not just "fallbacks" — on-device is the **primary** path, cloud is the premium upgrade

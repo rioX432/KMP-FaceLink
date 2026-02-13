@@ -5,6 +5,7 @@ import KMPFaceLink
 enum TrackingMode: String, CaseIterable {
     case face = "Face"
     case hand = "Hand"
+    case avatar = "Avatar"
 }
 
 struct ContentView: View {
@@ -29,6 +30,8 @@ struct ContentView: View {
                 FaceTrackingContentView()
             case .hand:
                 HandTrackingView()
+            case .avatar:
+                AvatarTrackingView()
             }
         }
     }

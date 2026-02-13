@@ -23,6 +23,7 @@ dependencies {
     dokka(project(":kmp-facelink-avatar"))
     dokka(project(":kmp-facelink-actions"))
     dokka(project(":kmp-facelink-effects"))
+    dokka(project(":kmp-facelink-live2d"))
 }
 
 subprojects {
@@ -77,6 +78,17 @@ project(":kmp-facelink-actions") {
 }
 
 project(":kmp-facelink-effects") {
+    afterEvaluate {
+        detekt {
+            source.setFrom(
+                "src/commonMain/kotlin",
+                "src/commonTest/kotlin",
+            )
+        }
+    }
+}
+
+project(":kmp-facelink-live2d") {
     afterEvaluate {
         detekt {
             source.setFrom(

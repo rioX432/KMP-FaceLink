@@ -1,0 +1,6 @@
+// Live2D SDK configuration
+// When setup-live2d.sh installs the SDK, it generates Live2DConfig.generated.xcconfig
+// with LIVE2D_AVAILABLE=1 and the necessary search paths / linker flags.
+// The #include? directive is a non-fatal include — if the file is missing, this is a no-op.
+
+#include? "Live2DConfig.generated.xcconfig"

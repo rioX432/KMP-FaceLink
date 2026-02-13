@@ -58,8 +58,12 @@ import io.github.kmpfacelink.api.PlatformContext
 import io.github.kmpfacelink.api.TrackingState
 import io.github.kmpfacelink.api.createFaceTracker
 import io.github.kmpfacelink.api.createHandTracker
+import io.github.kmpfacelink.avatar.Live2DParameterMapper
+import io.github.kmpfacelink.avatar.toAvatarParameters
 import io.github.kmpfacelink.internal.PreviewableFaceTracker
 import io.github.kmpfacelink.internal.PreviewableHandTracker
+import io.github.kmpfacelink.live2d.Live2DModelInfo
+import io.github.kmpfacelink.live2d.Live2DRenderer
 import io.github.kmpfacelink.model.BlendShape
 import io.github.kmpfacelink.model.FaceLandmark
 import io.github.kmpfacelink.model.FaceTrackerConfig
@@ -75,7 +79,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 
-private enum class TrackingMode { FACE, HAND }
+private enum class TrackingMode { FACE, HAND, AVATAR }
 
 class MainActivity : ComponentActivity() {
 
@@ -105,6 +109,12 @@ class MainActivity : ComponentActivity() {
 
     private var faceCollectorJob: Job? = null
     private var handCollectorJob: Job? = null
+    private var avatarCollectorJob: Job? = null
+
+    private val avatarMapper by lazy { Live2DParameterMapper() }
+    private val live2dAvailable by lazy { isLive2DAvailable() }
+    private var live2dRenderer: Live2DRenderer? = null
+    private var live2dGLSurfaceRenderer: android.opengl.GLSurfaceView.Renderer? = null
 
     private val cameraPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission(),
@@ -120,6 +130,8 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
 
+        initializeLive2D()
+
         setContent {
             val mode by trackingModeState.collectAsState()
             MainScreen(
@@ -128,6 +140,9 @@ class MainActivity : ComponentActivity() {
                 handTracker = handTracker,
                 faceTrackingDataState = faceTrackingDataState,
                 handTrackingDataState = handTrackingDataState,
+                live2dRenderer = live2dRenderer,
+                live2dGLSurfaceRenderer = live2dGLSurfaceRenderer,
+                live2dAvailable = live2dAvailable,
                 onModeChange = { newMode -> switchMode(newMode) },
                 onStartClick = { requestCameraAndStart() },
                 onStopClick = { stopTracking() },
@@ -140,27 +155,37 @@ class MainActivity : ComponentActivity() {
         if (currentMode == newMode) return
 
         val wasTracking = when (currentMode) {
-            TrackingMode.FACE -> faceTracker.state.value == TrackingState.TRACKING
+            TrackingMode.FACE, TrackingMode.AVATAR ->
+                faceTracker.state.value == TrackingState.TRACKING
             TrackingMode.HAND -> handTracker.state.value == TrackingState.TRACKING
         }
 
         if (wasTracking) {
             lifecycleScope.launch {
-                when (currentMode) {
-                    TrackingMode.FACE -> {
-                        faceCollectorJob?.cancel()
-                        faceTracker.stop()
-                    }
-                    TrackingMode.HAND -> {
-                        handCollectorJob?.cancel()
-                        handTracker.stop()
-                    }
-                }
+                stopCurrentTracker(currentMode)
                 trackingModeState.value = newMode
                 startTracking()
             }
         } else {
             trackingModeState.value = newMode
+        }
+    }
+
+    private suspend fun stopCurrentTracker(mode: TrackingMode) {
+        when (mode) {
+            TrackingMode.FACE -> {
+                faceCollectorJob?.cancel()
+                faceTracker.stop()
+            }
+            TrackingMode.HAND -> {
+                handCollectorJob?.cancel()
+                handTracker.stop()
+            }
+            TrackingMode.AVATAR -> {
+                avatarCollectorJob?.cancel()
+                faceCollectorJob?.cancel()
+                faceTracker.stop()
+            }
         }
     }
 
@@ -193,22 +218,31 @@ class MainActivity : ComponentActivity() {
                     }
                     handTracker.start()
                 }
+                TrackingMode.AVATAR -> {
+                    faceCollectorJob = lifecycleScope.launch {
+                        faceTracker.trackingData.collect { data ->
+                            faceTrackingDataState.value = data
+                        }
+                    }
+                    val renderer = live2dRenderer
+                    if (renderer != null) {
+                        avatarCollectorJob = lifecycleScope.launch {
+                            faceTracker.trackingData
+                                .toAvatarParameters(avatarMapper)
+                                .collect { params ->
+                                    renderer.updateParameters(params)
+                                }
+                        }
+                    }
+                    faceTracker.start()
+                }
             }
         }
     }
 
     private fun stopTracking() {
         lifecycleScope.launch {
-            when (trackingModeState.value) {
-                TrackingMode.FACE -> {
-                    faceCollectorJob?.cancel()
-                    faceTracker.stop()
-                }
-                TrackingMode.HAND -> {
-                    handCollectorJob?.cancel()
-                    handTracker.stop()
-                }
-            }
+            stopCurrentTracker(trackingModeState.value)
         }
     }
 
@@ -216,6 +250,43 @@ class MainActivity : ComponentActivity() {
         super.onDestroy()
         faceTracker.release()
         handTracker.release()
+        live2dRenderer?.release()
+    }
+
+    private fun initializeLive2D() {
+        if (!live2dAvailable) return
+        try {
+            val rendererClass = Class.forName(
+                "io.github.kmpfacelink.sample.live2d.Live2DGLRenderer",
+            )
+            val constructor = rendererClass.getConstructor(
+                android.content.res.AssetManager::class.java,
+            )
+            val instance = constructor.newInstance(assets)
+            live2dRenderer = instance as Live2DRenderer
+            live2dGLSurfaceRenderer = instance as android.opengl.GLSurfaceView.Renderer
+
+            lifecycleScope.launch {
+                val modelInfo = Live2DModelInfo(
+                    modelId = "hiyori",
+                    name = "Hiyori",
+                    modelPath = "live2d/Hiyori/Hiyori.model3.json",
+                )
+                (instance as Live2DRenderer).initialize(modelInfo)
+            }
+        } catch (_: Exception) {
+            // Live2D SDK classes not available at runtime
+        }
+    }
+
+    private fun isLive2DAvailable(): Boolean {
+        return try {
+            assets.open("live2d/Hiyori/Hiyori.model3.json").close()
+            Class.forName("com.live2d.sdk.cubism.framework.CubismFramework")
+            true
+        } catch (_: Exception) {
+            false
+        }
     }
 }
 
@@ -231,6 +302,9 @@ private fun MainScreen(
     handTracker: HandTracker,
     faceTrackingDataState: MutableStateFlow<FaceTrackingData?>,
     handTrackingDataState: MutableStateFlow<HandTrackingData?>,
+    live2dRenderer: Live2DRenderer?,
+    live2dGLSurfaceRenderer: android.opengl.GLSurfaceView.Renderer?,
+    live2dAvailable: Boolean,
     onModeChange: (TrackingMode) -> Unit,
     onStartClick: () -> Unit,
     onStopClick: () -> Unit,
@@ -250,6 +324,50 @@ private fun MainScreen(
             onStartClick = onStartClick,
             onStopClick = onStopClick,
         )
+        TrackingMode.AVATAR -> {
+            if (live2dAvailable && live2dRenderer != null && live2dGLSurfaceRenderer != null) {
+                AvatarTrackingScreen(
+                    faceTracker = faceTracker,
+                    trackingDataState = faceTrackingDataState,
+                    renderer = live2dRenderer,
+                    glSurfaceRenderer = live2dGLSurfaceRenderer,
+                    onStartClick = onStartClick,
+                    onStopClick = onStopClick,
+                )
+            } else {
+                Live2DUnavailableScreen(onModeChange = onModeChange)
+            }
+        }
+    }
+}
+
+@Composable
+private fun Live2DUnavailableScreen(onModeChange: (TrackingMode) -> Unit) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.Black),
+        contentAlignment = Alignment.Center,
+    ) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Text(
+                text = "Live2D SDK not installed",
+                color = Color.White,
+                fontSize = 16.sp,
+            )
+            Text(
+                text = "Run scripts/setup-live2d.sh to download",
+                color = Color.White.copy(alpha = 0.6f),
+                fontSize = 12.sp,
+                modifier = Modifier.padding(top = 8.dp),
+            )
+            Button(
+                onClick = { onModeChange(TrackingMode.FACE) },
+                modifier = Modifier.padding(top = 16.dp),
+            ) {
+                Text("Switch to Face Tracking")
+            }
+        }
     }
 }
 

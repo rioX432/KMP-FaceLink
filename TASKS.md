@@ -55,7 +55,8 @@ On completion, update status to `DONE` and close the corresponding GitHub Issue.
 | 42 | [kmp-facelink-avatar module](https://github.com/rioX432/KMP-FaceLink/issues/42) | DONE | Live2D parameter mapping (BlendShape → ParamAngleX etc.) |
 | 43 | [kmp-facelink-actions module](https://github.com/rioX432/KMP-FaceLink/issues/43) | DONE | Gesture/expression trigger system with debounce |
 | 45 | [kmp-facelink-effects module](https://github.com/rioX432/KMP-FaceLink/issues/45) | DONE | Real-time face effects engine (TikTok-style filters) |
-| 46 | [Sample Live2D avatar](https://github.com/rioX432/KMP-FaceLink/issues/46) | TODO | Bundled avatar for demo + integration reference |
+| 46 | [Sample Live2D avatar](https://github.com/rioX432/KMP-FaceLink/issues/46) | DONE | Bundled avatar for demo + integration reference |
+| 56 | [iOS Live2D avatar crash](https://github.com/rioX432/KMP-FaceLink/issues/56) | TODO | Fix Metal rendering crash on Avatar tab |
 | 4 | [Publish to Maven Central](https://github.com/rioX432/KMP-FaceLink/issues/4) | TODO | maven-publish + XCFramework distribution |
 
 ## Phase 2: Native Rendering (Q3–Q4 2026)
@@ -63,7 +64,7 @@ On completion, update status to `DONE` and close the corresponding GitHub Issue.
 | # | Issue | Status | Summary |
 |---|-------|--------|---------|
 | 47 | [SDK API stability review](https://github.com/rioX432/KMP-FaceLink/issues/47) | TODO | Audit public APIs, semver policy, stability annotations |
-| 48 | [kmp-facelink-live2d module](https://github.com/rioX432/KMP-FaceLink/issues/48) | TODO | Live2D Cubism SDK Native KMP wrapper |
+| 48 | [kmp-facelink-live2d module](https://github.com/rioX432/KMP-FaceLink/issues/48) | DONE | Live2D Cubism SDK Native KMP wrapper |
 | 7 | [Body tracking](https://github.com/rioX432/KMP-FaceLink/issues/7) | TODO | Pose estimation |
 
 ## Phase 3: Communication (Q1–Q2 2027)

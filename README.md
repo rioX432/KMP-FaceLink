@@ -20,6 +20,34 @@ Building a VTuber or AR app with KMP today means writing separate tracking code 
 - Calibration support
 - Real-time performance (30–60 fps)
 
+## API Stability
+
+KMP-FaceLink follows [Semantic Versioning](https://semver.org/). Each module has a stability tier:
+
+| Module | Stability | Notes |
+|---|---|---|
+| `kmp-facelink` (core) | **Stable** | Breaking changes only in major versions |
+| `kmp-facelink-avatar` | **Stable** | Breaking changes only in major versions |
+| `kmp-facelink-actions` | **Stable** | Breaking changes only in major versions |
+| `kmp-facelink-effects` | **Mostly stable** | Some APIs marked `@ExperimentalFaceLinkApi` |
+| `kmp-facelink-live2d` | **Experimental** | All APIs marked `@ExperimentalFaceLinkApi` |
+
+APIs annotated with `@ExperimentalFaceLinkApi` may change in minor releases without a deprecation cycle. To use them, opt in with:
+
+```kotlin
+// Per-usage
+@OptIn(ExperimentalFaceLinkApi::class)
+
+// Or module-wide in build.gradle.kts
+kotlin {
+    compilerOptions {
+        freeCompilerArgs.add("-opt-in=io.github.kmpfacelink.ExperimentalFaceLinkApi")
+    }
+}
+```
+
+All library modules enforce `explicitApi()` mode — every public declaration requires an explicit visibility modifier.
+
 ## Quick Start
 
 ### Android (Kotlin)
@@ -139,10 +167,11 @@ KMP-FaceLink is evolving from a pure tracking library into a modular Mobile VTub
 
 | Module | Purpose | Status |
 |---|---|---|
-| `kmp-facelink` (core) | Face & hand tracking API | Available |
-| `kmp-facelink-avatar` | BlendShape → Live2D/VRM parameter conversion | Planned |
-| `kmp-facelink-actions` | Gesture/expression → action triggers | Planned |
-| `kmp-facelink-effects` | Real-time face effects (TikTok-style filters) | Planned |
+| `kmp-facelink` (core) | Face & hand tracking API | Stable |
+| `kmp-facelink-avatar` | BlendShape → Live2D/VRM parameter conversion | Stable |
+| `kmp-facelink-actions` | Gesture/expression → action triggers | Stable |
+| `kmp-facelink-effects` | Real-time face effects (TikTok-style filters) | Available |
+| `kmp-facelink-live2d` | Live2D Cubism SDK rendering | Experimental |
 | `kmp-facelink-stream` | WebSocket streaming to desktop backends | Future |
 
 See [docs/extension-strategy.md](docs/extension-strategy.md) for the full strategy.

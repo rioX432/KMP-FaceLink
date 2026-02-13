@@ -1,5 +1,6 @@
 package io.github.kmpfacelink.live2d
 
+import io.github.kmpfacelink.ExperimentalFaceLinkApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.onEach
@@ -12,6 +13,7 @@ import kotlinx.coroutines.flow.onEach
  *
  * @param renderer the renderer to drive with parameter updates
  */
+@ExperimentalFaceLinkApi
 public suspend fun Flow<Map<String, Float>>.driveRenderer(renderer: Live2DRenderer) {
     onEach { parameters ->
         renderer.updateParameters(parameters)

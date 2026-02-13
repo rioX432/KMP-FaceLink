@@ -39,6 +39,13 @@ Thank you for your interest in contributing! This guide will help you get starte
 4. Ensure `./gradlew detekt` and `./gradlew :kmp-facelink:allTests` pass.
 5. Submit a PR linking the issue.
 
+## API Stability
+
+- All library modules use `explicitApi()` — every public declaration must have an explicit visibility modifier (`public`, `internal`, etc.).
+- Unstable APIs must be annotated with `@ExperimentalFaceLinkApi` (defined in the core module).
+- When adding new public API to an experimental module (e.g., `kmp-facelink-live2d`), always apply the annotation.
+- Do not remove `@ExperimentalFaceLinkApi` from an API without a discussion in the corresponding issue.
+
 ## Architecture
 
 The library follows a `commonMain` / `androidMain` / `iosMain` structure:

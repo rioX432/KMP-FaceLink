@@ -1,11 +1,14 @@
 package io.github.kmpfacelink.effects
 
+import io.github.kmpfacelink.ExperimentalFaceLinkApi
+
 /**
  * Predefined face anchor points mapped to MediaPipe 478-point face mesh landmark indices.
  *
  * @property landmarkIndex The MediaPipe face mesh landmark index
  * @property label Human-readable label for this anchor point
  */
+@ExperimentalFaceLinkApi
 @Suppress("MagicNumber")
 public enum class AnchorPoint(
     public val landmarkIndex: Int,

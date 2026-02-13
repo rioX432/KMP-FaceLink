@@ -1,5 +1,6 @@
 package io.github.kmpfacelink.effects
 
+import io.github.kmpfacelink.ExperimentalFaceLinkApi
 import io.github.kmpfacelink.model.BlendShape
 import io.github.kmpfacelink.model.HandGesture
 
@@ -11,6 +12,7 @@ private const val CARTOON_EYES_SCALE = 2.0f
 /**
  * Cat ears positioned on the forehead, tracking head rotation.
  */
+@ExperimentalFaceLinkApi
 public fun catEarsEffect(id: String = "catEars"): Effect = Effect.AnchorEffect(
     id = id,
     anchor = AnchorPoint.FOREHEAD,
@@ -20,6 +22,7 @@ public fun catEarsEffect(id: String = "catEars"): Effect = Effect.AnchorEffect(
 /**
  * Glasses positioned on the nose bridge, tracking head rotation.
  */
+@ExperimentalFaceLinkApi
 public fun glassesEffect(id: String = "glasses"): Effect = Effect.AnchorEffect(
     id = id,
     anchor = AnchorPoint.NOSE_BRIDGE,
@@ -29,6 +32,7 @@ public fun glassesEffect(id: String = "glasses"): Effect = Effect.AnchorEffect(
 /**
  * Heart particles triggered by smiling. Intensity maps to smile strength.
  */
+@ExperimentalFaceLinkApi
 public fun smileHeartsEffect(id: String = "smileHearts"): Effect = Effect.ExpressionEffect(
     id = id,
     blendShapes = listOf(BlendShape.MOUTH_SMILE_LEFT, BlendShape.MOUTH_SMILE_RIGHT),
@@ -40,6 +44,7 @@ public fun smileHeartsEffect(id: String = "smileHearts"): Effect = Effect.Expres
  * Sparkle effect triggered by winking (left eye blink).
  * Uses step mapping: fully on when winking, off otherwise.
  */
+@ExperimentalFaceLinkApi
 public fun winkSparkleEffect(id: String = "winkSparkle"): Effect = Effect.ExpressionEffect(
     id = id,
     blendShapes = listOf(BlendShape.EYE_BLINK_LEFT),
@@ -50,6 +55,7 @@ public fun winkSparkleEffect(id: String = "winkSparkle"): Effect = Effect.Expres
 /**
  * Particle effect triggered by open palm gesture.
  */
+@ExperimentalFaceLinkApi
 public fun openPalmParticlesEffect(id: String = "openPalmParticles"): Effect = Effect.HandEffect(
     id = id,
     gesture = HandGesture.OPEN_PALM,
@@ -59,6 +65,7 @@ public fun openPalmParticlesEffect(id: String = "openPalmParticles"): Effect = E
 /**
  * Cartoon eye scale effect. Transforms eye-wide blend shape into a scale multiplier.
  */
+@ExperimentalFaceLinkApi
 public fun cartoonEyesEffect(id: String = "cartoonEyes"): Effect = Effect.TransformEffect(
     id = id,
     blendShape = BlendShape.EYE_WIDE_LEFT,

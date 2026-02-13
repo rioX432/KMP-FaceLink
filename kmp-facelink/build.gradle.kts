@@ -10,6 +10,8 @@ dokka {
 }
 
 kotlin {
+    explicitApi()
+
     compilerOptions {
         freeCompilerArgs.add("-Xexpect-actual-classes")
     }

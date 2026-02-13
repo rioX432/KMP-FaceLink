@@ -1,8 +1,11 @@
 package io.github.kmpfacelink.live2d
 
+import io.github.kmpfacelink.ExperimentalFaceLinkApi
+
 /**
  * Represents the lifecycle state of a [Live2DRenderer].
  */
+@ExperimentalFaceLinkApi
 public enum class Live2DRenderState {
     /** Renderer has not been initialized yet. */
     UNINITIALIZED,

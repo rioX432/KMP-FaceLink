@@ -10,6 +10,8 @@ dokka {
 }
 
 kotlin {
+    explicitApi()
+
     androidLibrary {
         namespace = "io.github.kmpfacelink.live2d"
         compileSdk = 35
@@ -26,6 +28,10 @@ kotlin {
             export(project(":kmp-facelink"))
             export(project(":kmp-facelink-avatar"))
         }
+    }
+
+    compilerOptions {
+        freeCompilerArgs.add("-opt-in=io.github.kmpfacelink.ExperimentalFaceLinkApi")
     }
 
     sourceSets {

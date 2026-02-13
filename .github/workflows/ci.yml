@@ -45,7 +45,7 @@ jobs:
           key: konan-${{ runner.os }}-${{ hashFiles('gradle/libs.versions.toml') }}
           restore-keys: konan-${{ runner.os }}-
 
-      - run: ./gradlew :kmp-facelink:allTests
+      - run: ./gradlew :kmp-facelink:allTests :kmp-facelink-avatar:allTests
 
   build:
     name: Build
@@ -60,4 +60,4 @@ jobs:
 
       - uses: gradle/actions/setup-gradle@v4
 
-      - run: ./gradlew :kmp-facelink:assemble :androidApp:assembleDebug
+      - run: ./gradlew :kmp-facelink:assemble :kmp-facelink-avatar:assemble :androidApp:assembleDebug

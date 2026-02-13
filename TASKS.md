@@ -51,8 +51,8 @@ On completion, update status to `DONE` and close the corresponding GitHub Issue.
 
 | # | Issue | Status | Summary |
 |---|-------|--------|---------|
-| 44 | [Extension strategy documentation](https://github.com/rioX432/KMP-FaceLink/issues/44) | TODO | Strategy doc, roadmap, competitive analysis |
-| 42 | [kmp-facelink-avatar module](https://github.com/rioX432/KMP-FaceLink/issues/42) | TODO | Live2D parameter mapping (BlendShape → ParamAngleX etc.) |
+| 44 | [Extension strategy documentation](https://github.com/rioX432/KMP-FaceLink/issues/44) | DONE | Strategy doc, roadmap, competitive analysis |
+| 42 | [kmp-facelink-avatar module](https://github.com/rioX432/KMP-FaceLink/issues/42) | DONE | Live2D parameter mapping (BlendShape → ParamAngleX etc.) |
 | 43 | [kmp-facelink-actions module](https://github.com/rioX432/KMP-FaceLink/issues/43) | TODO | Gesture/expression trigger system with debounce |
 | 45 | [kmp-facelink-effects module](https://github.com/rioX432/KMP-FaceLink/issues/45) | TODO | Real-time face effects engine (TikTok-style filters) |
 | 46 | [Sample Live2D avatar](https://github.com/rioX432/KMP-FaceLink/issues/46) | TODO | Bundled avatar for demo + integration reference |

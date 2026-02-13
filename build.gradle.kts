@@ -20,6 +20,7 @@ detekt {
 dependencies {
     detektPlugins(detektFormatting)
     dokka(project(":kmp-facelink"))
+    dokka(project(":kmp-facelink-avatar"))
 }
 
 subprojects {
@@ -37,7 +38,7 @@ subprojects {
     }
 }
 
-// Configure detekt source paths for KMP module
+// Configure detekt source paths for KMP modules
 project(":kmp-facelink") {
     afterEvaluate {
         detekt {
@@ -45,6 +46,17 @@ project(":kmp-facelink") {
                 "src/commonMain/kotlin",
                 "src/androidMain/kotlin",
                 "src/iosMain/kotlin",
+                "src/commonTest/kotlin",
+            )
+        }
+    }
+}
+
+project(":kmp-facelink-avatar") {
+    afterEvaluate {
+        detekt {
+            source.setFrom(
+                "src/commonMain/kotlin",
                 "src/commonTest/kotlin",
             )
         }

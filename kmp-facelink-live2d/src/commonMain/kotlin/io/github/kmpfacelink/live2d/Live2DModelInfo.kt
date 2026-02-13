@@ -1,5 +1,7 @@
 package io.github.kmpfacelink.live2d
 
+import io.github.kmpfacelink.ExperimentalFaceLinkApi
+
 /**
  * Metadata describing a Live2D Cubism model.
  *
@@ -8,6 +10,7 @@ package io.github.kmpfacelink.live2d
  * @property modelPath path to the .model3.json file (relative to assets/bundle)
  * @property parameterIds set of Live2D parameter IDs supported by this model (empty = accept all)
  */
+@ExperimentalFaceLinkApi
 public data class Live2DModelInfo(
     val modelId: String,
     val name: String,

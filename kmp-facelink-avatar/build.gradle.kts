@@ -9,6 +9,8 @@ dokka {
 }
 
 kotlin {
+    explicitApi()
+
     androidLibrary {
         namespace = "io.github.kmpfacelink.avatar"
         compileSdk = 35

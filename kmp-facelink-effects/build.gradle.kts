@@ -9,6 +9,8 @@ dokka {
 }
 
 kotlin {
+    explicitApi()
+
     androidLibrary {
         namespace = "io.github.kmpfacelink.effects"
         compileSdk = 35
@@ -23,6 +25,10 @@ kotlin {
             baseName = "KMPFaceLinkEffects"
             isStatic = true
         }
+    }
+
+    compilerOptions {
+        freeCompilerArgs.add("-opt-in=io.github.kmpfacelink.ExperimentalFaceLinkApi")
     }
 
     sourceSets {

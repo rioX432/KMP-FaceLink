@@ -1,5 +1,6 @@
 package io.github.kmpfacelink.live2d
 
+import io.github.kmpfacelink.ExperimentalFaceLinkApi
 import kotlinx.coroutines.flow.StateFlow
 
 /**
@@ -16,6 +17,7 @@ import kotlinx.coroutines.flow.StateFlow
  *     .driveRenderer(renderer)
  * ```
  */
+@ExperimentalFaceLinkApi
 public interface Live2DRenderer {
     /** Current lifecycle state of this renderer. */
     public val state: StateFlow<Live2DRenderState>

@@ -30,6 +30,7 @@ android {
 
     kotlinOptions {
         jvmTarget = "17"
+        freeCompilerArgs += "-opt-in=io.github.kmpfacelink.ExperimentalFaceLinkApi"
     }
 
 }

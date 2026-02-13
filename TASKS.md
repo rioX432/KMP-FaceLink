@@ -63,7 +63,7 @@ On completion, update status to `DONE` and close the corresponding GitHub Issue.
 
 | # | Issue | Status | Summary |
 |---|-------|--------|---------|
-| 47 | [SDK API stability review](https://github.com/rioX432/KMP-FaceLink/issues/47) | TODO | Audit public APIs, semver policy, stability annotations |
+| 47 | [SDK API stability review](https://github.com/rioX432/KMP-FaceLink/issues/47) | DONE | Audit public APIs, semver policy, stability annotations |
 | 48 | [kmp-facelink-live2d module](https://github.com/rioX432/KMP-FaceLink/issues/48) | DONE | Live2D Cubism SDK Native KMP wrapper |
 | 7 | [Body tracking](https://github.com/rioX432/KMP-FaceLink/issues/7) | TODO | Pose estimation |
 

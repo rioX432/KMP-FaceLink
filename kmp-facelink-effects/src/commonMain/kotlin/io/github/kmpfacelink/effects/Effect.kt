@@ -1,5 +1,6 @@
 package io.github.kmpfacelink.effects
 
+import io.github.kmpfacelink.ExperimentalFaceLinkApi
 import io.github.kmpfacelink.model.BlendShape
 import io.github.kmpfacelink.model.FaceTrackingData
 import io.github.kmpfacelink.model.HandGesture
@@ -90,6 +91,7 @@ public sealed class Effect {
      *
      * @property compute Function that receives optional face/hand data and returns intensity (0.0–1.0)
      */
+    @ExperimentalFaceLinkApi
     public data class AmbientEffect(
         override val id: String,
         val compute: (face: FaceTrackingData?, hand: HandTrackingData?) -> Float,

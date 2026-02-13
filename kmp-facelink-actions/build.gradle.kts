@@ -9,6 +9,8 @@ dokka {
 }
 
 kotlin {
+    explicitApi()
+
     androidLibrary {
         namespace = "io.github.kmpfacelink.actions"
         compileSdk = 35

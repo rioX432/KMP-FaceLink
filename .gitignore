@@ -9,6 +9,8 @@
 .cxx
 local.properties
 /kmp-facelink/build
+/kmp-facelink-actions/build
+/kmp-facelink-avatar/build
 /androidApp/build
 *.hprof
 .kotlin/

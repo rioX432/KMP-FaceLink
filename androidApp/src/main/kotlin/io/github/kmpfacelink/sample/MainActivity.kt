@@ -3,6 +3,7 @@ package io.github.kmpfacelink.sample
 import android.Manifest
 import android.content.pm.PackageManager
 import android.os.Bundle
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -81,6 +82,13 @@ import kotlinx.coroutines.launch
 
 private enum class TrackingMode { FACE, HAND, AVATAR }
 
+private data class Live2DTransformCallbacks(
+    val getScale: () -> Float,
+    val setScale: (Float) -> Unit,
+    val drag: (Float, Float) -> Unit,
+    val resetTransform: () -> Unit,
+)
+
 class MainActivity : ComponentActivity() {
 
     private val platformContext by lazy { PlatformContext(this, this) }
@@ -115,6 +123,7 @@ class MainActivity : ComponentActivity() {
     private val live2dAvailable by lazy { isLive2DAvailable() }
     private var live2dRenderer: Live2DRenderer? = null
     private var live2dGLSurfaceRenderer: android.opengl.GLSurfaceView.Renderer? = null
+    private var live2dTransformCallbacks: Live2DTransformCallbacks? = null
 
     private val cameraPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission(),
@@ -142,6 +151,7 @@ class MainActivity : ComponentActivity() {
                 handTrackingDataState = handTrackingDataState,
                 live2dRenderer = live2dRenderer,
                 live2dGLSurfaceRenderer = live2dGLSurfaceRenderer,
+                live2dTransformCallbacks = live2dTransformCallbacks,
                 live2dAvailable = live2dAvailable,
                 onModeChange = { newMode -> switchMode(newMode) },
                 onStartClick = { requestCameraAndStart() },
@@ -219,6 +229,8 @@ class MainActivity : ComponentActivity() {
                     handTracker.start()
                 }
                 TrackingMode.AVATAR -> {
+                    // Clear stale preview surface provider so CameraX only binds ImageAnalysis
+                    (faceTracker as? PreviewableFaceTracker)?.setSurfaceProvider(null)
                     faceCollectorJob = lifecycleScope.launch {
                         faceTracker.trackingData.collect { data ->
                             faceTrackingDataState.value = data
@@ -253,6 +265,7 @@ class MainActivity : ComponentActivity() {
         live2dRenderer?.release()
     }
 
+    @Suppress("TooGenericExceptionCaught")
     private fun initializeLive2D() {
         if (!live2dAvailable) return
         try {
@@ -265,6 +278,27 @@ class MainActivity : ComponentActivity() {
             val instance = constructor.newInstance(assets)
             live2dRenderer = instance as Live2DRenderer
             live2dGLSurfaceRenderer = instance as android.opengl.GLSurfaceView.Renderer
+
+            // Build transform callbacks via reflection (avoids compile-time dependency on Live2D classes)
+            try {
+                val scaleField = rendererClass.getField("userScale")
+                val offsetXField = rendererClass.getField("offsetX")
+                val offsetYField = rendererClass.getField("offsetY")
+                val resetMethod = rendererClass.getMethod("resetTransform")
+                val minScale = rendererClass.getField("MIN_SCALE").getFloat(null)
+                val maxScale = rendererClass.getField("MAX_SCALE").getFloat(null)
+                live2dTransformCallbacks = Live2DTransformCallbacks(
+                    getScale = { scaleField.getFloat(instance) },
+                    setScale = { v -> scaleField.setFloat(instance, v.coerceIn(minScale, maxScale)) },
+                    drag = { dx, dy ->
+                        offsetXField.setFloat(instance, offsetXField.getFloat(instance) + dx)
+                        offsetYField.setFloat(instance, offsetYField.getFloat(instance) + dy)
+                    },
+                    resetTransform = { resetMethod.invoke(instance) },
+                )
+            } catch (_: Exception) {
+                Log.w("MainActivity", "Failed to set up transform callbacks via reflection")
+            }
 
             lifecycleScope.launch {
                 val modelInfo = Live2DModelInfo(
@@ -304,6 +338,7 @@ private fun MainScreen(
     handTrackingDataState: MutableStateFlow<HandTrackingData?>,
     live2dRenderer: Live2DRenderer?,
     live2dGLSurfaceRenderer: android.opengl.GLSurfaceView.Renderer?,
+    live2dTransformCallbacks: Live2DTransformCallbacks?,
     live2dAvailable: Boolean,
     onModeChange: (TrackingMode) -> Unit,
     onStartClick: () -> Unit,
@@ -326,11 +361,16 @@ private fun MainScreen(
         )
         TrackingMode.AVATAR -> {
             if (live2dAvailable && live2dRenderer != null && live2dGLSurfaceRenderer != null) {
+                val cb = live2dTransformCallbacks
                 AvatarTrackingScreen(
                     faceTracker = faceTracker,
                     trackingDataState = faceTrackingDataState,
                     renderer = live2dRenderer,
                     glSurfaceRenderer = live2dGLSurfaceRenderer,
+                    onScaleChanged = cb?.setScale ?: {},
+                    onResetTransform = cb?.resetTransform ?: {},
+                    getScale = cb?.getScale ?: { 1f },
+                    onDrag = cb?.drag ?: { _, _ -> },
                     onStartClick = onStartClick,
                     onStopClick = onStopClick,
                 )

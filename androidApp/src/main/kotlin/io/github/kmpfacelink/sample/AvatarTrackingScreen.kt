@@ -1,6 +1,10 @@
 package io.github.kmpfacelink.sample
 
+import android.annotation.SuppressLint
 import android.opengl.GLSurfaceView
+import android.view.GestureDetector
+import android.view.MotionEvent
+import android.view.ScaleGestureDetector
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -45,6 +49,10 @@ internal fun AvatarTrackingScreen(
     trackingDataState: MutableStateFlow<FaceTrackingData?>,
     renderer: Live2DRenderer,
     glSurfaceRenderer: GLSurfaceView.Renderer,
+    onScaleChanged: (Float) -> Unit,
+    onResetTransform: () -> Unit,
+    getScale: () -> Float,
+    onDrag: (Float, Float) -> Unit,
     onStartClick: () -> Unit,
     onStopClick: () -> Unit,
 ) {
@@ -54,7 +62,13 @@ internal fun AvatarTrackingScreen(
     val isTracking = trackingState == TrackingState.TRACKING
 
     Box(modifier = Modifier.fillMaxSize()) {
-        Live2DGLSurface(glSurfaceRenderer = glSurfaceRenderer)
+        Live2DGLSurface(
+            glSurfaceRenderer = glSurfaceRenderer,
+            onScaleChanged = onScaleChanged,
+            onResetTransform = onResetTransform,
+            getScale = getScale,
+            onDrag = onDrag,
+        )
 
         Column(modifier = Modifier.fillMaxSize()) {
             AvatarTopBar(
@@ -73,14 +87,58 @@ internal fun AvatarTrackingScreen(
     }
 }
 
+@SuppressLint("ClickableViewAccessibility")
 @Composable
-private fun Live2DGLSurface(glSurfaceRenderer: GLSurfaceView.Renderer) {
+private fun Live2DGLSurface(
+    glSurfaceRenderer: GLSurfaceView.Renderer,
+    onScaleChanged: (Float) -> Unit,
+    onResetTransform: () -> Unit,
+    getScale: () -> Float,
+    onDrag: (Float, Float) -> Unit,
+) {
     AndroidView(
         factory = { context ->
             GLSurfaceView(context).apply {
                 setEGLContextClientVersion(2)
                 setRenderer(glSurfaceRenderer)
                 renderMode = GLSurfaceView.RENDERMODE_CONTINUOUSLY
+
+                val scaleDetector = ScaleGestureDetector(
+                    context,
+                    object : ScaleGestureDetector.SimpleOnScaleGestureListener() {
+                        override fun onScale(detector: ScaleGestureDetector): Boolean {
+                            onScaleChanged(getScale() * detector.scaleFactor)
+                            return true
+                        }
+                    },
+                )
+                val gestureDetector = GestureDetector(
+                    context,
+                    object : GestureDetector.SimpleOnGestureListener() {
+                        override fun onDoubleTap(e: MotionEvent): Boolean {
+                            onResetTransform()
+                            return true
+                        }
+
+                        override fun onScroll(
+                            e1: MotionEvent?,
+                            e2: MotionEvent,
+                            distanceX: Float,
+                            distanceY: Float,
+                        ): Boolean {
+                            // Convert pixel delta to GL coordinate delta ([-1,1] range per half-screen)
+                            val dx = -distanceX / width * 2f
+                            val dy = distanceY / height * 2f
+                            onDrag(dx, dy)
+                            return true
+                        }
+                    },
+                )
+                setOnTouchListener { _, event ->
+                    scaleDetector.onTouchEvent(event)
+                    gestureDetector.onTouchEvent(event)
+                    true
+                }
             }
         },
         modifier = Modifier.fillMaxSize(),

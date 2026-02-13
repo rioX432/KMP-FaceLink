@@ -76,7 +76,7 @@ internal class MediaPipeFaceTracker(
     @Volatile
     private var lastImageHeight: Int = 0
 
-    override fun setSurfaceProvider(surfaceProvider: Preview.SurfaceProvider) {
+    override fun setSurfaceProvider(surfaceProvider: Preview.SurfaceProvider?) {
         previewSurfaceProvider = surfaceProvider
     }
 

@@ -11,6 +11,7 @@ local.properties
 /kmp-facelink/build
 /kmp-facelink-actions/build
 /kmp-facelink-avatar/build
+/kmp-facelink-effects/build
 /androidApp/build
 *.hprof
 .kotlin/

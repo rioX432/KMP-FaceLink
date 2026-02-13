@@ -40,6 +40,24 @@ internal class Live2DGLRenderer(
     private val pendingParameters = AtomicReference<Map<String, Float>>(emptyMap())
     private var lastFrameTimeMs = 0L
 
+    @Volatile
+    @JvmField
+    var userScale = DEFAULT_SCALE
+
+    @Volatile
+    @JvmField
+    var offsetX = 0f
+
+    @Volatile
+    @JvmField
+    var offsetY = 0f
+
+    fun resetTransform() {
+        userScale = DEFAULT_SCALE
+        offsetX = 0f
+        offsetY = 0f
+    }
+
     // GL lifecycle
     override fun onSurfaceCreated(gl: GL10?, config: EGLConfig?) {
         initCubismFramework()
@@ -118,6 +136,7 @@ internal class Live2DGLRenderer(
         CubismFramework.initialize()
     }
 
+    @Suppress("TooGenericExceptionCaught") // Live2D SDK may throw RuntimeException or Error on GL thread
     private fun loadModelOnGLThread(info: Live2DModelInfo) {
         try {
             val dir = info.modelPath.substringBeforeLast('/') + "/"
@@ -126,7 +145,7 @@ internal class Live2DGLRenderer(
             manager.loadModel(dir, fileName)
             modelManager = manager
             _state.value = Live2DRenderState.READY
-        } catch (e: Exception) {
+        } catch (e: Throwable) {
             Log.e(TAG, "Failed to load Live2D model", e)
             _state.value = Live2DRenderState.ERROR
         }
@@ -142,6 +161,8 @@ internal class Live2DGLRenderer(
             } else {
                 matrix.scale(1f, aspect)
             }
+            matrix.scale(userScale, userScale)
+            matrix.translate(offsetX, offsetY)
         }
         return matrix.array
     }
@@ -149,5 +170,8 @@ internal class Live2DGLRenderer(
     companion object {
         private const val TAG = "Live2DGLRenderer"
         private const val MS_PER_SEC = 1000f
+        const val DEFAULT_SCALE = 1.4f
+        const val MIN_SCALE = 0.5f
+        const val MAX_SCALE = 3.0f
     }
 }

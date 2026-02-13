@@ -5,15 +5,22 @@ options:
     iOS: "17.0"
   xcodeVersion: "16.0"
 
+configFiles:
+  Debug: Live2DConfig.xcconfig
+  Release: Live2DConfig.xcconfig
+
 settings:
   base:
     ENABLE_USER_SCRIPT_SANDBOXING: NO
     FRAMEWORK_SEARCH_PATHS:
       - $(inherited)
-      - $(SRCROOT)/../kmp-facelink/build/xcode-frameworks/$(CONFIGURATION)/$(SDK_NAME)
+      - $(SRCROOT)/../kmp-facelink-live2d/build/xcode-frameworks/$(CONFIGURATION)/$(SDK_NAME)
     SWIFT_INCLUDE_PATHS:
       - $(inherited)
-      - $(SRCROOT)/../kmp-facelink/build/xcode-frameworks/$(CONFIGURATION)/$(SDK_NAME)/KMPFaceLink.framework/Modules
+      - $(SRCROOT)/../kmp-facelink-live2d/build/xcode-frameworks/$(CONFIGURATION)/$(SDK_NAME)/KMPFaceLink.framework/Modules
+    # Live2D bridging header and C++17 are always needed (CubismBridge.mm compiles as stub without SDK)
+    SWIFT_OBJC_BRIDGING_HEADER: FaceLink/Live2D/FaceLink-Bridging-Header.h
+    CLANG_CXX_LANGUAGE_STANDARD: c++17
 
 targets:
   FaceLink:
@@ -21,14 +28,35 @@ targets:
     platform: iOS
     sources:
       - path: FaceLink
+      - path: FaceLink/Resources/Live2D
+        type: folder
+        optional: true
+        buildPhase: resources
+      # CubismNativeFramework C++ sources (Metal renderer only)
+      - path: ../live2d/ios/Framework/src
+        optional: true
+        excludes:
+          - "Rendering/D3D9/**"
+          - "Rendering/D3D11/**"
+          - "Rendering/Vulkan/**"
+          - "Rendering/OpenGL/**"
+          - "**/CMakeLists.txt"
+          - "**/*.metal"
+        compilerFlags:
+          - "-fno-objc-arc"
+      # Metal shader compiled separately (without -std=c++17)
+      - path: ../live2d/ios/Framework/src/Rendering/Metal/MetalShaders.metal
+        optional: true
     dependencies:
-      - framework: ../kmp-facelink/build/xcode-frameworks/$(CONFIGURATION)/$(SDK_NAME)/KMPFaceLink.framework
+      - framework: ../kmp-facelink-live2d/build/xcode-frameworks/$(CONFIGURATION)/$(SDK_NAME)/KMPFaceLink.framework
         embed: false
+      - sdk: Metal.framework
+      - sdk: MetalKit.framework
     preBuildScripts:
       - name: Build KMP Framework
         script: |
           cd "$SRCROOT/.."
-          ./gradlew :kmp-facelink:embedAndSignAppleFrameworkForXcode
+          ./gradlew :kmp-facelink-live2d:embedAndSignAppleFrameworkForXcode
         basedOnDependencyAnalysis: false
     info:
       path: FaceLink/Info.plist

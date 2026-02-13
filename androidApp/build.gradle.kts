@@ -4,6 +4,8 @@ plugins {
     alias(libs.plugins.kotlin.compose)
 }
 
+val live2dAvailable = rootProject.file("live2d/android/Framework").exists()
+
 android {
     namespace = "io.github.kmpfacelink.sample"
     compileSdk = 35
@@ -14,6 +16,11 @@ android {
         targetSdk = 35
         versionCode = 1
         versionName = "1.0"
+        buildConfigField("boolean", "LIVE2D_AVAILABLE", "$live2dAvailable")
+    }
+
+    buildFeatures {
+        buildConfig = true
     }
 
     compileOptions {
@@ -24,6 +31,7 @@ android {
     kotlinOptions {
         jvmTarget = "17"
     }
+
 }
 
 val downloadMediaPipeModel by tasks.registering {
@@ -62,8 +70,17 @@ tasks.named("preBuild") {
     dependsOn(downloadMediaPipeModel, downloadHandLandmarkerModel)
 }
 
+// Exclude Live2D wrapper sources when SDK is not installed
+if (!live2dAvailable) {
+    tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
+        exclude("**/live2d/**")
+    }
+}
+
 dependencies {
     implementation(project(":kmp-facelink"))
+    implementation(project(":kmp-facelink-avatar"))
+    implementation(project(":kmp-facelink-live2d"))
     implementation(libs.androidx.core)
     implementation(libs.androidx.lifecycle.runtime)
     implementation(libs.kotlinx.coroutines.android)
@@ -80,4 +97,13 @@ dependencies {
     implementation(libs.camerax.camera2)
     implementation(libs.camerax.lifecycle)
     implementation("androidx.camera:camera-view:${libs.versions.camerax.get()}")
+
+    // Live2D Cubism SDK (optional, downloaded via scripts/setup-live2d.sh)
+    if (live2dAvailable) {
+        implementation("com.live2d.sdk.cubism:framework:1.0")
+        val cubismCoreAar = rootProject.file("live2d/android/Core/android/Live2DCubismCore.aar")
+        if (cubismCoreAar.exists()) {
+            implementation(files(cubismCoreAar))
+        }
+    }
 }

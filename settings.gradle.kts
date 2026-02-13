@@ -18,4 +18,5 @@ rootProject.name = "KMP-FaceLink"
 
 include(":kmp-facelink")
 include(":kmp-facelink-avatar")
+include(":kmp-facelink-actions")
 include(":androidApp")

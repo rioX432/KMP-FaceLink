@@ -63,9 +63,9 @@ class Live2DParameterMapperTest {
             headTransform = HeadTransform(yaw = 15f, pitch = -9f, roll = 6f),
         )
         val result = mapper.map(data)
-        assertEquals(5f, result[Live2DParameterIds.PARAM_BODY_ANGLE_X]!!, TOLERANCE)
-        assertEquals(-3f, result[Live2DParameterIds.PARAM_BODY_ANGLE_Y]!!, TOLERANCE)
-        assertEquals(2f, result[Live2DParameterIds.PARAM_BODY_ANGLE_Z]!!, TOLERANCE)
+        assertEquals(7.5f, result[Live2DParameterIds.PARAM_BODY_ANGLE_X]!!, TOLERANCE)
+        assertEquals(-4.5f, result[Live2DParameterIds.PARAM_BODY_ANGLE_Y]!!, TOLERANCE)
+        assertEquals(3f, result[Live2DParameterIds.PARAM_BODY_ANGLE_Z]!!, TOLERANCE)
     }
 
     @Test
@@ -79,8 +79,8 @@ class Live2DParameterMapperTest {
             ),
         )
         val result = mapper.map(data)
-        // smile avg = 0.8, frown avg = 0.1, form = 0.7
-        assertEquals(0.7f, result[Live2DParameterIds.PARAM_MOUTH_FORM]!!, TOLERANCE)
+        // smile avg = 0.8, frown avg = 0.1, form = 0.7, × 1.4 gain = 0.98
+        assertEquals(0.98f, result[Live2DParameterIds.PARAM_MOUTH_FORM]!!, TOLERANCE)
     }
 
     @Test

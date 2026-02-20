@@ -26,7 +26,7 @@ class FlowExtensionsTest {
         val flow = flowOf(frame(isTracking = true, jawOpen = 0.5f))
         val results = flow.toAvatarParameters(mapper).toList()
         assertEquals(1, results.size)
-        assertEquals(0.5f, results[0][Live2DParameterIds.PARAM_MOUTH_OPEN_Y]!!, TOLERANCE)
+        assertEquals(0.7f, results[0][Live2DParameterIds.PARAM_MOUTH_OPEN_Y]!!, TOLERANCE)
     }
 
     @Test

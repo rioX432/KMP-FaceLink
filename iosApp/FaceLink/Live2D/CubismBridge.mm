@@ -239,6 +239,8 @@ private:
     BridgeModel* _model;
     id<MTLDevice> _device;
     id<MTLCommandQueue> _commandQueue;
+    NSLock* _renderLock;
+    NSDictionary<NSString *, NSNumber *>* _pendingParameters;
 }
 
 static BridgeAllocator s_allocator;
@@ -254,6 +256,8 @@ static bool s_frameworkInitialized = false;
         _device = device;
         _commandQueue = [device newCommandQueue];
         _isModelLoaded = NO;
+        _renderLock = [[NSLock alloc] init];
+        _pendingParameters = nil;
 
         if (!s_frameworkInitialized) {
             CubismFramework::Option option;
@@ -280,36 +284,89 @@ static bool s_frameworkInitialized = false;
         _device,
         _commandQueue
     );
+
+    // Validate Metal shader library exists after model load
+    if (_model->IsLoaded()) {
+        id<MTLLibrary> lib = [_device newDefaultLibrary];
+        if (!lib) {
+            NSLog(@"[CubismBridge] WARNING: Metal shader library is nil — rendering may fail");
+        }
+    }
+
     _isModelLoaded = _model->IsLoaded();
     return _isModelLoaded;
 }
 
 - (void)setParameterValue:(NSString *)paramId value:(float)value {
+    [_renderLock lock];
     if (_model) {
         _model->SetParameterById([paramId UTF8String], value);
+    }
+    [_renderLock unlock];
+}
+
+- (void)setParameters:(NSDictionary<NSString *, NSNumber *> *)parameters {
+    @synchronized (self) {
+        _pendingParameters = [parameters copy];
     }
 }
 
 - (void)updateWithDeltaTime:(float)deltaTime {
+    [_renderLock lock];
     if (_model) {
         _model->Update(deltaTime);
     }
+    [_renderLock unlock];
 }
 
 - (void)drawWithCommandBuffer:(id<MTLCommandBuffer>)commandBuffer
          renderPassDescriptor:(MTLRenderPassDescriptor *)rpd
                  drawableSize:(CGSize)size {
+    [_renderLock lock];
     if (_model) {
         _model->Draw(commandBuffer, rpd, size, _device);
     }
+    [_renderLock unlock];
+}
+
+- (void)renderFrameWithDeltaTime:(float)deltaTime
+                   commandBuffer:(id<MTLCommandBuffer>)commandBuffer
+            renderPassDescriptor:(MTLRenderPassDescriptor *)rpd
+                    drawableSize:(CGSize)size {
+    [_renderLock lock];
+    if (_model) {
+        // Swap pending parameters atomically and apply
+        NSDictionary<NSString *, NSNumber *>* params = nil;
+        @synchronized (self) {
+            params = _pendingParameters;
+            _pendingParameters = nil;
+        }
+        if (params) {
+            for (NSString *key in params) {
+                _model->SetParameterById([key UTF8String], [params[key] floatValue]);
+            }
+        }
+
+        _model->Update(deltaTime);
+        _model->Draw(commandBuffer, rpd, size, _device);
+    }
+    [_renderLock unlock];
+}
+
++ (void)setMetalLayer:(CAMetalLayer *)layer {
+    CubismRenderingInstanceSingleton_Metal *single =
+        [CubismRenderingInstanceSingleton_Metal sharedManager];
+    [single setMetalLayer:layer];
 }
 
 - (void)releaseResources {
+    [_renderLock lock];
     if (_model) {
         delete _model;
         _model = nullptr;
     }
     _isModelLoaded = NO;
+    [_renderLock unlock];
 }
 
 - (void)dealloc {
@@ -342,11 +399,19 @@ static bool s_frameworkInitialized = false;
 }
 
 - (void)setParameterValue:(NSString *)paramId value:(float)value {}
+- (void)setParameters:(NSDictionary<NSString *, NSNumber *> *)parameters {}
 - (void)updateWithDeltaTime:(float)deltaTime {}
 
 - (void)drawWithCommandBuffer:(id<MTLCommandBuffer>)commandBuffer
          renderPassDescriptor:(MTLRenderPassDescriptor *)rpd
                  drawableSize:(CGSize)size {}
+
+- (void)renderFrameWithDeltaTime:(float)deltaTime
+                   commandBuffer:(id<MTLCommandBuffer>)commandBuffer
+            renderPassDescriptor:(MTLRenderPassDescriptor *)rpd
+                    drawableSize:(CGSize)size {}
+
++ (void)setMetalLayer:(CAMetalLayer *)layer {}
 
 - (void)releaseResources {}
 

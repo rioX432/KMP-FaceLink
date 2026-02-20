@@ -79,7 +79,7 @@ On completion, update status to `DONE` and close the corresponding GitHub Issue.
 
 | # | Issue | Status | Summary |
 |---|-------|--------|---------|
-| 50 | [kmp-facelink-voice module](https://github.com/rioX432/KMP-FaceLink/issues/50) | TODO | ASR (Whisper) / TTS (VOICEVOX, ElevenLabs) + lip sync |
+| 50 | [kmp-facelink-voice module](https://github.com/rioX432/KMP-FaceLink/issues/50) | DONE | ASR (Whisper) / TTS (VOICEVOX, ElevenLabs) + lip sync |
 | 51 | [kmp-facelink-llm module](https://github.com/rioX432/KMP-FaceLink/issues/51) | TODO | LLM streaming API (OpenAI, Anthropic, Gemini) |
 
 Note: Commercial app (Mobile-LLM-VTuber) is tracked in its own private repo.

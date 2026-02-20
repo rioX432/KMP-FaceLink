@@ -1,0 +1,8 @@
+package = whisper
+headers = whisper.h
+
+# Path to whisper.cpp header and static library
+# These will be configured via build.gradle.kts cinterops block
+# headerFilter = whisper.h
+# staticLibraries = libwhisper.a
+# libraryPaths = /path/to/whisper/lib

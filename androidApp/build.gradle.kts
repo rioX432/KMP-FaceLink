@@ -67,8 +67,24 @@ val downloadHandLandmarkerModel by tasks.registering {
     }
 }
 
+val downloadPoseLandmarkerModel by tasks.registering {
+    val modelDir = layout.projectDirectory.dir("src/main/assets/models")
+    val modelFile = modelDir.file("pose_landmarker_lite.task")
+
+    outputs.file(modelFile)
+    doLast {
+        modelDir.asFile.mkdirs()
+        if (!modelFile.asFile.exists()) {
+            val url = "https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/latest/pose_landmarker_lite.task"
+            logger.lifecycle("Downloading MediaPipe pose landmarker model...")
+            ant.invokeMethod("get", mapOf("src" to url, "dest" to modelFile.asFile))
+            logger.lifecycle("Model downloaded to ${modelFile.asFile.path}")
+        }
+    }
+}
+
 tasks.named("preBuild") {
-    dependsOn(downloadMediaPipeModel, downloadHandLandmarkerModel)
+    dependsOn(downloadMediaPipeModel, downloadHandLandmarkerModel, downloadPoseLandmarkerModel)
 }
 
 // Exclude Live2D wrapper sources when SDK is not installed

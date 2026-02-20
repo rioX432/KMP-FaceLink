@@ -34,7 +34,7 @@ On completion, update status to `DONE` and close the corresponding GitHub Issue.
 | # | Issue | Status | Summary |
 |---|-------|--------|---------|
 | 6 | [Hand tracking (Phase 2)](https://github.com/rioX432/KMP-FaceLink/issues/6) | DONE | Hand landmarks + gestures |
-| 7 | [Body tracking (Phase 3)](https://github.com/rioX432/KMP-FaceLink/issues/7) | TODO | Pose estimation |
+| 7 | [Body tracking (Phase 3)](https://github.com/rioX432/KMP-FaceLink/issues/7) | DONE | Pose estimation |
 | 8 | [Holistic tracking (Phase 4)](https://github.com/rioX432/KMP-FaceLink/issues/8) | TODO | Face + Hands + Body integration |
 
 ## Technology Improvements
@@ -66,7 +66,7 @@ On completion, update status to `DONE` and close the corresponding GitHub Issue.
 |---|-------|--------|---------|
 | 47 | [SDK API stability review](https://github.com/rioX432/KMP-FaceLink/issues/47) | DONE | Audit public APIs, semver policy, stability annotations |
 | 48 | [kmp-facelink-live2d module](https://github.com/rioX432/KMP-FaceLink/issues/48) | DONE | Live2D Cubism SDK Native KMP wrapper |
-| 7 | [Body tracking](https://github.com/rioX432/KMP-FaceLink/issues/7) | TODO | Pose estimation |
+| 7 | [Body tracking](https://github.com/rioX432/KMP-FaceLink/issues/7) | DONE | Pose estimation |
 
 ## Phase 3: Communication (Q1–Q2 2027)
 

@@ -1,5 +1,6 @@
 package io.github.kmpfacelink.voice.audio.internal
 
+import io.github.kmpfacelink.voice.AudioConstants
 import io.github.kmpfacelink.voice.audio.AudioData
 import io.github.kmpfacelink.voice.audio.AudioFormat
 import io.github.kmpfacelink.voice.audio.AudioRecorder
@@ -23,8 +24,6 @@ import platform.Foundation.appendBytes
 import platform.posix.memcpy
 
 private const val BUFFER_SIZE = 4096u
-private const val MILLIS_PER_SECOND = 1000L
-private const val BYTES_PER_INT16 = 2
 
 /**
  * iOS [AudioRecorder] implementation using [AVAudioEngine].
@@ -84,7 +83,7 @@ internal class PlatformAudioRecorder : AudioRecorder {
 
         val bytesPerSample = currentFormat.bitsPerSample / Byte.SIZE_BITS
         val totalSamples = length / bytesPerSample / currentFormat.channels
-        val durationMs = totalSamples.toLong() * MILLIS_PER_SECOND / currentFormat.sampleRate
+        val durationMs = totalSamples.toLong() * AudioConstants.MILLIS_PER_SECOND / currentFormat.sampleRate
 
         return AudioData(bytes = bytes, format = currentFormat, durationMs = durationMs)
     }
@@ -104,12 +103,12 @@ internal class PlatformAudioRecorder : AudioRecorder {
         val int16Ptr = buffer.int16ChannelData
         if (int16Ptr != null) {
             val channelData = int16Ptr.get(0) ?: return
-            val byteCount = frameLength * BYTES_PER_INT16
+            val byteCount = frameLength * AudioConstants.BYTES_PER_INT16
             val bytes = ByteArray(byteCount)
             for (i in 0 until frameLength) {
                 val sample = channelData.get(i)
-                bytes[i * BYTES_PER_INT16] = (sample.toInt() and 0xFF).toByte()
-                bytes[i * BYTES_PER_INT16 + 1] = (sample.toInt() shr Byte.SIZE_BITS).toByte()
+                bytes[i * AudioConstants.BYTES_PER_INT16] = (sample.toInt() and 0xFF).toByte()
+                bytes[i * AudioConstants.BYTES_PER_INT16 + 1] = (sample.toInt() shr Byte.SIZE_BITS).toByte()
             }
             bytes.usePinned { pinned ->
                 recordedData.appendBytes(pinned.addressOf(0), byteCount.toULong())

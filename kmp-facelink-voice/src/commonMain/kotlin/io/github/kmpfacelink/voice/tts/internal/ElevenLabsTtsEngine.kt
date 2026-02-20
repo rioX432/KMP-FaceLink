@@ -1,5 +1,6 @@
 package io.github.kmpfacelink.voice.tts.internal
 
+import io.github.kmpfacelink.voice.AudioConstants
 import io.github.kmpfacelink.voice.audio.AudioData
 import io.github.kmpfacelink.voice.audio.AudioFormat
 import io.github.kmpfacelink.voice.tts.PhonemeEvent
@@ -22,9 +23,6 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 
 private const val ELEVENLABS_API_URL = "https://api.elevenlabs.io/v1/text-to-speech"
-private const val SAMPLE_RATE_44K = 44100
-private const val BITS_16 = 16
-private const val MILLIS_PER_SECOND = 1000L
 
 /**
  * ElevenLabs TTS engine with character-level timestamp support.
@@ -71,9 +69,9 @@ internal class ElevenLabsTtsEngine(private val config: TtsConfig.ElevenLabs) : T
 
             val audioBytes = decodeBase64(parsed.audioBase64)
             val format = AudioFormat(
-                sampleRate = SAMPLE_RATE_44K,
+                sampleRate = AudioConstants.SAMPLE_RATE_44K,
                 channels = 1,
-                bitsPerSample = BITS_16,
+                bitsPerSample = AudioConstants.BITS_16,
             )
             val durationMs = computeDurationMs(audioBytes.size, format)
 
@@ -104,8 +102,8 @@ internal class ElevenLabsTtsEngine(private val config: TtsConfig.ElevenLabs) : T
 
         return alignment.characters.mapIndexedNotNull { index, char ->
             if (char.isWhitespace()) return@mapIndexedNotNull null
-            val startMs = (alignment.characterStartTimesSeconds[index] * MILLIS_PER_SECOND).toLong()
-            val endMs = (alignment.characterEndTimesSeconds[index] * MILLIS_PER_SECOND).toLong()
+            val startMs = (alignment.characterStartTimesSeconds[index] * AudioConstants.MILLIS_PER_SECOND).toLong()
+            val endMs = (alignment.characterEndTimesSeconds[index] * AudioConstants.MILLIS_PER_SECOND).toLong()
             PhonemeEvent(
                 phoneme = charToApproximatePhoneme(char),
                 startMs = startMs,
@@ -134,7 +132,7 @@ internal class ElevenLabsTtsEngine(private val config: TtsConfig.ElevenLabs) : T
     private fun computeDurationMs(byteCount: Int, format: AudioFormat): Long {
         val bytesPerSample = format.bitsPerSample / Byte.SIZE_BITS
         val totalSamples = byteCount / bytesPerSample / format.channels
-        return totalSamples.toLong() * MILLIS_PER_SECOND / format.sampleRate
+        return totalSamples.toLong() * AudioConstants.MILLIS_PER_SECOND / format.sampleRate
     }
 
     @Suppress("MagicNumber")

@@ -82,4 +82,20 @@ On completion, update status to `DONE` and close the corresponding GitHub Issue.
 | 50 | [kmp-facelink-voice module](https://github.com/rioX432/KMP-FaceLink/issues/50) | DONE | ASR (Whisper) / TTS (VOICEVOX, ElevenLabs) + lip sync |
 | 51 | [kmp-facelink-llm module](https://github.com/rioX432/KMP-FaceLink/issues/51) | TODO | LLM streaming API (OpenAI, Anthropic, Gemini) |
 
+## Tech Debt
+
+| # | Issue | Status | Summary |
+|---|-------|--------|---------|
+| 64 | [CI pipeline for new modules](https://github.com/rioX432/KMP-FaceLink/issues/64) | DONE | Add stream & voice modules to CI |
+| 65 | [Resource leak in KtorWebSocketProvider](https://github.com/rioX432/KMP-FaceLink/issues/65) | DONE | Add release() to close HttpClient |
+| 66 | [Thread safety in VtsStreamClient](https://github.com/rioX432/KMP-FaceLink/issues/66) | DONE | AtomicInt/AtomicReference + Mutex for connectionJob |
+| 67 | [Missing release() in ActionSystem/EffectEngine](https://github.com/rioX432/KMP-FaceLink/issues/67) | DONE | Add resource cleanup methods |
+| 68 | [Extract shared constants in voice module](https://github.com/rioX432/KMP-FaceLink/issues/68) | DONE | AudioConstants object for magic numbers |
+| 69 | [Split oversized MainActivity](https://github.com/rioX432/KMP-FaceLink/issues/69) | DONE | Extract FaceTrackingScreen + HandTrackingScreen |
+| 70 | [Live2D renderer unit tests](https://github.com/rioX432/KMP-FaceLink/issues/70) | DONE | 9 test cases for lifecycle and state |
+| 71 | [Version catalog for sample app](https://github.com/rioX432/KMP-FaceLink/issues/71) | DONE | Migrate hardcoded deps to libs.versions.toml |
+| 72 | [ProGuard rules for release builds](https://github.com/rioX432/KMP-FaceLink/issues/72) | DONE | Keep rules for MediaPipe, Ktor, Live2D |
+| 73 | [Lifecycle interface standardization](https://github.com/rioX432/KMP-FaceLink/issues/73) | DONE | Releasable fun interface for all trackers/clients |
+| 74 | [Reduce @Suppress usage](https://github.com/rioX432/KMP-FaceLink/issues/74) | DONE | Replace magic numbers with named constants |
+
 Note: Commercial app (Mobile-LLM-VTuber) is tracked in its own private repo.

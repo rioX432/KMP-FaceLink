@@ -1,5 +1,29 @@
 {
   "enabledPlugins": {
     "ai-dev@rioX432/ai-dev-templates": true
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "(Edit|Write)",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if echo \"$TOOL_INPUT\" | grep -q '\\.kt\"'; then cd \"$PROJECT_DIR\" && ./gradlew detekt --daemon 2>&1 | tail -20; fi"
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if echo \"$TOOL_INPUT\" | grep -qE 'git\\s+(push\\s+--force|push\\s+-f|reset\\s+--hard|clean\\s+-f)'; then echo 'BLOCKED: Dangerous git command detected. Use with caution.' >&2; exit 2; fi"
+          }
+        ]
+      }
+    ]
   }
 }

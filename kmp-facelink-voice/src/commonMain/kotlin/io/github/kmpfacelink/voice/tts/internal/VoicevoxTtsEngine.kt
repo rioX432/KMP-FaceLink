@@ -1,5 +1,6 @@
 package io.github.kmpfacelink.voice.tts.internal
 
+import io.github.kmpfacelink.voice.AudioConstants
 import io.github.kmpfacelink.voice.audio.AudioData
 import io.github.kmpfacelink.voice.audio.AudioFormat
 import io.github.kmpfacelink.voice.tts.PhonemeEvent
@@ -22,9 +23,6 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 
-private const val SAMPLE_RATE_24K = 24000
-private const val BITS_16 = 16
-private const val MILLIS_PER_SECOND = 1000.0
 private const val WAV_HEADER_SIZE = 44
 
 /**
@@ -78,9 +76,9 @@ internal class VoicevoxTtsEngine(private val config: TtsConfig.Voicevox) : TtsEn
             }
 
             val format = AudioFormat(
-                sampleRate = SAMPLE_RATE_24K,
+                sampleRate = AudioConstants.SAMPLE_RATE_24K,
                 channels = 1,
-                bitsPerSample = BITS_16,
+                bitsPerSample = AudioConstants.BITS_16,
             )
             val durationMs = computeDurationMs(pcmBytes.size, format)
 
@@ -108,7 +106,7 @@ internal class VoicevoxTtsEngine(private val config: TtsConfig.Voicevox) : TtsEn
             for (mora in phrase.moras) {
                 // Consonant part
                 if (mora.consonant != null && mora.consonantLength != null) {
-                    val durationMs = mora.consonantLength * MILLIS_PER_SECOND
+                    val durationMs = mora.consonantLength * AudioConstants.MILLIS_PER_SECOND_DOUBLE
                     events.add(
                         PhonemeEvent(
                             phoneme = mora.consonant,
@@ -120,7 +118,7 @@ internal class VoicevoxTtsEngine(private val config: TtsConfig.Voicevox) : TtsEn
                 }
 
                 // Vowel part
-                val vowelDurationMs = mora.vowelLength * MILLIS_PER_SECOND
+                val vowelDurationMs = mora.vowelLength * AudioConstants.MILLIS_PER_SECOND_DOUBLE
                 events.add(
                     PhonemeEvent(
                         phoneme = mora.vowel,
@@ -133,7 +131,7 @@ internal class VoicevoxTtsEngine(private val config: TtsConfig.Voicevox) : TtsEn
 
             // Pause mora
             phrase.pauseMora?.let { pause ->
-                val pauseDurationMs = pause.vowelLength * MILLIS_PER_SECOND
+                val pauseDurationMs = pause.vowelLength * AudioConstants.MILLIS_PER_SECOND_DOUBLE
                 events.add(
                     PhonemeEvent(
                         phoneme = "pau",
@@ -151,7 +149,7 @@ internal class VoicevoxTtsEngine(private val config: TtsConfig.Voicevox) : TtsEn
     private fun computeDurationMs(byteCount: Int, format: AudioFormat): Long {
         val bytesPerSample = format.bitsPerSample / Byte.SIZE_BITS
         val totalSamples = byteCount / bytesPerSample / format.channels
-        return (totalSamples.toDouble() * MILLIS_PER_SECOND / format.sampleRate).toLong()
+        return (totalSamples.toDouble() * AudioConstants.MILLIS_PER_SECOND_DOUBLE / format.sampleRate).toLong()
     }
 
     @Serializable

@@ -1,5 +1,6 @@
 package io.github.kmpfacelink.voice.asr.internal
 
+import io.github.kmpfacelink.voice.AudioConstants
 import io.github.kmpfacelink.voice.asr.AsrConfig
 import io.github.kmpfacelink.voice.asr.AsrEngine
 import io.github.kmpfacelink.voice.asr.AsrState
@@ -74,14 +75,13 @@ internal class WhisperCppAsrEngine(private val config: AsrConfig.WhisperCpp) : A
         initialized = false
     }
 
-    @Suppress("MagicNumber")
     private fun convertToFloat32(bytes: ByteArray): FloatArray {
-        val sampleCount = bytes.size / 2
+        val sampleCount = bytes.size / AudioConstants.BYTES_PER_INT16
         val samples = FloatArray(sampleCount)
         for (i in 0 until sampleCount) {
-            val lo = bytes[i * 2].toInt() and 0xFF
-            val hi = bytes[i * 2 + 1].toInt()
-            val int16 = (hi shl 8) or lo
+            val lo = bytes[i * AudioConstants.BYTES_PER_INT16].toInt() and 0xFF
+            val hi = bytes[i * AudioConstants.BYTES_PER_INT16 + 1].toInt()
+            val int16 = (hi shl Byte.SIZE_BITS) or lo
             samples[i] = int16.toFloat() / INT16_MAX
         }
         return samples

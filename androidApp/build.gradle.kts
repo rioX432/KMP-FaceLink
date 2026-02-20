@@ -104,20 +104,20 @@ dependencies {
 
     // Compose
     implementation(platform(libs.compose.bom))
-    implementation("androidx.compose.material3:material3")
-    implementation("androidx.compose.ui:ui")
-    implementation("androidx.compose.foundation:foundation")
+    implementation(libs.compose.material3)
+    implementation(libs.compose.ui)
+    implementation(libs.compose.foundation)
     implementation(libs.activity.compose)
 
     // CameraX
     implementation(libs.camerax.core)
     implementation(libs.camerax.camera2)
     implementation(libs.camerax.lifecycle)
-    implementation("androidx.camera:camera-view:${libs.versions.camerax.get()}")
+    implementation(libs.camerax.view)
 
     // Live2D Cubism SDK (optional, downloaded via scripts/setup-live2d.sh)
     if (live2dAvailable) {
-        implementation("com.live2d.sdk.cubism:framework:1.0")
+        implementation(libs.live2d.framework)
         val cubismCoreAar = rootProject.file("live2d/android/Core/android/Live2DCubismCore.aar")
         if (cubismCoreAar.exists()) {
             implementation(files(cubismCoreAar))

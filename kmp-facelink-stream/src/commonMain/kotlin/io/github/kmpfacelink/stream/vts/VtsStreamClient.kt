@@ -17,6 +17,9 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlin.concurrent.atomics.AtomicInt
+import kotlin.concurrent.atomics.AtomicReference
+import kotlin.concurrent.atomics.ExperimentalAtomicApi
 import kotlin.coroutines.CoroutineContext
 
 /**
@@ -28,6 +31,7 @@ import kotlin.coroutines.CoroutineContext
  *
  * @param config VTubeStudio connection configuration
  */
+@OptIn(ExperimentalAtomicApi::class)
 public class VtsStreamClient internal constructor(
     private val config: VtsConfig,
     private val webSocketProvider: WebSocketProvider,
@@ -42,9 +46,10 @@ public class VtsStreamClient internal constructor(
     private val scope = CoroutineScope(SupervisorJob() + coroutineContext)
     private val _state = MutableStateFlow<StreamState>(StreamState.Disconnected)
     private val sendMutex = Mutex()
+    private val stateMutex = Mutex()
     private var connectionJob: Job? = null
-    private var currentToken: String? = config.authToken
-    private var requestCounter = 0
+    private val currentToken = AtomicReference<String?>(config.authToken)
+    private val requestCounter = AtomicInt(0)
 
     override val state: StateFlow<StreamState> = _state.asStateFlow()
 
@@ -54,8 +59,10 @@ public class VtsStreamClient internal constructor(
     }
 
     override suspend fun disconnect() {
-        connectionJob?.cancel()
-        connectionJob = null
+        stateMutex.withLock {
+            connectionJob?.cancel()
+            connectionJob = null
+        }
         webSocketProvider.close()
         _state.value = StreamState.Disconnected
     }
@@ -74,13 +81,15 @@ public class VtsStreamClient internal constructor(
 
     override fun release() {
         scope.cancel()
+        webSocketProvider.release()
     }
 
     private fun startConnection() {
-        connectionJob = scope.launch {
+        val job = scope.launch {
             _state.value = StreamState.Connecting
             connectAndAuthenticate()
         }
+        connectionJob = job
     }
 
     private suspend fun connectAndAuthenticate() {
@@ -108,7 +117,7 @@ public class VtsStreamClient internal constructor(
             "AuthenticationTokenResponse" -> {
                 val token = response.data?.authenticationToken
                 if (token != null) {
-                    currentToken = token
+                    currentToken.store(token)
                     config.onTokenReceived?.invoke(token)
                     sendAuthRequest(token)
                 } else {
@@ -121,7 +130,7 @@ public class VtsStreamClient internal constructor(
                     _state.value = StreamState.Connected
                 } else {
                     val reason = response.data?.reason ?: "Authentication failed"
-                    currentToken = null
+                    currentToken.store(null)
                     _state.value = StreamState.Error(reason, willRetry = false)
                 }
             }
@@ -145,7 +154,7 @@ public class VtsStreamClient internal constructor(
     }
 
     private fun attemptReconnect() {
-        connectionJob = scope.launch {
+        val job = scope.launch {
             val policy = config.reconnectPolicy
             var attempt = 0
             var delayMs = policy.initialDelayMs
@@ -172,11 +181,12 @@ public class VtsStreamClient internal constructor(
                 willRetry = false,
             )
         }
+        connectionJob = job
     }
 
     internal suspend fun authenticate() {
         _state.value = StreamState.Authenticating
-        val token = currentToken
+        val token = currentToken.load()
         if (token != null) {
             sendAuthRequest(token)
         } else {
@@ -204,5 +214,5 @@ public class VtsStreamClient internal constructor(
         webSocketProvider.send(json)
     }
 
-    private fun nextRequestId(): String = "kmp-facelink-${requestCounter++}"
+    private fun nextRequestId(): String = "kmp-facelink-${requestCounter.addAndFetch(1)}"
 }

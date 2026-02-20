@@ -19,7 +19,7 @@ import kotlinx.coroutines.flow.StateFlow
  * - [updateSmoothing] and [release] are thread-safe and can be called from any thread.
  * - Calling any method after [release] throws [IllegalStateException].
  */
-public interface BodyTracker {
+public interface BodyTracker : Releasable {
 
     /**
      * Stream of body tracking data, emitted for each processed frame.
@@ -53,7 +53,7 @@ public interface BodyTracker {
     /**
      * Release all resources. The tracker cannot be used after this.
      */
-    public fun release()
+    public override fun release()
 
     /**
      * Change the smoothing filter at runtime.

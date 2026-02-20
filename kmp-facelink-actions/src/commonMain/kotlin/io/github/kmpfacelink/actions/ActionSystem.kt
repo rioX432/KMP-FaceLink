@@ -58,6 +58,15 @@ public class ActionSystem {
         }
     }
 
+    /** Release all resources. Closes the [events] channel and clears all state. */
+    public fun release() {
+        bindings.clear()
+        states.clear()
+        latestFace = null
+        latestHand = null
+        _events.close()
+    }
+
     /**
      * Feed a face tracking frame and evaluate all bindings.
      *

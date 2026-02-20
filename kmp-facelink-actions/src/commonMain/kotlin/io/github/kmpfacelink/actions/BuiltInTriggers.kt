@@ -80,3 +80,28 @@ public fun openPalmTrigger(
 public fun closedFistTrigger(
     minConfidence: Float = DEFAULT_GESTURE_CONFIDENCE,
 ): ActionTrigger = ActionTrigger.GestureTrigger(HandGesture.CLOSED_FIST, minConfidence = minConfidence)
+
+/** Pinch gesture: thumb and index finger tips close together. */
+public fun pinchTrigger(
+    minConfidence: Float = DEFAULT_GESTURE_CONFIDENCE,
+): ActionTrigger = ActionTrigger.GestureTrigger(HandGesture.PINCH, minConfidence = minConfidence)
+
+/** OK sign: thumb-index circle with other fingers extended. */
+public fun okSignTrigger(
+    minConfidence: Float = DEFAULT_GESTURE_CONFIDENCE,
+): ActionTrigger = ActionTrigger.GestureTrigger(HandGesture.OK_SIGN, minConfidence = minConfidence)
+
+/** Rock / metal horn sign: index + pinky extended. */
+public fun rockTrigger(
+    minConfidence: Float = DEFAULT_GESTURE_CONFIDENCE,
+): ActionTrigger = ActionTrigger.GestureTrigger(HandGesture.ROCK, minConfidence = minConfidence)
+
+/** Three fingers extended (index + middle + ring). */
+public fun fingerCountThreeTrigger(
+    minConfidence: Float = DEFAULT_GESTURE_CONFIDENCE,
+): ActionTrigger = ActionTrigger.GestureTrigger(HandGesture.FINGER_COUNT_THREE, minConfidence = minConfidence)
+
+/** Four fingers extended (all except thumb). */
+public fun fingerCountFourTrigger(
+    minConfidence: Float = DEFAULT_GESTURE_CONFIDENCE,
+): ActionTrigger = ActionTrigger.GestureTrigger(HandGesture.FINGER_COUNT_FOUR, minConfidence = minConfidence)

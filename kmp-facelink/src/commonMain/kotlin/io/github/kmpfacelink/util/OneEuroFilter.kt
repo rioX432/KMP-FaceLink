@@ -12,17 +12,22 @@ import kotlin.math.abs
  * slow movements get heavy smoothing (low jitter), fast movements pass through
  * with minimal lag.
  *
+ * Optionally predicts future values by extrapolating the smoothed derivative forward
+ * by [predictionMs] milliseconds.
+ *
  * Reference: Casiez et al., "1€ Filter: A Simple Speed-based Low-pass Filter
  * for Noisy Input in Interactive Systems", CHI 2012.
  *
  * @param minCutoff Minimum cutoff frequency in Hz. Lower = more smoothing at rest.
  * @param beta Speed coefficient. Higher = less lag during fast movements.
  * @param dCutoff Cutoff frequency for the derivative filter.
+ * @param predictionMs Prediction horizon in milliseconds. 0 = no prediction.
  */
 internal class OneEuroFilter(
     private val minCutoff: Float = 1.0f,
     private val beta: Float = 0.007f,
     private val dCutoff: Float = 1.0f,
+    private val predictionMs: Float = 0f,
 ) : BlendShapeSmoother {
 
     private var lastTimestampMs: Long = -1L
@@ -40,8 +45,9 @@ internal class OneEuroFilter(
             return result
         }
 
-        val dt = (timestampMs - lastTimestampMs) / 1000f // seconds
+        val dt = (timestampMs - lastTimestampMs) / MILLIS_PER_SECOND
         lastTimestampMs = timestampMs
+        val predictionSeconds = predictionMs / MILLIS_PER_SECOND
 
         val result = HashMap<BlendShape, Float>(data.size)
         for ((shape, rawValue) in data) {
@@ -62,7 +68,15 @@ internal class OneEuroFilter(
             val filteredValue = lowPass(rawValue, state.x, smoothingFactor(dt, cutoff))
 
             states[shape] = ShapeState(filteredValue, edx)
-            result[shape] = filteredValue
+
+            // Prediction: extrapolate forward using smoothed derivative
+            val outputValue = if (predictionSeconds > 0f) {
+                (filteredValue + edx * predictionSeconds).coerceIn(0f, 1f)
+            } else {
+                filteredValue
+            }
+
+            result[shape] = outputValue
         }
 
         return result
@@ -82,4 +96,8 @@ internal class OneEuroFilter(
         alpha * x + (1f - alpha) * xPrev
 
     private data class ShapeState(val x: Float, val dx: Float)
+
+    companion object {
+        private const val MILLIS_PER_SECOND = 1000f
+    }
 }

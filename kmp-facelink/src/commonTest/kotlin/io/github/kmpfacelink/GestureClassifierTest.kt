@@ -140,6 +140,108 @@ class GestureClassifierTest {
     }
 
     @Test
+    fun classifyRock() {
+        val landmarks = createLandmarks(
+            indexExtended = true,
+            pinkyExtended = true,
+        )
+        val (gesture, confidence) = GestureClassifier.classify(landmarks)
+        assertEquals(HandGesture.ROCK, gesture)
+        assertTrue(confidence > 0.5f)
+    }
+
+    @Test
+    fun classifyFingerCountThree() {
+        val landmarks = createLandmarks(
+            indexExtended = true,
+            middleExtended = true,
+            ringExtended = true,
+        )
+        val (gesture, confidence) = GestureClassifier.classify(landmarks)
+        assertEquals(HandGesture.FINGER_COUNT_THREE, gesture)
+        assertTrue(confidence > 0.5f)
+    }
+
+    @Test
+    fun classifyFingerCountFour() {
+        val landmarks = createLandmarks(
+            indexExtended = true,
+            middleExtended = true,
+            ringExtended = true,
+            pinkyExtended = true,
+        )
+        val (gesture, confidence) = GestureClassifier.classify(landmarks)
+        assertEquals(HandGesture.FINGER_COUNT_FOUR, gesture)
+        assertTrue(confidence > 0.5f)
+    }
+
+    @Test
+    fun classifyPinch() {
+        val landmarks = createPinchLandmarks(
+            middleExtended = false,
+            ringExtended = false,
+            pinkyExtended = false,
+        )
+        val (gesture, confidence) = GestureClassifier.classify(landmarks)
+        assertEquals(HandGesture.PINCH, gesture)
+        assertTrue(confidence > 0.5f)
+    }
+
+    @Test
+    fun classifyOkSign() {
+        val landmarks = createPinchLandmarks(
+            middleExtended = true,
+            ringExtended = true,
+            pinkyExtended = true,
+        )
+        val (gesture, confidence) = GestureClassifier.classify(landmarks)
+        assertEquals(HandGesture.OK_SIGN, gesture)
+        assertTrue(confidence > 0.5f)
+    }
+
+    /**
+     * Create landmarks where thumb and index tips are touching (pinch position).
+     * Other fingers are configurable as extended/curled.
+     */
+    @Suppress("LongMethod")
+    private fun createPinchLandmarks(
+        middleExtended: Boolean = false,
+        ringExtended: Boolean = false,
+        pinkyExtended: Boolean = false,
+    ): List<HandLandmarkPoint> {
+        val wrist = HandLandmarkPoint(HandJoint.WRIST, 0.5f, 0.8f, 0f)
+        val thumbCmc = HandLandmarkPoint(HandJoint.THUMB_CMC, 0.35f, 0.7f, 0f)
+        val thumbMcp = HandLandmarkPoint(HandJoint.THUMB_MCP, 0.3f, 0.6f, 0f)
+        val thumbIp = HandLandmarkPoint(HandJoint.THUMB_IP, 0.35f, 0.5f, 0f)
+        // Thumb and index tips nearly touching at (0.4, 0.45)
+        val thumbTip = HandLandmarkPoint(HandJoint.THUMB_TIP, 0.40f, 0.45f, 0f)
+        val indexMcp = HandLandmarkPoint(HandJoint.INDEX_FINGER_MCP, 0.4f, 0.6f, 0f)
+        val indexPip = HandLandmarkPoint(HandJoint.INDEX_FINGER_PIP, 0.42f, 0.5f, 0f)
+        val indexDip = HandLandmarkPoint(HandJoint.INDEX_FINGER_DIP, 0.41f, 0.47f, 0f)
+        val indexTip = HandLandmarkPoint(HandJoint.INDEX_FINGER_TIP, 0.40f, 0.45f, 0f)
+        val middleMcp = HandLandmarkPoint(HandJoint.MIDDLE_FINGER_MCP, 0.5f, 0.58f, 0f)
+        val middlePip = HandLandmarkPoint(HandJoint.MIDDLE_FINGER_PIP, 0.5f, if (middleExtended) 0.43f else 0.6f, 0f)
+        val middleDip = HandLandmarkPoint(HandJoint.MIDDLE_FINGER_DIP, 0.5f, if (middleExtended) 0.33f else 0.63f, 0f)
+        val middleTip = HandLandmarkPoint(HandJoint.MIDDLE_FINGER_TIP, 0.5f, if (middleExtended) 0.18f else 0.66f, 0f)
+        val ringMcp = HandLandmarkPoint(HandJoint.RING_FINGER_MCP, 0.6f, 0.6f, 0f)
+        val ringPip = HandLandmarkPoint(HandJoint.RING_FINGER_PIP, 0.6f, if (ringExtended) 0.45f else 0.62f, 0f)
+        val ringDip = HandLandmarkPoint(HandJoint.RING_FINGER_DIP, 0.6f, if (ringExtended) 0.35f else 0.65f, 0f)
+        val ringTip = HandLandmarkPoint(HandJoint.RING_FINGER_TIP, 0.6f, if (ringExtended) 0.2f else 0.68f, 0f)
+        val pinkyMcp = HandLandmarkPoint(HandJoint.PINKY_MCP, 0.7f, 0.62f, 0f)
+        val pinkyPip = HandLandmarkPoint(HandJoint.PINKY_PIP, 0.7f, if (pinkyExtended) 0.48f else 0.64f, 0f)
+        val pinkyDip = HandLandmarkPoint(HandJoint.PINKY_DIP, 0.7f, if (pinkyExtended) 0.38f else 0.67f, 0f)
+        val pinkyTip = HandLandmarkPoint(HandJoint.PINKY_TIP, 0.7f, if (pinkyExtended) 0.23f else 0.7f, 0f)
+
+        return listOf(
+            wrist, thumbCmc, thumbMcp, thumbIp, thumbTip,
+            indexMcp, indexPip, indexDip, indexTip,
+            middleMcp, middlePip, middleDip, middleTip,
+            ringMcp, ringPip, ringDip, ringTip,
+            pinkyMcp, pinkyPip, pinkyDip, pinkyTip,
+        )
+    }
+
+    @Test
     fun classifyReturnsNoneForInsufficientLandmarks() {
         val landmarks = listOf(
             HandLandmarkPoint(HandJoint.WRIST, 0.5f, 0.5f),

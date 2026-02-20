@@ -89,6 +89,59 @@ class OneEuroFilterTest {
     }
 
     @Test
+    fun predictionExtrapolatesForward() {
+        // Compare filter with prediction vs without for same increasing signal
+        val withPred = OneEuroFilter(minCutoff = 1.0f, beta = 1.0f, predictionMs = 33f)
+        val noPred = OneEuroFilter(minCutoff = 1.0f, beta = 1.0f, predictionMs = 0f)
+
+        // Feed increasing signal to both
+        withPred.smooth(mapOf(BlendShape.JAW_OPEN to 0.0f), 0L)
+        noPred.smooth(mapOf(BlendShape.JAW_OPEN to 0.0f), 0L)
+
+        withPred.smooth(mapOf(BlendShape.JAW_OPEN to 0.3f), 33L)
+        noPred.smooth(mapOf(BlendShape.JAW_OPEN to 0.3f), 33L)
+
+        val rPred = withPred.smooth(mapOf(BlendShape.JAW_OPEN to 0.6f), 66L)
+        val rNoPred = noPred.smooth(mapOf(BlendShape.JAW_OPEN to 0.6f), 66L)
+
+        // With prediction, the output should be ahead of (greater than) the non-predicted output
+        val predVal = rPred[BlendShape.JAW_OPEN]!!
+        val noPredVal = rNoPred[BlendShape.JAW_OPEN]!!
+        assertTrue(
+            predVal > noPredVal,
+            "Predicted ($predVal) should be ahead of non-predicted ($noPredVal)",
+        )
+    }
+
+    @Test
+    fun noPredictionWhenHorizonIsZero() {
+        val withPrediction = OneEuroFilter(minCutoff = 1.0f, beta = 0.5f, predictionMs = 0f)
+        val noPrediction = OneEuroFilter(minCutoff = 1.0f, beta = 0.5f)
+
+        withPrediction.smooth(mapOf(BlendShape.JAW_OPEN to 0.0f), 0L)
+        noPrediction.smooth(mapOf(BlendShape.JAW_OPEN to 0.0f), 0L)
+
+        val r1 = withPrediction.smooth(mapOf(BlendShape.JAW_OPEN to 0.5f), 33L)
+        val r2 = noPrediction.smooth(mapOf(BlendShape.JAW_OPEN to 0.5f), 33L)
+
+        assertApprox(r1[BlendShape.JAW_OPEN]!!, r2[BlendShape.JAW_OPEN]!!, epsilon = 0.001f)
+    }
+
+    @Test
+    fun predictionClampedTo01() {
+        val filter = OneEuroFilter(minCutoff = 1.0f, beta = 1.0f, predictionMs = 500f)
+
+        filter.smooth(mapOf(BlendShape.JAW_OPEN to 0.8f), 0L)
+        val result = filter.smooth(mapOf(BlendShape.JAW_OPEN to 1.0f), 33L)
+
+        // Even with large prediction, should be clamped to 1.0
+        assertTrue(
+            result[BlendShape.JAW_OPEN]!! <= 1.0f,
+            "Predicted value should be clamped to 1.0",
+        )
+    }
+
+    @Test
     fun multipleBlendShapesSmoothedIndependently() {
         val filter = OneEuroFilter(minCutoff = 1.0f, beta = 0.0f)
 

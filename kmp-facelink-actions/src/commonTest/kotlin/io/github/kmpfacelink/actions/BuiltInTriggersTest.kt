@@ -84,4 +84,39 @@ class BuiltInTriggersTest {
         assertIs<ActionTrigger.GestureTrigger>(trigger)
         assertEquals(HandGesture.CLOSED_FIST, trigger.gesture)
     }
+
+    @Test
+    fun pinchIsGestureTrigger() {
+        val trigger = pinchTrigger()
+        assertIs<ActionTrigger.GestureTrigger>(trigger)
+        assertEquals(HandGesture.PINCH, trigger.gesture)
+    }
+
+    @Test
+    fun okSignIsGestureTrigger() {
+        val trigger = okSignTrigger()
+        assertIs<ActionTrigger.GestureTrigger>(trigger)
+        assertEquals(HandGesture.OK_SIGN, trigger.gesture)
+    }
+
+    @Test
+    fun rockIsGestureTrigger() {
+        val trigger = rockTrigger()
+        assertIs<ActionTrigger.GestureTrigger>(trigger)
+        assertEquals(HandGesture.ROCK, trigger.gesture)
+    }
+
+    @Test
+    fun fingerCountThreeIsGestureTrigger() {
+        val trigger = fingerCountThreeTrigger()
+        assertIs<ActionTrigger.GestureTrigger>(trigger)
+        assertEquals(HandGesture.FINGER_COUNT_THREE, trigger.gesture)
+    }
+
+    @Test
+    fun fingerCountFourIsGestureTrigger() {
+        val trigger = fingerCountFourTrigger()
+        assertIs<ActionTrigger.GestureTrigger>(trigger)
+        assertEquals(HandGesture.FINGER_COUNT_FOUR, trigger.gesture)
+    }
 }

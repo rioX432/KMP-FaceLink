@@ -34,8 +34,8 @@ class HandLandmarkTest {
     }
 
     @Test
-    fun handGestureHas8Entries() {
-        assertEquals(8, HandGesture.entries.size)
+    fun handGestureHas16Entries() {
+        assertEquals(16, HandGesture.entries.size)
     }
 
     @Test

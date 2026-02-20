@@ -1,5 +1,6 @@
 package io.github.kmpfacelink.voice.tts.internal
 
+import io.github.kmpfacelink.voice.AudioConstants
 import io.github.kmpfacelink.voice.audio.AudioData
 import io.github.kmpfacelink.voice.audio.AudioFormat
 import io.github.kmpfacelink.voice.tts.TtsConfig
@@ -20,8 +21,6 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 
 private const val OPENAI_TTS_URL = "https://api.openai.com/v1/audio/speech"
-private const val SAMPLE_RATE_24K = 24000
-private const val BITS_16 = 16
 
 /**
  * OpenAI TTS engine using /v1/audio/speech endpoint.
@@ -62,9 +61,9 @@ internal class OpenAiTtsEngine(private val config: TtsConfig.OpenAiTts) : TtsEng
 
             val audioBytes = response.bodyAsBytes()
             val format = AudioFormat(
-                sampleRate = SAMPLE_RATE_24K,
+                sampleRate = AudioConstants.SAMPLE_RATE_24K,
                 channels = 1,
-                bitsPerSample = BITS_16,
+                bitsPerSample = AudioConstants.BITS_16,
             )
             val durationMs = computeDurationMs(audioBytes.size, format)
 
@@ -87,7 +86,7 @@ internal class OpenAiTtsEngine(private val config: TtsConfig.OpenAiTts) : TtsEng
     private fun computeDurationMs(byteCount: Int, format: AudioFormat): Long {
         val bytesPerSample = format.bitsPerSample / Byte.SIZE_BITS
         val totalSamples = byteCount / bytesPerSample / format.channels
-        return totalSamples.toLong() * MILLIS_PER_SECOND / format.sampleRate
+        return totalSamples.toLong() * AudioConstants.MILLIS_PER_SECOND / format.sampleRate
     }
 
     @Serializable
@@ -99,8 +98,4 @@ internal class OpenAiTtsEngine(private val config: TtsConfig.OpenAiTts) : TtsEng
         @Suppress("PropertyName")
         val responseFormat: String,
     )
-
-    private companion object {
-        const val MILLIS_PER_SECOND = 1000L
-    }
 }

@@ -31,7 +31,7 @@ import kotlinx.coroutines.flow.StateFlow
  * tracker.stop()
  * ```
  */
-public interface FaceTracker {
+public interface FaceTracker : Releasable {
 
     /**
      * Stream of face tracking data, emitted for each processed frame.
@@ -66,7 +66,7 @@ public interface FaceTracker {
     /**
      * Release all resources. The tracker cannot be used after this.
      */
-    public fun release()
+    public override fun release()
 
     /**
      * Reset calibration data to defaults.

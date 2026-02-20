@@ -1,6 +1,7 @@
 package io.github.kmpfacelink.voice.lipsync.internal
 
 import io.github.kmpfacelink.model.BlendShape
+import io.github.kmpfacelink.voice.AudioConstants
 import io.github.kmpfacelink.voice.lipsync.LipSyncConfig
 import io.github.kmpfacelink.voice.lipsync.LipSyncFrame
 import io.github.kmpfacelink.voice.lipsync.VisemeBlendShapes
@@ -12,8 +13,6 @@ import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.max
 import kotlin.math.min
-
-private const val MILLIS_PER_SECOND = 1000L
 private const val HALF = 0.5f
 private const val TRANSITION_OVERLAP_MS = 60L
 
@@ -36,7 +35,7 @@ internal object PhonemeAnimator {
     ): Flow<LipSyncFrame> = flow {
         if (phonemeEvents.isEmpty()) return@flow
 
-        val frameDurationMs = MILLIS_PER_SECOND / config.targetFps
+        val frameDurationMs = AudioConstants.MILLIS_PER_SECOND / config.targetFps
         val totalDurationMs = phonemeEvents.maxOf { it.endMs }
 
         // Pre-compute viseme keyframes

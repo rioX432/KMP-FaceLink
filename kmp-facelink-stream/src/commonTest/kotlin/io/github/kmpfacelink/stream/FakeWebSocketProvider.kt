@@ -48,6 +48,10 @@ internal class FakeWebSocketProvider : WebSocketProvider {
         incomingMessages.close()
     }
 
+    override fun release() {
+        connected = false
+    }
+
     /** Simulate receiving a message from the server. */
     suspend fun receiveFromServer(text: String) {
         incomingMessages.send(text)

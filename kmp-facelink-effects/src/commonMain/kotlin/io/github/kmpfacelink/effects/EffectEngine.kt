@@ -47,6 +47,13 @@ public class EffectEngine {
         }
     }
 
+    /** Release all resources and reset state. */
+    public fun release() {
+        effects.clear()
+        latestFace = null
+        latestHand = null
+    }
+
     /**
      * Feed a face tracking frame and compute effect output.
      *

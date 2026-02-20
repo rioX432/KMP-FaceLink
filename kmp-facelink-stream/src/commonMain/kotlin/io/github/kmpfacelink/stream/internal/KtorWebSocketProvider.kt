@@ -66,4 +66,9 @@ internal class KtorWebSocketProvider(
         session?.close()
         session = null
     }
+
+    override fun release() {
+        session = null
+        client.close()
+    }
 }

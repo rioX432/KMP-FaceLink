@@ -1,5 +1,6 @@
 package io.github.kmpfacelink.stream
 
+import io.github.kmpfacelink.api.Releasable
 import kotlinx.coroutines.flow.StateFlow
 
 /**
@@ -30,7 +31,7 @@ public sealed class StreamState {
  *
  * Implementations handle protocol-specific connection, authentication, and data transmission.
  */
-public interface StreamClient {
+public interface StreamClient : Releasable {
     /** Current connection state as a [StateFlow]. */
     public val state: StateFlow<StreamState>
 
@@ -49,5 +50,5 @@ public interface StreamClient {
     public suspend fun sendParameters(parameters: Map<String, Float>, faceFound: Boolean)
 
     /** Releases all resources held by this client. */
-    public fun release()
+    public override fun release()
 }

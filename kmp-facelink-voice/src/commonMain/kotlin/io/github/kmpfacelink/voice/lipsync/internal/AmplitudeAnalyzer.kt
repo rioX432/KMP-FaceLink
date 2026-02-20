@@ -1,9 +1,8 @@
 package io.github.kmpfacelink.voice.lipsync.internal
 
+import io.github.kmpfacelink.voice.AudioConstants
 import io.github.kmpfacelink.voice.audio.AudioData
 import kotlin.math.sqrt
-
-private const val MILLIS_PER_SECOND = 1000L
 private const val BITS_PER_BYTE = 8
 
 /**
@@ -53,7 +52,7 @@ internal object AmplitudeAnalyzer {
     /**
      * Computes the frame duration in milliseconds.
      */
-    fun frameDurationMs(targetFps: Int): Long = MILLIS_PER_SECOND / targetFps
+    fun frameDurationMs(targetFps: Int): Long = AudioConstants.MILLIS_PER_SECOND / targetFps
 
     @Suppress("MagicNumber")
     private fun computeRms(

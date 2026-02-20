@@ -25,6 +25,9 @@ internal interface WebSocketProvider {
     /** Closes the connection gracefully. */
     suspend fun close()
 
+    /** Releases all resources including the underlying HTTP client. */
+    fun release()
+
     /** Whether the connection is currently open. */
     val isConnected: Boolean
 }

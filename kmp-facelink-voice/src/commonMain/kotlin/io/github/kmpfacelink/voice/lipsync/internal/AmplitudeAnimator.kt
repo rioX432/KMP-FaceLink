@@ -1,6 +1,7 @@
 package io.github.kmpfacelink.voice.lipsync.internal
 
 import io.github.kmpfacelink.model.BlendShape
+import io.github.kmpfacelink.voice.AudioConstants
 import io.github.kmpfacelink.voice.audio.AudioData
 import io.github.kmpfacelink.voice.lipsync.LipSyncConfig
 import io.github.kmpfacelink.voice.lipsync.LipSyncFrame
@@ -10,7 +11,6 @@ import kotlinx.coroutines.flow.flow
 
 private const val JAW_OPEN_WEIGHT = 0.7f
 private const val MOUTH_FUNNEL_WEIGHT = 0.3f
-private const val MILLIS_PER_SECOND = 1000L
 
 /**
  * Generates lip sync frames from audio amplitude.
@@ -28,7 +28,7 @@ internal object AmplitudeAnimator {
      */
     fun animate(audio: AudioData, config: LipSyncConfig): Flow<LipSyncFrame> = flow {
         val amplitudes = AmplitudeAnalyzer.analyze(audio, config.targetFps)
-        val frameDurationMs = MILLIS_PER_SECOND / config.targetFps
+        val frameDurationMs = AudioConstants.MILLIS_PER_SECOND / config.targetFps
 
         var prevJaw = 0f
         var prevFunnel = 0f

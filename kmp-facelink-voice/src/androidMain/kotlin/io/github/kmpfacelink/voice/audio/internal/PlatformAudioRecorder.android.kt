@@ -3,6 +3,7 @@ package io.github.kmpfacelink.voice.audio.internal
 import android.annotation.SuppressLint
 import android.media.AudioRecord
 import android.media.MediaRecorder
+import io.github.kmpfacelink.voice.AudioConstants
 import io.github.kmpfacelink.voice.audio.AudioData
 import io.github.kmpfacelink.voice.audio.AudioFormat
 import io.github.kmpfacelink.voice.audio.AudioRecorder
@@ -106,7 +107,7 @@ internal class PlatformAudioRecorder : AudioRecorder {
 
         val bytesPerSample = currentFormat.bitsPerSample / Byte.SIZE_BITS
         val totalSamples = bytes.size / bytesPerSample / currentFormat.channels
-        val durationMs = totalSamples.toLong() * MILLIS_PER_SECOND / currentFormat.sampleRate
+        val durationMs = totalSamples.toLong() * AudioConstants.MILLIS_PER_SECOND / currentFormat.sampleRate
 
         return AudioData(bytes = bytes, format = currentFormat, durationMs = durationMs)
     }
@@ -117,9 +118,5 @@ internal class PlatformAudioRecorder : AudioRecorder {
         recordingJob = null
         audioRecord?.release()
         audioRecord = null
-    }
-
-    private companion object {
-        const val MILLIS_PER_SECOND = 1000L
     }
 }

@@ -35,6 +35,7 @@ import io.github.kmpfacelink.api.PlatformContext
 import io.github.kmpfacelink.api.TrackingState
 import io.github.kmpfacelink.api.createFaceTracker
 import io.github.kmpfacelink.api.createHandTracker
+import io.github.kmpfacelink.api.createHolisticTracker
 import io.github.kmpfacelink.avatar.Live2DParameterMapper
 import io.github.kmpfacelink.avatar.toAvatarParameters
 import io.github.kmpfacelink.internal.PreviewableFaceTracker
@@ -44,12 +45,14 @@ import io.github.kmpfacelink.model.FaceTrackerConfig
 import io.github.kmpfacelink.model.FaceTrackingData
 import io.github.kmpfacelink.model.HandTrackerConfig
 import io.github.kmpfacelink.model.HandTrackingData
+import io.github.kmpfacelink.model.HolisticTrackerConfig
+import io.github.kmpfacelink.model.HolisticTrackingData
 import io.github.kmpfacelink.model.SmoothingConfig
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 
-internal enum class TrackingMode { FACE, HAND, AVATAR }
+internal enum class TrackingMode { FACE, HAND, AVATAR, HOLISTIC }
 
 internal data class Live2DTransformCallbacks(
     val getScale: () -> Float,
@@ -80,13 +83,25 @@ class MainActivity : ComponentActivity() {
         )
     }
 
+    private val holisticTracker by lazy {
+        createHolisticTracker(
+            platformContext = platformContext,
+            config = HolisticTrackerConfig(
+                faceConfig = FaceTrackerConfig(smoothingConfig = SmoothingConfig.Ema(alpha = 0.4f)),
+                handConfig = HandTrackerConfig(smoothingConfig = SmoothingConfig.Ema(alpha = 0.4f)),
+            ),
+        )
+    }
+
     private val faceTrackingDataState = MutableStateFlow<FaceTrackingData?>(null)
     private val handTrackingDataState = MutableStateFlow<HandTrackingData?>(null)
+    private val holisticTrackingDataState = MutableStateFlow<HolisticTrackingData?>(null)
     private val trackingModeState = MutableStateFlow(TrackingMode.FACE)
 
     private var faceCollectorJob: Job? = null
     private var handCollectorJob: Job? = null
     private var avatarCollectorJob: Job? = null
+    private var holisticCollectorJob: Job? = null
 
     private val avatarMapper by lazy { Live2DParameterMapper() }
     private val live2dAvailable by lazy { isLive2DAvailable() }
@@ -143,6 +158,13 @@ class MainActivity : ComponentActivity() {
                 onStartClick = onStartClick,
                 onStopClick = onStopClick,
             )
+            TrackingMode.HOLISTIC -> HolisticTrackingScreen(
+                holisticTracker = holisticTracker,
+                trackingDataState = holisticTrackingDataState,
+                onModeChange = onModeChange,
+                onStartClick = onStartClick,
+                onStopClick = onStopClick,
+            )
             TrackingMode.AVATAR -> {
                 if (live2dAvailable && live2dRenderer != null && live2dGLSurfaceRenderer != null) {
                     val cb = live2dTransformCallbacks
@@ -173,6 +195,7 @@ class MainActivity : ComponentActivity() {
             TrackingMode.FACE, TrackingMode.AVATAR ->
                 faceTracker.state.value == TrackingState.TRACKING
             TrackingMode.HAND -> handTracker.state.value == TrackingState.TRACKING
+            TrackingMode.HOLISTIC -> holisticTracker.state.value == TrackingState.TRACKING
         }
 
         if (wasTracking) {
@@ -200,6 +223,10 @@ class MainActivity : ComponentActivity() {
                 avatarCollectorJob?.cancel()
                 faceCollectorJob?.cancel()
                 faceTracker.stop()
+            }
+            TrackingMode.HOLISTIC -> {
+                holisticCollectorJob?.cancel()
+                holisticTracker.stop()
             }
         }
     }
@@ -232,6 +259,14 @@ class MainActivity : ComponentActivity() {
                         }
                     }
                     handTracker.start()
+                }
+                TrackingMode.HOLISTIC -> {
+                    holisticCollectorJob = lifecycleScope.launch {
+                        holisticTracker.trackingData.collect { data ->
+                            holisticTrackingDataState.value = data
+                        }
+                    }
+                    holisticTracker.start()
                 }
                 TrackingMode.AVATAR -> {
                     (faceTracker as? PreviewableFaceTracker)?.setSurfaceProvider(null)
@@ -266,6 +301,7 @@ class MainActivity : ComponentActivity() {
         super.onDestroy()
         faceTracker.release()
         handTracker.release()
+        holisticTracker.release()
         live2dRenderer?.release()
     }
 

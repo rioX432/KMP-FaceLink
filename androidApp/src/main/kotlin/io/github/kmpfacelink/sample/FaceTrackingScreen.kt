@@ -297,7 +297,7 @@ private fun BlendShapeBarRow(
 }
 
 @Composable
-private fun FaceLandmarkOverlay(
+internal fun FaceLandmarkOverlay(
     landmarks: List<FaceLandmark>,
     sourceImageWidth: Int,
     sourceImageHeight: Int,

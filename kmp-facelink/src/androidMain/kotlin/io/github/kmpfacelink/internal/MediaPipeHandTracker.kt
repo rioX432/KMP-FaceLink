@@ -38,6 +38,7 @@ import kotlin.concurrent.atomics.ExperimentalAtomicApi
 internal class MediaPipeHandTracker(
     private val platformContext: PlatformContext,
     private val config: HandTrackerConfig,
+    private val sharedCameraSession: SharedCameraSession? = null,
 ) : HandTracker, PreviewableHandTracker {
 
     private val _trackingData = MutableSharedFlow<HandTrackingData>(
@@ -59,7 +60,7 @@ internal class MediaPipeHandTracker(
     private val isFrontCamera = config.cameraFacing == CameraFacing.FRONT
     private val analysisExecutor = Executors.newSingleThreadExecutor()
     private val imageConverter = ImageProxyConverter()
-    private val cameraManager = CameraXManager(platformContext)
+    private val cameraManager = if (sharedCameraSession == null) CameraXManager(platformContext) else null
 
     private var handLandmarker: HandLandmarker? = null
     private var previewSurfaceProvider: Preview.SurfaceProvider? = null
@@ -95,7 +96,7 @@ internal class MediaPipeHandTracker(
 
     override suspend fun stop() {
         pipelineLock.withLock {
-            cameraManager.unbindAll()
+            cameraManager?.unbindAll()
             handLandmarker?.close()
             handLandmarker = null
             _state.value = TrackingState.STOPPED
@@ -105,7 +106,7 @@ internal class MediaPipeHandTracker(
     override fun release() {
         released.store(1)
         pipelineLock.withLock {
-            cameraManager.unbindAll()
+            cameraManager?.unbindAll()
             handLandmarker?.close()
             handLandmarker = null
             imageConverter.release()
@@ -162,11 +163,15 @@ internal class MediaPipeHandTracker(
             .build()
             .also { it.setAnalyzer(analysisExecutor, ::processFrame) }
 
-        cameraManager.startCamera(
-            cameraFacing = config.cameraFacing,
-            imageAnalysis = imageAnalysis,
-            surfaceProvider = previewSurfaceProvider,
-        )
+        if (sharedCameraSession != null) {
+            sharedCameraSession.addAnalysis(imageAnalysis)
+        } else {
+            cameraManager!!.startCamera(
+                cameraFacing = config.cameraFacing,
+                imageAnalysis = imageAnalysis,
+                surfaceProvider = previewSurfaceProvider,
+            )
+        }
     }
 
     private fun processFrame(imageProxy: ImageProxy) {

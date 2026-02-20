@@ -100,6 +100,7 @@ Pure common modules: `kmp-facelink-avatar`, `kmp-facelink-actions`, `kmp-facelin
 | Module | Entry Point | Pattern |
 |--------|-------------|---------|
 | Core | `FaceTracker`, `HandTracker`, `BodyTracker` | `start()`/`stop()`, `trackingData: Flow<T>`, `state: StateFlow<TrackingState>` |
+| Core | `HolisticTracker` | `start()`/`stop()`, `trackingData: Flow<HolisticTrackingData>`, configurable modalities |
 | Avatar | `Live2DParameterMapper` | `map(FaceTrackingData): Map<String, Float>` + `PerfectSyncMappings` |
 | Actions | `ActionSystem` | `register(ActionBinding)`, `events: Flow<ActionEvent>`, `BuiltInTriggers` |
 | Effects | `EffectEngine` | `addEffect(Effect)`, `processFace(data): EffectOutput` |

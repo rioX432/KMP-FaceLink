@@ -97,5 +97,7 @@ internal class CameraXManager(
             .build()
 
         fun buildAnalysisResolutionSelector(): ResolutionSelector = analysisResolutionSelector
+
+        fun buildPreviewResolutionSelector(): ResolutionSelector = previewResolutionSelector
     }
 }

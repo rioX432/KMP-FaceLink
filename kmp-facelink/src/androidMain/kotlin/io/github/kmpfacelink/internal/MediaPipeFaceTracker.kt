@@ -24,6 +24,7 @@ import io.github.kmpfacelink.model.SmoothingConfig
 import io.github.kmpfacelink.util.BlendShapeEnhancer
 import io.github.kmpfacelink.util.BlendShapeSmoother
 import io.github.kmpfacelink.util.Calibrator
+import io.github.kmpfacelink.util.GazeEstimator
 import io.github.kmpfacelink.util.PlatformLock
 import io.github.kmpfacelink.util.TransformUtils
 import io.github.kmpfacelink.util.createSmoother
@@ -300,6 +301,7 @@ internal class MediaPipeFaceTracker(
         val data = FaceTrackingData(
             blendShapes = processedBlendShapes,
             headTransform = headTransform,
+            gazeData = GazeEstimator.estimate(processedBlendShapes),
             landmarks = landmarks,
             sourceImageWidth = lastImageWidth,
             sourceImageHeight = lastImageHeight,

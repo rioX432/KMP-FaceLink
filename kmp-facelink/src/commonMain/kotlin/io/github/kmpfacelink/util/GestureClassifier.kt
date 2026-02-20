@@ -18,6 +18,8 @@ internal object GestureClassifier {
     private const val DISTANCE_EPSILON = 1e-6f
     private const val HIGH_CONFIDENCE = 0.9f
     private const val MEDIUM_CONFIDENCE = 0.7f
+    private const val PINCH_DISTANCE_THRESHOLD = 0.06f
+    private const val PINCH_MIN_REACH_THRESHOLD = 0.2f
 
     /**
      * Classify a gesture from hand landmarks.
@@ -77,20 +79,49 @@ internal object GestureClassifier {
     ): Pair<HandGesture, Float> {
         val allCurled = !fingers.thumb && !fingers.index && !fingers.middle && !fingers.ring && !fingers.pinky
         val allExtended = fingers.thumb && fingers.index && fingers.middle && fingers.ring && fingers.pinky
+        val pinching = isPinching(landmarks)
 
         return when {
             allCurled -> HandGesture.CLOSED_FIST to HIGH_CONFIDENCE
+            // Pinch/OK checked before OPEN_PALM: thumb-index proximity takes priority
+            pinching && fingers.middle && fingers.ring && fingers.pinky ->
+                HandGesture.OK_SIGN to HIGH_CONFIDENCE
+            pinching && !fingers.middle && !fingers.ring && !fingers.pinky ->
+                HandGesture.PINCH to HIGH_CONFIDENCE
             allExtended -> HandGesture.OPEN_PALM to HIGH_CONFIDENCE
+            // Rock/metal: index + pinky only
+            !fingers.thumb && fingers.index && !fingers.middle && !fingers.ring && fingers.pinky ->
+                HandGesture.ROCK to HIGH_CONFIDENCE
             fingers.thumb && fingers.index && !fingers.middle && !fingers.ring && fingers.pinky ->
                 HandGesture.I_LOVE_YOU to HIGH_CONFIDENCE
             !fingers.thumb && fingers.index && fingers.middle && !fingers.ring && !fingers.pinky ->
                 HandGesture.VICTORY to HIGH_CONFIDENCE
+            // Finger counting: 3, 4 (1 and 2 are handled by POINTING_UP and VICTORY aliases)
+            !fingers.thumb && fingers.index && fingers.middle && fingers.ring && !fingers.pinky ->
+                HandGesture.FINGER_COUNT_THREE to HIGH_CONFIDENCE
+            !fingers.thumb && fingers.index && fingers.middle && fingers.ring && fingers.pinky ->
+                HandGesture.FINGER_COUNT_FOUR to HIGH_CONFIDENCE
             fingers.index && !fingers.middle && !fingers.ring && !fingers.pinky ->
                 classifyPointingUp(fingers)
             fingers.thumb && !fingers.index && !fingers.middle && !fingers.ring && !fingers.pinky ->
                 classifyThumb(landmarks)
             else -> HandGesture.NONE to 0f
         }
+    }
+
+    private fun isPinching(landmarks: Map<HandJoint, HandLandmarkPoint>): Boolean {
+        val thumbTip = landmarks[HandJoint.THUMB_TIP] ?: return false
+        val indexTip = landmarks[HandJoint.INDEX_FINGER_TIP] ?: return false
+        val wrist = landmarks[HandJoint.WRIST] ?: return false
+
+        // Tips must be close together
+        if (distance(thumbTip, indexTip) >= PINCH_DISTANCE_THRESHOLD) return false
+
+        // Both tips must be sufficiently far from wrist (not just curled together)
+        val thumbToWrist = distance(thumbTip, wrist)
+        val indexToWrist = distance(indexTip, wrist)
+        val minReach = PINCH_MIN_REACH_THRESHOLD
+        return thumbToWrist > minReach && indexToWrist > minReach
     }
 
     private fun classifyPointingUp(fingers: FingerState): Pair<HandGesture, Float> =

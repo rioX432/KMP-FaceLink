@@ -41,16 +41,23 @@ public sealed class SmoothingConfig {
      * @param minCutoff Minimum cutoff frequency in Hz (lower = more smoothing at rest)
      * @param beta Speed coefficient (higher = less lag during fast movements)
      * @param dCutoff Derivative cutoff frequency in Hz
+     * @param predictionMs Prediction horizon in milliseconds. When > 0, the filter
+     *        extrapolates the filtered value forward using the smoothed derivative:
+     *        `predicted = filtered + derivative * (predictionMs / 1000)`.
+     *        Useful for reducing perceived latency in remote tracking scenarios.
+     *        Default is 0 (no prediction).
      */
     public data class OneEuro(
         val minCutoff: Float = 1.0f,
         val beta: Float = 0.007f,
         val dCutoff: Float = 1.0f,
+        val predictionMs: Float = 0f,
     ) : SmoothingConfig() {
         init {
             require(minCutoff > 0f) { "minCutoff must be positive, was $minCutoff" }
             require(beta >= 0f) { "beta must be non-negative, was $beta" }
             require(dCutoff > 0f) { "dCutoff must be positive, was $dCutoff" }
+            require(predictionMs >= 0f) { "predictionMs must be non-negative, was $predictionMs" }
         }
     }
 }

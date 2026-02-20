@@ -5,6 +5,7 @@ package io.github.kmpfacelink.model
  *
  * @property blendShapes Map of 52 ARKit-compatible blend shape values (0.0–1.0)
  * @property headTransform 6DoF head position and rotation
+ * @property gazeData Eye gaze direction derived from blend shapes. Null if not computed.
  * @property landmarks Face landmark points with normalized coordinates (0.0–1.0).
  *           On Android (MediaPipe): 478 points. Empty if no face is detected.
  * @property sourceImageWidth Width of the source image that landmarks are normalized to (pixels, after rotation)
@@ -15,6 +16,7 @@ package io.github.kmpfacelink.model
 public data class FaceTrackingData(
     val blendShapes: BlendShapeData,
     val headTransform: HeadTransform,
+    val gazeData: GazeData? = null,
     val landmarks: List<FaceLandmark> = emptyList(),
     val sourceImageWidth: Int = 0,
     val sourceImageHeight: Int = 0,

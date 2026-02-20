@@ -66,6 +66,7 @@ On completion, update status to `DONE` and close the corresponding GitHub Issue.
 |---|-------|--------|---------|
 | 47 | [SDK API stability review](https://github.com/rioX432/KMP-FaceLink/issues/47) | DONE | Audit public APIs, semver policy, stability annotations |
 | 48 | [kmp-facelink-live2d module](https://github.com/rioX432/KMP-FaceLink/issues/48) | DONE | Live2D Cubism SDK Native KMP wrapper |
+| 77 | [kmp-facelink-rive module](https://github.com/rioX432/KMP-FaceLink/issues/77) | TODO | Rive avatar integration (MIT-licensed alternative) |
 | 7 | [Body tracking](https://github.com/rioX432/KMP-FaceLink/issues/7) | DONE | Pose estimation |
 
 ## Phase 3: Communication (Q1–Q2 2027)
@@ -81,6 +82,16 @@ On completion, update status to `DONE` and close the corresponding GitHub Issue.
 |---|-------|--------|---------|
 | 50 | [kmp-facelink-voice module](https://github.com/rioX432/KMP-FaceLink/issues/50) | DONE | ASR (Whisper) / TTS (VOICEVOX, ElevenLabs) + lip sync |
 | 51 | [kmp-facelink-llm module](https://github.com/rioX432/KMP-FaceLink/issues/51) | TODO | LLM streaming API (OpenAI, Anthropic, Gemini) |
+
+## Phase A: VTuber Features & High-Impact Additions (Q1 2026)
+
+| # | Issue | Status | Summary |
+|---|-------|--------|---------|
+| 78 | [Emotion recognition](https://github.com/rioX432/KMP-FaceLink/issues/78) | DONE | Rule-based emotion classification from blend shapes |
+| 79 | [Extended hand gestures](https://github.com/rioX432/KMP-FaceLink/issues/79) | DONE | More gestures + custom gesture definition for VTuber use |
+| 80 | [Eye gaze tracking](https://github.com/rioX432/KMP-FaceLink/issues/80) | DONE | Precise gaze direction from blend shapes + landmarks |
+| 81 | [Recording and playback](https://github.com/rioX432/KMP-FaceLink/issues/81) | DONE | Session recording/playback for tracking data |
+| 82 | [Motion prediction](https://github.com/rioX432/KMP-FaceLink/issues/82) | DONE | Linear extrapolation in OneEuroFilter for latency reduction |
 
 ## Tech Debt
 

@@ -72,7 +72,7 @@ On completion, update status to `DONE` and close the corresponding GitHub Issue.
 
 | # | Issue | Status | Summary |
 |---|-------|--------|---------|
-| 49 | [kmp-facelink-stream module](https://github.com/rioX432/KMP-FaceLink/issues/49) | TODO | WebSocket streaming (VTubeStudio/aituber-kit/Open-LLM-VTuber) |
+| 49 | [kmp-facelink-stream module](https://github.com/rioX432/KMP-FaceLink/issues/49) | DONE | WebSocket streaming (VTubeStudio/aituber-kit/Open-LLM-VTuber) |
 | 8 | [Holistic tracking](https://github.com/rioX432/KMP-FaceLink/issues/8) | TODO | Face + Hands + Body integration |
 
 ## Phase 4: Voice & LLM (Q3–Q4 2027)

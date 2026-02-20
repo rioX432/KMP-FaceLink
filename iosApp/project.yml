@@ -62,6 +62,7 @@ targets:
       path: FaceLink/Info.plist
       properties:
         NSCameraUsageDescription: "Face tracking requires camera access"
+        NSMicrophoneUsageDescription: "Voice features require microphone access"
         UIRequiredDeviceCapabilities:
           - arkit
           - front-facing-camera

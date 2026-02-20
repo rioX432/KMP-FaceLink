@@ -10,6 +10,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -17,6 +18,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.Button
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
@@ -48,11 +50,14 @@ import io.github.kmpfacelink.model.HandTrackingData
 import io.github.kmpfacelink.model.HolisticTrackerConfig
 import io.github.kmpfacelink.model.HolisticTrackingData
 import io.github.kmpfacelink.model.SmoothingConfig
+import io.github.kmpfacelink.sample.ui.SampleColors
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 
-internal enum class TrackingMode { FACE, HAND, AVATAR, HOLISTIC }
+internal enum class TrackingMode {
+    FACE, HAND, AVATAR, HOLISTIC, ACTIONS, EFFECTS, STREAM, VOICE
+}
 
 internal data class Live2DTransformCallbacks(
     val getScale: () -> Float,
@@ -61,11 +66,12 @@ internal data class Live2DTransformCallbacks(
     val resetTransform: () -> Unit,
 )
 
+@Suppress("TooManyFunctions")
 class MainActivity : ComponentActivity() {
 
     private val platformContext by lazy { PlatformContext(this, this) }
 
-    private val faceTracker by lazy {
+    internal val faceTracker by lazy {
         createFaceTracker(
             platformContext = platformContext,
             config = FaceTrackerConfig(
@@ -93,12 +99,13 @@ class MainActivity : ComponentActivity() {
         )
     }
 
-    private val faceTrackingDataState = MutableStateFlow<FaceTrackingData?>(null)
+    internal val faceTrackingDataState = MutableStateFlow<FaceTrackingData?>(null)
     private val handTrackingDataState = MutableStateFlow<HandTrackingData?>(null)
     private val holisticTrackingDataState = MutableStateFlow<HolisticTrackingData?>(null)
-    private val trackingModeState = MutableStateFlow(TrackingMode.FACE)
+    internal val trackingModeState = MutableStateFlow(TrackingMode.FACE)
+    internal val errorState = MutableStateFlow<String?>(null)
 
-    private var faceCollectorJob: Job? = null
+    internal var faceCollectorJob: Job? = null
     private var handCollectorJob: Job? = null
     private var avatarCollectorJob: Job? = null
     private var holisticCollectorJob: Job? = null
@@ -165,38 +172,62 @@ class MainActivity : ComponentActivity() {
                 onStartClick = onStartClick,
                 onStopClick = onStopClick,
             )
-            TrackingMode.AVATAR -> {
-                if (live2dAvailable && live2dRenderer != null && live2dGLSurfaceRenderer != null) {
-                    val cb = live2dTransformCallbacks
-                    AvatarTrackingScreen(
-                        faceTracker = faceTracker,
-                        trackingDataState = faceTrackingDataState,
-                        renderer = live2dRenderer!!,
-                        glSurfaceRenderer = live2dGLSurfaceRenderer!!,
-                        onScaleChanged = cb?.setScale ?: {},
-                        onResetTransform = cb?.resetTransform ?: {},
-                        getScale = cb?.getScale ?: { 1f },
-                        onDrag = cb?.drag ?: { _, _ -> },
-                        onStartClick = onStartClick,
-                        onStopClick = onStopClick,
-                    )
-                } else {
-                    Live2DUnavailableScreen(onModeChange = onModeChange)
-                }
-            }
+            TrackingMode.AVATAR -> renderAvatarScreen(onModeChange, onStartClick, onStopClick)
+            TrackingMode.ACTIONS -> ActionsTrackingScreen(
+                activity = this,
+                onModeChange = onModeChange,
+                onStartClick = onStartClick,
+                onStopClick = onStopClick,
+            )
+            TrackingMode.EFFECTS -> EffectsTrackingScreen(
+                activity = this,
+                onModeChange = onModeChange,
+                onStartClick = onStartClick,
+                onStopClick = onStopClick,
+            )
+            TrackingMode.STREAM -> StreamTrackingScreen(
+                activity = this,
+                onModeChange = onModeChange,
+                onStartClick = onStartClick,
+                onStopClick = onStopClick,
+            )
+            TrackingMode.VOICE -> VoiceTrackingScreen(
+                onModeChange = onModeChange,
+            )
+        }
+    }
+
+    @Composable
+    private fun renderAvatarScreen(
+        onModeChange: (TrackingMode) -> Unit,
+        onStartClick: () -> Unit,
+        onStopClick: () -> Unit,
+    ) {
+        if (live2dAvailable && live2dRenderer != null && live2dGLSurfaceRenderer != null) {
+            val cb = live2dTransformCallbacks
+            AvatarTrackingScreen(
+                faceTracker = faceTracker,
+                trackingDataState = faceTrackingDataState,
+                renderer = live2dRenderer!!,
+                glSurfaceRenderer = live2dGLSurfaceRenderer!!,
+                onScaleChanged = cb?.setScale ?: {},
+                onResetTransform = cb?.resetTransform ?: {},
+                getScale = cb?.getScale ?: { 1f },
+                onDrag = cb?.drag ?: { _, _ -> },
+                onStartClick = onStartClick,
+                onStopClick = onStopClick,
+            )
+        } else {
+            Live2DUnavailableScreen(onModeChange = onModeChange)
         }
     }
 
     private fun switchMode(newMode: TrackingMode) {
         val currentMode = trackingModeState.value
         if (currentMode == newMode) return
+        errorState.value = null
 
-        val wasTracking = when (currentMode) {
-            TrackingMode.FACE, TrackingMode.AVATAR ->
-                faceTracker.state.value == TrackingState.TRACKING
-            TrackingMode.HAND -> handTracker.state.value == TrackingState.TRACKING
-            TrackingMode.HOLISTIC -> holisticTracker.state.value == TrackingState.TRACKING
-        }
+        val wasTracking = isCurrentlyTracking(currentMode)
 
         if (wasTracking) {
             lifecycleScope.launch {
@@ -209,25 +240,44 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    private fun isCurrentlyTracking(mode: TrackingMode): Boolean = when (mode) {
+        TrackingMode.FACE, TrackingMode.AVATAR, TrackingMode.ACTIONS,
+        TrackingMode.EFFECTS, TrackingMode.STREAM, TrackingMode.VOICE,
+        -> faceTracker.state.value == TrackingState.TRACKING
+        TrackingMode.HAND -> handTracker.state.value == TrackingState.TRACKING
+        TrackingMode.HOLISTIC -> holisticTracker.state.value == TrackingState.TRACKING
+    }
+
+    @Suppress("TooGenericExceptionCaught")
     private suspend fun stopCurrentTracker(mode: TrackingMode) {
-        when (mode) {
-            TrackingMode.FACE -> {
-                faceCollectorJob?.cancel()
-                faceTracker.stop()
+        try {
+            when (mode) {
+                TrackingMode.FACE -> {
+                    faceCollectorJob?.cancel()
+                    faceTracker.stop()
+                }
+                TrackingMode.HAND -> {
+                    handCollectorJob?.cancel()
+                    handTracker.stop()
+                }
+                TrackingMode.AVATAR -> {
+                    avatarCollectorJob?.cancel()
+                    faceCollectorJob?.cancel()
+                    faceTracker.stop()
+                }
+                TrackingMode.HOLISTIC -> {
+                    holisticCollectorJob?.cancel()
+                    holisticTracker.stop()
+                }
+                TrackingMode.ACTIONS, TrackingMode.EFFECTS,
+                TrackingMode.STREAM, TrackingMode.VOICE,
+                -> {
+                    faceCollectorJob?.cancel()
+                    faceTracker.stop()
+                }
             }
-            TrackingMode.HAND -> {
-                handCollectorJob?.cancel()
-                handTracker.stop()
-            }
-            TrackingMode.AVATAR -> {
-                avatarCollectorJob?.cancel()
-                faceCollectorJob?.cancel()
-                faceTracker.stop()
-            }
-            TrackingMode.HOLISTIC -> {
-                holisticCollectorJob?.cancel()
-                holisticTracker.stop()
-            }
+        } catch (e: Exception) {
+            Log.w("MainActivity", "Error stopping tracker", e)
         }
     }
 
@@ -241,54 +291,76 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    @Suppress("TooGenericExceptionCaught")
     private fun startTracking() {
+        errorState.value = null
         lifecycleScope.launch {
-            when (trackingModeState.value) {
-                TrackingMode.FACE -> {
-                    faceCollectorJob = lifecycleScope.launch {
-                        faceTracker.trackingData.collect { data ->
-                            faceTrackingDataState.value = data
-                        }
-                    }
-                    faceTracker.start()
-                }
-                TrackingMode.HAND -> {
-                    handCollectorJob = lifecycleScope.launch {
-                        handTracker.trackingData.collect { data ->
-                            handTrackingDataState.value = data
-                        }
-                    }
-                    handTracker.start()
-                }
-                TrackingMode.HOLISTIC -> {
-                    holisticCollectorJob = lifecycleScope.launch {
-                        holisticTracker.trackingData.collect { data ->
-                            holisticTrackingDataState.value = data
-                        }
-                    }
-                    holisticTracker.start()
-                }
-                TrackingMode.AVATAR -> {
-                    (faceTracker as? PreviewableFaceTracker)?.setSurfaceProvider(null)
-                    faceCollectorJob = lifecycleScope.launch {
-                        faceTracker.trackingData.collect { data ->
-                            faceTrackingDataState.value = data
-                        }
-                    }
-                    val renderer = live2dRenderer
-                    if (renderer != null) {
-                        avatarCollectorJob = lifecycleScope.launch {
-                            faceTracker.trackingData
-                                .toAvatarParameters(avatarMapper)
-                                .collect { params ->
-                                    renderer.updateParameters(params)
-                                }
-                        }
-                    }
-                    faceTracker.start()
-                }
+            try {
+                startTrackingForMode(trackingModeState.value)
+            } catch (e: Exception) {
+                errorState.value = e.message ?: "Failed to start tracking"
+                Log.e("MainActivity", "Failed to start tracking", e)
             }
         }
+    }
+
+    private suspend fun startTrackingForMode(mode: TrackingMode) {
+        when (mode) {
+            TrackingMode.FACE -> startFaceTracking()
+            TrackingMode.HAND -> startHandTracking()
+            TrackingMode.HOLISTIC -> startHolisticTracking()
+            TrackingMode.AVATAR -> startAvatarTracking()
+            TrackingMode.ACTIONS, TrackingMode.EFFECTS,
+            TrackingMode.STREAM, TrackingMode.VOICE,
+            -> startFaceTracking()
+        }
+    }
+
+    private suspend fun startFaceTracking() {
+        faceCollectorJob = lifecycleScope.launch {
+            faceTracker.trackingData.collect { data ->
+                faceTrackingDataState.value = data
+            }
+        }
+        faceTracker.start()
+    }
+
+    private suspend fun startHandTracking() {
+        handCollectorJob = lifecycleScope.launch {
+            handTracker.trackingData.collect { data ->
+                handTrackingDataState.value = data
+            }
+        }
+        handTracker.start()
+    }
+
+    private suspend fun startHolisticTracking() {
+        holisticCollectorJob = lifecycleScope.launch {
+            holisticTracker.trackingData.collect { data ->
+                holisticTrackingDataState.value = data
+            }
+        }
+        holisticTracker.start()
+    }
+
+    private suspend fun startAvatarTracking() {
+        (faceTracker as? PreviewableFaceTracker)?.setSurfaceProvider(null)
+        faceCollectorJob = lifecycleScope.launch {
+            faceTracker.trackingData.collect { data ->
+                faceTrackingDataState.value = data
+            }
+        }
+        val renderer = live2dRenderer
+        if (renderer != null) {
+            avatarCollectorJob = lifecycleScope.launch {
+                faceTracker.trackingData
+                    .toAvatarParameters(avatarMapper)
+                    .collect { params ->
+                        renderer.updateParameters(params)
+                    }
+            }
+        }
+        faceTracker.start()
     }
 
     private fun stopTracking() {
@@ -398,11 +470,13 @@ internal fun ModeToggle(
     currentMode: TrackingMode,
     onModeChange: (TrackingMode) -> Unit,
 ) {
+    val scrollState = rememberScrollState()
     Row(
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         modifier = Modifier
             .fillMaxWidth()
-            .background(Color.Black.copy(alpha = 0.6f))
+            .background(SampleColors.OverlayLight)
+            .horizontalScroll(scrollState)
             .padding(horizontal = 12.dp, vertical = 4.dp),
     ) {
         TrackingMode.entries.forEach { mode ->
@@ -411,10 +485,10 @@ internal fun ModeToggle(
                 onClick = { onModeChange(mode) },
                 label = { Text(mode.name, fontSize = 12.sp) },
                 colors = FilterChipDefaults.filterChipColors(
-                    containerColor = Color.White.copy(alpha = 0.15f),
-                    labelColor = Color.White,
-                    selectedContainerColor = Color(0xFF4488FF).copy(alpha = 0.6f),
-                    selectedLabelColor = Color.White,
+                    containerColor = SampleColors.ChipDefault,
+                    labelColor = SampleColors.TextPrimary,
+                    selectedContainerColor = SampleColors.PrimaryDim,
+                    selectedLabelColor = SampleColors.TextPrimary,
                 ),
             )
         }

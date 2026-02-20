@@ -97,6 +97,10 @@ if (!live2dAvailable) {
 dependencies {
     implementation(project(":kmp-facelink"))
     implementation(project(":kmp-facelink-avatar"))
+    implementation(project(":kmp-facelink-actions"))
+    implementation(project(":kmp-facelink-effects"))
+    implementation(project(":kmp-facelink-stream"))
+    implementation(project(":kmp-facelink-voice"))
     implementation(project(":kmp-facelink-live2d"))
     implementation(libs.androidx.core)
     implementation(libs.androidx.lifecycle.runtime)

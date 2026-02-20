@@ -7,6 +7,10 @@ enum TrackingMode: String, CaseIterable {
     case hand = "Hand"
     case holistic = "Holistic"
     case avatar = "Avatar"
+    case actions = "Actions"
+    case effects = "Effects"
+    case stream = "Stream"
+    case voice = "Voice"
 }
 
 struct ContentView: View {
@@ -14,15 +18,21 @@ struct ContentView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            // Mode picker
-            Picker("Mode", selection: $selectedMode) {
-                ForEach(TrackingMode.allCases, id: \.self) { mode in
-                    Text(mode.rawValue).tag(mode)
+            // Scrollable mode picker
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 8) {
+                    ForEach(TrackingMode.allCases, id: \.self) { mode in
+                        ModeChip(
+                            title: mode.rawValue,
+                            isSelected: selectedMode == mode
+                        ) {
+                            selectedMode = mode
+                        }
+                    }
                 }
+                .padding(.horizontal)
+                .padding(.vertical, 8)
             }
-            .pickerStyle(.segmented)
-            .padding(.horizontal)
-            .padding(.top, 8)
             .background(Color.black)
 
             // Content
@@ -35,7 +45,35 @@ struct ContentView: View {
                 HolisticTrackingView()
             case .avatar:
                 AvatarTrackingView()
+            case .actions:
+                ActionsTrackingView()
+            case .effects:
+                EffectsTrackingView()
+            case .stream:
+                StreamTrackingView()
+            case .voice:
+                VoiceTrackingView()
             }
+        }
+    }
+}
+
+struct ModeChip: View {
+    let title: String
+    let isSelected: Bool
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            Text(title)
+                .font(.caption.weight(.medium))
+                .foregroundStyle(.white)
+                .padding(.horizontal, 12)
+                .padding(.vertical, 6)
+                .background(
+                    isSelected ? Color.blue.opacity(0.6) : Color.white.opacity(0.15),
+                    in: Capsule()
+                )
         }
     }
 }
@@ -62,6 +100,9 @@ struct FaceTrackingContentView: View {
                 // Status bar at top
                 HStack {
                     StatusBadge(text: viewModel.statusText, isTracking: viewModel.isTracking)
+                    if viewModel.isTracking {
+                        FpsOverlayView(frameTimestamp: viewModel.frameTimestamp)
+                    }
                     Spacer()
                     HStack(spacing: 16) {
                         Button {
@@ -88,6 +129,12 @@ struct FaceTrackingContentView: View {
                     }
                 }
                 .padding()
+
+                if let error = viewModel.errorMessage {
+                    ErrorOverlayView(message: error) {
+                        viewModel.toggleTracking()
+                    }
+                }
 
                 Spacer()
 
@@ -193,6 +240,8 @@ class FaceTrackingViewModel: ObservableObject {
     @Published var blendShapesText = "Tap Start to begin tracking..."
     @Published var isTracking = false
     @Published var arSession: ARSession?
+    @Published var errorMessage: String?
+    @Published var frameTimestamp: Int64 = 0
 
     private var tracker: FaceTracker?
     private var observeTasks: [Task<Void, Never>] = []
@@ -229,12 +278,18 @@ class FaceTrackingViewModel: ObservableObject {
 
     private func startTracking() {
         guard let tracker = tracker else { return }
+        errorMessage = nil
         Task {
-            try await tracker.start()
-            arSession = FaceTrackerARSessionKt.getARSession(tracker)
-            isTracking = true
-            statusText = "Tracking"
-            observeData()
+            do {
+                try await tracker.start()
+                arSession = FaceTrackerARSessionKt.getARSession(tracker)
+                isTracking = true
+                statusText = "Tracking"
+                observeData()
+            } catch {
+                errorMessage = error.localizedDescription
+                statusText = "Error"
+            }
         }
     }
 
@@ -242,7 +297,11 @@ class FaceTrackingViewModel: ObservableObject {
         guard let tracker = tracker else { return }
         cancelObserveTasks()
         Task {
-            try await tracker.stop()
+            do {
+                try await tracker.stop()
+            } catch {
+                // Ignore stop errors
+            }
             isTracking = false
             statusText = "Stopped"
         }
@@ -254,6 +313,7 @@ class FaceTrackingViewModel: ObservableObject {
         let dataTask = Task { [weak self] in
             for await data in tracker.trackingData {
                 guard let self, !Task.isCancelled else { break }
+                self.frameTimestamp = data.timestampMs
                 let head = data.headTransform
                 self.headRotationText = String(
                     format: "P: %+.1f  Y: %+.1f  R: %+.1f",

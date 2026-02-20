@@ -109,4 +109,14 @@ On completion, update status to `DONE` and close the corresponding GitHub Issue.
 | 73 | [Lifecycle interface standardization](https://github.com/rioX432/KMP-FaceLink/issues/73) | DONE | Releasable fun interface for all trackers/clients |
 | 74 | [Reduce @Suppress usage](https://github.com/rioX432/KMP-FaceLink/issues/74) | DONE | Replace magic numbers with named constants |
 
+## Sample App Showcase (Q1 2026)
+
+| # | Issue | Status | Summary |
+|---|-------|--------|---------|
+| 84 | [Actions module demo](https://github.com/rioX432/KMP-FaceLink/issues/84) | DONE | Emotion recognition, gesture triggers, recording/playback |
+| 85 | [Effects module demo](https://github.com/rioX432/KMP-FaceLink/issues/85) | DONE | Visual face effects (TikTok-style filters) |
+| 86 | [Stream module demo](https://github.com/rioX432/KMP-FaceLink/issues/86) | DONE | VTubeStudio WebSocket connection |
+| 87 | [Voice module demo](https://github.com/rioX432/KMP-FaceLink/issues/87) | DONE | ASR, TTS, lip sync visualization |
+| 88 | [Sample app UX improvements](https://github.com/rioX432/KMP-FaceLink/issues/88) | DONE | Error handling, settings persistence, performance HUD |
+
 Note: Commercial app (Mobile-LLM-VTuber) is tracked in its own private repo.

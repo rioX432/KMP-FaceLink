@@ -4,6 +4,7 @@ plugins {
     alias(libs.plugins.android.application) apply false
     alias(libs.plugins.kotlin.android) apply false
     alias(libs.plugins.skie) apply false
+    alias(libs.plugins.kotlin.serialization) apply false
     alias(libs.plugins.detekt)
     alias(libs.plugins.dokka)
 }
@@ -24,6 +25,7 @@ dependencies {
     dokka(project(":kmp-facelink-actions"))
     dokka(project(":kmp-facelink-effects"))
     dokka(project(":kmp-facelink-live2d"))
+    dokka(project(":kmp-facelink-stream"))
 }
 
 subprojects {
@@ -89,6 +91,17 @@ project(":kmp-facelink-effects") {
 }
 
 project(":kmp-facelink-live2d") {
+    afterEvaluate {
+        detekt {
+            source.setFrom(
+                "src/commonMain/kotlin",
+                "src/commonTest/kotlin",
+            )
+        }
+    }
+}
+
+project(":kmp-facelink-stream") {
     afterEvaluate {
         detekt {
             source.setFrom(

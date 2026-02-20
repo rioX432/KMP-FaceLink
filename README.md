@@ -1,52 +1,69 @@
+<div align="center">
+
 # KMP-FaceLink
 
-Unified face and hand tracking API for Kotlin Multiplatform (KMP).
+**Unified face & hand tracking SDK for Kotlin Multiplatform — one API, both platforms.**
 
-Wraps platform-specific tracking SDKs — **MediaPipe** (Android) and **ARKit / Vision** (iOS) — into a single shared Kotlin API, providing a consistent stream of facial blend shapes, head transforms, and hand landmarks across platforms.
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Kotlin](https://img.shields.io/badge/Kotlin-2.1.20-7F52FF.svg?logo=kotlin)](https://kotlinlang.org)
+[![Platform](https://img.shields.io/badge/Platform-Android%20%7C%20iOS-green.svg)]()
+[![CI](https://github.com/rioX432/KMP-FaceLink/actions/workflows/ci.yml/badge.svg)](https://github.com/rioX432/KMP-FaceLink/actions/workflows/ci.yml)
+[![API Docs](https://img.shields.io/badge/API%20Docs-GitHub%20Pages-orange.svg)](https://riox432.github.io/KMP-FaceLink/)
 
-## Motivation
+</div>
 
-Building a VTuber or AR app with KMP today means writing separate tracking code for each platform. KMP-FaceLink eliminates this duplication by providing one API that works on both Android and iOS.
+## Why KMP-FaceLink?
+
+Building face/hand tracking into a mobile app today is harder than it should be:
+
+- **Platform fragmentation** — MediaPipe on Android, ARKit + Vision on iOS. Two completely different APIs, data models, and coordinate systems.
+- **VTuber SDK complexity** — Driving a Live2D avatar requires blend shape mapping, smoothing, calibration, gesture detection, and streaming — all glued together manually.
+- **No unified mobile tracking API** — Existing solutions are either platform-locked or require bridging through web views. There's no native KMP option.
+
+KMP-FaceLink solves this with a single Kotlin API that wraps platform-specific SDKs and provides a modular toolkit for tracking, avatar control, effects, streaming, and voice.
 
 ## Features
 
-- Unified face & hand tracking API in `commonMain`
-- **Android**: MediaPipe Face Landmarker / Hand Landmarker + CameraX
-- **iOS**: ARKit face tracking + Vision hand pose estimation
-- 52 ARKit-compatible blend shape parameters
-- Head position and rotation (6DoF) with 4×4 transform matrix
-- 21-joint hand landmarks with gesture classification
-- One Euro / EMA adaptive smoothing filters
-- Calibration support
-- Real-time performance (30–60 fps)
+- **Face tracking** — 52 ARKit-compatible blend shapes, head position & rotation (6DoF)
+- **Hand tracking** — 21-joint landmarks with gesture classification
+- **Holistic tracking** — simultaneous face + hand tracking
+- **Smoothing** — One Euro / EMA adaptive filters with calibration support
+- **Actions** — gesture triggers, emotion recognition, recording & playback
+- **Effects** — TikTok-style real-time face effects engine
+- **Avatar** — Live2D parameter mapping + native Cubism SDK rendering
+- **Stream** — VTubeStudio-compatible WebSocket streaming
+- **Voice** — TTS (Voicevox / OpenAI / ElevenLabs), ASR, lip sync
+- **Real-time performance** — 30–60 fps on both platforms
 
-## API Stability
+## Who Is This For?
 
-KMP-FaceLink follows [Semantic Versioning](https://semver.org/). Each module has a stability tier:
+- **VTuber app developers** — ship a mobile VTuber client without writing platform-specific tracking code twice.
+- **AR / face filter developers** — build Snapchat/TikTok-style face effects with a shared codebase.
+- **KMP enthusiasts** — if you need cross-platform camera-based tracking in a Kotlin Multiplatform project, this is the library.
 
-| Module | Stability | Notes |
+## Modules
+
+| Module | Purpose | Stability |
 |---|---|---|
-| `kmp-facelink` (core) | **Stable** | Breaking changes only in major versions |
-| `kmp-facelink-avatar` | **Stable** | Breaking changes only in major versions |
-| `kmp-facelink-actions` | **Stable** | Breaking changes only in major versions |
-| `kmp-facelink-effects` | **Mostly stable** | Some APIs marked `@ExperimentalFaceLinkApi` |
-| `kmp-facelink-live2d` | **Experimental** | All APIs marked `@ExperimentalFaceLinkApi` |
+| `kmp-facelink` | Core face & hand tracking API | **Stable** |
+| `kmp-facelink-avatar` | BlendShape → Live2D parameter mapping | **Stable** |
+| `kmp-facelink-actions` | Gesture/expression triggers, emotion, recording | **Stable** |
+| `kmp-facelink-effects` | Real-time face effects engine | **Mostly stable** |
+| `kmp-facelink-live2d` | Live2D Cubism SDK rendering | **Experimental** |
+| `kmp-facelink-stream` | WebSocket streaming (VTubeStudio protocol) | **Stable** |
+| `kmp-facelink-voice` | TTS, ASR, lip sync | **Mostly stable** |
 
-APIs annotated with `@ExperimentalFaceLinkApi` may change in minor releases without a deprecation cycle. To use them, opt in with:
+See [docs/extension-strategy.md](docs/extension-strategy.md) for the full module strategy.
 
-```kotlin
-// Per-usage
-@OptIn(ExperimentalFaceLinkApi::class)
+## Tech Stack
 
-// Or module-wide in build.gradle.kts
-kotlin {
-    compilerOptions {
-        freeCompilerArgs.add("-opt-in=io.github.kmpfacelink.ExperimentalFaceLinkApi")
-    }
-}
-```
-
-All library modules enforce `explicitApi()` mode — every public declaration requires an explicit visibility modifier.
+| Layer | Technology |
+|---|---|
+| Shared (KMP) | Kotlin Coroutines / Flow, Ktor Client |
+| Android | MediaPipe, CameraX, Jetpack Compose |
+| iOS | ARKit, Vision, SwiftUI |
+| Interop | SKIE (Swift-Kotlin Flow) |
+| Avatar | Live2D Cubism SDK Native |
 
 ## Quick Start
 
@@ -113,6 +130,52 @@ handTracker.trackingData.collect { data ->
 }
 ```
 
+## Architecture
+
+```
+kmp-facelink/              Core face & hand tracking API
+kmp-facelink-avatar/       BlendShape → Live2D parameter mapping
+kmp-facelink-actions/      Gesture triggers, emotion recognition, recording
+kmp-facelink-effects/      Real-time face effects engine
+kmp-facelink-live2d/       Live2D Cubism SDK rendering
+kmp-facelink-stream/       WebSocket streaming (VTubeStudio protocol)
+kmp-facelink-voice/        TTS, ASR, lip sync
+```
+
+## API Stability
+
+KMP-FaceLink follows [Semantic Versioning](https://semver.org/). Each module has a stability tier:
+
+| Module | Stability | Notes |
+|---|---|---|
+| `kmp-facelink` (core) | **Stable** | Breaking changes only in major versions |
+| `kmp-facelink-avatar` | **Stable** | Breaking changes only in major versions |
+| `kmp-facelink-actions` | **Stable** | Breaking changes only in major versions |
+| `kmp-facelink-effects` | **Mostly stable** | Some APIs marked `@ExperimentalFaceLinkApi` |
+| `kmp-facelink-live2d` | **Experimental** | All APIs marked `@ExperimentalFaceLinkApi` |
+| `kmp-facelink-stream` | **Stable** | Breaking changes only in major versions |
+| `kmp-facelink-voice` | **Mostly stable** | Some APIs marked `@ExperimentalFaceLinkApi` |
+
+APIs annotated with `@ExperimentalFaceLinkApi` may change in minor releases without a deprecation cycle. To use them, opt in with:
+
+```kotlin
+// Per-usage
+@OptIn(ExperimentalFaceLinkApi::class)
+
+// Or module-wide in build.gradle.kts
+kotlin {
+    compilerOptions {
+        freeCompilerArgs.add("-opt-in=io.github.kmpfacelink.ExperimentalFaceLinkApi")
+    }
+}
+```
+
+All library modules enforce `explicitApi()` mode — every public declaration requires an explicit visibility modifier.
+
+## Documentation
+
+API documentation is available at **[riox432.github.io/KMP-FaceLink](https://riox432.github.io/KMP-FaceLink/)**.
+
 ## Platform Requirements
 
 ### Android
@@ -126,59 +189,9 @@ handTracker.trackingData.collect { data ->
 - iOS 17.0+
 - ARKit capability in entitlements (face tracking)
 
-## Architecture
-
-```
-commonMain/
-├── api/
-│   ├── FaceTracker.kt          # Public face tracking interface
-│   └── HandTracker.kt          # Public hand tracking interface
-├── model/
-│   ├── FaceTrackingData.kt     # Unified face data model
-│   ├── HandTrackingData.kt     # Unified hand data model
-│   ├── BlendShape.kt           # 52 blend shape definitions
-│   └── HandJoint.kt            # 21 hand joint definitions
-└── util/                       # Smoothing, calibration
-
-androidMain/
-├── MediaPipeFaceTracker.kt     # MediaPipe + CameraX
-└── MediaPipeHandTracker.kt
-
-iosMain/
-├── ARKitFaceTracker.kt         # ARKit
-└── VisionHandTracker.kt        # Vision framework
-```
-
-## Documentation
-
-API documentation is available at **[riox432.github.io/KMP-FaceLink](https://riox432.github.io/KMP-FaceLink/)**.
-
-## Tech Stack
-
-- Kotlin Multiplatform (KMP)
-- MediaPipe Face / Hand Landmarker (Android)
-- ARKit + Vision framework (iOS)
-- SKIE (Swift-Kotlin Flow interop)
-- Kotlin Coroutines / Flow
-
-## Roadmap
-
-KMP-FaceLink is evolving from a pure tracking library into a modular Mobile VTuber SDK:
-
-| Module | Purpose | Status |
-|---|---|---|
-| `kmp-facelink` (core) | Face & hand tracking API | Stable |
-| `kmp-facelink-avatar` | BlendShape → Live2D/VRM parameter conversion | Stable |
-| `kmp-facelink-actions` | Gesture/expression → action triggers | Stable |
-| `kmp-facelink-effects` | Real-time face effects (TikTok-style filters) | Available |
-| `kmp-facelink-live2d` | Live2D Cubism SDK rendering | Experimental |
-| `kmp-facelink-stream` | WebSocket streaming to desktop backends | Future |
-
-See [docs/extension-strategy.md](docs/extension-strategy.md) for the full strategy.
-
 ## Status
 
-**Active development** — face tracking and hand tracking are functional on both platforms. Avatar parameter mapping and gesture action modules are next.
+All 7 modules implemented. Sample apps with 8 demo modes on both platforms.
 
 ## Contributing
 
@@ -187,3 +200,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 ## License
 
 [MIT](LICENSE)
+
+---
+
+Built by [@rioX432](https://github.com/rioX432)

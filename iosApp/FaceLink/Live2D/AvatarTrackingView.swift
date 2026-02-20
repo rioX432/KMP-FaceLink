@@ -136,21 +136,16 @@ class AvatarTrackingViewModel: ObservableObject {
         }
         commandQueue = device.makeCommandQueue()
 
-        NSLog("[Live2D] Creating CubismBridge...")
         cubismBridge = CubismBridge(device: device)
-        NSLog("[Live2D] CubismBridge created")
 
         // Load Hiyori model from bundle
         if let modelDir = Bundle.main.path(forResource: "Hiyori", ofType: nil, inDirectory: "Live2D") {
-            NSLog("[Live2D] Loading model from: %@", modelDir)
             let loaded = cubismBridge?.loadModel(fromDirectory: modelDir, modelFileName: "Hiyori.model3.json") ?? false
             isLive2DReady = loaded
-            NSLog("[Live2D] Model loaded: %@", loaded ? "YES" : "NO")
             if !loaded {
                 statusText = "Model load failed"
             }
         } else {
-            NSLog("[Live2D] Model directory not found in bundle")
             statusText = "Model not found"
         }
     }
@@ -191,11 +186,11 @@ class AvatarTrackingViewModel: ObservableObject {
                     head.pitch, head.yaw, head.roll
                 )
 
-                // Map tracking data to Live2D parameters
+                // Map tracking data to Live2D parameters (thread-safe batch update)
                 guard data.isTracking else { continue }
                 let params = mapper.map(data: data)
-                for (key, value) in params {
-                    bridge.setParameterValue(key as String, value: value.floatValue)
+                if let nsParams = params as? [String: NSNumber] {
+                    bridge.setParameters(nsParams)
                 }
             }
         }

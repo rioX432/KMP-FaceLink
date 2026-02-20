@@ -16,6 +16,12 @@ struct Live2DMetalView: UIViewRepresentable {
         metalView.preferredFramesPerSecond = 60
         metalView.enableSetNeedsDisplay = false
         metalView.isPaused = false
+
+        // Register the CAMetalLayer with the Cubism rendering singleton
+        if let metalLayer = metalView.layer as? CAMetalLayer {
+            CubismBridge.setMetalLayer(metalLayer)
+        }
+
         return metalView
     }
 
@@ -38,8 +44,6 @@ struct Live2DMetalView: UIViewRepresentable {
 
         func mtkView(_ view: MTKView, drawableSizeWillChange size: CGSize) {}
 
-        private var drawCount = 0
-
         func draw(in view: MTKView) {
             guard bridge.isModelLoaded,
                   let commandBuffer = commandQueue.makeCommandBuffer(),
@@ -50,30 +54,16 @@ struct Live2DMetalView: UIViewRepresentable {
             let deltaTime = Float(now - lastTime)
             lastTime = now
 
-            if drawCount < 3 {
-                NSLog("[Live2D] draw frame %d, deltaTime=%.3f, size=%.0fx%.0f",
-                      drawCount, deltaTime, view.drawableSize.width, view.drawableSize.height)
-            }
-
-            bridge.update(withDeltaTime: deltaTime)
-
-            if drawCount < 3 {
-                NSLog("[Live2D] update done, calling draw...")
-            }
-
-            bridge.draw(
-                with: commandBuffer,
+            // Single thread-safe call: applies pending params, updates physics, draws
+            bridge.renderFrame(
+                withDeltaTime: deltaTime,
+                commandBuffer: commandBuffer,
                 renderPassDescriptor: rpd,
                 drawableSize: view.drawableSize
             )
 
-            if drawCount < 3 {
-                NSLog("[Live2D] draw done")
-            }
-
             commandBuffer.present(drawable)
             commandBuffer.commit()
-            drawCount += 1
         }
     }
 }

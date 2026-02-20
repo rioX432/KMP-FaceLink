@@ -57,7 +57,7 @@ On completion, update status to `DONE` and close the corresponding GitHub Issue.
 | 45 | [kmp-facelink-effects module](https://github.com/rioX432/KMP-FaceLink/issues/45) | DONE | Real-time face effects engine (TikTok-style filters) |
 | 46 | [Sample Live2D avatar](https://github.com/rioX432/KMP-FaceLink/issues/46) | DONE | Bundled avatar for demo + integration reference |
 | 60 | [PerfectSync mapping](https://github.com/rioX432/KMP-FaceLink/issues/60) | DONE | VTubeStudio Perfect Sync (52 ARKit blend shape pass-through) |
-| 56 | [iOS Live2D avatar crash](https://github.com/rioX432/KMP-FaceLink/issues/56) | TODO | Fix Metal rendering crash on Avatar tab |
+| 56 | [iOS Live2D avatar crash](https://github.com/rioX432/KMP-FaceLink/issues/56) | DONE | Fix Metal rendering crash on Avatar tab |
 | 4 | [Publish to Maven Central](https://github.com/rioX432/KMP-FaceLink/issues/4) | TODO | maven-publish + XCFramework distribution |
 
 ## Phase 2: Native Rendering (Q3–Q4 2026)

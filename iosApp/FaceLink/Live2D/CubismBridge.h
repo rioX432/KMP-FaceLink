@@ -34,6 +34,27 @@ NS_ASSUME_NONNULL_BEGIN
          renderPassDescriptor:(MTLRenderPassDescriptor *)rpd
                  drawableSize:(CGSize)size;
 
+/// Thread-safe combined update + draw in a single call.
+/// Applies any pending parameters, runs physics, then draws — all under a lock.
+/// @param deltaTime Time since last frame in seconds
+/// @param commandBuffer Metal command buffer for this frame
+/// @param rpd Render pass descriptor for the output texture
+/// @param size Drawable size for projection calculation
+- (void)renderFrameWithDeltaTime:(float)deltaTime
+                   commandBuffer:(id<MTLCommandBuffer>)commandBuffer
+            renderPassDescriptor:(MTLRenderPassDescriptor *)rpd
+                    drawableSize:(CGSize)size;
+
+/// Thread-safe batch parameter update (mirrors Android's AtomicReference pattern).
+/// Parameters are staged and applied on the next renderFrame call.
+/// @param parameters Dictionary of paramId → value
+- (void)setParameters:(NSDictionary<NSString *, NSNumber *> *)parameters;
+
+/// Sets the CAMetalLayer on the Cubism rendering singleton.
+/// Must be called before the first draw.
+/// @param layer The CAMetalLayer from the MTKView
++ (void)setMetalLayer:(CAMetalLayer *)layer;
+
 /// Whether a model is currently loaded and ready to render.
 @property (nonatomic, readonly) BOOL isModelLoaded;
 

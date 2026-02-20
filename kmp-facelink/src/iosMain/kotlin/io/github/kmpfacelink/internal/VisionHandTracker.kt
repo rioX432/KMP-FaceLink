@@ -58,6 +58,7 @@ import kotlin.concurrent.atomics.ExperimentalAtomicApi
 @OptIn(ExperimentalAtomicApi::class)
 internal class VisionHandTracker(
     private val config: HandTrackerConfig,
+    private val sharedVisionSession: SharedVisionCaptureSession? = null,
 ) : HandTracker {
 
     private val _trackingData = MutableSharedFlow<HandTrackingData>(
@@ -102,11 +103,16 @@ internal class VisionHandTracker(
         }
 
         try {
-            // Reuse existing capture session on restart, or create a new one
-            if (captureSession == null) {
-                setupCaptureSession()
+            if (sharedVisionSession != null) {
+                // Register frame handler with the shared session (camera managed externally)
+                sharedVisionSession.addFrameHandler(::processVideoFrame)
+            } else {
+                // Reuse existing capture session on restart, or create a new one
+                if (captureSession == null) {
+                    setupCaptureSession()
+                }
+                captureSession?.startRunning()
             }
-            captureSession?.startRunning()
             _state.value = TrackingState.TRACKING
         } catch (e: Exception) {
             _errorMessage.value = e.message ?: e.toString()
@@ -117,7 +123,7 @@ internal class VisionHandTracker(
 
     override suspend fun stop() {
         pipelineLock.withLock {
-            captureSession?.stopRunning()
+            if (sharedVisionSession == null) captureSession?.stopRunning()
             _state.value = TrackingState.STOPPED
         }
     }
@@ -125,8 +131,10 @@ internal class VisionHandTracker(
     override fun release() {
         released.store(1)
         pipelineLock.withLock {
-            captureSession?.stopRunning()
-            captureSession = null
+            if (sharedVisionSession == null) {
+                captureSession?.stopRunning()
+                captureSession = null
+            }
             _state.value = TrackingState.RELEASED
         }
     }

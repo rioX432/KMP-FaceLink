@@ -172,21 +172,37 @@ internal class MediaPipeFaceTracker(
     }
 
     private suspend fun startCamera() {
-        val imageAnalysis = ImageAnalysis.Builder()
-            .setResolutionSelector(CameraXManager.buildAnalysisResolutionSelector())
-            .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
-            .setOutputImageFormat(ImageAnalysis.OUTPUT_IMAGE_FORMAT_RGBA_8888)
-            .build()
-            .also { it.setAnalyzer(analysisExecutor, ::processFrame) }
-
         if (sharedCameraSession != null) {
-            sharedCameraSession.addAnalysis(imageAnalysis)
+            sharedCameraSession.addFrameHandler(::processSharedFrame)
         } else {
+            val imageAnalysis = ImageAnalysis.Builder()
+                .setResolutionSelector(CameraXManager.buildAnalysisResolutionSelector())
+                .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
+                .setOutputImageFormat(ImageAnalysis.OUTPUT_IMAGE_FORMAT_RGBA_8888)
+                .build()
+                .also { it.setAnalyzer(analysisExecutor, ::processFrame) }
+
             cameraManager!!.startCamera(
                 cameraFacing = config.cameraFacing,
                 imageAnalysis = imageAnalysis,
                 surfaceProvider = previewSurfaceProvider,
             )
+        }
+    }
+
+    @Suppress("UNUSED_PARAMETER") // SharedFrameHandler signature
+    private fun processSharedFrame(bitmap: android.graphics.Bitmap, width: Int, height: Int, timestampMs: Long) {
+        val landmarker = faceLandmarker
+        if (landmarker == null || _state.value != TrackingState.TRACKING) return
+
+        lastImageWidth = width
+        lastImageHeight = height
+
+        val mpImage = BitmapImageBuilder(bitmap).build()
+        try {
+            landmarker.detectAsync(mpImage, timestampMs)
+        } catch (e: Exception) {
+            Log.w(TAG, "detectAsync failed", e)
         }
     }
 

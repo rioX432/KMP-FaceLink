@@ -1,30 +1,46 @@
 package io.github.kmpfacelink.internal
 
+import android.graphics.Bitmap
+import android.os.SystemClock
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageAnalysis
+import androidx.camera.core.ImageProxy
 import androidx.camera.core.Preview
+import androidx.camera.core.UseCaseGroup
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.content.ContextCompat
 import io.github.kmpfacelink.api.PlatformContext
 import io.github.kmpfacelink.model.CameraFacing
 import kotlinx.coroutines.suspendCancellableCoroutine
+import java.util.concurrent.Executors
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 
 /**
- * Shared CameraX session that binds multiple [ImageAnalysis] use cases to a
- * single camera provider. Used by [CompositeHolisticTracker] to let multiple
- * MediaPipe landmarkers share one camera session without unbinding each other.
+ * Callback interface for receiving shared camera frames.
+ * Implementations must NOT close the bitmap — the session manages its lifecycle.
+ */
+internal fun interface SharedFrameHandler {
+    fun onFrame(bitmap: Bitmap, width: Int, height: Int, timestampMs: Long)
+}
+
+/**
+ * Shared CameraX session that uses a single [ImageAnalysis] and distributes
+ * converted bitmap frames to all registered [SharedFrameHandler]s.
+ * This avoids CameraX surface count limits (typically Preview + 2 max).
  */
 internal class SharedCameraSession(
     private val platformContext: PlatformContext,
 ) {
-    private val analyses = mutableListOf<ImageAnalysis>()
+    private val frameHandlers = mutableListOf<SharedFrameHandler>()
     private var cameraProvider: ProcessCameraProvider? = null
     private var surfaceProvider: Preview.SurfaceProvider? = null
+    private val imageConverter = ImageProxyConverter()
+    private val analysisExecutor = Executors.newSingleThreadExecutor()
+    private var isFrontCamera = true
 
-    fun addAnalysis(analysis: ImageAnalysis) {
-        analyses.add(analysis)
+    fun addFrameHandler(handler: SharedFrameHandler) {
+        frameHandlers.add(handler)
     }
 
     fun setSurfaceProvider(provider: Preview.SurfaceProvider?) {
@@ -32,6 +48,7 @@ internal class SharedCameraSession(
     }
 
     suspend fun start(cameraFacing: CameraFacing) {
+        isFrontCamera = cameraFacing == CameraFacing.FRONT
         val provider = getCameraProvider()
         cameraProvider = provider
 
@@ -48,30 +65,46 @@ internal class SharedCameraSession(
                 .build().also { it.surfaceProvider = sp }
         }
 
-        bindUseCases(provider, cameraSelector, preview)
+        val imageAnalysis = ImageAnalysis.Builder()
+            .setResolutionSelector(CameraXManager.buildAnalysisResolutionSelector())
+            .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
+            .setOutputImageFormat(ImageAnalysis.OUTPUT_IMAGE_FORMAT_RGBA_8888)
+            .build()
+            .also { it.setAnalyzer(analysisExecutor, ::processFrame) }
+
+        bindUseCases(provider, cameraSelector, preview, imageAnalysis)
     }
 
-    /**
-     * Binds use cases without spread operator to avoid detekt SpreadOperator warning.
-     * CameraX bindToLifecycle accepts vararg UseCase, so we need different overload
-     * paths depending on whether preview is present.
-     */
-    @Suppress("LongMethod")
+    private fun processFrame(imageProxy: ImageProxy) {
+        val bitmap = imageConverter.convert(imageProxy, mirrorHorizontally = isFrontCamera)
+        if (bitmap == null) {
+            imageProxy.close()
+            return
+        }
+
+        val width = bitmap.width
+        val height = bitmap.height
+        val timestampMs = SystemClock.elapsedRealtime()
+
+        for (handler in frameHandlers) {
+            handler.onFrame(bitmap, width, height, timestampMs)
+        }
+
+        imageConverter.returnBitmap(bitmap)
+        imageProxy.close()
+    }
+
     private fun bindUseCases(
         provider: ProcessCameraProvider,
         cameraSelector: CameraSelector,
         preview: Preview?,
+        imageAnalysis: ImageAnalysis,
     ) {
-        val useCases = if (preview != null) {
-            listOf(preview) + analyses
-        } else {
-            analyses.toList()
+        val groupBuilder = UseCaseGroup.Builder()
+        if (preview != null) {
+            groupBuilder.addUseCase(preview)
         }
-        // Use CameraX UseCaseGroup to bind multiple use cases without spread
-        val groupBuilder = androidx.camera.core.UseCaseGroup.Builder()
-        for (useCase in useCases) {
-            groupBuilder.addUseCase(useCase)
-        }
+        groupBuilder.addUseCase(imageAnalysis)
         provider.bindToLifecycle(
             platformContext.lifecycleOwner,
             cameraSelector,
@@ -85,7 +118,9 @@ internal class SharedCameraSession(
 
     fun release() {
         stop()
-        analyses.clear()
+        frameHandlers.clear()
+        imageConverter.release()
+        analysisExecutor.shutdown()
     }
 
     private suspend fun getCameraProvider(): ProcessCameraProvider =

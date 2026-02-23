@@ -22,6 +22,11 @@ settings:
     SWIFT_OBJC_BRIDGING_HEADER: FaceLink/Live2D/FaceLink-Bridging-Header.h
     CLANG_CXX_LANGUAGE_STANDARD: c++17
 
+packages:
+  RiveRuntime:
+    url: https://github.com/rive-app/rive-ios
+    from: "6.5.0"
+
 targets:
   FaceLink:
     type: application
@@ -52,6 +57,7 @@ targets:
         embed: false
       - sdk: Metal.framework
       - sdk: MetalKit.framework
+      - package: RiveRuntime
     preBuildScripts:
       - name: Build KMP Framework
         script: |

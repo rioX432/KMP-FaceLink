@@ -31,6 +31,7 @@ kotlin {
             export(project(":kmp-facelink-effects"))
             export(project(":kmp-facelink-stream"))
             export(project(":kmp-facelink-voice"))
+            export(project(":kmp-facelink-rive"))
         }
     }
 
@@ -45,6 +46,7 @@ kotlin {
             api(project(":kmp-facelink-effects"))
             api(project(":kmp-facelink-stream"))
             api(project(":kmp-facelink-voice"))
+            api(project(":kmp-facelink-rive"))
             implementation(libs.kotlinx.coroutines.core)
         }
 

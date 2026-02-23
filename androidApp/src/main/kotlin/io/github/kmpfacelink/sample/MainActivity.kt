@@ -50,13 +50,14 @@ import io.github.kmpfacelink.model.HandTrackingData
 import io.github.kmpfacelink.model.HolisticTrackerConfig
 import io.github.kmpfacelink.model.HolisticTrackingData
 import io.github.kmpfacelink.model.SmoothingConfig
+import io.github.kmpfacelink.sample.rive.RiveTrackingScreen
 import io.github.kmpfacelink.sample.ui.SampleColors
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 
 internal enum class TrackingMode {
-    FACE, HAND, AVATAR, HOLISTIC, ACTIONS, EFFECTS, STREAM, VOICE
+    FACE, HAND, AVATAR, HOLISTIC, ACTIONS, EFFECTS, STREAM, VOICE, RIVE
 }
 
 internal data class Live2DTransformCallbacks(
@@ -194,6 +195,12 @@ class MainActivity : ComponentActivity() {
             TrackingMode.VOICE -> VoiceTrackingScreen(
                 onModeChange = onModeChange,
             )
+            TrackingMode.RIVE -> RiveTrackingScreen(
+                activity = this@MainActivity,
+                onModeChange = onModeChange,
+                onStartClick = onStartClick,
+                onStopClick = onStopClick,
+            )
         }
     }
 
@@ -243,6 +250,7 @@ class MainActivity : ComponentActivity() {
     private fun isCurrentlyTracking(mode: TrackingMode): Boolean = when (mode) {
         TrackingMode.FACE, TrackingMode.AVATAR, TrackingMode.ACTIONS,
         TrackingMode.EFFECTS, TrackingMode.STREAM, TrackingMode.VOICE,
+        TrackingMode.RIVE,
         -> faceTracker.state.value == TrackingState.TRACKING
         TrackingMode.HAND -> handTracker.state.value == TrackingState.TRACKING
         TrackingMode.HOLISTIC -> holisticTracker.state.value == TrackingState.TRACKING
@@ -271,6 +279,7 @@ class MainActivity : ComponentActivity() {
                 }
                 TrackingMode.ACTIONS, TrackingMode.EFFECTS,
                 TrackingMode.STREAM, TrackingMode.VOICE,
+                TrackingMode.RIVE,
                 -> {
                     faceCollectorJob?.cancel()
                     faceTracker.stop()
@@ -312,6 +321,7 @@ class MainActivity : ComponentActivity() {
             TrackingMode.AVATAR -> startAvatarTracking()
             TrackingMode.ACTIONS, TrackingMode.EFFECTS,
             TrackingMode.STREAM, TrackingMode.VOICE,
+            TrackingMode.RIVE,
             -> startFaceTracking()
         }
     }

@@ -27,6 +27,7 @@ dependencies {
     dokka(project(":kmp-facelink-live2d"))
     dokka(project(":kmp-facelink-stream"))
     dokka(project(":kmp-facelink-voice"))
+    dokka(project(":kmp-facelink-rive"))
 }
 
 subprojects {
@@ -120,6 +121,18 @@ project(":kmp-facelink-voice") {
                 "src/commonMain/kotlin",
                 "src/androidMain/kotlin",
                 "src/iosMain/kotlin",
+                "src/commonTest/kotlin",
+            )
+        }
+    }
+}
+
+project(":kmp-facelink-rive") {
+    afterEvaluate {
+        detekt {
+            source.setFrom(
+                "src/commonMain/kotlin",
+                "src/androidMain/kotlin",
                 "src/commonTest/kotlin",
             )
         }

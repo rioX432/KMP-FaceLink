@@ -14,6 +14,8 @@ skie = "0.10.9"
 ktor = "3.1.1"
 serialization = "1.8.1"
 live2d = "1.0"
+rive = "9.11.2"
+androidxStartup = "1.2.0"
 
 [libraries]
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines" }
@@ -33,6 +35,8 @@ compose-foundation = { module = "androidx.compose.foundation:foundation" }
 activity-compose = { module = "androidx.activity:activity-compose", version.ref = "activityCompose" }
 camerax-view = { module = "androidx.camera:camera-view", version.ref = "camerax" }
 live2d-framework = { module = "com.live2d.sdk.cubism:framework", version.ref = "live2d" }
+rive-android = { module = "app.rive:rive-android", version.ref = "rive" }
+androidx-startup-runtime = { module = "androidx.startup:startup-runtime", version.ref = "androidxStartup" }
 detekt-formatting = { module = "io.gitlab.arturbosch.detekt:detekt-formatting", version.ref = "detekt" }
 ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktor" }
 ktor-client-websockets = { module = "io.ktor:ktor-client-websockets", version.ref = "ktor" }

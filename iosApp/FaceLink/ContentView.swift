@@ -11,6 +11,7 @@ enum TrackingMode: String, CaseIterable {
     case effects = "Effects"
     case stream = "Stream"
     case voice = "Voice"
+    case rive = "Rive"
 }
 
 struct ContentView: View {
@@ -53,6 +54,8 @@ struct ContentView: View {
                 StreamTrackingView()
             case .voice:
                 VoiceTrackingView()
+            case .rive:
+                RiveTrackingView()
             }
         }
     }

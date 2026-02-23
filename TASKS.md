@@ -66,7 +66,7 @@ On completion, update status to `DONE` and close the corresponding GitHub Issue.
 |---|-------|--------|---------|
 | 47 | [SDK API stability review](https://github.com/rioX432/KMP-FaceLink/issues/47) | DONE | Audit public APIs, semver policy, stability annotations |
 | 48 | [kmp-facelink-live2d module](https://github.com/rioX432/KMP-FaceLink/issues/48) | DONE | Live2D Cubism SDK Native KMP wrapper |
-| 77 | [kmp-facelink-rive module](https://github.com/rioX432/KMP-FaceLink/issues/77) | TODO | Rive avatar integration (MIT-licensed alternative) |
+| 77 | [kmp-facelink-rive module](https://github.com/rioX432/KMP-FaceLink/issues/77) | DONE | Rive avatar integration (MIT-licensed alternative) |
 | 7 | [Body tracking](https://github.com/rioX432/KMP-FaceLink/issues/7) | DONE | Pose estimation |
 
 ## Phase 3: Communication (Q1–Q2 2027)

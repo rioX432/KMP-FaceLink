@@ -16,21 +16,23 @@ internal class BitmapPool(
     private var height = 0
     private val queue = ArrayDeque<Bitmap>()
 
+    @Synchronized
     fun getBitmap(width: Int, height: Int): Bitmap {
         if (width != this.width || height != this.height) {
-            clear()
+            clearInternal()
             this.width = width
             this.height = height
         }
 
         val reused = queue.removeFirstOrNull()
         if (reused != null) {
-            reused.eraseColor(0)
+            // No eraseColor — the bitmap will be fully overwritten by Canvas.drawBitmap
             return reused
         }
         return Bitmap.createBitmap(width, height, config)
     }
 
+    @Synchronized
     fun returnBitmap(bitmap: Bitmap) {
         if (bitmap.isRecycled) return
         if (bitmap.width != width || bitmap.height != height) {
@@ -43,7 +45,12 @@ internal class BitmapPool(
         queue.addLast(bitmap)
     }
 
+    @Synchronized
     fun clear() {
+        clearInternal()
+    }
+
+    private fun clearInternal() {
         queue.forEach { it.recycle() }
         queue.clear()
     }

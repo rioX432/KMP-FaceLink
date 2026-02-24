@@ -5,6 +5,9 @@ import androidx.camera.core.Preview
 import io.github.kmpfacelink.api.HolisticTracker
 import io.github.kmpfacelink.api.PlatformContext
 import io.github.kmpfacelink.api.TrackingState
+import io.github.kmpfacelink.model.BodyTrackingData
+import io.github.kmpfacelink.model.FaceTrackingData
+import io.github.kmpfacelink.model.HandTrackingData
 import io.github.kmpfacelink.model.HolisticTrackerConfig
 import io.github.kmpfacelink.model.HolisticTrackingData
 import io.github.kmpfacelink.model.SmoothingConfig
@@ -17,7 +20,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.flow.map
 import kotlin.concurrent.atomics.AtomicInt
 import kotlin.concurrent.atomics.ExperimentalAtomicApi
 
@@ -142,9 +144,9 @@ internal class CompositeHolisticTracker(
     }
 
     private fun createCombinedFlow(): Flow<HolisticTrackingData> {
-        val faceFlow = faceTracker?.trackingData?.map { it } ?: flowOf(null)
-        val handFlow = handTracker?.trackingData?.map { it } ?: flowOf(null)
-        val bodyFlow = bodyTracker?.trackingData?.map { it } ?: flowOf(null)
+        val faceFlow: Flow<FaceTrackingData?> = faceTracker?.trackingData ?: flowOf(null)
+        val handFlow: Flow<HandTrackingData?> = handTracker?.trackingData ?: flowOf(null)
+        val bodyFlow: Flow<BodyTrackingData?> = bodyTracker?.trackingData ?: flowOf(null)
 
         return combine(faceFlow, handFlow, bodyFlow) { face, hand, body ->
             val timestampMs = maxOf(

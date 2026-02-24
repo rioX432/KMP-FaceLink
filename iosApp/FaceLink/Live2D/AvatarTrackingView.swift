@@ -153,10 +153,14 @@ class AvatarTrackingViewModel: ObservableObject {
     private func startTracking() {
         guard let tracker = tracker else { return }
         Task {
-            try await tracker.start()
-            isTracking = true
-            statusText = "Tracking"
-            observeData()
+            do {
+                try await tracker.start()
+                isTracking = true
+                statusText = "Tracking"
+                observeData()
+            } catch {
+                statusText = "Error: \(error.localizedDescription)"
+            }
         }
     }
 
@@ -164,7 +168,11 @@ class AvatarTrackingViewModel: ObservableObject {
         cancelObserveTasks()
         guard let tracker = tracker else { return }
         Task {
-            try await tracker.stop()
+            do {
+                try await tracker.stop()
+            } catch {
+                // Best-effort stop
+            }
             isTracking = false
             statusText = "Stopped"
         }

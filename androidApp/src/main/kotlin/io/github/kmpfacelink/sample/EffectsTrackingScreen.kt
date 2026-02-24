@@ -79,7 +79,7 @@ internal fun EffectsTrackingScreen(
 
     val engine = remember { EffectEngine() }
     var effectOutput by remember { mutableStateOf(EffectOutput.EMPTY) }
-    val enabledEffects = remember { mutableSetOf<String>() }
+    var enabledEffects by remember { mutableStateOf(emptySet<String>()) }
     var processJob by remember { mutableStateOf<Job?>(null) }
 
     DisposableEffect(isTracking) {
@@ -125,7 +125,12 @@ internal fun EffectsTrackingScreen(
             ModeToggle(currentMode = TrackingMode.EFFECTS, onModeChange = onModeChange)
 
             // Effect toggles
-            EffectToggles(enabledEffects, engine, scope)
+            EffectToggles(
+                enabledEffects = enabledEffects,
+                engine = engine,
+                scope = scope,
+                onToggle = { enabledEffects = it },
+            )
 
             Spacer(modifier = Modifier.weight(1f))
 
@@ -165,9 +170,10 @@ private fun EffectsTopBar(
 
 @Composable
 private fun EffectToggles(
-    enabledEffects: MutableSet<String>,
+    enabledEffects: Set<String>,
     engine: EffectEngine,
     scope: kotlinx.coroutines.CoroutineScope,
+    onToggle: (Set<String>) -> Unit,
 ) {
     Row(
         horizontalArrangement = Arrangement.spacedBy(4.dp),
@@ -184,10 +190,10 @@ private fun EffectToggles(
                     scope.launch {
                         if (isEnabled) {
                             engine.removeEffect(toggle.id)
-                            enabledEffects.remove(toggle.id)
+                            onToggle(enabledEffects - toggle.id)
                         } else {
                             engine.addEffect(createEffect(toggle.id))
-                            enabledEffects.add(toggle.id)
+                            onToggle(enabledEffects + toggle.id)
                         }
                     }
                 },

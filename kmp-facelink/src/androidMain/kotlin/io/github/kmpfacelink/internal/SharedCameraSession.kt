@@ -12,7 +12,9 @@ import androidx.core.content.ContextCompat
 import io.github.kmpfacelink.api.PlatformContext
 import io.github.kmpfacelink.model.CameraFacing
 import kotlinx.coroutines.suspendCancellableCoroutine
+import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.Executors
+import java.util.concurrent.atomic.AtomicInteger
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 
@@ -39,6 +41,17 @@ internal class SharedCameraSession(
     private val imageConverter = ImageProxyConverter()
     private val analysisExecutor = Executors.newSingleThreadExecutor()
     private var isFrontCamera = true
+
+    /**
+     * Tracks bitmaps that are currently being processed by MediaPipe handlers.
+     * Each handler's result callback must call [returnInFlightBitmap] to signal completion.
+     */
+    private val inFlightBitmaps = ConcurrentHashMap<Long, InFlightBitmap>()
+
+    private class InFlightBitmap(
+        val bitmap: Bitmap,
+        val remaining: AtomicInteger,
+    )
 
     fun addFrameHandler(handler: SharedFrameHandler) {
         synchronized(handlersLock) {
@@ -78,6 +91,19 @@ internal class SharedCameraSession(
         bindUseCases(provider, cameraSelector, preview, imageAnalysis)
     }
 
+    /**
+     * Called by each handler's MediaPipe result callback to signal that it is done
+     * with the shared bitmap for the given timestamp.
+     * When all handlers have signaled, the bitmap is returned to the pool.
+     */
+    fun returnInFlightBitmap(timestampMs: Long) {
+        val entry = inFlightBitmaps[timestampMs] ?: return
+        if (entry.remaining.decrementAndGet() <= 0) {
+            inFlightBitmaps.remove(timestampMs)
+            imageConverter.returnBitmap(entry.bitmap)
+        }
+    }
+
     private fun processFrame(imageProxy: ImageProxy) {
         val bitmap = imageConverter.convert(imageProxy, mirrorHorizontally = isFrontCamera)
         if (bitmap == null) {
@@ -90,11 +116,20 @@ internal class SharedCameraSession(
         val timestampMs = SystemClock.elapsedRealtime()
 
         val handlers = synchronized(handlersLock) { frameHandlers.toList() }
+        if (handlers.isEmpty()) {
+            imageConverter.returnBitmap(bitmap)
+            imageProxy.close()
+            return
+        }
+
+        // Track the bitmap with ref count — handlers signal completion via returnInFlightBitmap
+        inFlightBitmaps[timestampMs] = InFlightBitmap(bitmap, AtomicInteger(handlers.size))
+
         for (handler in handlers) {
             handler.onFrame(bitmap, width, height, timestampMs)
         }
 
-        imageConverter.returnBitmap(bitmap)
+        // Do NOT return bitmap here — handlers will return it via result callbacks
         imageProxy.close()
     }
 
@@ -123,6 +158,7 @@ internal class SharedCameraSession(
     fun release() {
         stop()
         synchronized(handlersLock) { frameHandlers.clear() }
+        inFlightBitmaps.clear()
         imageConverter.release()
         analysisExecutor.shutdown()
     }

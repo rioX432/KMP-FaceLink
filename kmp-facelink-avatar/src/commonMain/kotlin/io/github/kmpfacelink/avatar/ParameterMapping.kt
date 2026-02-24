@@ -33,8 +33,11 @@ public sealed class ParameterMapping {
     /**
      * Custom mapping that takes the full [FaceTrackingData] to compute a derived value.
      * Used for combined parameters like eye gaze or mouth form.
+     *
+     * Note: This is intentionally a regular class (not `data class`) because
+     * lambda-based equality/hashCode is not meaningful.
      */
-    public data class Custom(
-        val compute: (FaceTrackingData) -> Float,
+    public class Custom(
+        public val compute: (FaceTrackingData) -> Float,
     ) : ParameterMapping()
 }

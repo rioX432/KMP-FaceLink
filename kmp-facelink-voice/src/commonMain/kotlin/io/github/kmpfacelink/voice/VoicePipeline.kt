@@ -65,6 +65,8 @@ public class VoicePipeline(
     /** Flow of transcription results from ASR. */
     public val transcriptions: Flow<TranscriptionResult> = _transcriptions.asSharedFlow()
 
+    private var transcriptionCollectorJob: kotlinx.coroutines.Job? = null
+
     /**
      * Synthesizes speech from text and generates lip sync animation.
      *
@@ -102,6 +104,9 @@ public class VoicePipeline(
                     _state.value = VoicePipelineState.Idle
                 }
             }
+        } else {
+            // No auto-play — reset state immediately since no playback will trigger the reset
+            _state.value = VoicePipelineState.Idle
         }
 
         return outputFlow
@@ -120,7 +125,8 @@ public class VoicePipeline(
         recorder.start()
         engine.startListening()
 
-        scope.launch {
+        transcriptionCollectorJob?.cancel()
+        transcriptionCollectorJob = scope.launch {
             engine.transcriptions.collect { result ->
                 _transcriptions.tryEmit(result)
             }

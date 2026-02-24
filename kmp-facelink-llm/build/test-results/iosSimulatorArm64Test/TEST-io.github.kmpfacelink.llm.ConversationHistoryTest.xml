@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.kmpfacelink.llm.ConversationHistoryTest" tests="6" skipped="0" failures="0" errors="0" timestamp="2026-02-24T08:05:21" hostname="Ryosukes-MacBook-Pro.local" time="0.001">
+  <properties/>
+  <testcase name="addAndRetrieveMessages[iosSimulatorArm64]" classname="io.github.kmpfacelink.llm.ConversationHistoryTest" time="0.0"/>
+  <testcase name="toMessageListIncludesSystemPrompt[iosSimulatorArm64]" classname="io.github.kmpfacelink.llm.ConversationHistoryTest" time="0.001"/>
+  <testcase name="toMessageListOmitsSystemWhenEmpty[iosSimulatorArm64]" classname="io.github.kmpfacelink.llm.ConversationHistoryTest" time="0.0"/>
+  <testcase name="trimDropsOldestMessagesWhenOverBudget[iosSimulatorArm64]" classname="io.github.kmpfacelink.llm.ConversationHistoryTest" time="0.0"/>
+  <testcase name="clearRemovesAllMessages[iosSimulatorArm64]" classname="io.github.kmpfacelink.llm.ConversationHistoryTest" time="0.0"/>
+  <testcase name="messagesReturnsCopy[iosSimulatorArm64]" classname="io.github.kmpfacelink.llm.ConversationHistoryTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -33,6 +33,7 @@ KMP-FaceLink solves this with a single Kotlin API that wraps platform-specific S
 - **Avatar** — Live2D parameter mapping + native Cubism SDK rendering
 - **Stream** — VTubeStudio-compatible WebSocket streaming
 - **Voice** — TTS (Voicevox / OpenAI / ElevenLabs), ASR, lip sync
+- **LLM** — streaming chat API for OpenAI, Anthropic, Gemini with conversation management
 - **Real-time performance** — 30–60 fps on both platforms
 
 ## Who Is This For?
@@ -52,6 +53,8 @@ KMP-FaceLink solves this with a single Kotlin API that wraps platform-specific S
 | `kmp-facelink-live2d` | Live2D Cubism SDK rendering | **Experimental** |
 | `kmp-facelink-stream` | WebSocket streaming (VTubeStudio protocol) | **Stable** |
 | `kmp-facelink-voice` | TTS, ASR, lip sync | **Mostly stable** |
+| `kmp-facelink-rive` | Rive avatar integration | **Experimental** |
+| `kmp-facelink-llm` | LLM streaming API (OpenAI, Anthropic, Gemini) | **Experimental** |
 
 See [docs/extension-strategy.md](docs/extension-strategy.md) for the full module strategy.
 
@@ -140,6 +143,8 @@ kmp-facelink-effects/      Real-time face effects engine
 kmp-facelink-live2d/       Live2D Cubism SDK rendering
 kmp-facelink-stream/       WebSocket streaming (VTubeStudio protocol)
 kmp-facelink-voice/        TTS, ASR, lip sync
+kmp-facelink-rive/         Rive avatar integration
+kmp-facelink-llm/          LLM streaming API (OpenAI, Anthropic, Gemini)
 ```
 
 ## API Stability
@@ -155,6 +160,8 @@ KMP-FaceLink follows [Semantic Versioning](https://semver.org/). Each module has
 | `kmp-facelink-live2d` | **Experimental** | All APIs marked `@ExperimentalFaceLinkApi` |
 | `kmp-facelink-stream` | **Stable** | Breaking changes only in major versions |
 | `kmp-facelink-voice` | **Mostly stable** | Some APIs marked `@ExperimentalFaceLinkApi` |
+| `kmp-facelink-rive` | **Experimental** | All APIs marked `@ExperimentalFaceLinkApi` |
+| `kmp-facelink-llm` | **Experimental** | All APIs marked `@ExperimentalFaceLinkApi` |
 
 APIs annotated with `@ExperimentalFaceLinkApi` may change in minor releases without a deprecation cycle. To use them, opt in with:
 
@@ -191,7 +198,7 @@ API documentation is available at **[riox432.github.io/KMP-FaceLink](https://rio
 
 ## Status
 
-All 7 modules implemented. Sample apps with 8 demo modes on both platforms.
+All 9 modules implemented. Sample apps with 8 demo modes on both platforms.
 
 ## Contributing
 

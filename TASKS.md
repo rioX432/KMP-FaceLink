@@ -58,7 +58,7 @@ On completion, update status to `DONE` and close the corresponding GitHub Issue.
 | 46 | [Sample Live2D avatar](https://github.com/rioX432/KMP-FaceLink/issues/46) | DONE | Bundled avatar for demo + integration reference |
 | 60 | [PerfectSync mapping](https://github.com/rioX432/KMP-FaceLink/issues/60) | DONE | VTubeStudio Perfect Sync (52 ARKit blend shape pass-through) |
 | 56 | [iOS Live2D avatar crash](https://github.com/rioX432/KMP-FaceLink/issues/56) | DONE | Fix Metal rendering crash on Avatar tab |
-| 4 | [Publish to Maven Central](https://github.com/rioX432/KMP-FaceLink/issues/4) | TODO | maven-publish + XCFramework distribution |
+| 4 | [Publish to Maven Central](https://github.com/rioX432/KMP-FaceLink/issues/4) | DONE | maven-publish + XCFramework distribution |
 
 ## Phase 2: Native Rendering (Q3–Q4 2026)
 
@@ -81,7 +81,7 @@ On completion, update status to `DONE` and close the corresponding GitHub Issue.
 | # | Issue | Status | Summary |
 |---|-------|--------|---------|
 | 50 | [kmp-facelink-voice module](https://github.com/rioX432/KMP-FaceLink/issues/50) | DONE | ASR (Whisper) / TTS (VOICEVOX, ElevenLabs) + lip sync |
-| 51 | [kmp-facelink-llm module](https://github.com/rioX432/KMP-FaceLink/issues/51) | TODO | LLM streaming API (OpenAI, Anthropic, Gemini) |
+| 51 | [kmp-facelink-llm module](https://github.com/rioX432/KMP-FaceLink/issues/51) | DONE | LLM streaming API (OpenAI, Anthropic, Gemini) |
 
 ## Phase A: VTuber Features & High-Impact Additions (Q1 2026)
 

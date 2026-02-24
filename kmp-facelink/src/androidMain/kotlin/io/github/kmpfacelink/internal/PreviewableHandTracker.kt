@@ -12,5 +12,5 @@ public interface PreviewableHandTracker {
      * Set a [Preview.SurfaceProvider] (typically from a PreviewView) to display the camera feed.
      * Must be called before [io.github.kmpfacelink.api.HandTracker.start].
      */
-    public fun setSurfaceProvider(surfaceProvider: Preview.SurfaceProvider)
+    public fun setSurfaceProvider(surfaceProvider: Preview.SurfaceProvider?)
 }

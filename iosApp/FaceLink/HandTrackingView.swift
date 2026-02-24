@@ -104,12 +104,15 @@ class HandTrackingViewModel: ObservableObject {
     private func startTracking() {
         guard let tracker = tracker else { return }
         Task {
-            try await tracker.start()
-            // Capture session is available after start()
-            self.captureSession = HandTrackerCaptureSessionKt.getCaptureSession(tracker)
-            isTracking = true
-            statusText = "Tracking"
-            observeData()
+            do {
+                try await tracker.start()
+                self.captureSession = HandTrackerCaptureSessionKt.getCaptureSession(tracker)
+                isTracking = true
+                statusText = "Tracking"
+                observeData()
+            } catch {
+                statusText = "Error: \(error.localizedDescription)"
+            }
         }
     }
 
@@ -117,7 +120,11 @@ class HandTrackingViewModel: ObservableObject {
         guard let tracker = tracker else { return }
         cancelObserveTasks()
         Task {
-            try await tracker.stop()
+            do {
+                try await tracker.stop()
+            } catch {
+                // Best-effort stop
+            }
             isTracking = false
             statusText = "Stopped"
             latestData = nil

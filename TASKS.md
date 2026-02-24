@@ -125,17 +125,17 @@ On completion, update status to `DONE` and close the corresponding GitHub Issue.
 |---|-------|--------|---------|
 | 92 | [Core tracker thread safety](https://github.com/rioX432/KMP-FaceLink/issues/92) | DONE | release()/start() TOCTOU races, SharedSession sync |
 | 93 | [Android OneEuroFilter timestamp](https://github.com/rioX432/KMP-FaceLink/issues/93) | DONE | Use frame timestamp instead of callback arrival time |
-| 94 | [BitmapPool async access race](https://github.com/rioX432/KMP-FaceLink/issues/94) | TODO | MediaPipe async access after pool return |
+| 94 | [BitmapPool async access race](https://github.com/rioX432/KMP-FaceLink/issues/94) | DONE | MediaPipe async access after pool return |
 | 95 | [ActionSystem/EffectEngine release() safety](https://github.com/rioX432/KMP-FaceLink/issues/95) | DONE | Mutex-protected cleanup |
 | 96 | [EmotionClassifier cosine similarity](https://github.com/rioX432/KMP-FaceLink/issues/96) | DONE | NaN protection in magnitude calculation |
 | 97 | [VtsStreamClient race + auto-auth](https://github.com/rioX432/KMP-FaceLink/issues/97) | DONE | Connection race and auto-authentication |
 | 98 | [Voice module blocking + WAV issues](https://github.com/rioX432/KMP-FaceLink/issues/98) | DONE | PlatformAudioRecorder non-blocking start() |
-| 99 | [Sample app error handling + lifecycle](https://github.com/rioX432/KMP-FaceLink/issues/99) | TODO | iOS error handling, Android lifecycle |
+| 99 | [Sample app error handling + lifecycle](https://github.com/rioX432/KMP-FaceLink/issues/99) | DONE | iOS error handling, Android lifecycle |
 | 100 | [LLM module thread safety](https://github.com/rioX432/KMP-FaceLink/issues/100) | DONE | HTTP error body, O(n) trim, chat mutex |
 | 101 | [API consistency: Releasable + ExperimentalApi](https://github.com/rioX432/KMP-FaceLink/issues/101) | DONE | Live2D/Rive annotation parity |
-| 102 | [Core module quality improvements](https://github.com/rioX432/KMP-FaceLink/issues/102) | TODO | Filter, calibrator, dead code, nullability |
-| 103 | [Communication module quality](https://github.com/rioX432/KMP-FaceLink/issues/103) | TODO | WebSocket volatile, VoicePipeline state |
-| 104 | [Sample app quality](https://github.com/rioX432/KMP-FaceLink/issues/104) | TODO | Compose state, theme, voice mode refs |
-| 105 | [Code quality and tech debt](https://github.com/rioX432/KMP-FaceLink/issues/105) | TODO | Duplication, lazy properties, test helpers |
+| 102 | [Core module quality improvements](https://github.com/rioX432/KMP-FaceLink/issues/102) | DONE | Filter, calibrator, dead code, nullability |
+| 103 | [Communication module quality](https://github.com/rioX432/KMP-FaceLink/issues/103) | DONE | WebSocket volatile, VoicePipeline state |
+| 104 | [Sample app quality](https://github.com/rioX432/KMP-FaceLink/issues/104) | DONE | Compose state, theme, voice mode refs |
+| 105 | [Code quality and tech debt](https://github.com/rioX432/KMP-FaceLink/issues/105) | DONE | Duplication, lazy properties, test helpers |
 
 Note: Commercial app (Mobile-LLM-VTuber) is tracked in its own private repo.

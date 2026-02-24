@@ -87,7 +87,7 @@ internal object LandmarkSolvers {
     // Number of vertical lid distance samples for EAR calculation
     private const val EAR_SAMPLE_COUNT = 3f
 
-    /** Minimum landmark count required for geometric solving (478 with iris). */
+    /** Minimum landmark count required for geometric solving (468 base mesh, without iris). */
     const val MIN_LANDMARKS = 468
 
     // ── Helper ──

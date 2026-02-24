@@ -9,6 +9,7 @@ import io.ktor.websocket.close
 import io.ktor.websocket.readText
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.channels.consumeEach
+import kotlin.concurrent.Volatile
 
 /**
  * Ktor-based [WebSocketProvider] implementation.
@@ -21,6 +22,7 @@ internal class KtorWebSocketProvider(
     },
 ) : WebSocketProvider {
 
+    @Volatile
     private var session: WebSocketSession? = null
 
     override val isConnected: Boolean

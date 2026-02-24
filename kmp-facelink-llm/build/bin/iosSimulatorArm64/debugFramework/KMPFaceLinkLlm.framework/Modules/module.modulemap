@@ -1,8 +1,0 @@
-framework module "KMPFaceLinkLlm" {
-    umbrella header "KMPFaceLinkLlm.h"
-
-    export *
-    module * { export * }
-
-    use Foundation
-}

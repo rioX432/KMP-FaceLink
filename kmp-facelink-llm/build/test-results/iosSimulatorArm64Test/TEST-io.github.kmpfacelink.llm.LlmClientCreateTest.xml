@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="io.github.kmpfacelink.llm.LlmClientCreateTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-02-24T08:05:21" hostname="Ryosukes-MacBook-Pro.local" time="0.032">
-  <properties/>
-  <testcase name="createOpenAiClient[iosSimulatorArm64]" classname="io.github.kmpfacelink.llm.LlmClientCreateTest" time="0.032"/>
-  <testcase name="createAnthropicClient[iosSimulatorArm64]" classname="io.github.kmpfacelink.llm.LlmClientCreateTest" time="0.0"/>
-  <testcase name="createGeminiClient[iosSimulatorArm64]" classname="io.github.kmpfacelink.llm.LlmClientCreateTest" time="0.0"/>
-  <system-out><![CDATA[]]></system-out>
-  <system-err><![CDATA[]]></system-err>
-</testsuite>

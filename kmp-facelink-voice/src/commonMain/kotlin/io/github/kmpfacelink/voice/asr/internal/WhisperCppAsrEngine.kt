@@ -12,6 +12,9 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+import kotlin.concurrent.Volatile
 
 private const val INT16_MAX = 32767f
 
@@ -29,13 +32,20 @@ internal class WhisperCppAsrEngine(private val config: AsrConfig.WhisperCpp) : A
     override val transcriptions: Flow<TranscriptionResult> = _transcriptions.asSharedFlow()
 
     private val bridge = WhisperCppBridge()
-    private var initialized = false
 
-    private fun ensureInitialized() {
+    @Volatile
+    private var initialized = false
+    private val initMutex = Mutex()
+
+    private suspend fun ensureInitialized() {
         if (!initialized) {
-            val success = bridge.initModel(config.modelPath)
-            check(success) { "Failed to load whisper model from ${config.modelPath}" }
-            initialized = true
+            initMutex.withLock {
+                if (!initialized) {
+                    val success = bridge.initModel(config.modelPath)
+                    check(success) { "Failed to load whisper model from ${config.modelPath}" }
+                    initialized = true
+                }
+            }
         }
     }
 

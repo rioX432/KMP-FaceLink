@@ -379,6 +379,14 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    override fun onStop() {
+        super.onStop()
+        val mode = trackingModeState.value
+        if (isCurrentlyTracking(mode)) {
+            lifecycleScope.launch { stopCurrentTracker(mode) }
+        }
+    }
+
     override fun onDestroy() {
         super.onDestroy()
         faceTracker.release()

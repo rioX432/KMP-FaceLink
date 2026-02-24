@@ -16,6 +16,8 @@ let package = Package(
         .library(name: "KMPFaceLinkEffects", targets: ["KMPFaceLinkEffects"]),
         .library(name: "KMPFaceLinkStream", targets: ["KMPFaceLinkStream"]),
         .library(name: "KMPFaceLinkVoice", targets: ["KMPFaceLinkVoice"]),
+        .library(name: "KMPFaceLinkRive", targets: ["KMPFaceLinkRive"]),
+        .library(name: "KMPFaceLinkLlm", targets: ["KMPFaceLinkLlm"]),
     ],
     targets: [
         .binaryTarget(
@@ -46,6 +48,16 @@ let package = Package(
         .binaryTarget(
             name: "KMPFaceLinkVoice",
             url: "\(repoUrl)/KMPFaceLinkVoice.xcframework.zip",
+            checksum: "CHECKSUM_PLACEHOLDER"
+        ),
+        .binaryTarget(
+            name: "KMPFaceLinkRive",
+            url: "\(repoUrl)/KMPFaceLinkRive.xcframework.zip",
+            checksum: "CHECKSUM_PLACEHOLDER"
+        ),
+        .binaryTarget(
+            name: "KMPFaceLinkLlm",
+            url: "\(repoUrl)/KMPFaceLinkLlm.xcframework.zip",
             checksum: "CHECKSUM_PLACEHOLDER"
         ),
     ]

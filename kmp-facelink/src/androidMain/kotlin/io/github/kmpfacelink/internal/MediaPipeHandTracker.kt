@@ -66,12 +66,15 @@ internal class MediaPipeHandTracker(
     private var previewSurfaceProvider: Preview.SurfaceProvider? = null
 
     @Volatile
+    private var inFlightBitmap: android.graphics.Bitmap? = null
+
+    @Volatile
     private var lastImageWidth: Int = 0
 
     @Volatile
     private var lastImageHeight: Int = 0
 
-    override fun setSurfaceProvider(surfaceProvider: Preview.SurfaceProvider) {
+    override fun setSurfaceProvider(surfaceProvider: Preview.SurfaceProvider?) {
         previewSurfaceProvider = surfaceProvider
     }
 
@@ -85,7 +88,11 @@ internal class MediaPipeHandTracker(
         try {
             initHandLandmarker()
             startCamera()
-            _state.value = TrackingState.TRACKING
+            pipelineLock.withLock {
+                if (released.load() == 0) {
+                    _state.value = TrackingState.TRACKING
+                }
+            }
         } catch (e: Exception) {
             Log.e(TAG, "Failed to start hand tracking", e)
             _errorMessage.value = e.message ?: e.toString()
@@ -104,8 +111,8 @@ internal class MediaPipeHandTracker(
     }
 
     override fun release() {
-        released.store(1)
         pipelineLock.withLock {
+            released.store(1)
             cameraManager?.unbindAll()
             handLandmarker?.close()
             handLandmarker = null
@@ -177,7 +184,10 @@ internal class MediaPipeHandTracker(
     @Suppress("UNUSED_PARAMETER") // SharedFrameHandler signature
     private fun processSharedFrame(bitmap: android.graphics.Bitmap, width: Int, height: Int, timestampMs: Long) {
         val landmarker = handLandmarker
-        if (landmarker == null || _state.value != TrackingState.TRACKING) return
+        if (landmarker == null || _state.value != TrackingState.TRACKING) {
+            sharedCameraSession?.returnInFlightBitmap(timestampMs)
+            return
+        }
 
         lastImageWidth = width
         lastImageHeight = height
@@ -187,6 +197,7 @@ internal class MediaPipeHandTracker(
             landmarker.detectAsync(mpImage, timestampMs)
         } catch (e: Exception) {
             Log.w(TAG, "detectAsync failed", e)
+            sharedCameraSession?.returnInFlightBitmap(timestampMs)
         }
     }
 
@@ -209,23 +220,31 @@ internal class MediaPipeHandTracker(
         val mpImage = BitmapImageBuilder(bitmap).build()
         val timestampMs = SystemClock.elapsedRealtime()
 
+        inFlightBitmap = bitmap
+
         try {
             landmarker.detectAsync(mpImage, timestampMs)
         } catch (e: Exception) {
             Log.w(TAG, "detectAsync failed", e)
+            inFlightBitmap = null
+            imageConverter.returnBitmap(bitmap)
         }
 
-        // Return bitmap to pool after detectAsync (MediaPipe copies data internally)
-        imageConverter.returnBitmap(bitmap)
         imageProxy.close()
     }
 
-    @Suppress("UnusedParameter")
     private fun onHandLandmarkerResult(
         result: HandLandmarkerResult,
-        input: com.google.mediapipe.framework.image.MPImage,
+        @Suppress("UNUSED_PARAMETER") input: com.google.mediapipe.framework.image.MPImage,
     ) {
-        val timestampMs = SystemClock.elapsedRealtime()
+        if (sharedCameraSession != null) {
+            sharedCameraSession.returnInFlightBitmap(result.timestampMs())
+        } else {
+            inFlightBitmap?.let { imageConverter.returnBitmap(it) }
+            inFlightBitmap = null
+        }
+
+        val timestampMs = result.timestampMs()
 
         if (result.landmarks().isEmpty()) {
             _trackingData.tryEmit(HandTrackingData.notTracking(timestampMs))

@@ -69,13 +69,15 @@ jobs:
             :kmp-facelink-actions:assembleKMPFaceLinkActionsReleaseXCFramework \
             :kmp-facelink-effects:assembleKMPFaceLinkEffectsReleaseXCFramework \
             :kmp-facelink-stream:assembleKMPFaceLinkStreamReleaseXCFramework \
-            :kmp-facelink-voice:assembleKMPFaceLinkVoiceReleaseXCFramework
+            :kmp-facelink-voice:assembleKMPFaceLinkVoiceReleaseXCFramework \
+            :kmp-facelink-rive:assembleKMPFaceLinkRiveReleaseXCFramework \
+            :kmp-facelink-llm:assembleKMPFaceLinkLlmReleaseXCFramework
 
       - name: Zip XCFrameworks and generate checksums
         run: |
           set -euo pipefail
           ROOT_DIR="$(pwd)"
-          MODULES=("kmp-facelink:KMPFaceLink" "kmp-facelink-avatar:KMPFaceLinkAvatar" "kmp-facelink-actions:KMPFaceLinkActions" "kmp-facelink-effects:KMPFaceLinkEffects" "kmp-facelink-stream:KMPFaceLinkStream" "kmp-facelink-voice:KMPFaceLinkVoice")
+          MODULES=("kmp-facelink:KMPFaceLink" "kmp-facelink-avatar:KMPFaceLinkAvatar" "kmp-facelink-actions:KMPFaceLinkActions" "kmp-facelink-effects:KMPFaceLinkEffects" "kmp-facelink-stream:KMPFaceLinkStream" "kmp-facelink-voice:KMPFaceLinkVoice" "kmp-facelink-rive:KMPFaceLinkRive" "kmp-facelink-llm:KMPFaceLinkLlm")
           mkdir -p xcframeworks
           for entry in "${MODULES[@]}"; do
             MODULE="${entry%%:*}"

@@ -72,6 +72,10 @@ internal class MediaPipeFaceTracker(
     private var faceLandmarker: FaceLandmarker? = null
     private var previewSurfaceProvider: Preview.SurfaceProvider? = null
 
+    /** Bitmap currently being processed by MediaPipe (independent camera path only). */
+    @Volatile
+    private var inFlightBitmap: android.graphics.Bitmap? = null
+
     @Volatile
     private var lastImageWidth: Int = 0
 
@@ -92,7 +96,11 @@ internal class MediaPipeFaceTracker(
         try {
             initFaceLandmarker()
             startCamera()
-            _state.value = TrackingState.TRACKING
+            pipelineLock.withLock {
+                if (released.load() == 0) {
+                    _state.value = TrackingState.TRACKING
+                }
+            }
         } catch (e: Exception) {
             Log.e(TAG, "Failed to start face tracking", e)
             _errorMessage.value = e.message ?: e.toString()
@@ -111,8 +119,8 @@ internal class MediaPipeFaceTracker(
     }
 
     override fun release() {
-        released.store(1)
         pipelineLock.withLock {
+            released.store(1)
             cameraManager?.unbindAll()
             faceLandmarker?.close()
             faceLandmarker = null
@@ -194,7 +202,10 @@ internal class MediaPipeFaceTracker(
     @Suppress("UNUSED_PARAMETER") // SharedFrameHandler signature
     private fun processSharedFrame(bitmap: android.graphics.Bitmap, width: Int, height: Int, timestampMs: Long) {
         val landmarker = faceLandmarker
-        if (landmarker == null || _state.value != TrackingState.TRACKING) return
+        if (landmarker == null || _state.value != TrackingState.TRACKING) {
+            sharedCameraSession?.returnInFlightBitmap(timestampMs)
+            return
+        }
 
         lastImageWidth = width
         lastImageHeight = height
@@ -204,6 +215,7 @@ internal class MediaPipeFaceTracker(
             landmarker.detectAsync(mpImage, timestampMs)
         } catch (e: Exception) {
             Log.w(TAG, "detectAsync failed", e)
+            sharedCameraSession?.returnInFlightBitmap(timestampMs)
         }
     }
 
@@ -227,23 +239,34 @@ internal class MediaPipeFaceTracker(
         val mpImage = BitmapImageBuilder(bitmap).build()
         val timestampMs = SystemClock.elapsedRealtime()
 
+        // Track the bitmap — it will be returned in the result callback
+        inFlightBitmap = bitmap
+
         try {
             landmarker.detectAsync(mpImage, timestampMs)
         } catch (e: Exception) {
             Log.w(TAG, "detectAsync failed", e)
+            // No result callback will fire — return bitmap now
+            inFlightBitmap = null
+            imageConverter.returnBitmap(bitmap)
         }
 
-        // Return bitmap to pool after detectAsync (MediaPipe copies data internally)
-        imageConverter.returnBitmap(bitmap)
         imageProxy.close()
     }
 
-    @Suppress("UnusedParameter")
     private fun onFaceLandmarkerResult(
         result: FaceLandmarkerResult,
-        input: com.google.mediapipe.framework.image.MPImage,
+        @Suppress("UNUSED_PARAMETER") input: com.google.mediapipe.framework.image.MPImage,
     ) {
-        val timestampMs = SystemClock.elapsedRealtime()
+        // Return the bitmap now that MediaPipe is done processing
+        if (sharedCameraSession != null) {
+            sharedCameraSession.returnInFlightBitmap(result.timestampMs())
+        } else {
+            inFlightBitmap?.let { imageConverter.returnBitmap(it) }
+            inFlightBitmap = null
+        }
+
+        val timestampMs = result.timestampMs()
 
         if (!result.faceBlendshapes().isPresent || result.faceBlendshapes().get().isEmpty()) {
             _trackingData.tryEmit(FaceTrackingData.notTracking(timestampMs))

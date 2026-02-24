@@ -107,9 +107,11 @@ public class EmotionClassifier(
             }
 
             val denominator = sqrt(observedMagnitude) * sqrt(templateMagnitude)
-            if (denominator == 0f) return 0f
+            if (denominator == 0f || denominator.isNaN()) return 0f
 
-            return (dotProduct / denominator).coerceIn(0f, 1f)
+            val similarity = dotProduct / denominator
+            if (similarity.isNaN()) return 0f
+            return similarity.coerceIn(0f, 1f)
         }
     }
 }

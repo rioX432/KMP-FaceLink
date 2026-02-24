@@ -1,5 +1,6 @@
 package io.github.kmpfacelink.rive
 
+import io.github.kmpfacelink.ExperimentalFaceLinkApi
 import io.github.kmpfacelink.model.FaceTrackingData
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.filter
@@ -14,6 +15,7 @@ import kotlinx.coroutines.flow.onEach
  * @param mapper the mapper to use for converting tracking data to Rive inputs
  * @return flow of input name to [RiveInput] maps
  */
+@ExperimentalFaceLinkApi
 public fun Flow<FaceTrackingData>.toRiveInputs(
     mapper: RiveParameterMapper,
 ): Flow<Map<String, RiveInput>> =
@@ -27,6 +29,7 @@ public fun Flow<FaceTrackingData>.toRiveInputs(
  *
  * @param renderer the renderer to drive with the collected inputs
  */
+@ExperimentalFaceLinkApi
 public suspend fun Flow<Map<String, RiveInput>>.driveRiveRenderer(
     renderer: RiveRenderer,
 ) {

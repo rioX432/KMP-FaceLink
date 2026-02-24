@@ -126,11 +126,15 @@ class HolisticTrackingViewModel: ObservableObject {
     private func startTracking() {
         guard let tracker = tracker else { return }
         Task {
-            try await tracker.start()
-            arSession = HolisticTrackerSessionKt.getARSession(tracker)
-            isTracking = true
-            statusText = "Tracking"
-            observeData()
+            do {
+                try await tracker.start()
+                arSession = HolisticTrackerSessionKt.getARSession(tracker)
+                isTracking = true
+                statusText = "Tracking"
+                observeData()
+            } catch {
+                statusText = "Error: \(error.localizedDescription)"
+            }
         }
     }
 
@@ -138,7 +142,11 @@ class HolisticTrackingViewModel: ObservableObject {
         guard let tracker = tracker else { return }
         cancelObserveTasks()
         Task {
-            try await tracker.stop()
+            do {
+                try await tracker.stop()
+            } catch {
+                // Best-effort stop
+            }
             isTracking = false
             statusText = "Stopped"
             faceActive = false

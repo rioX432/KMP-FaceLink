@@ -5,6 +5,8 @@ import io.github.kmpfacelink.model.HandTrackingData
 import io.github.kmpfacelink.model.valueOf
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlin.concurrent.atomics.AtomicInt
+import kotlin.concurrent.atomics.ExperimentalAtomicApi
 
 /**
  * Main API for the face effects engine.
@@ -13,9 +15,11 @@ import kotlinx.coroutines.sync.withLock
  * Each call returns an [EffectOutput] containing resolved anchor positions, parameters,
  * and active effect metadata for renderers to consume.
  */
+@OptIn(ExperimentalAtomicApi::class)
 public class EffectEngine {
 
     private val mutex = Mutex()
+    private val released = AtomicInt(0)
     private val effects = mutableMapOf<String, Effect>()
 
     private var latestFace: FaceTrackingData? = null
@@ -49,9 +53,7 @@ public class EffectEngine {
 
     /** Release all resources and reset state. */
     public fun release() {
-        effects.clear()
-        latestFace = null
-        latestHand = null
+        released.store(1)
     }
 
     /**
@@ -59,9 +61,13 @@ public class EffectEngine {
      *
      * @return [EffectOutput] with all resolved anchors, parameters, and active effects.
      */
-    public suspend fun processFace(data: FaceTrackingData): EffectOutput = mutex.withLock {
-        latestFace = data
-        buildOutput(data.timestampMs)
+    public suspend fun processFace(data: FaceTrackingData): EffectOutput {
+        if (released.load() != 0) return EffectOutput.EMPTY
+        return mutex.withLock {
+            if (released.load() != 0) return EffectOutput.EMPTY
+            latestFace = data
+            buildOutput(data.timestampMs)
+        }
     }
 
     /**
@@ -69,9 +75,13 @@ public class EffectEngine {
      *
      * @return [EffectOutput] with all resolved anchors, parameters, and active effects.
      */
-    public suspend fun processHand(data: HandTrackingData): EffectOutput = mutex.withLock {
-        latestHand = data
-        buildOutput(data.timestampMs)
+    public suspend fun processHand(data: HandTrackingData): EffectOutput {
+        if (released.load() != 0) return EffectOutput.EMPTY
+        return mutex.withLock {
+            if (released.load() != 0) return EffectOutput.EMPTY
+            latestHand = data
+            buildOutput(data.timestampMs)
+        }
     }
 
     private fun buildOutput(timestampMs: Long): EffectOutput {

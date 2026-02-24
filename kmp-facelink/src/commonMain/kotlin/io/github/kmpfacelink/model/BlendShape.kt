@@ -80,16 +80,20 @@ public enum class BlendShape {
      * e.g. EYE_BLINK_LEFT → "eyeBlinkLeft"
      */
     public val arKitName: String
-        get() {
-            val parts = name.lowercase().split("_")
-            return parts.first() + parts.drop(1).joinToString("") { part ->
-                part.replaceFirstChar { it.uppercase() }
+        get() = arKitNames.getValue(this)
+
+    public companion object {
+        private val arKitNames: Map<BlendShape, String> by lazy {
+            entries.associateWith { entry ->
+                val parts = entry.name.lowercase().split("_")
+                parts.first() + parts.drop(1).joinToString("") { part ->
+                    part.replaceFirstChar { it.uppercase() }
+                }
             }
         }
 
-    public companion object {
         private val arKitNameMap: Map<String, BlendShape> by lazy {
-            entries.associateBy { it.arKitName }
+            arKitNames.entries.associate { (k, v) -> v to k }
         }
 
         /**

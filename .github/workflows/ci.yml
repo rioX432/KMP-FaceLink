@@ -45,7 +45,7 @@ jobs:
           key: konan-${{ runner.os }}-${{ hashFiles('gradle/libs.versions.toml') }}
           restore-keys: konan-${{ runner.os }}-
 
-      - run: ./gradlew :kmp-facelink:allTests :kmp-facelink-avatar:allTests :kmp-facelink-actions:allTests :kmp-facelink-effects:allTests :kmp-facelink-live2d:allTests :kmp-facelink-stream:allTests :kmp-facelink-voice:allTests
+      - run: ./gradlew :kmp-facelink:allTests :kmp-facelink-avatar:allTests :kmp-facelink-actions:allTests :kmp-facelink-effects:allTests :kmp-facelink-live2d:allTests :kmp-facelink-stream:allTests :kmp-facelink-voice:allTests :kmp-facelink-rive:allTests :kmp-facelink-llm:allTests
 
   build:
     name: Build
@@ -60,4 +60,4 @@ jobs:
 
       - uses: gradle/actions/setup-gradle@v4
 
-      - run: ./gradlew :kmp-facelink:assemble :kmp-facelink-avatar:assemble :kmp-facelink-actions:assemble :kmp-facelink-effects:assemble :kmp-facelink-live2d:assemble :kmp-facelink-stream:assemble :kmp-facelink-voice:assemble :kmp-facelink-rive:assemble :androidApp:assembleDebug
+      - run: ./gradlew :kmp-facelink:assemble :kmp-facelink-avatar:assemble :kmp-facelink-actions:assemble :kmp-facelink-effects:assemble :kmp-facelink-live2d:assemble :kmp-facelink-stream:assemble :kmp-facelink-voice:assemble :kmp-facelink-rive:assemble :kmp-facelink-llm:assemble :androidApp:assembleDebug

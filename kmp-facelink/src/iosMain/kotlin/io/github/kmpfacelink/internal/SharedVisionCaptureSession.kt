@@ -6,6 +6,7 @@
 package io.github.kmpfacelink.internal
 
 import io.github.kmpfacelink.model.CameraFacing
+import io.github.kmpfacelink.util.withLock
 import platform.AVFoundation.AVCaptureConnection
 import platform.AVFoundation.AVCaptureDevice
 import platform.AVFoundation.AVCaptureDeviceInput
@@ -35,6 +36,7 @@ import platform.darwin.dispatch_queue_create
 internal class SharedVisionCaptureSession(
     private val cameraFacing: CameraFacing,
 ) {
+    private val handlersLock = io.github.kmpfacelink.util.PlatformLock()
     private val frameHandlers = mutableListOf<(CMSampleBufferRef?) -> Unit>()
 
     var captureSession: AVCaptureSession? = null
@@ -44,7 +46,7 @@ internal class SharedVisionCaptureSession(
     private val videoQueue = dispatch_queue_create("io.github.kmpfacelink.holistic.video", null)
 
     fun addFrameHandler(handler: (CMSampleBufferRef?) -> Unit) {
-        frameHandlers.add(handler)
+        handlersLock.withLock { frameHandlers.add(handler) }
     }
 
     @Suppress("LongMethod")
@@ -106,7 +108,7 @@ internal class SharedVisionCaptureSession(
     fun release() {
         stop()
         captureSession = null
-        frameHandlers.clear()
+        handlersLock.withLock { frameHandlers.clear() }
     }
 
     private fun configureCameraFrameRate(device: AVCaptureDevice) {
@@ -133,7 +135,8 @@ internal class SharedVisionCaptureSession(
             didOutputSampleBuffer: CMSampleBufferRef?,
             fromConnection: AVCaptureConnection,
         ) {
-            for (handler in frameHandlers) {
+            val handlers = handlersLock.withLock { frameHandlers.toList() }
+            for (handler in handlers) {
                 handler(didOutputSampleBuffer)
             }
         }

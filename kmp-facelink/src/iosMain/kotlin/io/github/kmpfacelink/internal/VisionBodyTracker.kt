@@ -106,7 +106,11 @@ internal class VisionBodyTracker(
                 }
                 captureSession?.startRunning()
             }
-            _state.value = TrackingState.TRACKING
+            pipelineLock.withLock {
+                if (released.load() == 0) {
+                    _state.value = TrackingState.TRACKING
+                }
+            }
         } catch (e: Exception) {
             _errorMessage.value = e.message ?: e.toString()
             _state.value = TrackingState.ERROR
@@ -122,8 +126,8 @@ internal class VisionBodyTracker(
     }
 
     override fun release() {
-        released.store(1)
         pipelineLock.withLock {
+            released.store(1)
             if (sharedVisionSession == null) {
                 captureSession?.stopRunning()
                 captureSession = null

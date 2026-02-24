@@ -26,6 +26,7 @@ progress.txt
 /kmp-facelink-stream/build
 /kmp-facelink-voice/build
 /kmp-facelink-rive/build
+/kmp-facelink-llm/build
 /androidApp/src/main/assets/live2d/
 /iosApp/FaceLink/Resources/Live2D/
 /iosApp/Live2DConfig.generated.xcconfig

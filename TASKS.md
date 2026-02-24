@@ -58,7 +58,7 @@ On completion, update status to `DONE` and close the corresponding GitHub Issue.
 | 46 | [Sample Live2D avatar](https://github.com/rioX432/KMP-FaceLink/issues/46) | DONE | Bundled avatar for demo + integration reference |
 | 60 | [PerfectSync mapping](https://github.com/rioX432/KMP-FaceLink/issues/60) | DONE | VTubeStudio Perfect Sync (52 ARKit blend shape pass-through) |
 | 56 | [iOS Live2D avatar crash](https://github.com/rioX432/KMP-FaceLink/issues/56) | DONE | Fix Metal rendering crash on Avatar tab |
-| 4 | [Publish to Maven Central](https://github.com/rioX432/KMP-FaceLink/issues/4) | TODO | maven-publish + XCFramework distribution |
+| 4 | [Publish to Maven Central](https://github.com/rioX432/KMP-FaceLink/issues/4) | DONE | maven-publish + XCFramework distribution |
 
 ## Phase 2: Native Rendering (Q3–Q4 2026)
 
@@ -81,7 +81,7 @@ On completion, update status to `DONE` and close the corresponding GitHub Issue.
 | # | Issue | Status | Summary |
 |---|-------|--------|---------|
 | 50 | [kmp-facelink-voice module](https://github.com/rioX432/KMP-FaceLink/issues/50) | DONE | ASR (Whisper) / TTS (VOICEVOX, ElevenLabs) + lip sync |
-| 51 | [kmp-facelink-llm module](https://github.com/rioX432/KMP-FaceLink/issues/51) | TODO | LLM streaming API (OpenAI, Anthropic, Gemini) |
+| 51 | [kmp-facelink-llm module](https://github.com/rioX432/KMP-FaceLink/issues/51) | DONE | LLM streaming API (OpenAI, Anthropic, Gemini) |
 
 ## Phase A: VTuber Features & High-Impact Additions (Q1 2026)
 
@@ -118,5 +118,24 @@ On completion, update status to `DONE` and close the corresponding GitHub Issue.
 | 86 | [Stream module demo](https://github.com/rioX432/KMP-FaceLink/issues/86) | DONE | VTubeStudio WebSocket connection |
 | 87 | [Voice module demo](https://github.com/rioX432/KMP-FaceLink/issues/87) | DONE | ASR, TTS, lip sync visualization |
 | 88 | [Sample app UX improvements](https://github.com/rioX432/KMP-FaceLink/issues/88) | DONE | Error handling, settings persistence, performance HUD |
+
+## Code Audit Fixes (Q1 2026)
+
+| # | Issue | Status | Summary |
+|---|-------|--------|---------|
+| 92 | [Core tracker thread safety](https://github.com/rioX432/KMP-FaceLink/issues/92) | DONE | release()/start() TOCTOU races, SharedSession sync |
+| 93 | [Android OneEuroFilter timestamp](https://github.com/rioX432/KMP-FaceLink/issues/93) | DONE | Use frame timestamp instead of callback arrival time |
+| 94 | [BitmapPool async access race](https://github.com/rioX432/KMP-FaceLink/issues/94) | DONE | MediaPipe async access after pool return |
+| 95 | [ActionSystem/EffectEngine release() safety](https://github.com/rioX432/KMP-FaceLink/issues/95) | DONE | Mutex-protected cleanup |
+| 96 | [EmotionClassifier cosine similarity](https://github.com/rioX432/KMP-FaceLink/issues/96) | DONE | NaN protection in magnitude calculation |
+| 97 | [VtsStreamClient race + auto-auth](https://github.com/rioX432/KMP-FaceLink/issues/97) | DONE | Connection race and auto-authentication |
+| 98 | [Voice module blocking + WAV issues](https://github.com/rioX432/KMP-FaceLink/issues/98) | DONE | PlatformAudioRecorder non-blocking start() |
+| 99 | [Sample app error handling + lifecycle](https://github.com/rioX432/KMP-FaceLink/issues/99) | DONE | iOS error handling, Android lifecycle |
+| 100 | [LLM module thread safety](https://github.com/rioX432/KMP-FaceLink/issues/100) | DONE | HTTP error body, O(n) trim, chat mutex |
+| 101 | [API consistency: Releasable + ExperimentalApi](https://github.com/rioX432/KMP-FaceLink/issues/101) | DONE | Live2D/Rive annotation parity |
+| 102 | [Core module quality improvements](https://github.com/rioX432/KMP-FaceLink/issues/102) | DONE | Filter, calibrator, dead code, nullability |
+| 103 | [Communication module quality](https://github.com/rioX432/KMP-FaceLink/issues/103) | DONE | WebSocket volatile, VoicePipeline state |
+| 104 | [Sample app quality](https://github.com/rioX432/KMP-FaceLink/issues/104) | DONE | Compose state, theme, voice mode refs |
+| 105 | [Code quality and tech debt](https://github.com/rioX432/KMP-FaceLink/issues/105) | DONE | Duplication, lazy properties, test helpers |
 
 Note: Commercial app (Mobile-LLM-VTuber) is tracked in its own private repo.

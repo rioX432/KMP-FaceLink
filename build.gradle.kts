@@ -29,6 +29,7 @@ val publishableModules = setOf(
     "kmp-facelink-stream",
     "kmp-facelink-voice",
     "kmp-facelink-rive",
+    "kmp-facelink-llm",
 )
 
 val pomDescriptions = mapOf(
@@ -39,6 +40,7 @@ val pomDescriptions = mapOf(
     "kmp-facelink-stream" to "WebSocket streaming (VTubeStudio protocol) for KMP-FaceLink",
     "kmp-facelink-voice" to "ASR, TTS, and lip sync for KMP-FaceLink",
     "kmp-facelink-rive" to "Rive avatar integration for KMP-FaceLink",
+    "kmp-facelink-llm" to "LLM streaming API for KMP-FaceLink",
 )
 
 val detektFormatting = libs.detekt.formatting
@@ -60,6 +62,7 @@ dependencies {
     dokka(project(":kmp-facelink-stream"))
     dokka(project(":kmp-facelink-voice"))
     dokka(project(":kmp-facelink-rive"))
+    dokka(project(":kmp-facelink-llm"))
 }
 
 subprojects {
@@ -219,6 +222,19 @@ project(":kmp-facelink-rive") {
             source.setFrom(
                 "src/commonMain/kotlin",
                 "src/androidMain/kotlin",
+                "src/commonTest/kotlin",
+            )
+        }
+    }
+}
+
+project(":kmp-facelink-llm") {
+    afterEvaluate {
+        detekt {
+            source.setFrom(
+                "src/commonMain/kotlin",
+                "src/androidMain/kotlin",
+                "src/iosMain/kotlin",
                 "src/commonTest/kotlin",
             )
         }

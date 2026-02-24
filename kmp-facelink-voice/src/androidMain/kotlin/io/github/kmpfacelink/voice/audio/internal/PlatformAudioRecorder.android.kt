@@ -7,9 +7,11 @@ import io.github.kmpfacelink.voice.AudioConstants
 import io.github.kmpfacelink.voice.audio.AudioData
 import io.github.kmpfacelink.voice.audio.AudioFormat
 import io.github.kmpfacelink.voice.audio.AudioRecorder
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -18,7 +20,6 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import java.io.ByteArrayOutputStream
 
 private const val BUFFER_SIZE_FACTOR = 2
@@ -36,6 +37,7 @@ internal class PlatformAudioRecorder : AudioRecorder {
     private val _audioChunks = MutableSharedFlow<ByteArray>(extraBufferCapacity = 16)
     override val audioChunks: Flow<ByteArray> = _audioChunks.asSharedFlow()
 
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private var audioRecord: AudioRecord? = null
     private var recordingJob: Job? = null
     private var recordedData = ByteArrayOutputStream()
@@ -76,18 +78,14 @@ internal class PlatformAudioRecorder : AudioRecorder {
         audioRecord?.startRecording()
         _isRecording.value = true
 
-        coroutineScope {
-            recordingJob = launch {
-                withContext(Dispatchers.IO) {
-                    val buffer = ByteArray(minBufferSize)
-                    while (isActive && _isRecording.value) {
-                        val bytesRead = audioRecord?.read(buffer, 0, buffer.size) ?: -1
-                        if (bytesRead > 0) {
-                            val chunk = buffer.copyOf(bytesRead)
-                            recordedData.write(chunk)
-                            _audioChunks.tryEmit(chunk)
-                        }
-                    }
+        recordingJob = scope.launch {
+            val buffer = ByteArray(minBufferSize)
+            while (isActive && _isRecording.value) {
+                val bytesRead = audioRecord?.read(buffer, 0, buffer.size) ?: -1
+                if (bytesRead > 0) {
+                    val chunk = buffer.copyOf(bytesRead)
+                    recordedData.write(chunk)
+                    _audioChunks.tryEmit(chunk)
                 }
             }
         }
@@ -118,5 +116,6 @@ internal class PlatformAudioRecorder : AudioRecorder {
         recordingJob = null
         audioRecord?.release()
         audioRecord = null
+        scope.cancel()
     }
 }

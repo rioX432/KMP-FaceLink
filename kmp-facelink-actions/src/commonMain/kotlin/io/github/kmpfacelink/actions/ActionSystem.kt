@@ -7,6 +7,8 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlin.concurrent.atomics.AtomicInt
+import kotlin.concurrent.atomics.ExperimentalAtomicApi
 
 /**
  * Main API for the action trigger system.
@@ -15,9 +17,11 @@ import kotlinx.coroutines.sync.withLock
  * Both methods return the list of [ActionEvent]s produced for that frame **and** send
  * them to the [events] flow, so callers can choose whichever consumption style fits best.
  */
+@OptIn(ExperimentalAtomicApi::class)
 public class ActionSystem {
 
     private val mutex = Mutex()
+    private val released = AtomicInt(0)
     private val bindings = mutableMapOf<String, ActionBinding>()
     private val states = mutableMapOf<String, TriggerState>()
 
@@ -60,10 +64,7 @@ public class ActionSystem {
 
     /** Release all resources. Closes the [events] channel and clears all state. */
     public fun release() {
-        bindings.clear()
-        states.clear()
-        latestFace = null
-        latestHand = null
+        released.store(1)
         _events.close()
     }
 
@@ -73,7 +74,9 @@ public class ActionSystem {
      * @return the list of [ActionEvent]s produced for this frame.
      */
     public suspend fun processFace(data: FaceTrackingData): List<ActionEvent> {
+        if (released.load() != 0) return emptyList()
         val pendingEvents = mutex.withLock {
+            if (released.load() != 0) return emptyList()
             latestFace = data
             processAllBindings(data.timestampMs)
         }
@@ -87,7 +90,9 @@ public class ActionSystem {
      * @return the list of [ActionEvent]s produced for this frame.
      */
     public suspend fun processHand(data: HandTrackingData): List<ActionEvent> {
+        if (released.load() != 0) return emptyList()
         val pendingEvents = mutex.withLock {
+            if (released.load() != 0) return emptyList()
             latestHand = data
             processAllBindings(data.timestampMs)
         }
@@ -185,7 +190,7 @@ public class ActionSystem {
         events: MutableList<ActionEvent>,
     ) {
         if (conditionMet) {
-            state.markConditionLost(0L)
+            state.markConditionLost(TriggerState.CONDITION_NOT_LOST)
             if (binding.emitHeldEvents) {
                 val duration = timestampMs - state.phaseEnteredAt
                 events.add(ActionEvent.Held(binding.actionId, timestampMs, duration))
@@ -201,7 +206,7 @@ public class ActionSystem {
         timestampMs: Long,
         events: MutableList<ActionEvent>,
     ) {
-        if (state.conditionLostAt == 0L) {
+        if (state.conditionLostAt == TriggerState.CONDITION_NOT_LOST) {
             state.markConditionLost(timestampMs)
         }
         val lostDuration = timestampMs - state.conditionLostAt

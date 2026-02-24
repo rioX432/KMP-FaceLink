@@ -32,6 +32,7 @@ internal fun interface SharedFrameHandler {
 internal class SharedCameraSession(
     private val platformContext: PlatformContext,
 ) {
+    private val handlersLock = Any()
     private val frameHandlers = mutableListOf<SharedFrameHandler>()
     private var cameraProvider: ProcessCameraProvider? = null
     private var surfaceProvider: Preview.SurfaceProvider? = null
@@ -40,7 +41,9 @@ internal class SharedCameraSession(
     private var isFrontCamera = true
 
     fun addFrameHandler(handler: SharedFrameHandler) {
-        frameHandlers.add(handler)
+        synchronized(handlersLock) {
+            frameHandlers.add(handler)
+        }
     }
 
     fun setSurfaceProvider(provider: Preview.SurfaceProvider?) {
@@ -86,7 +89,8 @@ internal class SharedCameraSession(
         val height = bitmap.height
         val timestampMs = SystemClock.elapsedRealtime()
 
-        for (handler in frameHandlers) {
+        val handlers = synchronized(handlersLock) { frameHandlers.toList() }
+        for (handler in handlers) {
             handler.onFrame(bitmap, width, height, timestampMs)
         }
 
@@ -118,7 +122,7 @@ internal class SharedCameraSession(
 
     fun release() {
         stop()
-        frameHandlers.clear()
+        synchronized(handlersLock) { frameHandlers.clear() }
         imageConverter.release()
         analysisExecutor.shutdown()
     }

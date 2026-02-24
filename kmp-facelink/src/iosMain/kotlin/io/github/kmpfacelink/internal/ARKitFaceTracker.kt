@@ -99,7 +99,11 @@ internal class ARKitFaceTracker(
         }
         session.runWithConfiguration(configuration)
 
-        _state.value = TrackingState.TRACKING
+        pipelineLock.withLock {
+            if (released.load() == 0) {
+                _state.value = TrackingState.TRACKING
+            }
+        }
     }
 
     override suspend fun stop() {
@@ -110,8 +114,8 @@ internal class ARKitFaceTracker(
     }
 
     override fun release() {
-        released.store(1)
         pipelineLock.withLock {
+            released.store(1)
             arSession?.pause()
             arSession?.delegate = null
             arSession = null

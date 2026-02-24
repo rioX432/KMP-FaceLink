@@ -11,6 +11,10 @@ dokka {
 kotlin {
     explicitApi()
 
+    compilerOptions {
+        freeCompilerArgs.add("-opt-in=io.github.kmpfacelink.ExperimentalFaceLinkApi")
+    }
+
     androidLibrary {
         namespace = "io.github.kmpfacelink.rive"
         compileSdk = 35

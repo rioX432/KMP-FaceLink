@@ -1,8 +1,11 @@
 package io.github.kmpfacelink.rive
 
+import io.github.kmpfacelink.ExperimentalFaceLinkApi
+
 /**
  * Lifecycle states for a [RiveRenderer].
  */
+@ExperimentalFaceLinkApi
 public enum class RiveRenderState {
     /** Renderer has been created but no model is loaded. */
     UNINITIALIZED,

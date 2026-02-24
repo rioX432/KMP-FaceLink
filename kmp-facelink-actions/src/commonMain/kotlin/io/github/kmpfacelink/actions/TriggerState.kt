@@ -21,8 +21,8 @@ internal class TriggerState {
     var phaseEnteredAt: Long = 0L
         private set
 
-    /** Timestamp when condition was last lost during ACTIVE phase (for debounce). */
-    var conditionLostAt: Long = 0L
+    /** Timestamp when condition was last lost during ACTIVE phase (for debounce). -1 = not lost. */
+    var conditionLostAt: Long = CONDITION_NOT_LOST
         private set
 
     /** Whether the condition is currently met. */
@@ -45,7 +45,11 @@ internal class TriggerState {
     fun reset() {
         phase = Phase.IDLE
         phaseEnteredAt = 0L
-        conditionLostAt = 0L
+        conditionLostAt = CONDITION_NOT_LOST
         conditionMet = false
+    }
+
+    companion object {
+        const val CONDITION_NOT_LOST = -1L
     }
 }

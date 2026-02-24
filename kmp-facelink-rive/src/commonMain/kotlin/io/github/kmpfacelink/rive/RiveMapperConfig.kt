@@ -1,5 +1,7 @@
 package io.github.kmpfacelink.rive
 
+import io.github.kmpfacelink.ExperimentalFaceLinkApi
+
 /**
  * Configuration for the default [RiveParameterMapper].
  *
@@ -9,6 +11,7 @@ package io.github.kmpfacelink.rive
  * @property excludedInputs set of default input names to exclude from mapping.
  * @property includeHeadRotation whether to include head rotation inputs (headYaw, headPitch, headRoll).
  */
+@ExperimentalFaceLinkApi
 public data class RiveMapperConfig(
     val inputNameOverrides: Map<String, String> = emptyMap(),
     val excludedInputs: Set<String> = emptySet(),

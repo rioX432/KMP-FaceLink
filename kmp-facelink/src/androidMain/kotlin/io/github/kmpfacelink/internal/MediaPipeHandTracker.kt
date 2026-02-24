@@ -85,7 +85,11 @@ internal class MediaPipeHandTracker(
         try {
             initHandLandmarker()
             startCamera()
-            _state.value = TrackingState.TRACKING
+            pipelineLock.withLock {
+                if (released.load() == 0) {
+                    _state.value = TrackingState.TRACKING
+                }
+            }
         } catch (e: Exception) {
             Log.e(TAG, "Failed to start hand tracking", e)
             _errorMessage.value = e.message ?: e.toString()
@@ -104,8 +108,8 @@ internal class MediaPipeHandTracker(
     }
 
     override fun release() {
-        released.store(1)
         pipelineLock.withLock {
+            released.store(1)
             cameraManager?.unbindAll()
             handLandmarker?.close()
             handLandmarker = null
@@ -225,7 +229,7 @@ internal class MediaPipeHandTracker(
         result: HandLandmarkerResult,
         input: com.google.mediapipe.framework.image.MPImage,
     ) {
-        val timestampMs = SystemClock.elapsedRealtime()
+        val timestampMs = result.timestampMs()
 
         if (result.landmarks().isEmpty()) {
             _trackingData.tryEmit(HandTrackingData.notTracking(timestampMs))

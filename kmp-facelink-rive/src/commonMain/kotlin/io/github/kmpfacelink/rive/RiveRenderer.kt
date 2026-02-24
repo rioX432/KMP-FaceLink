@@ -1,5 +1,6 @@
 package io.github.kmpfacelink.rive
 
+import io.github.kmpfacelink.ExperimentalFaceLinkApi
 import io.github.kmpfacelink.api.Releasable
 import kotlinx.coroutines.flow.StateFlow
 
@@ -10,6 +11,7 @@ import kotlinx.coroutines.flow.StateFlow
  * - Android: `AndroidRiveRenderer` wraps `RiveAnimationView`
  * - iOS: Implemented in Swift using `RiveViewModel` (rive-ios is Swift-only)
  */
+@ExperimentalFaceLinkApi
 public interface RiveRenderer : Releasable {
 
     /** Current lifecycle state. */

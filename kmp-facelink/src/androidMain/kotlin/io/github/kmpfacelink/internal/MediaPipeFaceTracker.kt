@@ -92,7 +92,11 @@ internal class MediaPipeFaceTracker(
         try {
             initFaceLandmarker()
             startCamera()
-            _state.value = TrackingState.TRACKING
+            pipelineLock.withLock {
+                if (released.load() == 0) {
+                    _state.value = TrackingState.TRACKING
+                }
+            }
         } catch (e: Exception) {
             Log.e(TAG, "Failed to start face tracking", e)
             _errorMessage.value = e.message ?: e.toString()
@@ -111,8 +115,8 @@ internal class MediaPipeFaceTracker(
     }
 
     override fun release() {
-        released.store(1)
         pipelineLock.withLock {
+            released.store(1)
             cameraManager?.unbindAll()
             faceLandmarker?.close()
             faceLandmarker = null
@@ -243,7 +247,7 @@ internal class MediaPipeFaceTracker(
         result: FaceLandmarkerResult,
         input: com.google.mediapipe.framework.image.MPImage,
     ) {
-        val timestampMs = SystemClock.elapsedRealtime()
+        val timestampMs = result.timestampMs()
 
         if (!result.faceBlendshapes().isPresent || result.faceBlendshapes().get().isEmpty()) {
             _trackingData.tryEmit(FaceTrackingData.notTracking(timestampMs))

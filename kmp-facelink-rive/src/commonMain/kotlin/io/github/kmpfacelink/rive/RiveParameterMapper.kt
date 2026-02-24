@@ -1,5 +1,6 @@
 package io.github.kmpfacelink.rive
 
+import io.github.kmpfacelink.ExperimentalFaceLinkApi
 import io.github.kmpfacelink.model.FaceTrackingData
 
 /**
@@ -9,6 +10,7 @@ import io.github.kmpfacelink.model.FaceTrackingData
  * Rive input names and values. Use [RiveDefaultMappings] for ARKit blend shape
  * pass-through, or implement custom mapping logic.
  */
+@ExperimentalFaceLinkApi
 public fun interface RiveParameterMapper {
 
     /**

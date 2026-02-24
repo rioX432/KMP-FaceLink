@@ -54,8 +54,10 @@ public class VtsStreamClient internal constructor(
     override val state: StateFlow<StreamState> = _state.asStateFlow()
 
     override suspend fun connect() {
-        if (_state.value is StreamState.Connected || _state.value is StreamState.Connecting) return
-        startConnection()
+        stateMutex.withLock {
+            if (_state.value is StreamState.Connected || _state.value is StreamState.Connecting) return
+            startConnectionLocked()
+        }
     }
 
     override suspend fun disconnect() {
@@ -84,7 +86,8 @@ public class VtsStreamClient internal constructor(
         webSocketProvider.release()
     }
 
-    private fun startConnection() {
+    private fun startConnectionLocked() {
+        connectionJob?.cancel()
         val job = scope.launch {
             _state.value = StreamState.Connecting
             connectAndAuthenticate()
@@ -100,6 +103,7 @@ public class VtsStreamClient internal constructor(
                 onClose = { handleDisconnect() },
                 onError = { handleError(it) },
             )
+            authenticate()
         } catch (@Suppress("TooGenericExceptionCaught") e: Exception) {
             handleError(e)
         }
@@ -154,6 +158,7 @@ public class VtsStreamClient internal constructor(
     }
 
     private fun attemptReconnect() {
+        connectionJob?.cancel()
         val job = scope.launch {
             val policy = config.reconnectPolicy
             var attempt = 0

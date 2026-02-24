@@ -71,7 +71,13 @@ public class AndroidRiveRenderer(
         }
     }
 
+    @Suppress("TooGenericExceptionCaught")
     override fun release() {
+        try {
+            riveView.pause()
+        } catch (_: Exception) {
+            // Best-effort cleanup — Rive may already be in an invalid state
+        }
         _state.value = RiveRenderState.RELEASED
     }
 

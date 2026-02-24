@@ -17,5 +17,5 @@ public object TokenCounter {
     public fun estimate(messages: List<ChatMessage>): Int =
         messages.sumOf { estimate(it.content) + ROLE_OVERHEAD }
 
-    private const val ROLE_OVERHEAD = 4
+    internal const val ROLE_OVERHEAD = 4
 }

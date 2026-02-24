@@ -1,6 +1,7 @@
 package io.github.kmpfacelink.live2d
 
 import io.github.kmpfacelink.ExperimentalFaceLinkApi
+import io.github.kmpfacelink.api.Releasable
 import kotlinx.coroutines.flow.StateFlow
 
 /**
@@ -18,7 +19,7 @@ import kotlinx.coroutines.flow.StateFlow
  * ```
  */
 @ExperimentalFaceLinkApi
-public interface Live2DRenderer {
+public interface Live2DRenderer : Releasable {
     /** Current lifecycle state of this renderer. */
     public val state: StateFlow<Live2DRenderState>
 
@@ -51,5 +52,5 @@ public interface Live2DRenderer {
      * After calling this, [state] transitions to [Live2DRenderState.RELEASED]
      * and the renderer cannot be reused.
      */
-    public fun release()
+    public override fun release()
 }

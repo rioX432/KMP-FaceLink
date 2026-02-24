@@ -84,7 +84,11 @@ internal class MediaPipeBodyTracker(
         try {
             initPoseLandmarker()
             startCamera()
-            _state.value = TrackingState.TRACKING
+            pipelineLock.withLock {
+                if (released.load() == 0) {
+                    _state.value = TrackingState.TRACKING
+                }
+            }
         } catch (e: Exception) {
             Log.e(TAG, "Failed to start body tracking", e)
             _errorMessage.value = e.message ?: e.toString()
@@ -103,8 +107,8 @@ internal class MediaPipeBodyTracker(
     }
 
     override fun release() {
-        released.store(1)
         pipelineLock.withLock {
+            released.store(1)
             cameraManager?.unbindAll()
             poseLandmarker?.close()
             poseLandmarker = null
@@ -223,7 +227,7 @@ internal class MediaPipeBodyTracker(
         result: PoseLandmarkerResult,
         input: com.google.mediapipe.framework.image.MPImage,
     ) {
-        val timestampMs = SystemClock.elapsedRealtime()
+        val timestampMs = result.timestampMs()
 
         if (result.landmarks().isEmpty()) {
             _trackingData.tryEmit(BodyTrackingData.notTracking(timestampMs))

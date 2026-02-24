@@ -1,5 +1,6 @@
 package io.github.kmpfacelink.rive
 
+import io.github.kmpfacelink.ExperimentalFaceLinkApi
 import io.github.kmpfacelink.model.BlendShape
 import io.github.kmpfacelink.model.FaceTrackingData
 import io.github.kmpfacelink.model.valueOf
@@ -12,6 +13,7 @@ import io.github.kmpfacelink.model.valueOf
  *
  * Use [RiveMapperConfig] to rename, exclude, or extend inputs.
  */
+@ExperimentalFaceLinkApi
 public object RiveDefaultMappings {
 
     private const val HEAD_ROTATION_NORMALIZE = 30f

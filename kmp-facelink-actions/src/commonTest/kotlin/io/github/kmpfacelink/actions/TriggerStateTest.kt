@@ -33,7 +33,7 @@ class TriggerStateTest {
     @Test
     fun markConditionLost() {
         val state = TriggerState()
-        assertEquals(0L, state.conditionLostAt)
+        assertEquals(TriggerState.CONDITION_NOT_LOST, state.conditionLostAt)
         state.markConditionLost(200L)
         assertEquals(200L, state.conditionLostAt)
     }
@@ -49,7 +49,7 @@ class TriggerStateTest {
 
         assertEquals(TriggerState.Phase.IDLE, state.phase)
         assertEquals(0L, state.phaseEnteredAt)
-        assertEquals(0L, state.conditionLostAt)
+        assertEquals(TriggerState.CONDITION_NOT_LOST, state.conditionLostAt)
         assertFalse(state.conditionMet)
     }
 

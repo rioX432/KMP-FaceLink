@@ -59,9 +59,13 @@ public class ConversationHistory(
     }
 
     private fun trimToFit(messages: List<ChatMessage>, systemCount: Int): List<ChatMessage> {
+        var totalTokens = TokenCounter.estimate(messages)
+        if (totalTokens <= maxContextTokens) return messages
+
         val result = messages.toMutableList()
-        while (result.size > systemCount + 1 && TokenCounter.estimate(result) > maxContextTokens) {
-            result.removeAt(systemCount)
+        while (result.size > systemCount + 1 && totalTokens > maxContextTokens) {
+            val removed = result.removeAt(systemCount)
+            totalTokens -= TokenCounter.estimate(removed.content) + TokenCounter.ROLE_OVERHEAD
         }
         return result
     }

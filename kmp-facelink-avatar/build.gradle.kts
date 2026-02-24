@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.gradle.plugin.mpp.apple.XCFramework
+
 plugins {
     alias(libs.plugins.kotlin.multiplatform)
     alias(libs.plugins.android.kotlin.multiplatform.library)
@@ -17,6 +19,7 @@ kotlin {
         minSdk = 24
     }
 
+    val xcf = XCFramework("KMPFaceLinkAvatar")
     listOf(
         iosArm64(),
         iosSimulatorArm64(),
@@ -24,6 +27,7 @@ kotlin {
         target.binaries.framework {
             baseName = "KMPFaceLinkAvatar"
             isStatic = true
+            xcf.add(this)
         }
     }
 

@@ -17,16 +17,6 @@ kotlin {
         minSdk = 24
     }
 
-    listOf(
-        iosArm64(),
-        iosSimulatorArm64(),
-    ).forEach { target ->
-        target.binaries.framework {
-            baseName = "KMPFaceLinkRive"
-            isStatic = true
-        }
-    }
-
     sourceSets {
         commonMain.dependencies {
             api(project(":kmp-facelink"))

@@ -7,7 +7,41 @@ plugins {
     alias(libs.plugins.kotlin.serialization) apply false
     alias(libs.plugins.detekt)
     alias(libs.plugins.dokka)
+    alias(libs.plugins.nexus.publish)
 }
+
+nexusPublishing {
+    repositories {
+        sonatype {
+            nexusUrl.set(uri("https://s01.oss.sonatype.org/service/local/"))
+            snapshotRepositoryUrl.set(uri("https://s01.oss.sonatype.org/content/repositories/snapshots/"))
+            username.set(providers.environmentVariable("OSSRH_USERNAME"))
+            password.set(providers.environmentVariable("OSSRH_PASSWORD"))
+        }
+    }
+}
+
+val publishableModules = setOf(
+    "kmp-facelink",
+    "kmp-facelink-avatar",
+    "kmp-facelink-actions",
+    "kmp-facelink-effects",
+    "kmp-facelink-stream",
+    "kmp-facelink-voice",
+    "kmp-facelink-rive",
+    "kmp-facelink-llm",
+)
+
+val pomDescriptions = mapOf(
+    "kmp-facelink" to "Kotlin Multiplatform face, hand, and body tracking library",
+    "kmp-facelink-avatar" to "Live2D parameter mapping for KMP-FaceLink",
+    "kmp-facelink-actions" to "Gesture and expression trigger system for KMP-FaceLink",
+    "kmp-facelink-effects" to "Real-time face effects engine for KMP-FaceLink",
+    "kmp-facelink-stream" to "WebSocket streaming (VTubeStudio protocol) for KMP-FaceLink",
+    "kmp-facelink-voice" to "ASR, TTS, and lip sync for KMP-FaceLink",
+    "kmp-facelink-rive" to "Rive avatar integration for KMP-FaceLink",
+    "kmp-facelink-llm" to "LLM streaming API for KMP-FaceLink",
+)
 
 val detektFormatting = libs.detekt.formatting
 
@@ -43,6 +77,58 @@ subprojects {
 
     dependencies {
         detektPlugins(detektFormatting)
+    }
+
+    if (name in publishableModules) {
+        apply(plugin = "maven-publish")
+        apply(plugin = "signing")
+
+        group = property("GROUP").toString()
+        version = property("VERSION_NAME").toString()
+
+        val javadocJar by tasks.registering(Jar::class) {
+            archiveClassifier.set("javadoc")
+        }
+
+        afterEvaluate {
+            extensions.configure<PublishingExtension> {
+                publications.withType<MavenPublication>().configureEach {
+                    artifact(javadocJar)
+                    pom {
+                        name.set(this@subprojects.name)
+                        description.set(pomDescriptions[this@subprojects.name] ?: this@subprojects.name)
+                        url.set(property("POM_URL").toString())
+                        licenses {
+                            license {
+                                name.set(property("POM_LICENCE_NAME").toString())
+                                url.set(property("POM_LICENCE_URL").toString())
+                            }
+                        }
+                        developers {
+                            developer {
+                                id.set(property("POM_DEVELOPER_ID").toString())
+                                name.set(property("POM_DEVELOPER_NAME").toString())
+                            }
+                        }
+                        scm {
+                            url.set(property("POM_SCM_URL").toString())
+                            connection.set(property("POM_SCM_CONNECTION").toString())
+                            developerConnection.set(property("POM_SCM_DEV_CONNECTION").toString())
+                        }
+                    }
+                }
+            }
+
+            extensions.configure<SigningExtension> {
+                val signingKeyId = providers.environmentVariable("GPG_KEY_ID").orNull
+                val signingKey = providers.environmentVariable("GPG_KEY").orNull
+                val signingPassword = providers.environmentVariable("GPG_PASSPHRASE").orNull
+                if (signingKeyId != null) {
+                    useInMemoryPgpKeys(signingKeyId, signingKey, signingPassword)
+                    sign(extensions.getByType<PublishingExtension>().publications)
+                }
+            }
+        }
     }
 }
 
@@ -109,6 +195,8 @@ project(":kmp-facelink-stream") {
         detekt {
             source.setFrom(
                 "src/commonMain/kotlin",
+                "src/androidMain/kotlin",
+                "src/iosMain/kotlin",
                 "src/commonTest/kotlin",
             )
         }

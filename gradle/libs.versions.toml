@@ -16,6 +16,7 @@ serialization = "1.8.1"
 live2d = "1.0"
 rive = "9.11.2"
 androidxStartup = "1.2.0"
+nexusPublish = "2.0.0"
 
 [libraries]
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines" }
@@ -56,3 +57,4 @@ detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }
 dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }
 skie = { id = "co.touchlab.skie", version.ref = "skie" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
+nexus-publish = { id = "io.github.gradle-nexus.publish-plugin", version.ref = "nexusPublish" }

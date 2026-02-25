@@ -170,7 +170,7 @@ internal class Live2DGLRenderer(
     companion object {
         private const val TAG = "Live2DGLRenderer"
         private const val MS_PER_SEC = 1000f
-        const val DEFAULT_SCALE = 1.4f
+        const val DEFAULT_SCALE = 0.7f
         const val MIN_SCALE = 0.5f
         const val MAX_SCALE = 3.0f
     }

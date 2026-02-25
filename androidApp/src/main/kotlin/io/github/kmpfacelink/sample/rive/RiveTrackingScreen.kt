@@ -30,12 +30,14 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import app.rive.runtime.kotlin.RiveAnimationView
+import app.rive.runtime.kotlin.core.Rive
 import io.github.kmpfacelink.api.TrackingState
 import io.github.kmpfacelink.rive.AndroidRiveRenderer
 import io.github.kmpfacelink.rive.RiveDefaultMappings
@@ -63,9 +65,21 @@ internal fun RiveTrackingScreen(
     val isTracking = trackingState == TrackingState.TRACKING
     val mapper = remember { RiveDefaultMappings.createMapper() }
 
+    val context = LocalContext.current
+    val riveInitError = remember {
+        @Suppress("TooGenericExceptionCaught")
+        try {
+            Rive.init(context)
+            null
+        } catch (e: Throwable) {
+            e.message ?: "Rive native library unavailable"
+        }
+    }
+
     var frameCount by remember { mutableIntStateOf(0) }
     var riveRenderer by remember { mutableStateOf<AndroidRiveRenderer?>(null) }
     var driveJob by remember { mutableStateOf<Job?>(null) }
+    var riveLoadError by remember { mutableStateOf<String?>(null) }
 
     DisposableEffect(Unit) {
         onDispose {
@@ -93,18 +107,32 @@ internal fun RiveTrackingScreen(
                     .weight(1f),
                 contentAlignment = Alignment.Center,
             ) {
-                AndroidView(
-                    factory = { ctx ->
-                        RiveAnimationView(ctx).also { view ->
-                            val renderer = AndroidRiveRenderer(ctx, view)
-                            riveRenderer = renderer
-                            scope.launch {
-                                renderer.loadModel("sample_avatar", "State Machine 1")
+                val errorMsg = riveInitError ?: riveLoadError
+                if (errorMsg != null) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text("Rive Error", color = SampleColors.ErrorRed, fontSize = 16.sp)
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(errorMsg, color = SampleColors.TextSecondary, fontSize = 12.sp)
+                    }
+                } else {
+                    AndroidView(
+                        factory = { ctx ->
+                            RiveAnimationView(ctx).also { view ->
+                                val renderer = AndroidRiveRenderer(ctx, view)
+                                riveRenderer = renderer
+                                scope.launch {
+                                    @Suppress("TooGenericExceptionCaught")
+                                    try {
+                                        renderer.loadModel("sample_avatar", "State Machine 1")
+                                    } catch (e: Exception) {
+                                        riveLoadError = e.message ?: "Failed to load Rive model"
+                                    }
+                                }
                             }
-                        }
-                    },
-                    modifier = Modifier.fillMaxSize(),
-                )
+                        },
+                        modifier = Modifier.fillMaxSize(),
+                    )
+                }
             }
 
             // Controls and stats

@@ -153,7 +153,16 @@ internal fun VoiceTrackingScreen(
                             }
                         }
                         speakJob?.cancel()
-                        speakJob = scope.launch { newPipeline.speak(speakText).collect { } }
+                        speakJob = scope.launch {
+                            @Suppress("TooGenericExceptionCaught")
+                            try {
+                                newPipeline.speak(speakText).collect { }
+                            } catch (e: Exception) {
+                                pipelineState = VoicePipelineState.Error(
+                                    e.message ?: "Speak failed",
+                                )
+                            }
+                        }
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = SampleColors.Primary),
                 ) { Text("Speak") }

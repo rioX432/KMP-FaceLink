@@ -53,6 +53,7 @@ internal fun AvatarTrackingScreen(
     onResetTransform: () -> Unit,
     getScale: () -> Float,
     onDrag: (Float, Float) -> Unit,
+    onModeChange: (TrackingMode) -> Unit,
     onStartClick: () -> Unit,
     onStopClick: () -> Unit,
 ) {
@@ -79,6 +80,7 @@ internal fun AvatarTrackingScreen(
                 onStartClick = onStartClick,
                 onStopClick = onStopClick,
             )
+            ModeToggle(currentMode = TrackingMode.AVATAR, onModeChange = onModeChange)
 
             Spacer(modifier = Modifier.weight(1f))
 

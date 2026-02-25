@@ -29,13 +29,17 @@ import io.github.kmpfacelink.util.PlatformLock
 import io.github.kmpfacelink.util.TransformUtils
 import io.github.kmpfacelink.util.createSmoother
 import io.github.kmpfacelink.util.withLock
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.withContext
 import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
 import kotlin.concurrent.atomics.AtomicInt
 import kotlin.concurrent.atomics.ExperimentalAtomicApi
 
@@ -110,24 +114,43 @@ internal class MediaPipeFaceTracker(
     }
 
     override suspend fun stop() {
+        var landmarkerToClose: FaceLandmarker? = null
         pipelineLock.withLock {
-            cameraManager?.unbindAll()
-            faceLandmarker?.close()
-            faceLandmarker = null
             _state.value = TrackingState.STOPPED
+            landmarkerToClose = faceLandmarker
+            faceLandmarker = null
+            cameraManager?.unbindAll()
+        }
+        // Drain any in-flight frame processing on the analysis executor
+        if (cameraManager != null) {
+            @Suppress("TooGenericExceptionCaught")
+            try {
+                withContext(Dispatchers.IO) { analysisExecutor.submit {}.get() }
+            } catch (_: Exception) { /* executor may be shut down */ }
+        }
+        // Allow final async detection result from MediaPipe to be delivered
+        if (landmarkerToClose != null) {
+            delay(STOP_DRAIN_DELAY_MS)
+            landmarkerToClose.close()
         }
     }
 
     override fun release() {
+        var landmarkerToClose: FaceLandmarker? = null
         pipelineLock.withLock {
             released.store(1)
-            cameraManager?.unbindAll()
-            faceLandmarker?.close()
-            faceLandmarker = null
-            imageConverter.release()
-            analysisExecutor.shutdown()
             _state.value = TrackingState.RELEASED
+            landmarkerToClose = faceLandmarker
+            faceLandmarker = null
+            cameraManager?.unbindAll()
+            imageConverter.release()
         }
+        analysisExecutor.shutdown()
+        @Suppress("TooGenericExceptionCaught")
+        try {
+            analysisExecutor.awaitTermination(RELEASE_TIMEOUT_MS, TimeUnit.MILLISECONDS)
+        } catch (_: Exception) { /* best-effort */ }
+        landmarkerToClose?.close()
     }
 
     override fun resetCalibration() {
@@ -338,5 +361,7 @@ internal class MediaPipeFaceTracker(
     companion object {
         private const val TAG = "MediaPipeFaceTracker"
         private const val MODEL_ASSET_PATH = "models/face_landmarker_v2_with_blendshapes.task"
+        private const val STOP_DRAIN_DELAY_MS = 100L
+        private const val RELEASE_TIMEOUT_MS = 500L
     }
 }

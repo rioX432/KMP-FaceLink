@@ -221,6 +221,7 @@ class MainActivity : ComponentActivity() {
                 onResetTransform = cb?.resetTransform ?: {},
                 getScale = cb?.getScale ?: { 1f },
                 onDrag = cb?.drag ?: { _, _ -> },
+                onModeChange = onModeChange,
                 onStartClick = onStartClick,
                 onStopClick = onStopClick,
             )

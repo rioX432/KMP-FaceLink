@@ -33,8 +33,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
@@ -211,16 +215,37 @@ private fun EffectToggles(
 
 @Composable
 private fun AnchorOverlay(output: EffectOutput, modifier: Modifier = Modifier) {
+    val textMeasurer = rememberTextMeasurer()
     Canvas(modifier = modifier) {
         val viewW = size.width
         val viewH = size.height
         for ((id, anchor) in output.anchors) {
             val px = anchor.position.x * viewW
             val py = anchor.position.y * viewH
+            // Outer glow ring
+            drawCircle(
+                color = SampleColors.LandmarkEye.copy(alpha = 0.3f),
+                radius = 16.dp.toPx(),
+                center = Offset(px, py),
+            )
+            // Inner dot
             drawCircle(
                 color = SampleColors.LandmarkEye,
                 radius = 8.dp.toPx(),
                 center = Offset(px, py),
+            )
+            // Label
+            val label = textMeasurer.measure(
+                text = id,
+                style = TextStyle(
+                    color = Color.White,
+                    fontSize = 10.sp,
+                    fontFamily = FontFamily.Monospace,
+                ),
+            )
+            drawText(
+                textLayoutResult = label,
+                topLeft = Offset(px + 12.dp.toPx(), py - label.size.height / 2f),
             )
         }
     }

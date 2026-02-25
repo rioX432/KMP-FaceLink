@@ -138,4 +138,12 @@ On completion, update status to `DONE` and close the corresponding GitHub Issue.
 | 104 | [Sample app quality](https://github.com/rioX432/KMP-FaceLink/issues/104) | DONE | Compose state, theme, voice mode refs |
 | 105 | [Code quality and tech debt](https://github.com/rioX432/KMP-FaceLink/issues/105) | DONE | Duplication, lazy properties, test helpers |
 
+## Phase 5: Platform Parity
+
+| # | Issue | Status | Summary |
+|---|-------|--------|---------|
+| 108 | [iOS WhisperCpp cinterop setup](https://github.com/rioX432/KMP-FaceLink/issues/108) | DONE | Complete cinterop bindings for on-device ASR on iOS |
+| 109 | [iOS Rive renderer Kotlin bridge](https://github.com/rioX432/KMP-FaceLink/issues/109) | TODO | Add RiveRenderer iOS actual implementation |
+| 110 | [iOS Live2D renderer Kotlin bridge](https://github.com/rioX432/KMP-FaceLink/issues/110) | TODO | Add Live2DRenderer iOS actual implementation |
+
 Note: Commercial app (Mobile-LLM-VTuber) is tracked in its own private repo.

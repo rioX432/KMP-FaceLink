@@ -4,7 +4,7 @@ Strictly follow the rules in [AGENTS.md](./AGENTS.md).
 
 ## Language
 
-- **All generated content must be in English**: code, comments, commit messages, PR titles/descriptions, documentation, and TASKS.md entries.
+- **All generated content must be in English**: code, comments, commit messages, PR titles/descriptions, and documentation.
 - The only exception is conversation with the user (follow the user's language preference).
 
 ## Design & Planning Workflow
@@ -21,8 +21,7 @@ When designing, planning, or making implementation decisions:
 
 ## Task Management
 
-- **Read [TASKS.md](./TASKS.md) at the start of every session**
-- Pick the next TODO task (highest priority among status = TODO) before starting work
-- On task completion, do both:
-  1. Update the task's status to `DONE` in `TASKS.md`
-  2. Close the corresponding GitHub Issue (`gh issue close <number>`)
+- Use GitHub Issues as the single source of truth for task tracking
+- At the start of each session, check open issues: `gh issue list --state open`
+- Pick the next issue by priority (labels, milestone, or issue number order)
+- On completion, close the issue: `gh issue close <number>`

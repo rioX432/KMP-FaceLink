@@ -24,15 +24,28 @@ kotlin {
         minSdk = 24
     }
 
+    val whisperDir = rootProject.file("whisper/ios")
+    val whisperInclude = whisperDir.resolve("include")
+
     val xcf = XCFramework("KMPFaceLinkVoice")
     listOf(
-        iosArm64(),
-        iosSimulatorArm64(),
-    ).forEach { target ->
+        iosArm64() to "device",
+        iosSimulatorArm64() to "simulator",
+    ).forEach { (target, platform) ->
         target.binaries.framework {
             baseName = "KMPFaceLinkVoice"
             isStatic = true
             xcf.add(this)
+        }
+        target.compilations.getByName("main") {
+            val whisperLib = whisperDir.resolve(platform)
+            if (whisperLib.resolve("libwhisper_all.a").exists()) {
+                cinterops.create("whisper") {
+                    definitionFile.set(project.file("src/iosMain/interop/whisper.def"))
+                    includeDirs(whisperInclude)
+                    extraOpts("-libraryPath", whisperLib.absolutePath)
+                }
+            }
         }
     }
 

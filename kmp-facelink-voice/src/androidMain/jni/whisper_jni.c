@@ -41,14 +41,18 @@ Java_io_github_kmpfacelink_voice_asr_internal_WhisperCppBridge_nativeTranscribe(
     params.n_threads = threads;
     params.single_segment = 1;
 
+    const char *lang = NULL;
     if (language != NULL) {
-        const char *lang = (*env)->GetStringUTFChars(env, language, NULL);
+        lang = (*env)->GetStringUTFChars(env, language, NULL);
         params.language = lang;
-        /* Note: lang pointer must remain valid during whisper_full */
     }
 
     whisper_full(ctx, params, data, n_samples);
     (*env)->ReleaseFloatArrayElements(env, samples, data, JNI_ABORT);
+
+    if (lang != NULL) {
+        (*env)->ReleaseStringUTFChars(env, language, lang);
+    }
 
     /* Collect all segments into one string */
     int n_segments = whisper_full_n_segments(ctx);

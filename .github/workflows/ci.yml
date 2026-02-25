@@ -45,6 +45,9 @@ jobs:
           key: konan-${{ runner.os }}-${{ hashFiles('gradle/libs.versions.toml') }}
           restore-keys: konan-${{ runner.os }}-
 
+      - name: Setup whisper.cpp for iOS
+        run: ./scripts/setup-whisper-ios.sh
+
       - run: ./gradlew :kmp-facelink:allTests :kmp-facelink-avatar:allTests :kmp-facelink-actions:allTests :kmp-facelink-effects:allTests :kmp-facelink-live2d:allTests :kmp-facelink-stream:allTests :kmp-facelink-voice:allTests :kmp-facelink-rive:allTests :kmp-facelink-llm:allTests
 
   build:

@@ -1,8 +1,6 @@
 package = whisper
 headers = whisper.h
+headerFilter = whisper.h
+staticLibraries = libwhisper_all.a
 
-# Path to whisper.cpp header and static library
-# These will be configured via build.gradle.kts cinterops block
-# headerFilter = whisper.h
-# staticLibraries = libwhisper.a
-# libraryPaths = /path/to/whisper/lib
+linkerOpts = -lc++ -framework Foundation -framework Metal -framework Accelerate -framework MetalKit

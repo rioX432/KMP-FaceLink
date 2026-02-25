@@ -20,6 +20,11 @@ progress.txt
 # MediaPipe model files (downloaded at build time)
 *.task
 
+# whisper.cpp source and build artifacts (downloaded via scripts/setup-whisper-ios.sh)
+/whisper.cpp/
+/whisper/
+/build-whisper-ios-*/
+
 # Live2D SDK and model files (downloaded via scripts/setup-live2d.sh)
 /live2d/
 /kmp-facelink-live2d/build

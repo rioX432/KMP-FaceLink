@@ -5,7 +5,7 @@ project(whisper_jni)
 set(WHISPER_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../../../whisper.cpp"
     CACHE PATH "Path to whisper.cpp source directory")
 
-if(NOT EXISTS "${WHISPER_DIR}/whisper.h")
+if(NOT EXISTS "${WHISPER_DIR}/include/whisper.h")
     message(FATAL_ERROR
         "whisper.cpp not found at ${WHISPER_DIR}. "
         "Clone https://github.com/ggerganov/whisper.cpp and set WHISPER_DIR.")
@@ -13,17 +13,21 @@ endif()
 
 # Build whisper.cpp as static library
 add_library(whisper STATIC
-    ${WHISPER_DIR}/whisper.cpp
+    ${WHISPER_DIR}/src/whisper.cpp
     ${WHISPER_DIR}/ggml/src/ggml.c
     ${WHISPER_DIR}/ggml/src/ggml-alloc.c
-    ${WHISPER_DIR}/ggml/src/ggml-backend.c
+    ${WHISPER_DIR}/ggml/src/ggml-backend.cpp
+    ${WHISPER_DIR}/ggml/src/ggml-backend-reg.cpp
     ${WHISPER_DIR}/ggml/src/ggml-quants.c
+    ${WHISPER_DIR}/ggml/src/ggml-cpu/ggml-cpu.c
+    ${WHISPER_DIR}/ggml/src/ggml-cpu/ggml-cpu.cpp
 )
 
 target_include_directories(whisper PUBLIC
-    ${WHISPER_DIR}
+    ${WHISPER_DIR}/include
     ${WHISPER_DIR}/ggml/include
     ${WHISPER_DIR}/ggml/src
+    ${WHISPER_DIR}/ggml/src/ggml-cpu
 )
 
 target_compile_options(whisper PRIVATE
@@ -40,7 +44,7 @@ endif()
 add_library(whisper_jni SHARED whisper_jni.c)
 
 target_include_directories(whisper_jni PRIVATE
-    ${WHISPER_DIR}
+    ${WHISPER_DIR}/include
 )
 
 target_link_libraries(whisper_jni

@@ -4,6 +4,9 @@ import io.github.kmpfacelink.voice.AudioConstants
 import io.github.kmpfacelink.voice.audio.AudioData
 import kotlin.math.sqrt
 private const val BITS_PER_BYTE = 8
+private const val BYTES_PER_SAMPLE_8BIT = 1
+private const val BYTES_PER_SAMPLE_16BIT = 2
+private const val BYTE_MASK = 0xFF
 
 /**
  * Analyzes audio data to extract amplitude envelope.
@@ -54,7 +57,6 @@ internal object AmplitudeAnalyzer {
      */
     fun frameDurationMs(targetFps: Int): Long = AudioConstants.MILLIS_PER_SECOND / targetFps
 
-    @Suppress("MagicNumber")
     private fun computeRms(
         bytes: ByteArray,
         startSample: Int,
@@ -66,13 +68,13 @@ internal object AmplitudeAnalyzer {
 
         for (i in startSample until endSample) {
             val sample = when (bytesPerSample) {
-                1 -> bytes[i].toFloat() / Byte.MAX_VALUE
-                2 -> {
-                    val offset = i * 2
+                BYTES_PER_SAMPLE_8BIT -> bytes[i].toFloat() / Byte.MAX_VALUE
+                BYTES_PER_SAMPLE_16BIT -> {
+                    val offset = i * BYTES_PER_SAMPLE_16BIT
                     if (offset + 1 < bytes.size) {
-                        val lo = bytes[offset].toInt() and 0xFF
+                        val lo = bytes[offset].toInt() and BYTE_MASK
                         val hi = bytes[offset + 1].toInt()
-                        val int16 = (hi shl 8) or lo
+                        val int16 = (hi shl BITS_PER_BYTE) or lo
                         int16.toFloat() / Short.MAX_VALUE
                     } else {
                         0f

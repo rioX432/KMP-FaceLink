@@ -31,6 +31,7 @@ import platform.Foundation.appendBytes
 import platform.posix.memcpy
 
 private const val BUFFER_SIZE = 4096u
+private const val BYTE_MASK = 0xFF
 
 /**
  * iOS [AudioRecorder] implementation using [AVAudioEngine].
@@ -136,7 +137,6 @@ internal class PlatformAudioRecorder : AudioRecorder {
         _isRecording.value = false
     }
 
-    @Suppress("MagicNumber")
     private fun processBuffer(buffer: AVAudioPCMBuffer) {
         val frameLength = buffer.frameLength.toInt()
         if (frameLength == 0) return
@@ -148,7 +148,7 @@ internal class PlatformAudioRecorder : AudioRecorder {
             val bytes = ByteArray(byteCount)
             for (i in 0 until frameLength) {
                 val sample = channelData.get(i)
-                bytes[i * AudioConstants.BYTES_PER_INT16] = (sample.toInt() and 0xFF).toByte()
+                bytes[i * AudioConstants.BYTES_PER_INT16] = (sample.toInt() and BYTE_MASK).toByte()
                 bytes[i * AudioConstants.BYTES_PER_INT16 + 1] = (sample.toInt() shr Byte.SIZE_BITS).toByte()
             }
             bytes.usePinned { pinned ->

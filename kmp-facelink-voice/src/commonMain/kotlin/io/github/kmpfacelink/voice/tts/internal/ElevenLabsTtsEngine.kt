@@ -24,6 +24,14 @@ import kotlinx.serialization.json.Json
 
 private const val ELEVENLABS_API_URL = "https://api.elevenlabs.io/v1/text-to-speech"
 
+// Base64 decoding constants
+private const val BASE64_GROUP_SIZE = 4
+private const val BASE64_LOW_NIBBLE_MASK = 0x0F
+private const val BASE64_LOW_TWO_BITS_MASK = 0x03
+private const val BASE64_SHIFT_2 = 2
+private const val BASE64_SHIFT_4 = 4
+private const val BASE64_SHIFT_6 = 6
+
 /**
  * ElevenLabs TTS engine with character-level timestamp support.
  *
@@ -135,7 +143,6 @@ internal class ElevenLabsTtsEngine(private val config: TtsConfig.ElevenLabs) : T
         return totalSamples.toLong() * AudioConstants.MILLIS_PER_SECOND / format.sampleRate
     }
 
-    @Suppress("MagicNumber")
     private fun decodeBase64(encoded: String): ByteArray {
         val table = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
         val clean = encoded.filter { it in table || it == '=' }
@@ -148,11 +155,11 @@ internal class ElevenLabsTtsEngine(private val config: TtsConfig.ElevenLabs) : T
             val b2 = if (i + 2 < clean.length && clean[i + 2] != '=') table.indexOf(clean[i + 2]) else -1
             val b3 = if (i + 3 < clean.length && clean[i + 3] != '=') table.indexOf(clean[i + 3]) else -1
 
-            output.add(((b0 shl 2) or (b1 shr 4)).toByte())
-            if (b2 >= 0) output.add((((b1 and 0x0F) shl 4) or (b2 shr 2)).toByte())
-            if (b3 >= 0) output.add((((b2 and 0x03) shl 6) or b3).toByte())
+            output.add(((b0 shl BASE64_SHIFT_2) or (b1 shr BASE64_SHIFT_4)).toByte())
+            if (b2 >= 0) output.add((((b1 and BASE64_LOW_NIBBLE_MASK) shl BASE64_SHIFT_4) or (b2 shr BASE64_SHIFT_2)).toByte())
+            if (b3 >= 0) output.add((((b2 and BASE64_LOW_TWO_BITS_MASK) shl BASE64_SHIFT_6) or b3).toByte())
 
-            i += 4
+            i += BASE64_GROUP_SIZE
         }
 
         return output.toByteArray()

@@ -19,6 +19,17 @@ import platform.Foundation.create
 
 private const val POLL_INTERVAL_MS = 50L
 
+// WAV format constants
+private const val BYTE_MASK = 0xFF
+private const val BITS_PER_BYTE = 8
+private const val WAV_HEADER_SIZE = 44
+private const val WAV_EXTRA_HEADER_BYTES = 36
+private const val WAV_FMT_CHUNK_SIZE = 16
+private const val WAV_PCM_FORMAT = 1
+private const val BIT_SHIFT_8 = 8
+private const val BIT_SHIFT_16 = 16
+private const val BIT_SHIFT_24 = 24
+
 /**
  * iOS [AudioPlayer] implementation using [AVAudioPlayer].
  */
@@ -71,14 +82,13 @@ internal class PlatformAudioPlayer : AudioPlayer {
         stop()
     }
 
-    @Suppress("MagicNumber")
     private fun createWavData(audio: AudioData): ByteArray {
         val dataSize = audio.bytes.size
-        val fileSize = dataSize + 36
-        val byteRate = audio.format.sampleRate * audio.format.channels * audio.format.bitsPerSample / 8
-        val blockAlign = audio.format.channels * audio.format.bitsPerSample / 8
+        val fileSize = dataSize + WAV_EXTRA_HEADER_BYTES
+        val byteRate = audio.format.sampleRate * audio.format.channels * audio.format.bitsPerSample / BITS_PER_BYTE
+        val blockAlign = audio.format.channels * audio.format.bitsPerSample / BITS_PER_BYTE
 
-        val header = ByteArray(44)
+        val header = ByteArray(WAV_HEADER_SIZE)
         // RIFF header
         header[0] = 'R'.code.toByte()
         header[1] = 'I'.code.toByte()
@@ -95,8 +105,8 @@ internal class PlatformAudioPlayer : AudioPlayer {
         header[13] = 'm'.code.toByte()
         header[14] = 't'.code.toByte()
         header[15] = ' '.code.toByte()
-        writeInt32LE(header, 16, 16)
-        writeInt16LE(header, 20, 1) // PCM format
+        writeInt32LE(header, 16, WAV_FMT_CHUNK_SIZE)
+        writeInt16LE(header, 20, WAV_PCM_FORMAT)
         writeInt16LE(header, 22, audio.format.channels)
         writeInt32LE(header, 24, audio.format.sampleRate)
         writeInt32LE(header, 28, byteRate)
@@ -113,17 +123,15 @@ internal class PlatformAudioPlayer : AudioPlayer {
         return header + audio.bytes
     }
 
-    @Suppress("MagicNumber")
     private fun writeInt32LE(buffer: ByteArray, offset: Int, value: Int) {
-        buffer[offset] = (value and 0xFF).toByte()
-        buffer[offset + 1] = ((value shr 8) and 0xFF).toByte()
-        buffer[offset + 2] = ((value shr 16) and 0xFF).toByte()
-        buffer[offset + 3] = ((value shr 24) and 0xFF).toByte()
+        buffer[offset] = (value and BYTE_MASK).toByte()
+        buffer[offset + 1] = ((value shr BIT_SHIFT_8) and BYTE_MASK).toByte()
+        buffer[offset + 2] = ((value shr BIT_SHIFT_16) and BYTE_MASK).toByte()
+        buffer[offset + 3] = ((value shr BIT_SHIFT_24) and BYTE_MASK).toByte()
     }
 
-    @Suppress("MagicNumber")
     private fun writeInt16LE(buffer: ByteArray, offset: Int, value: Int) {
-        buffer[offset] = (value and 0xFF).toByte()
-        buffer[offset + 1] = ((value shr 8) and 0xFF).toByte()
+        buffer[offset] = (value and BYTE_MASK).toByte()
+        buffer[offset + 1] = ((value shr BIT_SHIFT_8) and BYTE_MASK).toByte()
     }
 }

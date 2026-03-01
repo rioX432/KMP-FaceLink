@@ -44,8 +44,7 @@ internal class ImageProxyConverter {
 
         val outWidth: Int
         val outHeight: Int
-        @Suppress("MagicNumber")
-        if (rotationDegrees == 90 || rotationDegrees == 270) {
+        if (rotationDegrees == ROTATION_90 || rotationDegrees == ROTATION_270) {
             outWidth = fullHeight
             outHeight = fullWidth
         } else {
@@ -128,5 +127,10 @@ internal class ImageProxyConverter {
         packedBufferCapacity = 0
         rowData = null
         rowDataCapacity = 0
+    }
+
+    private companion object {
+        const val ROTATION_90 = 90
+        const val ROTATION_270 = 270
     }
 }

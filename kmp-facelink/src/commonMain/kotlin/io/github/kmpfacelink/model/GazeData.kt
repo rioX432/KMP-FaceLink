@@ -21,8 +21,8 @@ public data class GazeData(
     val rightEyePitch: Float = 0f,
 ) {
     /** Average horizontal gaze angle (both eyes). */
-    val combinedYaw: Float get() = (leftEyeYaw + rightEyeYaw) / 2f
+    public val combinedYaw: Float get() = (leftEyeYaw + rightEyeYaw) / 2f
 
     /** Average vertical gaze angle (both eyes). */
-    val combinedPitch: Float get() = (leftEyePitch + rightEyePitch) / 2f
+    public val combinedPitch: Float get() = (leftEyePitch + rightEyePitch) / 2f
 }

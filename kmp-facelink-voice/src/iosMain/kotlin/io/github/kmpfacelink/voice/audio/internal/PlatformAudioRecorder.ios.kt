@@ -5,9 +5,14 @@ import io.github.kmpfacelink.voice.audio.AudioData
 import io.github.kmpfacelink.voice.audio.AudioFormat
 import io.github.kmpfacelink.voice.audio.AudioRecorder
 import kotlinx.cinterop.ExperimentalForeignApi
+import kotlinx.cinterop.ObjCObjectVar
 import kotlinx.cinterop.addressOf
+import kotlinx.cinterop.alloc
 import kotlinx.cinterop.get
+import kotlinx.cinterop.memScoped
+import kotlinx.cinterop.ptr
 import kotlinx.cinterop.usePinned
+import kotlinx.cinterop.value
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -19,7 +24,9 @@ import platform.AVFAudio.AVAudioPCMBuffer
 import platform.AVFAudio.AVAudioSession
 import platform.AVFAudio.AVAudioSessionCategoryRecord
 import platform.AVFAudio.setActive
+import platform.Foundation.NSError
 import platform.Foundation.NSMutableData
+import platform.Foundation.NSRecursiveLock
 import platform.Foundation.appendBytes
 import platform.posix.memcpy
 
@@ -41,13 +48,24 @@ internal class PlatformAudioRecorder : AudioRecorder {
     private var recordedData = NSMutableData()
     private var currentFormat = AudioFormat()
 
+    /** Guards [recordedData] against concurrent access from the AVAudioEngine callback thread. */
+    private val dataLock = NSRecursiveLock()
+
     override suspend fun start(format: AudioFormat) {
         if (_isRecording.value) return
         currentFormat = format
 
         val session = AVAudioSession.sharedInstance()
         session.setCategory(AVAudioSessionCategoryRecord, null)
-        session.setActive(true, null)
+
+        memScoped {
+            val sessionErr = alloc<ObjCObjectVar<NSError?>>()
+            val sessionOk = session.setActive(true, sessionErr.ptr)
+            if (!sessionOk) {
+                val msg = sessionErr.value?.localizedDescription ?: "Failed to activate AVAudioSession"
+                throw IllegalStateException(msg)
+            }
+        }
 
         val engine = AVAudioEngine()
         audioEngine = engine
@@ -55,14 +73,28 @@ internal class PlatformAudioRecorder : AudioRecorder {
         val inputNode = engine.inputNode
         val inputFormat = inputNode.outputFormatForBus(0u)
 
-        recordedData = NSMutableData()
+        dataLock.lock()
+        try {
+            recordedData = NSMutableData()
+        } finally {
+            dataLock.unlock()
+        }
 
         inputNode.installTapOnBus(0u, BUFFER_SIZE, inputFormat) { buffer, _ ->
             buffer?.let { processBuffer(it) }
         }
 
         engine.prepare()
-        engine.startAndReturnError(null)
+
+        memScoped {
+            val engineErr = alloc<ObjCObjectVar<NSError?>>()
+            val engineOk = engine.startAndReturnError(engineErr.ptr)
+            if (!engineOk) {
+                val msg = engineErr.value?.localizedDescription ?: "Failed to start AVAudioEngine"
+                throw IllegalStateException(msg)
+            }
+        }
+
         _isRecording.value = true
     }
 
@@ -73,12 +105,21 @@ internal class PlatformAudioRecorder : AudioRecorder {
         audioEngine?.stop()
         _isRecording.value = false
 
-        val length = recordedData.length.toInt()
+        dataLock.lock()
+        val length: Int
+        val snapshot: NSMutableData
+        try {
+            length = recordedData.length.toInt()
+            snapshot = recordedData
+        } finally {
+            dataLock.unlock()
+        }
+
         if (length == 0) return null
 
         val bytes = ByteArray(length)
         bytes.usePinned { pinned ->
-            memcpy(pinned.addressOf(0), recordedData.bytes, length.toULong())
+            memcpy(pinned.addressOf(0), snapshot.bytes, length.toULong())
         }
 
         val bytesPerSample = currentFormat.bitsPerSample / Byte.SIZE_BITS
@@ -111,7 +152,12 @@ internal class PlatformAudioRecorder : AudioRecorder {
                 bytes[i * AudioConstants.BYTES_PER_INT16 + 1] = (sample.toInt() shr Byte.SIZE_BITS).toByte()
             }
             bytes.usePinned { pinned ->
-                recordedData.appendBytes(pinned.addressOf(0), byteCount.toULong())
+                dataLock.lock()
+                try {
+                    recordedData.appendBytes(pinned.addressOf(0), byteCount.toULong())
+                } finally {
+                    dataLock.unlock()
+                }
             }
             _audioChunks.tryEmit(bytes)
         }

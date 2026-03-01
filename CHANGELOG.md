@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.1.0] - 2026-03-01
+
 ### Added
 - Add iOS whisper.cpp cinterop for on-device ASR (ea6b68f)
 - Add kmp-facelink-llm module: LLM streaming API for OpenAI, Anthropic, Gemini (d76b5ae)

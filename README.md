@@ -202,6 +202,8 @@ See [CHANGELOG.md](CHANGELOG.md) for release history.
 
 All 9 modules implemented. Sample apps with 8 demo modes on both platforms.
 
+See the full [Roadmap](docs/ROADMAP.md) for planned features.
+
 ## Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.

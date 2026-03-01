@@ -10,6 +10,11 @@ import io.github.kmpfacelink.model.Handedness
 /**
  * A face effect definition. Each subtype describes how tracking data maps to output parameters.
  *
+ * **Stability policy:**
+ * - [AnchorEffect], [ExpressionEffect], [HandEffect], and [TransformEffect] are stable API.
+ * - [AmbientEffect] is marked [io.github.kmpfacelink.ExperimentalFaceLinkApi] and may change
+ *   in future releases. Opt in with `@OptIn(ExperimentalFaceLinkApi::class)`.
+ *
  * @property id Unique identifier for this effect (used as key prefix in output)
  * @property enabled Whether this effect is active
  */

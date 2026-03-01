@@ -43,7 +43,7 @@ public class VoicePipeline(
     ttsEngine: TtsEngine? = null,
     asrEngine: AsrEngine? = null,
     lipSyncEngine: LipSyncEngine? = null,
-) {
+) : AutoCloseable {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 
     private val _state = MutableStateFlow<VoicePipelineState>(VoicePipelineState.Idle)
@@ -100,8 +100,9 @@ public class VoicePipeline(
             scope.launch {
                 try {
                     audioPlayer.play(result.audio)
-                } finally {
                     _state.value = VoicePipelineState.Idle
+                } catch (e: Exception) {
+                    _state.value = VoicePipelineState.Error("Audio playback failed: ${e.message}")
                 }
             }
         } else {
@@ -121,9 +122,14 @@ public class VoicePipeline(
         val engine = asr ?: error("ASR not configured")
         val recorder = audioRecorder ?: error("AudioRecorder not provided")
 
-        _state.value = VoicePipelineState.Listening
-        recorder.start()
-        engine.startListening()
+        try {
+            recorder.start()
+            engine.startListening()
+            _state.value = VoicePipelineState.Listening
+        } catch (e: Exception) {
+            _state.value = VoicePipelineState.Error("Failed to start listening: ${e.message}")
+            throw e
+        }
 
         transcriptionCollectorJob?.cancel()
         transcriptionCollectorJob = scope.launch {
@@ -150,12 +156,20 @@ public class VoicePipeline(
         return result
     }
 
-    /** Releases all resources held by the pipeline. */
+    /**
+     * Releases all resources held by the pipeline.
+     *
+     * Ensures all engines and I/O components are cleaned up even if individual
+     * [release] calls throw. Equivalent to [close].
+     */
     public fun release() {
         scope.cancel()
-        tts.release()
-        asr?.release()
-        audioRecorder?.release()
-        audioPlayer?.release()
+        runCatching { tts.release() }
+        runCatching { asr?.release() }
+        runCatching { audioRecorder?.release() }
+        runCatching { audioPlayer?.release() }
     }
+
+    /** Alias for [release] — allows use in try-with-resources / [use] blocks. */
+    override fun close(): Unit = release()
 }

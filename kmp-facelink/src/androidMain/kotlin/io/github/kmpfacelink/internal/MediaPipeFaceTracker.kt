@@ -1,5 +1,6 @@
 package io.github.kmpfacelink.internal
 
+import android.content.pm.PackageManager
 import android.os.SystemClock
 import android.util.Log
 import androidx.camera.core.ImageAnalysis
@@ -40,6 +41,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.withContext
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicReference
 import kotlin.concurrent.atomics.AtomicInt
 import kotlin.concurrent.atomics.ExperimentalAtomicApi
 
@@ -77,8 +79,7 @@ internal class MediaPipeFaceTracker(
     private var previewSurfaceProvider: Preview.SurfaceProvider? = null
 
     /** Bitmap currently being processed by MediaPipe (independent camera path only). */
-    @Volatile
-    private var inFlightBitmap: android.graphics.Bitmap? = null
+    private val inFlightBitmap = AtomicReference<android.graphics.Bitmap?>(null)
 
     @Volatile
     private var lastImageWidth: Int = 0
@@ -91,6 +92,10 @@ internal class MediaPipeFaceTracker(
     }
 
     override suspend fun start() {
+        if (!platformContext.context.packageManager.hasSystemFeature(PackageManager.FEATURE_CAMERA_FRONT)) {
+            throw UnsupportedOperationException("No front camera available")
+        }
+
         pipelineLock.withLock {
             check(released.load() == 0) { "Cannot start a released tracker" }
             if (_state.value == TrackingState.TRACKING || _state.value == TrackingState.STARTING) return
@@ -130,7 +135,7 @@ internal class MediaPipeFaceTracker(
         }
         // Allow final async detection result from MediaPipe to be delivered
         if (landmarkerToClose != null) {
-            delay(STOP_DRAIN_DELAY_MS)
+            delay(config.stopDrainDelayMs)
             landmarkerToClose.close()
         }
     }
@@ -148,7 +153,7 @@ internal class MediaPipeFaceTracker(
         analysisExecutor.shutdown()
         @Suppress("TooGenericExceptionCaught")
         try {
-            analysisExecutor.awaitTermination(RELEASE_TIMEOUT_MS, TimeUnit.MILLISECONDS)
+            analysisExecutor.awaitTermination(config.releaseTimeoutMs, TimeUnit.MILLISECONDS)
         } catch (_: Exception) { /* best-effort */ }
         landmarkerToClose?.close()
     }
@@ -181,7 +186,7 @@ internal class MediaPipeFaceTracker(
 
     private fun createLandmarker(delegate: Delegate): FaceLandmarker {
         val baseOptions = BaseOptions.builder()
-            .setModelAssetPath(MODEL_ASSET_PATH)
+            .setModelAssetPath(config.modelAssetPath)
             .setDelegate(delegate)
             .build()
 
@@ -263,15 +268,16 @@ internal class MediaPipeFaceTracker(
         val timestampMs = SystemClock.elapsedRealtime()
 
         // Track the bitmap — it will be returned in the result callback
-        inFlightBitmap = bitmap
+        inFlightBitmap.set(bitmap)
 
         try {
             landmarker.detectAsync(mpImage, timestampMs)
         } catch (e: Exception) {
             Log.w(TAG, "detectAsync failed", e)
-            // No result callback will fire — return bitmap now
-            inFlightBitmap = null
-            imageConverter.returnBitmap(bitmap)
+            // No result callback will fire — return bitmap now if we still own it
+            if (inFlightBitmap.compareAndSet(bitmap, null)) {
+                imageConverter.returnBitmap(bitmap)
+            }
         }
 
         imageProxy.close()
@@ -285,8 +291,7 @@ internal class MediaPipeFaceTracker(
         if (sharedCameraSession != null) {
             sharedCameraSession.returnInFlightBitmap(result.timestampMs())
         } else {
-            inFlightBitmap?.let { imageConverter.returnBitmap(it) }
-            inFlightBitmap = null
+            inFlightBitmap.getAndSet(null)?.let { imageConverter.returnBitmap(it) }
         }
 
         val timestampMs = result.timestampMs()
@@ -360,8 +365,5 @@ internal class MediaPipeFaceTracker(
 
     companion object {
         private const val TAG = "MediaPipeFaceTracker"
-        private const val MODEL_ASSET_PATH = "models/face_landmarker_v2_with_blendshapes.task"
-        private const val STOP_DRAIN_DELAY_MS = 100L
-        private const val RELEASE_TIMEOUT_MS = 500L
     }
 }

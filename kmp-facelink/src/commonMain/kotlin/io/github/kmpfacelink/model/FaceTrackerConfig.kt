@@ -11,12 +11,23 @@ package io.github.kmpfacelink.model
  *           to disable. Has no effect on iOS (ARKit).
  * @property enableCalibration Enable per-session calibration (default: false)
  * @property cameraFacing Which camera to use
+ * @property modelAssetPath Path to the MediaPipe face landmarker model asset relative to the
+ *           Android assets directory. Has no effect on iOS (ARKit). Override to use a custom or
+ *           updated model bundle.
+ * @property stopDrainDelayMs Milliseconds to wait after unbinding the camera before closing the
+ *           MediaPipe landmarker, allowing any in-flight async detection result to be delivered.
+ *           Android only.
+ * @property releaseTimeoutMs Maximum milliseconds to wait for the camera analysis executor to
+ *           terminate during [io.github.kmpfacelink.api.FaceTracker.release]. Android only.
  */
 public data class FaceTrackerConfig(
     val smoothingConfig: SmoothingConfig = SmoothingConfig.Ema(),
     val enhancerConfig: BlendShapeEnhancerConfig = BlendShapeEnhancerConfig.Default(),
     val enableCalibration: Boolean = false,
     val cameraFacing: CameraFacing = CameraFacing.FRONT,
+    val modelAssetPath: String = "models/face_landmarker_v2_with_blendshapes.task",
+    val stopDrainDelayMs: Long = 100L,
+    val releaseTimeoutMs: Long = 500L,
 )
 
 /**

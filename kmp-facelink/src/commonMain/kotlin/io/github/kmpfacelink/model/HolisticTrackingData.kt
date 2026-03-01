@@ -20,7 +20,7 @@ public data class HolisticTrackingData(
     val activeModalities: Set<TrackingModality>,
 ) {
     /** Whether any modality is actively tracking a subject. */
-    val isTracking: Boolean
+    public val isTracking: Boolean
         get() = (face?.isTracking == true) ||
             (hand?.isTracking == true) ||
             (body?.isTracking == true)

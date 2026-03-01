@@ -135,7 +135,7 @@ internal class MediaPipeFaceTracker(
         }
         // Allow final async detection result from MediaPipe to be delivered
         if (landmarkerToClose != null) {
-            delay(STOP_DRAIN_DELAY_MS)
+            delay(config.stopDrainDelayMs)
             landmarkerToClose.close()
         }
     }
@@ -153,7 +153,7 @@ internal class MediaPipeFaceTracker(
         analysisExecutor.shutdown()
         @Suppress("TooGenericExceptionCaught")
         try {
-            analysisExecutor.awaitTermination(RELEASE_TIMEOUT_MS, TimeUnit.MILLISECONDS)
+            analysisExecutor.awaitTermination(config.releaseTimeoutMs, TimeUnit.MILLISECONDS)
         } catch (_: Exception) { /* best-effort */ }
         landmarkerToClose?.close()
     }
@@ -186,7 +186,7 @@ internal class MediaPipeFaceTracker(
 
     private fun createLandmarker(delegate: Delegate): FaceLandmarker {
         val baseOptions = BaseOptions.builder()
-            .setModelAssetPath(MODEL_ASSET_PATH)
+            .setModelAssetPath(config.modelAssetPath)
             .setDelegate(delegate)
             .build()
 
@@ -365,8 +365,5 @@ internal class MediaPipeFaceTracker(
 
     companion object {
         private const val TAG = "MediaPipeFaceTracker"
-        private const val MODEL_ASSET_PATH = "models/face_landmarker_v2_with_blendshapes.task"
-        private const val STOP_DRAIN_DELAY_MS = 100L
-        private const val RELEASE_TIMEOUT_MS = 500L
     }
 }

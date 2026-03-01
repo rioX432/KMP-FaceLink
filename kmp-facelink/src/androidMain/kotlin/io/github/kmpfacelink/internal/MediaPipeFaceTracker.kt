@@ -40,6 +40,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.withContext
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicReference
 import kotlin.concurrent.atomics.AtomicInt
 import kotlin.concurrent.atomics.ExperimentalAtomicApi
 
@@ -77,8 +78,7 @@ internal class MediaPipeFaceTracker(
     private var previewSurfaceProvider: Preview.SurfaceProvider? = null
 
     /** Bitmap currently being processed by MediaPipe (independent camera path only). */
-    @Volatile
-    private var inFlightBitmap: android.graphics.Bitmap? = null
+    private val inFlightBitmap = AtomicReference<android.graphics.Bitmap?>(null)
 
     @Volatile
     private var lastImageWidth: Int = 0
@@ -263,15 +263,16 @@ internal class MediaPipeFaceTracker(
         val timestampMs = SystemClock.elapsedRealtime()
 
         // Track the bitmap — it will be returned in the result callback
-        inFlightBitmap = bitmap
+        inFlightBitmap.set(bitmap)
 
         try {
             landmarker.detectAsync(mpImage, timestampMs)
         } catch (e: Exception) {
             Log.w(TAG, "detectAsync failed", e)
-            // No result callback will fire — return bitmap now
-            inFlightBitmap = null
-            imageConverter.returnBitmap(bitmap)
+            // No result callback will fire — return bitmap now if we still own it
+            if (inFlightBitmap.compareAndSet(bitmap, null)) {
+                imageConverter.returnBitmap(bitmap)
+            }
         }
 
         imageProxy.close()
@@ -285,8 +286,7 @@ internal class MediaPipeFaceTracker(
         if (sharedCameraSession != null) {
             sharedCameraSession.returnInFlightBitmap(result.timestampMs())
         } else {
-            inFlightBitmap?.let { imageConverter.returnBitmap(it) }
-            inFlightBitmap = null
+            inFlightBitmap.getAndSet(null)?.let { imageConverter.returnBitmap(it) }
         }
 
         val timestampMs = result.timestampMs()

@@ -117,7 +117,10 @@ internal class SharedVisionCaptureSession(
             device.lockForConfiguration(null)
             true
         } catch (e: Exception) {
-            println("[FaceLinkDebug] SharedVisionCaptureSession: failed to lock device for frame rate configuration — $e")
+            println(
+                "[FaceLinkDebug] SharedVisionCaptureSession: " +
+                    "failed to lock device for frame rate configuration — $e",
+            )
             false
         }
         if (!locked) return

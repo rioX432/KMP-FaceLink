@@ -156,7 +156,9 @@ internal class ElevenLabsTtsEngine(private val config: TtsConfig.ElevenLabs) : T
             val b3 = if (i + 3 < clean.length && clean[i + 3] != '=') table.indexOf(clean[i + 3]) else -1
 
             output.add(((b0 shl BASE64_SHIFT_2) or (b1 shr BASE64_SHIFT_4)).toByte())
-            if (b2 >= 0) output.add((((b1 and BASE64_LOW_NIBBLE_MASK) shl BASE64_SHIFT_4) or (b2 shr BASE64_SHIFT_2)).toByte())
+            if (b2 >= 0) {
+                output.add((((b1 and BASE64_LOW_NIBBLE_MASK) shl BASE64_SHIFT_4) or (b2 shr BASE64_SHIFT_2)).toByte())
+            }
             if (b3 >= 0) output.add((((b2 and BASE64_LOW_TWO_BITS_MASK) shl BASE64_SHIFT_6) or b3).toByte())
 
             i += BASE64_GROUP_SIZE

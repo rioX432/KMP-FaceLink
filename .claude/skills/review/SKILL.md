@@ -1,6 +1,9 @@
 ---
+name: review
 description: "KMP code review: kmp-reviewer + platform-checker + Codex cross-review"
 argument-hint: "[base-branch, default: master]"
+user-invocable: true
+disable-model-invocation: true
 allowed-tools:
   - Bash(git diff:*)
   - Bash(git log:*)
@@ -62,6 +65,8 @@ Task(
 ```
 
 Checks: expect/actual completeness, feature parity, platform pattern correctness, thread safety symmetry.
+
+Launch Steps 2 and 3 **in parallel** (single message).
 
 ## Step 4: Cross-Review (Codex)
 

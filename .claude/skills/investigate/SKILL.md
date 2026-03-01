@@ -1,6 +1,9 @@
 ---
+name: investigate
 description: "Investigate a feature or issue and propose an implementation approach (no implementation)"
 argument-hint: "[GitHub issue number or topic]"
+user-invocable: true
+disable-model-invocation: true
 allowed-tools:
   - Bash(gh issue view:*)
   - Glob

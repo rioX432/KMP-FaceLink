@@ -116,7 +116,8 @@ internal class SharedVisionCaptureSession(
         val locked = try {
             device.lockForConfiguration(null)
             true
-        } catch (_: Exception) {
+        } catch (e: Exception) {
+            println("[FaceLinkDebug] SharedVisionCaptureSession: failed to lock device for frame rate configuration — $e")
             false
         }
         if (!locked) return

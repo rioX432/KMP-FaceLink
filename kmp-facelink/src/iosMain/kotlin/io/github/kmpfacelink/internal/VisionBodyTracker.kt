@@ -195,7 +195,8 @@ internal class VisionBodyTracker(
         val locked = try {
             device.lockForConfiguration(null)
             true
-        } catch (_: Exception) {
+        } catch (e: Exception) {
+            println("[FaceLinkDebug] VisionBodyTracker: failed to lock device for frame rate configuration — $e")
             false
         }
         if (!locked) return

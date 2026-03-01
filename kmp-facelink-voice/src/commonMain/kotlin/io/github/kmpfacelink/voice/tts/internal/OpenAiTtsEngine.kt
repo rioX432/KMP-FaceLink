@@ -27,6 +27,14 @@ private const val OPENAI_TTS_URL = "https://api.openai.com/v1/audio/speech"
  *
  * Returns audio only — no phoneme timing data.
  * Lip sync uses amplitude-based animation as fallback.
+ *
+ * **Exception contract for [synthesize]:**
+ * - `io.ktor.client.plugins.ResponseException` — HTTP error returned by the API (4xx/5xx).
+ * - `kotlinx.serialization.SerializationException` — request serialization or response parsing
+ *   failed.
+ * - `kotlinx.coroutines.CancellationException` — the coroutine was cancelled; always re-thrown.
+ * The catch clause intentionally keeps a generic `Exception` catch to avoid leaking internal
+ * Ktor/serialization types into the public [TtsEngine] interface signature.
  */
 internal class OpenAiTtsEngine(private val config: TtsConfig.OpenAiTts) : TtsEngine {
 

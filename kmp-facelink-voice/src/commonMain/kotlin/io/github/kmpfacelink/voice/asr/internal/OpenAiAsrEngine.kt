@@ -28,6 +28,13 @@ private const val OPENAI_TRANSCRIPTION_URL = "https://api.openai.com/v1/audio/tr
  * OpenAI Whisper cloud ASR engine.
  *
  * Uses /v1/audio/transcriptions endpoint with multipart form data.
+ *
+ * **Exception contract for [transcribe]:**
+ * - `io.ktor.client.plugins.ResponseException` — HTTP error returned by the API (4xx/5xx).
+ * - `kotlinx.serialization.SerializationException` — response body could not be parsed.
+ * - `kotlinx.coroutines.CancellationException` — the coroutine was cancelled; always re-thrown.
+ * The catch clause intentionally keeps a generic `Exception` catch to avoid leaking internal
+ * Ktor/serialization types into the public [AsrEngine] interface signature.
  */
 internal class OpenAiAsrEngine(private val config: AsrConfig.OpenAiWhisper) : AsrEngine {
 

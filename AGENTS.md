@@ -18,6 +18,7 @@ KMP-FaceLink is a Kotlin Multiplatform SDK for real-time face/hand/body tracking
 | `kmp-facelink-stream` | WebSocket streaming (VTubeStudio protocol) | Stable |
 | `kmp-facelink-voice` | ASR (Whisper) / TTS (OpenAI, ElevenLabs, Voicevox) + lip sync | Experimental |
 | `kmp-facelink-rive` | Rive avatar integration (parameter mapping + Android renderer) | Experimental |
+| `kmp-facelink-llm` | LLM streaming API (OpenAI, Anthropic, Gemini) with conversation management | Experimental |
 
 ### Dependency Tree
 
@@ -29,7 +30,8 @@ kmp-facelink (core)
   ├── kmp-facelink-effects   → depends on core
   ├── kmp-facelink-stream    → depends on core
   ├── kmp-facelink-voice     → depends on core
-  └── kmp-facelink-rive      → depends on core
+  ├── kmp-facelink-rive      → depends on core
+  └── kmp-facelink-llm       → standalone (no core dependency)
 ```
 
 ### Source Set Layout
@@ -44,8 +46,9 @@ Each library module follows this pattern:
   └── iosMain/       # iOS platform impl (if needed)
 ```
 
-Modules with platform code: `kmp-facelink`, `kmp-facelink-stream`, `kmp-facelink-voice`, `kmp-facelink-rive`
+Modules with platform code: `kmp-facelink`, `kmp-facelink-stream`, `kmp-facelink-voice`, `kmp-facelink-rive`, `kmp-facelink-llm`
 Pure common modules: `kmp-facelink-avatar`, `kmp-facelink-actions`, `kmp-facelink-effects`, `kmp-facelink-live2d`
+Note: `kmp-facelink-llm` uses platform code only for `HttpClientProvider` (Ktor engine selection); all LLM logic is in `commonMain`.
 
 ## Commands
 
@@ -110,6 +113,7 @@ Pure common modules: `kmp-facelink-avatar`, `kmp-facelink-actions`, `kmp-facelin
 | Stream | `VtsStreamClient` | `connect()`/`disconnect()`, `sendParameters(params, faceFound)` |
 | Voice | `VoicePipeline` | `speak(text): Flow<BlendShapes>`, `startListening()`, `transcriptions: Flow<T>` |
 | Rive | `RiveRenderer`, `RiveDefaultMappings` | `loadModel(path, sm)`, `updateInputs(map)`, `toRiveInputs(mapper)` |
+| LLM | `LlmClient`, `LlmConfig` | `LlmClient.create(config)`, `chat(history): Flow<String>`, `chatOnce(history): String` (`@ExperimentalFaceLinkApi`) |
 
 ### Key Design Decisions
 

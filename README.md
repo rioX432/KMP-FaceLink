@@ -183,6 +183,8 @@ All library modules enforce `explicitApi()` mode — every public declaration re
 
 API documentation is available at **[riox432.github.io/KMP-FaceLink](https://riox432.github.io/KMP-FaceLink/)**.
 
+See [CHANGELOG.md](CHANGELOG.md) for release history.
+
 ## Platform Requirements
 
 ### Android

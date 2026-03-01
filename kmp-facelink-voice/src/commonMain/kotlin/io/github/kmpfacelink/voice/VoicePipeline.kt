@@ -43,7 +43,7 @@ public class VoicePipeline(
     ttsEngine: TtsEngine? = null,
     asrEngine: AsrEngine? = null,
     lipSyncEngine: LipSyncEngine? = null,
-) {
+) : AutoCloseable {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 
     private val _state = MutableStateFlow<VoicePipelineState>(VoicePipelineState.Idle)
@@ -156,12 +156,20 @@ public class VoicePipeline(
         return result
     }
 
-    /** Releases all resources held by the pipeline. */
+    /**
+     * Releases all resources held by the pipeline.
+     *
+     * Ensures all engines and I/O components are cleaned up even if individual
+     * [release] calls throw. Equivalent to [close].
+     */
     public fun release() {
         scope.cancel()
-        tts.release()
-        asr?.release()
-        audioRecorder?.release()
-        audioPlayer?.release()
+        runCatching { tts.release() }
+        runCatching { asr?.release() }
+        runCatching { audioRecorder?.release() }
+        runCatching { audioPlayer?.release() }
     }
+
+    /** Alias for [release] — allows use in try-with-resources / [use] blocks. */
+    override fun close(): Unit = release()
 }

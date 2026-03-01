@@ -1,5 +1,6 @@
 package io.github.kmpfacelink.internal
 
+import android.content.pm.PackageManager
 import android.os.SystemClock
 import android.util.Log
 import androidx.camera.core.ImageAnalysis
@@ -91,6 +92,10 @@ internal class MediaPipeFaceTracker(
     }
 
     override suspend fun start() {
+        if (!platformContext.context.packageManager.hasSystemFeature(PackageManager.FEATURE_CAMERA_FRONT)) {
+            throw UnsupportedOperationException("No front camera available")
+        }
+
         pipelineLock.withLock {
             check(released.load() == 0) { "Cannot start a released tracker" }
             if (_state.value == TrackingState.TRACKING || _state.value == TrackingState.STARTING) return

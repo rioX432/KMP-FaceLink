@@ -100,8 +100,9 @@ public class VoicePipeline(
             scope.launch {
                 try {
                     audioPlayer.play(result.audio)
-                } finally {
                     _state.value = VoicePipelineState.Idle
+                } catch (e: Exception) {
+                    _state.value = VoicePipelineState.Error("Audio playback failed: ${e.message}")
                 }
             }
         } else {
@@ -121,9 +122,14 @@ public class VoicePipeline(
         val engine = asr ?: error("ASR not configured")
         val recorder = audioRecorder ?: error("AudioRecorder not provided")
 
-        _state.value = VoicePipelineState.Listening
-        recorder.start()
-        engine.startListening()
+        try {
+            recorder.start()
+            engine.startListening()
+            _state.value = VoicePipelineState.Listening
+        } catch (e: Exception) {
+            _state.value = VoicePipelineState.Error("Failed to start listening: ${e.message}")
+            throw e
+        }
 
         transcriptionCollectorJob?.cancel()
         transcriptionCollectorJob = scope.launch {

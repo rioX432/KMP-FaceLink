@@ -20,6 +20,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import platform.AVFAudio.AVAudioEngine
+import platform.AVFAudio.AVAudioFormat
 import platform.AVFAudio.AVAudioPCMBuffer
 import platform.AVFAudio.AVAudioSession
 import platform.AVFAudio.AVAudioSessionCategoryRecord
@@ -56,45 +57,21 @@ internal class PlatformAudioRecorder : AudioRecorder {
         if (_isRecording.value) return
         currentFormat = format
 
-        val session = AVAudioSession.sharedInstance()
-        session.setCategory(AVAudioSessionCategoryRecord, null)
-
-        memScoped {
-            val sessionErr = alloc<ObjCObjectVar<NSError?>>()
-            val sessionOk = session.setActive(true, sessionErr.ptr)
-            if (!sessionOk) {
-                val msg = sessionErr.value?.localizedDescription ?: "Failed to activate AVAudioSession"
-                throw IllegalStateException(msg)
-            }
-        }
+        activateAudioSession()
 
         val engine = AVAudioEngine()
         audioEngine = engine
 
-        val inputNode = engine.inputNode
-        val inputFormat = inputNode.outputFormatForBus(0u)
+        val requestedFormat = buildAVAudioFormat(format)
 
-        dataLock.lock()
-        try {
-            recordedData = NSMutableData()
-        } finally {
-            dataLock.unlock()
-        }
+        resetRecordedData()
 
-        inputNode.installTapOnBus(0u, BUFFER_SIZE, inputFormat) { buffer, _ ->
+        engine.inputNode.installTapOnBus(0u, BUFFER_SIZE, requestedFormat) { buffer, _ ->
             buffer?.let { processBuffer(it) }
         }
 
         engine.prepare()
-
-        memScoped {
-            val engineErr = alloc<ObjCObjectVar<NSError?>>()
-            val engineOk = engine.startAndReturnError(engineErr.ptr)
-            if (!engineOk) {
-                val msg = engineErr.value?.localizedDescription ?: "Failed to start AVAudioEngine"
-                throw IllegalStateException(msg)
-            }
-        }
+        startEngine(engine)
 
         _isRecording.value = true
     }
@@ -106,6 +83,57 @@ internal class PlatformAudioRecorder : AudioRecorder {
         audioEngine?.stop()
         _isRecording.value = false
 
+        return buildAudioData()
+    }
+
+    override fun release() {
+        audioEngine?.inputNode?.removeTapOnBus(0u)
+        audioEngine?.stop()
+        audioEngine = null
+        _isRecording.value = false
+    }
+
+    private fun activateAudioSession() {
+        val session = AVAudioSession.sharedInstance()
+        session.setCategory(AVAudioSessionCategoryRecord, null)
+        memScoped {
+            val err = alloc<ObjCObjectVar<NSError?>>()
+            val ok = session.setActive(true, err.ptr)
+            if (!ok) {
+                val msg = err.value?.localizedDescription ?: "Failed to activate AVAudioSession"
+                throw IllegalStateException(msg)
+            }
+        }
+    }
+
+    private fun buildAVAudioFormat(format: AudioFormat): AVAudioFormat {
+        return AVAudioFormat(
+            standardFormatWithSampleRate = format.sampleRate.toDouble(),
+            channels = format.channels.toUInt(),
+        )
+    }
+
+    private fun startEngine(engine: AVAudioEngine) {
+        memScoped {
+            val err = alloc<ObjCObjectVar<NSError?>>()
+            val ok = engine.startAndReturnError(err.ptr)
+            if (!ok) {
+                val msg = err.value?.localizedDescription ?: "Failed to start AVAudioEngine"
+                throw IllegalStateException(msg)
+            }
+        }
+    }
+
+    private fun resetRecordedData() {
+        dataLock.lock()
+        try {
+            recordedData = NSMutableData()
+        } finally {
+            dataLock.unlock()
+        }
+    }
+
+    private fun buildAudioData(): AudioData? {
         dataLock.lock()
         val length: Int
         val snapshot: NSMutableData
@@ -128,13 +156,6 @@ internal class PlatformAudioRecorder : AudioRecorder {
         val durationMs = totalSamples.toLong() * AudioConstants.MILLIS_PER_SECOND / currentFormat.sampleRate
 
         return AudioData(bytes = bytes, format = currentFormat, durationMs = durationMs)
-    }
-
-    override fun release() {
-        audioEngine?.inputNode?.removeTapOnBus(0u)
-        audioEngine?.stop()
-        audioEngine = null
-        _isRecording.value = false
     }
 
     private fun processBuffer(buffer: AVAudioPCMBuffer) {

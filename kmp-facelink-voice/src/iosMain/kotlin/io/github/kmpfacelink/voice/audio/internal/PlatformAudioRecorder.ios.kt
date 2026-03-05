@@ -13,12 +13,18 @@ import kotlinx.cinterop.memScoped
 import kotlinx.cinterop.ptr
 import kotlinx.cinterop.usePinned
 import kotlinx.cinterop.value
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 import platform.AVFAudio.AVAudioEngine
 import platform.AVFAudio.AVAudioFormat
 import platform.AVFAudio.AVAudioPCMBuffer
@@ -45,6 +51,9 @@ internal class PlatformAudioRecorder : AudioRecorder {
 
     private val _audioChunks = MutableSharedFlow<ByteArray>(extraBufferCapacity = 16)
     override val audioChunks: Flow<ByteArray> = _audioChunks.asSharedFlow()
+
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+    private var recordingJob: Job? = null
 
     private var audioEngine: AVAudioEngine? = null
     private var recordedData = NSMutableData()
@@ -74,10 +83,17 @@ internal class PlatformAudioRecorder : AudioRecorder {
         startEngine(engine)
 
         _isRecording.value = true
+
+        recordingJob = scope.launch {
+            // Keeps the job alive for cancellation; AVAudioEngine drives callbacks on its own thread.
+        }
     }
 
     override suspend fun stop(): AudioData? {
         if (!_isRecording.value) return null
+
+        recordingJob?.cancel()
+        recordingJob = null
 
         audioEngine?.inputNode?.removeTapOnBus(0u)
         audioEngine?.stop()
@@ -87,10 +103,13 @@ internal class PlatformAudioRecorder : AudioRecorder {
     }
 
     override fun release() {
+        recordingJob?.cancel()
+        recordingJob = null
         audioEngine?.inputNode?.removeTapOnBus(0u)
         audioEngine?.stop()
         audioEngine = null
         _isRecording.value = false
+        scope.cancel()
     }
 
     private fun activateAudioSession() {

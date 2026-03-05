@@ -304,5 +304,13 @@ internal class MediaPipeHandTracker(
     companion object {
         private const val TAG = "MediaPipeHandTracker"
         private const val MODEL_ASSET_PATH = "models/hand_landmarker.task"
+
+        /**
+         * MediaPipe tasks-vision SDK version used by this tracker.
+         * Pinned for documentation parity with [VisionHandTracker.HAND_POSE_REVISION] on iOS.
+         * Update this constant when upgrading the mediapipe dependency in libs.versions.toml.
+         */
+        @Suppress("UnusedPrivateProperty") // version-documentation constant, not used at runtime
+        private const val MEDIAPIPE_HAND_MODEL_VERSION = "0.10.32"
     }
 }

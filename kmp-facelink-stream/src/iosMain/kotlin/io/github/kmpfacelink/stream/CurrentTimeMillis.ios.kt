@@ -13,6 +13,6 @@ private const val NANOS_PER_MILLI = 1_000_000L
 
 internal actual fun currentTimeMillis(): Long = memScoped {
     val ts = alloc<timespec>()
-    clock_gettime(CLOCK_REALTIME, ts.ptr)
+    clock_gettime(CLOCK_REALTIME.toUInt(), ts.ptr)
     ts.tv_sec * 1000L + ts.tv_nsec / NANOS_PER_MILLI
 }

@@ -33,10 +33,8 @@ import platform.ARKit.ARFaceAnchor
 import platform.ARKit.ARFaceTrackingConfiguration
 import platform.ARKit.ARSession
 import platform.ARKit.ARSessionDelegateProtocol
-import platform.Foundation.NSDate
 import platform.Foundation.NSError
 import platform.Foundation.NSNumber
-import platform.Foundation.timeIntervalSince1970
 import platform.darwin.NSObject
 import kotlin.concurrent.atomics.AtomicInt
 import kotlin.concurrent.atomics.ExperimentalAtomicApi
@@ -230,12 +228,5 @@ internal class ARKitFaceTracker(
             _errorMessage.value = didFailWithError.localizedDescription
             _state.value = TrackingState.ERROR
         }
-    }
-
-    private companion object {
-        private const val MS_PER_SECOND = 1000
-
-        fun currentTimeMillis(): Long =
-            (NSDate().timeIntervalSince1970 * MS_PER_SECOND).toLong()
     }
 }

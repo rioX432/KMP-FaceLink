@@ -44,9 +44,7 @@ import platform.CoreVideo.CVPixelBufferGetHeight
 import platform.CoreVideo.CVPixelBufferGetWidth
 import platform.CoreVideo.kCVPixelBufferPixelFormatTypeKey
 import platform.CoreVideo.kCVPixelFormatType_420YpCbCr8BiPlanarFullRange
-import platform.Foundation.NSDate
 import platform.Foundation.NSNumber
-import platform.Foundation.timeIntervalSince1970
 import platform.Vision.VNDetectHumanHandPoseRequest
 import platform.Vision.VNHumanHandPoseObservation
 import platform.Vision.VNSequenceRequestHandler
@@ -308,11 +306,7 @@ internal class VisionHandTracker(
     }
 
     private companion object {
-        private const val MS_PER_SECOND = 1000
         private const val TARGET_FPS = 15
         private const val HAND_POSE_REVISION = 1UL
-
-        fun currentTimeMillis(): Long =
-            (NSDate().timeIntervalSince1970 * MS_PER_SECOND).toLong()
     }
 }

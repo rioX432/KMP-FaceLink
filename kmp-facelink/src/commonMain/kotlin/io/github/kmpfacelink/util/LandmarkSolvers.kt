@@ -3,6 +3,31 @@ package io.github.kmpfacelink.util
 import io.github.kmpfacelink.model.FaceLandmark
 import io.github.kmpfacelink.util.LandmarkGeometry.distance2D
 import io.github.kmpfacelink.util.LandmarkGeometry.remap
+import io.github.kmpfacelink.util.LandmarkIndices.CHIN
+import io.github.kmpfacelink.util.LandmarkIndices.LEFT_CHEEK
+import io.github.kmpfacelink.util.LandmarkIndices.LEFT_EYE_INNER
+import io.github.kmpfacelink.util.LandmarkIndices.LEFT_EYE_LOWER_1
+import io.github.kmpfacelink.util.LandmarkIndices.LEFT_EYE_LOWER_2
+import io.github.kmpfacelink.util.LandmarkIndices.LEFT_EYE_LOWER_3
+import io.github.kmpfacelink.util.LandmarkIndices.LEFT_EYE_OUTER
+import io.github.kmpfacelink.util.LandmarkIndices.LEFT_EYE_UPPER_1
+import io.github.kmpfacelink.util.LandmarkIndices.LEFT_EYE_UPPER_2
+import io.github.kmpfacelink.util.LandmarkIndices.LEFT_EYE_UPPER_3
+import io.github.kmpfacelink.util.LandmarkIndices.LEFT_NOSE_WING
+import io.github.kmpfacelink.util.LandmarkIndices.MOUTH_LEFT
+import io.github.kmpfacelink.util.LandmarkIndices.MOUTH_RIGHT
+import io.github.kmpfacelink.util.LandmarkIndices.NOSE_BRIDGE
+import io.github.kmpfacelink.util.LandmarkIndices.NOSE_TIP
+import io.github.kmpfacelink.util.LandmarkIndices.RIGHT_CHEEK
+import io.github.kmpfacelink.util.LandmarkIndices.RIGHT_EYE_INNER
+import io.github.kmpfacelink.util.LandmarkIndices.RIGHT_EYE_LOWER_1
+import io.github.kmpfacelink.util.LandmarkIndices.RIGHT_EYE_LOWER_2
+import io.github.kmpfacelink.util.LandmarkIndices.RIGHT_EYE_LOWER_3
+import io.github.kmpfacelink.util.LandmarkIndices.RIGHT_EYE_OUTER
+import io.github.kmpfacelink.util.LandmarkIndices.RIGHT_EYE_UPPER_1
+import io.github.kmpfacelink.util.LandmarkIndices.RIGHT_EYE_UPPER_2
+import io.github.kmpfacelink.util.LandmarkIndices.RIGHT_EYE_UPPER_3
+import io.github.kmpfacelink.util.LandmarkIndices.RIGHT_NOSE_WING
 
 /**
  * Geometric solvers that compute blend shape values from MediaPipe 478 face landmarks.
@@ -12,47 +37,6 @@ import io.github.kmpfacelink.util.LandmarkGeometry.remap
  */
 @Suppress("TooManyFunctions")
 internal object LandmarkSolvers {
-
-    // ── Landmark indices (MediaPipe Face Mesh 478) ──
-
-    // Inter-ocular distance reference
-    private const val RIGHT_EYE_INNER = 133
-    private const val LEFT_EYE_INNER = 362
-
-    // Right eye
-    private const val RIGHT_EYE_OUTER = 33
-    private const val RIGHT_EYE_UPPER_1 = 160
-    private const val RIGHT_EYE_UPPER_2 = 159
-    private const val RIGHT_EYE_UPPER_3 = 158
-    private const val RIGHT_EYE_LOWER_1 = 144
-    private const val RIGHT_EYE_LOWER_2 = 145
-    private const val RIGHT_EYE_LOWER_3 = 153
-
-    // Left eye
-    private const val LEFT_EYE_OUTER = 263
-    private const val LEFT_EYE_UPPER_1 = 387
-    private const val LEFT_EYE_UPPER_2 = 386
-    private const val LEFT_EYE_UPPER_3 = 385
-    private const val LEFT_EYE_LOWER_1 = 373
-    private const val LEFT_EYE_LOWER_2 = 374
-    private const val LEFT_EYE_LOWER_3 = 380
-
-    // Nose
-    private const val NOSE_BRIDGE = 6
-    private const val NOSE_TIP = 1
-    private const val LEFT_NOSE_WING = 48
-    private const val RIGHT_NOSE_WING = 278
-
-    // Jaw / chin
-    private const val CHIN = 152
-
-    // Mouth
-    private const val MOUTH_LEFT = 61
-    private const val MOUTH_RIGHT = 291
-
-    // Cheeks
-    private const val LEFT_CHEEK = 234
-    private const val RIGHT_CHEEK = 454
 
     // ── Tuning thresholds ──
     // These are initial estimates based on MediaPipe normalized coordinates.
@@ -93,7 +77,7 @@ internal object LandmarkSolvers {
     // ── Helper ──
 
     private fun iod(landmarks: List<FaceLandmark>): Float =
-        distance2D(landmarks[RIGHT_EYE_INNER], landmarks[LEFT_EYE_INNER])
+        LandmarkIndices.iod(landmarks)
 
     // ── Solvers ──
 

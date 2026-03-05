@@ -113,6 +113,14 @@ internal class BlendShapeEnhancer(
             BlendShape.JAW_RIGHT to LandmarkSolvers::solveJawRight,
             BlendShape.MOUTH_DIMPLE_LEFT to LandmarkSolvers::solveMouthDimpleLeft,
             BlendShape.MOUTH_DIMPLE_RIGHT to LandmarkSolvers::solveMouthDimpleRight,
+            BlendShape.MOUTH_SMILE_LEFT to MouthSolvers::solveMouthSmileLeft,
+            BlendShape.MOUTH_SMILE_RIGHT to MouthSolvers::solveMouthSmileRight,
+            BlendShape.MOUTH_FROWN_LEFT to MouthSolvers::solveMouthFrownLeft,
+            BlendShape.MOUTH_FROWN_RIGHT to MouthSolvers::solveMouthFrownRight,
+            BlendShape.MOUTH_STRETCH_LEFT to MouthSolvers::solveMouthStretchLeft,
+            BlendShape.MOUTH_STRETCH_RIGHT to MouthSolvers::solveMouthStretchRight,
+            BlendShape.MOUTH_PRESS_LEFT to MouthSolvers::solveMouthPressLeft,
+            BlendShape.MOUTH_PRESS_RIGHT to MouthSolvers::solveMouthPressRight,
         )
     }
 }

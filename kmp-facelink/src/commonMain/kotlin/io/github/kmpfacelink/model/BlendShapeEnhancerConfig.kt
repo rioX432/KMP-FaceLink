@@ -47,6 +47,14 @@ public sealed class BlendShapeEnhancerConfig {
             BlendShape.JAW_RIGHT to 2.0f,
             BlendShape.MOUTH_DIMPLE_LEFT to 2.0f,
             BlendShape.MOUTH_DIMPLE_RIGHT to 2.0f,
+            BlendShape.MOUTH_SMILE_LEFT to 2.0f,
+            BlendShape.MOUTH_SMILE_RIGHT to 2.0f,
+            BlendShape.MOUTH_FROWN_LEFT to 2.0f,
+            BlendShape.MOUTH_FROWN_RIGHT to 2.0f,
+            BlendShape.MOUTH_STRETCH_LEFT to 2.0f,
+            BlendShape.MOUTH_STRETCH_RIGHT to 2.0f,
+            BlendShape.MOUTH_PRESS_LEFT to 2.0f,
+            BlendShape.MOUTH_PRESS_RIGHT to 2.0f,
         )
 
         /** Default dead zone thresholds for enhanced shapes. */
@@ -61,6 +69,14 @@ public sealed class BlendShapeEnhancerConfig {
             BlendShape.JAW_RIGHT to 0.02f,
             BlendShape.MOUTH_DIMPLE_LEFT to 0.02f,
             BlendShape.MOUTH_DIMPLE_RIGHT to 0.02f,
+            BlendShape.MOUTH_SMILE_LEFT to 0.02f,
+            BlendShape.MOUTH_SMILE_RIGHT to 0.02f,
+            BlendShape.MOUTH_FROWN_LEFT to 0.02f,
+            BlendShape.MOUTH_FROWN_RIGHT to 0.02f,
+            BlendShape.MOUTH_STRETCH_LEFT to 0.02f,
+            BlendShape.MOUTH_STRETCH_RIGHT to 0.02f,
+            BlendShape.MOUTH_PRESS_LEFT to 0.02f,
+            BlendShape.MOUTH_PRESS_RIGHT to 0.02f,
         )
     }
 }

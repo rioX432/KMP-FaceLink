@@ -76,7 +76,7 @@ class MainActivity : ComponentActivity() {
         createFaceTracker(
             platformContext = platformContext,
             config = FaceTrackerConfig(
-                smoothingConfig = SmoothingConfig.Ema(alpha = 0.4f),
+                smoothingConfig = SmoothingConfig.OneEuro(),
             ),
         )
     }
@@ -85,7 +85,7 @@ class MainActivity : ComponentActivity() {
         createHandTracker(
             platformContext = platformContext,
             config = HandTrackerConfig(
-                smoothingConfig = SmoothingConfig.Ema(alpha = 0.4f),
+                smoothingConfig = SmoothingConfig.OneEuro(),
             ),
         )
     }
@@ -94,8 +94,8 @@ class MainActivity : ComponentActivity() {
         createHolisticTracker(
             platformContext = platformContext,
             config = HolisticTrackerConfig(
-                faceConfig = FaceTrackerConfig(smoothingConfig = SmoothingConfig.Ema(alpha = 0.4f)),
-                handConfig = HandTrackerConfig(smoothingConfig = SmoothingConfig.Ema(alpha = 0.4f)),
+                faceConfig = FaceTrackerConfig(smoothingConfig = SmoothingConfig.OneEuro()),
+                handConfig = HandTrackerConfig(smoothingConfig = SmoothingConfig.OneEuro()),
             ),
         )
     }

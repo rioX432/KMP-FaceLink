@@ -55,6 +55,8 @@ public sealed class BlendShapeEnhancerConfig {
             BlendShape.MOUTH_STRETCH_RIGHT to 2.0f,
             BlendShape.MOUTH_PRESS_LEFT to 2.0f,
             BlendShape.MOUTH_PRESS_RIGHT to 2.0f,
+            BlendShape.EYE_BLINK_LEFT to 1.5f,
+            BlendShape.EYE_BLINK_RIGHT to 1.5f,
         )
 
         /** Default dead zone thresholds for enhanced shapes. */
@@ -77,6 +79,8 @@ public sealed class BlendShapeEnhancerConfig {
             BlendShape.MOUTH_STRETCH_RIGHT to 0.02f,
             BlendShape.MOUTH_PRESS_LEFT to 0.02f,
             BlendShape.MOUTH_PRESS_RIGHT to 0.02f,
+            BlendShape.EYE_BLINK_LEFT to 0.02f,
+            BlendShape.EYE_BLINK_RIGHT to 0.02f,
         )
     }
 }

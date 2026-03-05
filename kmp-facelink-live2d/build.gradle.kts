@@ -27,11 +27,6 @@ kotlin {
             isStatic = true
             export(project(":kmp-facelink"))
             export(project(":kmp-facelink-avatar"))
-            export(project(":kmp-facelink-actions"))
-            export(project(":kmp-facelink-effects"))
-            export(project(":kmp-facelink-stream"))
-            export(project(":kmp-facelink-voice"))
-            export(project(":kmp-facelink-rive"))
         }
     }
 
@@ -41,12 +36,8 @@ kotlin {
 
     sourceSets {
         commonMain.dependencies {
+            api(project(":kmp-facelink"))
             api(project(":kmp-facelink-avatar"))
-            api(project(":kmp-facelink-actions"))
-            api(project(":kmp-facelink-effects"))
-            api(project(":kmp-facelink-stream"))
-            api(project(":kmp-facelink-voice"))
-            api(project(":kmp-facelink-rive"))
             implementation(libs.kotlinx.coroutines.core)
         }
 

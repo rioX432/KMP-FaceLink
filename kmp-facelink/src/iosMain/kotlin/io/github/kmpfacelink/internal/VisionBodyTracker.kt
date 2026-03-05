@@ -42,9 +42,7 @@ import platform.CoreVideo.CVPixelBufferGetHeight
 import platform.CoreVideo.CVPixelBufferGetWidth
 import platform.CoreVideo.kCVPixelBufferPixelFormatTypeKey
 import platform.CoreVideo.kCVPixelFormatType_420YpCbCr8BiPlanarFullRange
-import platform.Foundation.NSDate
 import platform.Foundation.NSNumber
-import platform.Foundation.timeIntervalSince1970
 import platform.Vision.VNDetectHumanBodyPoseRequest
 import platform.Vision.VNHumanBodyPoseObservation
 import platform.Vision.VNSequenceRequestHandler
@@ -289,10 +287,6 @@ internal class VisionBodyTracker(
     }
 
     private companion object {
-        private const val MS_PER_SECOND = 1000
         private const val TARGET_FPS = 15
-
-        fun currentTimeMillis(): Long =
-            (NSDate().timeIntervalSince1970 * MS_PER_SECOND).toLong()
     }
 }

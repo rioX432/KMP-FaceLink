@@ -146,9 +146,6 @@ class StreamTrackingViewModel: ObservableObject {
             pluginDeveloper: devName,
             pluginIcon: nil,
             authToken: token,
-            onTokenReceived: { [weak self] newToken in
-                self?.savedToken = newToken
-            },
             reconnectPolicy: VtsReconnectPolicy()
         )
         let newClient = VtsStreamClient(config: config)
@@ -160,6 +157,14 @@ class StreamTrackingViewModel: ObservableObject {
             for await state in newClient.state {
                 guard let self, !Task.isCancelled else { break }
                 self.updateStreamState(state)
+            }
+        }
+
+        // Persist new auth tokens
+        let tokenTask = Task { [weak self] in
+            for await newToken in newClient.tokenReceived {
+                guard let self, !Task.isCancelled else { break }
+                self.savedToken = newToken
             }
         }
 
@@ -183,7 +188,7 @@ class StreamTrackingViewModel: ObservableObject {
             }
         }
 
-        observeTasks.append(contentsOf: [stateTask, streamTask])
+        observeTasks.append(contentsOf: [stateTask, tokenTask, streamTask])
     }
 
     func disconnect() {

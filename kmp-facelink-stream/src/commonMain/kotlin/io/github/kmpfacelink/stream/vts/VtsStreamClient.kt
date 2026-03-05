@@ -4,6 +4,7 @@ import io.github.kmpfacelink.stream.StreamClient
 import io.github.kmpfacelink.stream.StreamState
 import io.github.kmpfacelink.stream.internal.KtorWebSocketProvider
 import io.github.kmpfacelink.stream.internal.WebSocketProvider
+import io.github.kmpfacelink.stream.vts.protocol.VtsResponse
 import io.github.kmpfacelink.stream.vts.protocol.VtsSerializer
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -11,8 +12,11 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
@@ -31,6 +35,7 @@ import kotlin.coroutines.CoroutineContext
  *
  * @param config VTubeStudio connection configuration
  */
+@Suppress("TooManyFunctions")
 @OptIn(ExperimentalAtomicApi::class)
 public class VtsStreamClient internal constructor(
     private val config: VtsConfig,
@@ -45,6 +50,7 @@ public class VtsStreamClient internal constructor(
 
     private val scope = CoroutineScope(SupervisorJob() + coroutineContext)
     private val _state = MutableStateFlow<StreamState>(StreamState.Disconnected)
+    private val _tokenReceived = MutableSharedFlow<String>(replay = 1)
     private val sendMutex = Mutex()
     private val stateMutex = Mutex()
     private var connectionJob: Job? = null
@@ -52,6 +58,14 @@ public class VtsStreamClient internal constructor(
     private val requestCounter = AtomicInt(0)
 
     override val state: StateFlow<StreamState> = _state.asStateFlow()
+
+    /**
+     * Emits each new authentication token as it is received from VTubeStudio.
+     *
+     * Collect this flow to persist the token for future sessions. The latest
+     * token is replayed to new collectors immediately upon subscription.
+     */
+    public val tokenReceived: SharedFlow<String> = _tokenReceived.asSharedFlow()
 
     override suspend fun connect() {
         stateMutex.withLock {
@@ -109,39 +123,48 @@ public class VtsStreamClient internal constructor(
         }
     }
 
-    @Suppress("CyclomaticComplexMethod")
+    private val messageHandlers: Map<String, suspend (VtsResponse) -> Unit> = mapOf(
+        "AuthenticationTokenResponse" to ::handleAuthToken,
+        "AuthenticationResponse" to ::handleAuth,
+        "APIError" to ::handleApiError,
+        "InjectParameterDataResponse" to ::handleInjectResponse,
+    )
+
     private suspend fun handleMessage(text: String) {
         val response = VtsSerializer.decodeResponse(text)
+        messageHandlers[response.messageType]?.invoke(response)
+    }
 
-        when (response.messageType) {
-            "APIError" -> {
-                val errorMsg = response.data?.message ?: "Unknown VTS error"
-                _state.value = StreamState.Error(errorMsg, willRetry = false)
-            }
-            "AuthenticationTokenResponse" -> {
-                val token = response.data?.authenticationToken
-                if (token != null) {
-                    currentToken.store(token)
-                    config.onTokenReceived?.invoke(token)
-                    sendAuthRequest(token)
-                } else {
-                    _state.value = StreamState.Error("No token in response", willRetry = false)
-                }
-            }
-            "AuthenticationResponse" -> {
-                val authenticated = response.data?.authenticated ?: false
-                if (authenticated) {
-                    _state.value = StreamState.Connected
-                } else {
-                    val reason = response.data?.reason ?: "Authentication failed"
-                    currentToken.store(null)
-                    _state.value = StreamState.Error(reason, willRetry = false)
-                }
-            }
-            "InjectParameterDataResponse" -> {
-                // Success — no action needed
-            }
+    private suspend fun handleAuthToken(response: VtsResponse) {
+        val token = response.data?.authenticationToken
+        if (token != null) {
+            currentToken.store(token)
+            _tokenReceived.emit(token)
+            sendAuthRequest(token)
+        } else {
+            _state.value = StreamState.Error("No token in response", willRetry = false)
         }
+    }
+
+    private suspend fun handleAuth(response: VtsResponse) {
+        val authenticated = response.data?.authenticated ?: false
+        if (authenticated) {
+            _state.value = StreamState.Connected
+        } else {
+            val reason = response.data?.reason ?: "Authentication failed"
+            currentToken.store(null)
+            _state.value = StreamState.Error(reason, willRetry = false)
+        }
+    }
+
+    private suspend fun handleApiError(response: VtsResponse) {
+        val errorMsg = response.data?.message ?: "Unknown VTS error"
+        _state.value = StreamState.Error(errorMsg, willRetry = false)
+    }
+
+    @Suppress("UNUSED_PARAMETER")
+    private suspend fun handleInjectResponse(response: VtsResponse) {
+        // Success — no action needed
     }
 
     private fun handleDisconnect() {

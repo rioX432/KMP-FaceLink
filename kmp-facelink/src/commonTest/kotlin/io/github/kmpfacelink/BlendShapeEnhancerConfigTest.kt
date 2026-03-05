@@ -40,15 +40,15 @@ class BlendShapeEnhancerConfigTest {
     }
 
     @Test
-    fun defaultSensitivityMapHasTenEntries() {
+    fun defaultSensitivityMapHasExpectedEntries() {
         val config = BlendShapeEnhancerConfig.Default()
-        assertEquals(10, config.sensitivityOverrides.size)
+        assertEquals(18, config.sensitivityOverrides.size)
     }
 
     @Test
-    fun defaultDeadZoneMapHasTenEntries() {
+    fun defaultDeadZoneMapHasExpectedEntries() {
         val config = BlendShapeEnhancerConfig.Default()
-        assertEquals(10, config.deadZoneOverrides.size)
+        assertEquals(18, config.deadZoneOverrides.size)
     }
 
     @Test

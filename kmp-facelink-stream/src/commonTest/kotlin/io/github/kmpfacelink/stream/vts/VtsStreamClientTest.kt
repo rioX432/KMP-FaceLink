@@ -3,6 +3,7 @@ package io.github.kmpfacelink.stream.vts
 import io.github.kmpfacelink.stream.FakeWebSocketProvider
 import io.github.kmpfacelink.stream.StreamState
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.yield
@@ -15,14 +16,12 @@ class VtsStreamClientTest {
 
     private fun createClient(
         token: String? = null,
-        onTokenReceived: (suspend (String) -> Unit)? = null,
     ): Pair<VtsStreamClient, FakeWebSocketProvider> {
         val ws = FakeWebSocketProvider()
         val config = VtsConfig(
             pluginName = "TestPlugin",
             pluginDeveloper = "TestDev",
             authToken = token,
-            onTokenReceived = onTokenReceived,
             reconnectPolicy = VtsReconnectPolicy.NONE,
         )
         val dispatcher = UnconfinedTestDispatcher()
@@ -39,9 +38,11 @@ class VtsStreamClientTest {
     @Test
     fun authFlowWithNewTokenSendsTokenRequest() = runTest {
         val receivedTokens = mutableListOf<String>()
-        val (client, ws) = createClient(
-            onTokenReceived = { receivedTokens.add(it) },
-        )
+        val (client, ws) = createClient()
+
+        val collectJob = launch {
+            client.tokenReceived.collect { receivedTokens.add(it) }
+        }
 
         // connect() launches a background job that enters ws.connect (which suspends on channel)
         client.connect()
@@ -62,6 +63,7 @@ class VtsStreamClientTest {
         yield()
 
         assertEquals(listOf("new-token-xyz"), receivedTokens)
+        collectJob.cancel()
         assertTrue(
             ws.sentMessages.any {
                 it.contains("AuthenticationRequest") && it.contains("new-token-xyz")

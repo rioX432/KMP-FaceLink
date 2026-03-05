@@ -132,9 +132,6 @@ internal fun StreamTrackingScreen(
                             pluginName = pluginName,
                             pluginDeveloper = devName,
                             authToken = savedToken,
-                            onTokenReceived = { token ->
-                                prefs.edit().putString(KEY_TOKEN, token).apply()
-                            },
                         ),
                     )
                     client?.release()
@@ -142,6 +139,11 @@ internal fun StreamTrackingScreen(
                     stateJob?.cancel()
                     stateJob = scope.launch {
                         newClient.state.collect { streamState = it }
+                    }
+                    scope.launch {
+                        newClient.tokenReceived.collect { token ->
+                            prefs.edit().putString(KEY_TOKEN, token).apply()
+                        }
                     }
                     scope.launch { newClient.connect() }
                     streamJob?.cancel()

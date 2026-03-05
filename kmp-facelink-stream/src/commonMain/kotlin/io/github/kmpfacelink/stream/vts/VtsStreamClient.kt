@@ -12,8 +12,11 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
@@ -47,6 +50,7 @@ public class VtsStreamClient internal constructor(
 
     private val scope = CoroutineScope(SupervisorJob() + coroutineContext)
     private val _state = MutableStateFlow<StreamState>(StreamState.Disconnected)
+    private val _tokenReceived = MutableSharedFlow<String>(replay = 1)
     private val sendMutex = Mutex()
     private val stateMutex = Mutex()
     private var connectionJob: Job? = null
@@ -54,6 +58,14 @@ public class VtsStreamClient internal constructor(
     private val requestCounter = AtomicInt(0)
 
     override val state: StateFlow<StreamState> = _state.asStateFlow()
+
+    /**
+     * Emits each new authentication token as it is received from VTubeStudio.
+     *
+     * Collect this flow to persist the token for future sessions. The latest
+     * token is replayed to new collectors immediately upon subscription.
+     */
+    public val tokenReceived: SharedFlow<String> = _tokenReceived.asSharedFlow()
 
     override suspend fun connect() {
         stateMutex.withLock {
@@ -127,7 +139,7 @@ public class VtsStreamClient internal constructor(
         val token = response.data?.authenticationToken
         if (token != null) {
             currentToken.store(token)
-            config.onTokenReceived?.invoke(token)
+            _tokenReceived.emit(token)
             sendAuthRequest(token)
         } else {
             _state.value = StreamState.Error("No token in response", willRetry = false)

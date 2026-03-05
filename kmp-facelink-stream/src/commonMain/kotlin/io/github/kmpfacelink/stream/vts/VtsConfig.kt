@@ -34,7 +34,6 @@ public class VtsReconnectPolicy(
  * @property pluginDeveloper Developer name displayed in the VTS approval dialog
  * @property pluginIcon Optional base64-encoded PNG icon (256x256)
  * @property authToken Saved authentication token for re-authentication
- * @property onTokenReceived Callback invoked when a new auth token is received, for persistence
  * @property reconnectPolicy Policy for automatic reconnection on connection loss
  */
 @Suppress("LongParameterList")
@@ -46,6 +45,5 @@ public class VtsConfig(
     public val pluginDeveloper: String,
     public val pluginIcon: String? = null,
     public val authToken: String? = null,
-    public val onTokenReceived: (suspend (String) -> Unit)? = null,
     public val reconnectPolicy: VtsReconnectPolicy = VtsReconnectPolicy(),
 ) : StreamConfig(host, port, maxFps)

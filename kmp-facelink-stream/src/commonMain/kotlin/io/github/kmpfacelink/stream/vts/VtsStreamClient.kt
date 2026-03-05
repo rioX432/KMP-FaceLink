@@ -4,6 +4,7 @@ import io.github.kmpfacelink.stream.StreamClient
 import io.github.kmpfacelink.stream.StreamState
 import io.github.kmpfacelink.stream.internal.KtorWebSocketProvider
 import io.github.kmpfacelink.stream.internal.WebSocketProvider
+import io.github.kmpfacelink.stream.vts.protocol.VtsResponse
 import io.github.kmpfacelink.stream.vts.protocol.VtsSerializer
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -31,6 +32,7 @@ import kotlin.coroutines.CoroutineContext
  *
  * @param config VTubeStudio connection configuration
  */
+@Suppress("TooManyFunctions")
 @OptIn(ExperimentalAtomicApi::class)
 public class VtsStreamClient internal constructor(
     private val config: VtsConfig,
@@ -109,39 +111,48 @@ public class VtsStreamClient internal constructor(
         }
     }
 
-    @Suppress("CyclomaticComplexMethod")
+    private val messageHandlers: Map<String, suspend (VtsResponse) -> Unit> = mapOf(
+        "AuthenticationTokenResponse" to ::handleAuthToken,
+        "AuthenticationResponse" to ::handleAuth,
+        "APIError" to ::handleApiError,
+        "InjectParameterDataResponse" to ::handleInjectResponse,
+    )
+
     private suspend fun handleMessage(text: String) {
         val response = VtsSerializer.decodeResponse(text)
+        messageHandlers[response.messageType]?.invoke(response)
+    }
 
-        when (response.messageType) {
-            "APIError" -> {
-                val errorMsg = response.data?.message ?: "Unknown VTS error"
-                _state.value = StreamState.Error(errorMsg, willRetry = false)
-            }
-            "AuthenticationTokenResponse" -> {
-                val token = response.data?.authenticationToken
-                if (token != null) {
-                    currentToken.store(token)
-                    config.onTokenReceived?.invoke(token)
-                    sendAuthRequest(token)
-                } else {
-                    _state.value = StreamState.Error("No token in response", willRetry = false)
-                }
-            }
-            "AuthenticationResponse" -> {
-                val authenticated = response.data?.authenticated ?: false
-                if (authenticated) {
-                    _state.value = StreamState.Connected
-                } else {
-                    val reason = response.data?.reason ?: "Authentication failed"
-                    currentToken.store(null)
-                    _state.value = StreamState.Error(reason, willRetry = false)
-                }
-            }
-            "InjectParameterDataResponse" -> {
-                // Success — no action needed
-            }
+    private suspend fun handleAuthToken(response: VtsResponse) {
+        val token = response.data?.authenticationToken
+        if (token != null) {
+            currentToken.store(token)
+            config.onTokenReceived?.invoke(token)
+            sendAuthRequest(token)
+        } else {
+            _state.value = StreamState.Error("No token in response", willRetry = false)
         }
+    }
+
+    private suspend fun handleAuth(response: VtsResponse) {
+        val authenticated = response.data?.authenticated ?: false
+        if (authenticated) {
+            _state.value = StreamState.Connected
+        } else {
+            val reason = response.data?.reason ?: "Authentication failed"
+            currentToken.store(null)
+            _state.value = StreamState.Error(reason, willRetry = false)
+        }
+    }
+
+    private suspend fun handleApiError(response: VtsResponse) {
+        val errorMsg = response.data?.message ?: "Unknown VTS error"
+        _state.value = StreamState.Error(errorMsg, willRetry = false)
+    }
+
+    @Suppress("UNUSED_PARAMETER")
+    private suspend fun handleInjectResponse(response: VtsResponse) {
+        // Success — no action needed
     }
 
     private fun handleDisconnect() {

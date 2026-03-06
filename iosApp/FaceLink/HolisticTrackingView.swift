@@ -93,7 +93,7 @@ class HolisticTrackingViewModel: ObservableObject {
             faceConfig: FaceTrackerConfig(
                 smoothingConfig: SmoothingConfig.Ema(alpha: 0.4),
                 enhancerConfig: BlendShapeEnhancerConfig.None(),
-                enableCalibration: false,
+                calibrationConfig: CalibrationConfig(),
                 cameraFacing: .front
             ),
             handConfig: HandTrackerConfig(

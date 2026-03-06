@@ -1,6 +1,22 @@
 package io.github.kmpfacelink.model
 
 /**
+ * Per-session calibration configuration.
+ *
+ * @property enabled Enable per-session calibration (default: false).
+ * @property warmupFrames Number of frames to collect statistics before normalization begins.
+ *           During warmup, raw values are passed through unchanged (default: 60 ≈ 2 s at 30 fps).
+ * @property rangeDecayRate EMA decay rate applied to the observed min/max range each frame.
+ *           A small positive value allows the range to slowly shrink after outliers, recovering
+ *           dynamic range over time (default: 0.001).
+ */
+public data class CalibrationConfig(
+    val enabled: Boolean = false,
+    val warmupFrames: Int = 60,
+    val rangeDecayRate: Float = 0.001f,
+)
+
+/**
  * Configuration for [io.github.kmpfacelink.api.FaceTracker].
  *
  * @property smoothingConfig Smoothing filter configuration. Use [SmoothingConfig.None],
@@ -9,7 +25,7 @@ package io.github.kmpfacelink.model
  *           MediaPipe parameters using geometric landmark calculations.
  *           Defaults to [BlendShapeEnhancerConfig.Default]. Use [BlendShapeEnhancerConfig.None]
  *           to disable. Has no effect on iOS (ARKit).
- * @property enableCalibration Enable per-session calibration (default: false)
+ * @property calibrationConfig Per-session calibration configuration. See [CalibrationConfig].
  * @property cameraFacing Which camera to use
  * @property modelAssetPath Path to the MediaPipe face landmarker model asset relative to the
  *           Android assets directory. Has no effect on iOS (ARKit). Override to use a custom or
@@ -23,7 +39,7 @@ package io.github.kmpfacelink.model
 public data class FaceTrackerConfig(
     val smoothingConfig: SmoothingConfig = SmoothingConfig.Ema(),
     val enhancerConfig: BlendShapeEnhancerConfig = BlendShapeEnhancerConfig.Default(),
-    val enableCalibration: Boolean = false,
+    val calibrationConfig: CalibrationConfig = CalibrationConfig(),
     val cameraFacing: CameraFacing = CameraFacing.FRONT,
     val modelAssetPath: String = "models/face_landmarker_v2_with_blendshapes.task",
     val stopDrainDelayMs: Long = 100L,
@@ -71,6 +87,28 @@ public sealed class SmoothingConfig {
             require(predictionMs >= 0f) { "predictionMs must be non-negative, was $predictionMs" }
         }
     }
+
+    /**
+     * Category-aware One Euro filter that applies different smoothing parameters per
+     * facial region. Fast-moving regions (mouth, jaw) use higher cutoff frequencies for
+     * lower lag; slow-moving regions (brow, cheek) use lower cutoff frequencies for
+     * heavier jitter suppression.
+     *
+     * @param mouthConfig One Euro params for mouth blend shapes.
+     * @param eyeConfig One Euro params for eye blend shapes.
+     * @param browConfig One Euro params for brow blend shapes.
+     * @param cheekConfig One Euro params for cheek blend shapes.
+     * @param jawConfig One Euro params for jaw blend shapes.
+     * @param otherConfig One Euro params for nose and other blend shapes.
+     */
+    public data class CategoryAware(
+        val mouthConfig: OneEuro = OneEuro(minCutoff = 3.0f, beta = 0.01f),
+        val eyeConfig: OneEuro = OneEuro(minCutoff = 2.0f, beta = 0.008f),
+        val browConfig: OneEuro = OneEuro(minCutoff = 1.0f, beta = 0.005f),
+        val cheekConfig: OneEuro = OneEuro(minCutoff = 0.8f, beta = 0.005f),
+        val jawConfig: OneEuro = OneEuro(minCutoff = 1.5f, beta = 0.007f),
+        val otherConfig: OneEuro = OneEuro(),
+    ) : SmoothingConfig()
 }
 
 /**

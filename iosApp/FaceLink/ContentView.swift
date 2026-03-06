@@ -258,7 +258,7 @@ class FaceTrackingViewModel: ObservableObject {
                 deadZoneOverrides: companion.defaultDeadZoneMap,
                 geometricBlendWeight: 0.7
             ),
-            enableCalibration: false,
+            calibrationConfig: CalibrationConfig(),
             cameraFacing: .front
         )
         tracker = FaceTrackerFactory_iosKt.createFaceTracker(

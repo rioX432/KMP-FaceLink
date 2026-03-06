@@ -60,7 +60,10 @@ internal class ARKitFaceTracker(
     private val released = AtomicInt(0)
 
     private var smoother: BlendShapeSmoother? = config.smoothingConfig.createSmoother()
-    private val calibrator = Calibrator()
+    private val calibrator = Calibrator(
+        warmupFrames = config.calibrationConfig.warmupFrames,
+        decayRate = config.calibrationConfig.rangeDecayRate,
+    )
 
     // Initial capacity hint for blend shape map to avoid rehashing
     private val blendShapeMapCapacity = BlendShape.entries.size
@@ -150,7 +153,7 @@ internal class ARKitFaceTracker(
             if (released.load() != 0) return
 
             // Apply calibration
-            if (config.enableCalibration) {
+            if (config.calibrationConfig.enabled) {
                 blendShapes = calibrator.calibrate(blendShapes)
             }
 

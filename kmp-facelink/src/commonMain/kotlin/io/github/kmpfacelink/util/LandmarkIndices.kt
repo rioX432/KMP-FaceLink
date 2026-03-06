@@ -60,6 +60,16 @@ internal object LandmarkIndices {
     const val LEFT_CHEEK = 234
     const val RIGHT_CHEEK = 454
 
+    // ── Under-eye (for cheek squint) ──
+    const val RIGHT_INFRAORBITAL = 50
+    const val LEFT_INFRAORBITAL = 280
+
+    // ── Brow ──
+    const val RIGHT_BROW_INNER = 70
+    const val RIGHT_BROW_MID = 105
+    const val LEFT_BROW_INNER = 300
+    const val LEFT_BROW_MID = 334
+
     /**
      * Inter-ocular distance: 2D distance between right and left inner eye corners.
      * Used as a face-size-independent normalization factor.

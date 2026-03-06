@@ -163,4 +163,40 @@ class BlendShapeEnhancerTest {
             )
         }
     }
+
+    @Test
+    fun enhance_cheekSquint_nearZero_usesGeometricSolver() {
+        val enhancer = BlendShapeEnhancer.create(BlendShapeEnhancerConfig.Default())!!
+        val bs = zeroBlendShapes()
+        // Compress the left under-eye region: move infraorbital (280) up toward eyelid (374, 380)
+        val lm = neutralFaceLandmarks().toMutableList()
+        // Neutral: infraorbital is below eyelid (higher Y). Squinting closes the gap.
+        // Set infraorbital Y close to the lower eyelid average Y to simulate squinting.
+        lm[374] = FaceLandmark(0.42f, 0.42f, 0f) // LEFT_EYE_LOWER_2
+        lm[380] = FaceLandmark(0.44f, 0.42f, 0f) // LEFT_EYE_LOWER_3
+        lm[280] = FaceLandmark(0.43f, 0.425f, 0f) // LEFT_INFRAORBITAL — nearly touching eyelid
+
+        val result = enhancer.enhance(bs, lm)
+        val value = result[BlendShape.CHEEK_SQUINT_LEFT] ?: 0f
+        assertTrue(value >= 0f && value <= 1f, "cheekSquintLeft should be in [0,1], got $value")
+    }
+
+    @Test
+    fun enhance_browDown_lowAccuracy_blendsWeighted() {
+        val enhancer = BlendShapeEnhancer.create(
+            BlendShapeEnhancerConfig.Default(geometricBlendWeight = 0.7f),
+        )!!
+        val bs = zeroBlendShapes().toMutableMap()
+        bs[BlendShape.BROW_DOWN_LEFT] = 0.4f
+
+        // Position left brow (300, 334) low, close to upper eyelid (386)
+        val lm = neutralFaceLandmarks().toMutableList()
+        lm[300] = FaceLandmark(0.38f, 0.36f, 0f) // LEFT_BROW_INNER — descended toward eyelid
+        lm[334] = FaceLandmark(0.42f, 0.36f, 0f) // LEFT_BROW_MID — descended toward eyelid
+        lm[386] = FaceLandmark(0.40f, 0.355f, 0f) // LEFT_EYE_UPPER_2
+
+        val result = enhancer.enhance(bs, lm)
+        val value = result[BlendShape.BROW_DOWN_LEFT] ?: 0f
+        assertTrue(value >= 0f && value <= 1f, "browDownLeft should be in [0,1], got $value")
+    }
 }

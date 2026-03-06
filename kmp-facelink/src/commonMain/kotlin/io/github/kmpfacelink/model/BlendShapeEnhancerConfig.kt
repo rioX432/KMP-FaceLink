@@ -38,6 +38,13 @@ public sealed class BlendShapeEnhancerConfig {
         /** Default sensitivity multipliers for enhanced shapes. */
         public val defaultSensitivityMap: Map<BlendShape, Float> = mapOf(
             BlendShape.CHEEK_PUFF to 3.0f,
+            BlendShape.CHEEK_SQUINT_LEFT to 2.5f,
+            BlendShape.CHEEK_SQUINT_RIGHT to 2.5f,
+            BlendShape.BROW_DOWN_LEFT to 1.8f,
+            BlendShape.BROW_DOWN_RIGHT to 1.8f,
+            BlendShape.BROW_INNER_UP to 1.5f,
+            BlendShape.BROW_OUTER_UP_LEFT to 1.5f,
+            BlendShape.BROW_OUTER_UP_RIGHT to 1.5f,
             BlendShape.EYE_WIDE_LEFT to 2.5f,
             BlendShape.EYE_WIDE_RIGHT to 2.5f,
             BlendShape.NOSE_SNEER_LEFT to 2.5f,
@@ -60,6 +67,13 @@ public sealed class BlendShapeEnhancerConfig {
         /** Default dead zone thresholds for enhanced shapes. */
         public val defaultDeadZoneMap: Map<BlendShape, Float> = mapOf(
             BlendShape.CHEEK_PUFF to 0.03f,
+            BlendShape.CHEEK_SQUINT_LEFT to 0.03f,
+            BlendShape.CHEEK_SQUINT_RIGHT to 0.03f,
+            BlendShape.BROW_DOWN_LEFT to 0.02f,
+            BlendShape.BROW_DOWN_RIGHT to 0.02f,
+            BlendShape.BROW_INNER_UP to 0.02f,
+            BlendShape.BROW_OUTER_UP_LEFT to 0.02f,
+            BlendShape.BROW_OUTER_UP_RIGHT to 0.02f,
             BlendShape.EYE_WIDE_LEFT to 0.02f,
             BlendShape.EYE_WIDE_RIGHT to 0.02f,
             BlendShape.NOSE_SNEER_LEFT to 0.03f,

@@ -100,6 +100,8 @@ internal class BlendShapeEnhancer(
         /** Shapes where ML almost always returns ~0. Use max(geometric, ml). */
         private val nearZeroSolvers: Map<BlendShape, (List<FaceLandmark>) -> Float> = mapOf(
             BlendShape.CHEEK_PUFF to LandmarkSolvers::solveCheekPuff,
+            BlendShape.CHEEK_SQUINT_LEFT to CheekBrowSolvers::solveCheekSquintLeft,
+            BlendShape.CHEEK_SQUINT_RIGHT to CheekBrowSolvers::solveCheekSquintRight,
             BlendShape.EYE_WIDE_LEFT to LandmarkSolvers::solveEyeWideLeft,
             BlendShape.EYE_WIDE_RIGHT to LandmarkSolvers::solveEyeWideRight,
             BlendShape.NOSE_SNEER_LEFT to LandmarkSolvers::solveNoseSneerLeft,
@@ -108,6 +110,11 @@ internal class BlendShapeEnhancer(
 
         /** Shapes with low but non-zero ML accuracy. Use weighted blend. */
         private val lowAccuracySolvers: Map<BlendShape, (List<FaceLandmark>) -> Float> = mapOf(
+            BlendShape.BROW_DOWN_LEFT to CheekBrowSolvers::solveBrowDownLeft,
+            BlendShape.BROW_DOWN_RIGHT to CheekBrowSolvers::solveBrowDownRight,
+            BlendShape.BROW_INNER_UP to CheekBrowSolvers::solveBrowInnerUp,
+            BlendShape.BROW_OUTER_UP_LEFT to CheekBrowSolvers::solveBrowOuterUpLeft,
+            BlendShape.BROW_OUTER_UP_RIGHT to CheekBrowSolvers::solveBrowOuterUpRight,
             BlendShape.JAW_FORWARD to LandmarkSolvers::solveJawForward,
             BlendShape.JAW_LEFT to LandmarkSolvers::solveJawLeft,
             BlendShape.JAW_RIGHT to LandmarkSolvers::solveJawRight,

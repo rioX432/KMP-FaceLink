@@ -10,6 +10,7 @@ import io.github.kmpfacelink.model.FaceLandmark
  *
  * Processing order:
  * 1. **Geometric solver override** — blend geometric values with ML output
+ * 1.5. **Expression correlation** — apply FACS AU co-activation rules (if enabled)
  * 2. **Sensitivity scaling** — amplify weak signals
  * 3. **Dead zone threshold** — snap near-zero values to 0
  *
@@ -18,6 +19,8 @@ import io.github.kmpfacelink.model.FaceLandmark
 internal class BlendShapeEnhancer(
     private val config: BlendShapeEnhancerConfig.Default,
 ) {
+
+    private val correlator = ExpressionCorrelator()
 
     /**
      * Enhance blend shape data using face landmarks.
@@ -36,6 +39,11 @@ internal class BlendShapeEnhancer(
 
         // Step 1: Geometric solver override
         applyGeometricOverrides(result, landmarks)
+
+        // Step 1.5: Expression correlation (FACS AU co-activation)
+        if (config.enableCorrelation) {
+            correlator.apply(result)
+        }
 
         // Step 2: Sensitivity scaling
         applySensitivity(result)

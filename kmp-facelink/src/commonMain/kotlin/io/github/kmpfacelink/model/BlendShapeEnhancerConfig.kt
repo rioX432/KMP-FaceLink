@@ -21,11 +21,15 @@ public sealed class BlendShapeEnhancerConfig {
      * @property geometricBlendWeight Weight for geometric value in weighted blending (0.0–1.0).
      *           Only used for low-accuracy shapes (jaw, mouthDimple).
      *           Near-zero shapes (cheekPuff, eyeWide, noseSneer) use max(geometric, ml).
+     * @property enableCorrelation Whether to apply FACS-based AU co-activation rules.
+     *           When enabled, expression correlations (e.g. smile → cheek squint) are applied
+     *           after geometric blending, before sensitivity scaling.
      */
     public data class Default(
         val sensitivityOverrides: Map<BlendShape, Float> = defaultSensitivityMap,
         val deadZoneOverrides: Map<BlendShape, Float> = defaultDeadZoneMap,
         val geometricBlendWeight: Float = 0.7f,
+        val enableCorrelation: Boolean = true,
     ) : BlendShapeEnhancerConfig() {
         init {
             require(geometricBlendWeight in 0f..1f) {

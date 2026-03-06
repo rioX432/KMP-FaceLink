@@ -71,6 +71,28 @@ public sealed class SmoothingConfig {
             require(predictionMs >= 0f) { "predictionMs must be non-negative, was $predictionMs" }
         }
     }
+
+    /**
+     * Category-aware One Euro filter that applies different smoothing parameters per
+     * facial region. Fast-moving regions (mouth, jaw) use higher cutoff frequencies for
+     * lower lag; slow-moving regions (brow, cheek) use lower cutoff frequencies for
+     * heavier jitter suppression.
+     *
+     * @param mouthConfig One Euro params for mouth blend shapes.
+     * @param eyeConfig One Euro params for eye blend shapes.
+     * @param browConfig One Euro params for brow blend shapes.
+     * @param cheekConfig One Euro params for cheek blend shapes.
+     * @param jawConfig One Euro params for jaw blend shapes.
+     * @param otherConfig One Euro params for nose and other blend shapes.
+     */
+    public data class CategoryAware(
+        val mouthConfig: OneEuro = OneEuro(minCutoff = 3.0f, beta = 0.01f),
+        val eyeConfig: OneEuro = OneEuro(minCutoff = 2.0f, beta = 0.008f),
+        val browConfig: OneEuro = OneEuro(minCutoff = 1.0f, beta = 0.005f),
+        val cheekConfig: OneEuro = OneEuro(minCutoff = 0.8f, beta = 0.005f),
+        val jawConfig: OneEuro = OneEuro(minCutoff = 1.5f, beta = 0.007f),
+        val otherConfig: OneEuro = OneEuro(),
+    ) : SmoothingConfig()
 }
 
 /**

@@ -27,4 +27,5 @@ internal fun SmoothingConfig.createSmoother(): BlendShapeSmoother? = when (this)
     is SmoothingConfig.None -> null
     is SmoothingConfig.Ema -> ExponentialMovingAverage(alpha)
     is SmoothingConfig.OneEuro -> OneEuroFilter(minCutoff, beta, dCutoff, predictionMs)
+    is SmoothingConfig.CategoryAware -> CategoryAwareSmoother(this)
 }

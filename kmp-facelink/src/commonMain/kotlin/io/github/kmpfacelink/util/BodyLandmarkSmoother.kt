@@ -27,4 +27,6 @@ internal fun SmoothingConfig.createBodySmoother(): BodyLandmarkSmoother? = when 
     is SmoothingConfig.None -> null
     is SmoothingConfig.Ema -> BodyEmaFilter(alpha)
     is SmoothingConfig.OneEuro -> BodyOneEuroFilter(minCutoff, beta, dCutoff)
+    // CategoryAware is blend-shape-specific; fall back to no smoothing for body landmarks
+    is SmoothingConfig.CategoryAware -> null
 }

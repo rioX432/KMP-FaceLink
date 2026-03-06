@@ -80,7 +80,7 @@ class RiveTrackingViewModel: ObservableObject {
 
         let config = FaceTrackerConfig(
             smoothingConfig: SmoothingConfig.Ema(alpha: 0.4),
-            enableCalibration: false,
+            calibrationConfig: CalibrationConfig(),
             cameraFacing: .front
         )
         tracker = FaceTrackerFactory_iosKt.createFaceTracker(

@@ -1,5 +1,6 @@
 package io.github.kmpfacelink
 
+import io.github.kmpfacelink.model.CalibrationConfig
 import io.github.kmpfacelink.model.CameraFacing
 import io.github.kmpfacelink.model.FaceTrackerConfig
 import io.github.kmpfacelink.model.SmoothingConfig
@@ -17,7 +18,7 @@ class FaceTrackerConfigTest {
         val config = FaceTrackerConfig()
         assertNotNull(config.smoothingConfig)
         assertTrue(config.smoothingConfig is SmoothingConfig.Ema)
-        assertFalse(config.enableCalibration)
+        assertFalse(config.calibrationConfig.enabled)
         assertEquals(CameraFacing.FRONT, config.cameraFacing)
         assertEquals("models/face_landmarker_v2_with_blendshapes.task", config.modelAssetPath)
         assertEquals(100L, config.stopDrainDelayMs)
@@ -48,15 +49,26 @@ class FaceTrackerConfigTest {
 
     @Test
     fun calibrationCanBeEnabled() {
-        val config = FaceTrackerConfig(enableCalibration = true)
-        assertTrue(config.enableCalibration)
+        val config = FaceTrackerConfig(calibrationConfig = CalibrationConfig(enabled = true))
+        assertTrue(config.calibrationConfig.enabled)
+    }
+
+    @Test
+    fun calibrationConfigDefaultValues() {
+        val calibrationConfig = CalibrationConfig()
+        assertFalse(calibrationConfig.enabled)
+        assertEquals(60, calibrationConfig.warmupFrames)
+        assertEquals(0.001f, calibrationConfig.rangeDecayRate)
     }
 
     @Test
     fun copyModifiesSelectedFields() {
         val original = FaceTrackerConfig()
-        val copy = original.copy(enableCalibration = true, cameraFacing = CameraFacing.BACK)
-        assertTrue(copy.enableCalibration)
+        val copy = original.copy(
+            calibrationConfig = CalibrationConfig(enabled = true),
+            cameraFacing = CameraFacing.BACK,
+        )
+        assertTrue(copy.calibrationConfig.enabled)
         assertEquals(CameraFacing.BACK, copy.cameraFacing)
         assertEquals(original.modelAssetPath, copy.modelAssetPath)
     }

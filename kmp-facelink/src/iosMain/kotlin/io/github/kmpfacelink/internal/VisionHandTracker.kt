@@ -148,6 +148,13 @@ internal class VisionHandTracker(
         }
     }
 
+    override fun resetSmoothing() {
+        pipelineLock.withLock {
+            check(released.load() == 0) { "Cannot reset smoothing on a released tracker" }
+            smoother?.reset()
+        }
+    }
+
     @Suppress("LongMethod")
     private fun setupCaptureSession() {
         val session = AVCaptureSession()

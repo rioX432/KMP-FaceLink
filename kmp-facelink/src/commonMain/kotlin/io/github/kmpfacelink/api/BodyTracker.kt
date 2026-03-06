@@ -62,4 +62,13 @@ public interface BodyTracker : Releasable {
      * @throws IllegalStateException if called after [release]
      */
     public fun updateSmoothing(config: SmoothingConfig)
+
+    /**
+     * Reset smoother internal state.
+     *
+     * Clears accumulated filter state, useful after tracking loss or scene change.
+     *
+     * @throws IllegalStateException if called after [release]
+     */
+    public fun resetSmoothing()
 }

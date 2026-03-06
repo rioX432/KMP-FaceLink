@@ -126,7 +126,7 @@ class StreamTrackingViewModel: ObservableObject {
             config: FaceTrackerConfig(
                 smoothingConfig: SmoothingConfig.Ema(alpha: 0.4),
                 enhancerConfig: nil,
-                enableCalibration: false,
+                calibrationConfig: CalibrationConfig(),
                 cameraFacing: .front
             )
         )

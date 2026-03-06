@@ -104,7 +104,7 @@ let tracker = FaceTrackerFactory_iosKt.createFaceTracker(
     config: FaceTrackerConfig(
         smoothingConfig: SmoothingConfig.Ema(alpha: 0.4),
         enhancerConfig: BlendShapeEnhancerConfig.Default(),
-        enableCalibration: false,
+        calibrationConfig: CalibrationConfig(),
         cameraFacing: .front
     )
 )

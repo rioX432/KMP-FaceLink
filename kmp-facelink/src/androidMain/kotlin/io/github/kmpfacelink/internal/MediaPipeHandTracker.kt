@@ -129,6 +129,13 @@ internal class MediaPipeHandTracker(
         }
     }
 
+    override fun resetSmoothing() {
+        pipelineLock.withLock {
+            check(released.load() == 0) { "Cannot reset smoothing on a released tracker" }
+            smoother?.reset()
+        }
+    }
+
     @Suppress("TooGenericExceptionCaught") // MediaPipe GPU delegate throws RuntimeException
     private fun initHandLandmarker() {
         // Try GPU delegate first, fall back to CPU on failure

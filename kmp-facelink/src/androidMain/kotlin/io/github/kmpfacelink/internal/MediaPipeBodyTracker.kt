@@ -128,6 +128,13 @@ internal class MediaPipeBodyTracker(
         }
     }
 
+    override fun resetSmoothing() {
+        pipelineLock.withLock {
+            check(released.load() == 0) { "Cannot reset smoothing on a released tracker" }
+            smoother?.reset()
+        }
+    }
+
     @Suppress("TooGenericExceptionCaught") // MediaPipe GPU delegate throws RuntimeException
     private fun initPoseLandmarker() {
         poseLandmarker = try {

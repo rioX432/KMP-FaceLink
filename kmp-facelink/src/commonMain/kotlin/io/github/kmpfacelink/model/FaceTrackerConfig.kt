@@ -24,7 +24,8 @@ public data class CalibrationConfig(
  * @property enhancerConfig Blend shape enhancer configuration for improving low-accuracy
  *           MediaPipe parameters using geometric landmark calculations.
  *           Defaults to [BlendShapeEnhancerConfig.Default]. Use [BlendShapeEnhancerConfig.None]
- *           to disable. Has no effect on iOS (ARKit).
+ *           to disable. Android only — ARKit provides high-quality blend shapes natively,
+ *           so this setting has no effect on iOS.
  * @property calibrationConfig Per-session calibration configuration. See [CalibrationConfig].
  * @property cameraFacing Which camera to use
  * @property modelAssetPath Path to the MediaPipe face landmarker model asset relative to the

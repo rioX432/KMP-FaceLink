@@ -69,7 +69,10 @@ internal class MediaPipeFaceTracker(
 
     private var smoother: BlendShapeSmoother? = config.smoothingConfig.createSmoother()
     private val enhancer: BlendShapeEnhancer? = BlendShapeEnhancer.create(config.enhancerConfig)
-    private val calibrator = Calibrator()
+    private val calibrator = Calibrator(
+        warmupFrames = config.calibrationConfig.warmupFrames,
+        decayRate = config.calibrationConfig.rangeDecayRate,
+    )
     private val analysisExecutor = Executors.newSingleThreadExecutor()
     private val imageConverter = ImageProxyConverter()
     private val cameraManager = if (sharedCameraSession == null) CameraXManager(platformContext) else null
@@ -328,7 +331,7 @@ internal class MediaPipeFaceTracker(
             enhancer?.let { blendShapes = it.enhance(blendShapes, landmarks) }
 
             // Apply calibration
-            if (config.enableCalibration) {
+            if (config.calibrationConfig.enabled) {
                 blendShapes = calibrator.calibrate(blendShapes)
             }
 

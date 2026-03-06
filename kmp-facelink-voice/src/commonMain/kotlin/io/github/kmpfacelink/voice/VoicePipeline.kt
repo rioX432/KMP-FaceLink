@@ -29,6 +29,9 @@ import kotlinx.coroutines.launch
  * Wires together ASR, TTS, lip sync, and audio I/O into a single pipeline.
  * Produces `Map<BlendShape, Float>` output compatible with the core SDK.
  *
+ * This class manages a background [CoroutineScope]. Callers must invoke [release]
+ * (or use [AutoCloseable.use]) when done to cancel pending jobs and free resources.
+ *
  * @param config Pipeline configuration
  * @param audioRecorder Platform audio recorder (null to disable recording)
  * @param audioPlayer Platform audio player (null to disable playback)
@@ -117,6 +120,9 @@ public class VoicePipeline(
      * Starts continuous listening for speech input via ASR.
      *
      * Transcriptions are emitted to [transcriptions].
+     *
+     * @throws IllegalStateException if ASR engine was not configured in [VoicePipelineConfig.asrConfig]
+     * @throws IllegalStateException if [AudioRecorder] was not provided to the constructor
      */
     public suspend fun startListening() {
         val engine = asr ?: error("ASR not configured")

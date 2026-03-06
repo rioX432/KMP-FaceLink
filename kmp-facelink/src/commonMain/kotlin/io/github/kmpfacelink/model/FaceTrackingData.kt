@@ -7,7 +7,8 @@ package io.github.kmpfacelink.model
  * @property headTransform 6DoF head position and rotation
  * @property gazeData Eye gaze direction derived from blend shapes. Null if not computed.
  * @property landmarks Face landmark points with normalized coordinates (0.0–1.0).
- *           On Android (MediaPipe): 478 points. Empty if no face is detected.
+ *           Android (MediaPipe): 478 points when a face is detected, empty otherwise.
+ *           iOS (ARKit): Always empty — ARKit does not expose raw face mesh vertices.
  * @property sourceImageWidth Width of the source image that landmarks are normalized to (pixels, after rotation)
  * @property sourceImageHeight Height of the source image that landmarks are normalized to (pixels, after rotation)
  * @property timestampMs Frame timestamp in milliseconds (monotonic clock)

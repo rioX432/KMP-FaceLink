@@ -10,6 +10,7 @@ import io.github.kmpfacelink.model.FaceTrackerConfig
 import io.github.kmpfacelink.model.FaceTrackingData
 import io.github.kmpfacelink.model.HeadTransform
 import io.github.kmpfacelink.model.SmoothingConfig
+import io.github.kmpfacelink.model.TrackedFace
 import io.github.kmpfacelink.util.BlendShapeSmoother
 import io.github.kmpfacelink.util.Calibrator
 import io.github.kmpfacelink.util.GazeEstimator
@@ -166,12 +167,22 @@ internal class ARKitFaceTracker(
         // Extract head transform from simd_float4x4
         val headTransform = extractTransform(faceAnchor)
 
+        val gazeData = GazeEstimator.estimate(processedBlendShapes)
+
+        val trackedFace = TrackedFace(
+            faceIndex = 0,
+            blendShapes = processedBlendShapes,
+            headTransform = headTransform,
+            gazeData = gazeData,
+        )
+
         val data = FaceTrackingData(
             blendShapes = processedBlendShapes,
             headTransform = headTransform,
-            gazeData = GazeEstimator.estimate(processedBlendShapes),
+            gazeData = gazeData,
             timestampMs = timestampMs,
             isTracking = true,
+            faces = listOf(trackedFace),
         )
 
         _trackingData.tryEmit(data)

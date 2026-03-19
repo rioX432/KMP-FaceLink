@@ -4,6 +4,7 @@ import io.github.kmpfacelink.model.BlendShape
 import io.github.kmpfacelink.model.FaceTrackingData
 import io.github.kmpfacelink.model.GazeData
 import io.github.kmpfacelink.model.HeadTransform
+import io.github.kmpfacelink.model.TrackedFace
 import io.github.kmpfacelink.model.emptyBlendShapeData
 import io.github.kmpfacelink.model.valueOf
 import kotlin.test.Test
@@ -87,5 +88,69 @@ class FaceTrackingDataTest {
         assertEquals(0f, data.headTransform.pitch)
         assertEquals(0f, data.headTransform.yaw)
         assertEquals(0f, data.headTransform.roll)
+    }
+
+    @Test
+    fun notTrackingHasEmptyFaces() {
+        val data = FaceTrackingData.notTracking()
+        assertTrue(data.faces.isEmpty())
+    }
+
+    @Test
+    fun facesDefaultsToEmptyList() {
+        val data = FaceTrackingData(
+            blendShapes = emptyBlendShapeData(),
+            headTransform = HeadTransform(),
+            timestampMs = 0L,
+            isTracking = false,
+        )
+        assertTrue(data.faces.isEmpty())
+    }
+
+    @Test
+    fun facesPropertyStoresTrackedFaces() {
+        val blendShapes = emptyBlendShapeData()
+        val headTransform = HeadTransform(pitch = 3f)
+        val trackedFace = TrackedFace(
+            faceIndex = 0,
+            blendShapes = blendShapes,
+            headTransform = headTransform,
+        )
+
+        val data = FaceTrackingData(
+            blendShapes = blendShapes,
+            headTransform = headTransform,
+            timestampMs = 100L,
+            isTracking = true,
+            faces = listOf(trackedFace),
+        )
+
+        assertEquals(1, data.faces.size)
+        assertEquals(0, data.faces[0].faceIndex)
+        assertEquals(3f, data.faces[0].headTransform.pitch)
+    }
+
+    @Test
+    fun trackedFaceDefaultConfidenceIsOne() {
+        val face = TrackedFace(
+            faceIndex = 0,
+            blendShapes = emptyBlendShapeData(),
+            headTransform = HeadTransform(),
+        )
+        assertEquals(1.0f, face.confidence)
+        assertNull(face.gazeData)
+        assertTrue(face.landmarks.isEmpty())
+    }
+
+    @Test
+    fun trackedFaceIndexIsPreserved() {
+        val face = TrackedFace(
+            faceIndex = 2,
+            blendShapes = emptyBlendShapeData(),
+            headTransform = HeadTransform(),
+            confidence = 0.8f,
+        )
+        assertEquals(2, face.faceIndex)
+        assertEquals(0.8f, face.confidence)
     }
 }

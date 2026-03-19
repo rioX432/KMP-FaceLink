@@ -11,6 +11,7 @@ package io.github.kmpfacelink.model
  * @property body Body tracking data, or null if body tracking is disabled or no bodies detected
  * @property timestampMs Timestamp in milliseconds (monotonic clock)
  * @property activeModalities Set of modalities that are enabled and actively producing data
+ * @property thermalState Current device thermal state at the time of this frame.
  */
 public data class HolisticTrackingData(
     val face: FaceTrackingData?,
@@ -18,6 +19,7 @@ public data class HolisticTrackingData(
     val body: BodyTrackingData?,
     val timestampMs: Long,
     val activeModalities: Set<TrackingModality>,
+    val thermalState: ThermalState = ThermalState.NOMINAL,
 ) {
     /** Whether any modality is actively tracking a subject. */
     public val isTracking: Boolean

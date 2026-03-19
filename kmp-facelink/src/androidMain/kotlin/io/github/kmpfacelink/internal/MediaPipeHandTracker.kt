@@ -19,9 +19,11 @@ import io.github.kmpfacelink.model.HandTrackerConfig
 import io.github.kmpfacelink.model.HandTrackingData
 import io.github.kmpfacelink.model.SmoothingConfig
 import io.github.kmpfacelink.model.TrackedHand
+import io.github.kmpfacelink.util.FrameThrottler
 import io.github.kmpfacelink.util.GestureClassifier
 import io.github.kmpfacelink.util.HandLandmarkSmoother
 import io.github.kmpfacelink.util.PlatformLock
+import io.github.kmpfacelink.util.ThermalMonitor
 import io.github.kmpfacelink.util.createHandSmoother
 import io.github.kmpfacelink.util.withLock
 import kotlinx.coroutines.flow.Flow
@@ -58,6 +60,8 @@ internal class MediaPipeHandTracker(
     private val released = AtomicInt(0)
 
     private var smoother: HandLandmarkSmoother? = config.smoothingConfig.createHandSmoother()
+    private val thermalMonitor: ThermalMonitor = AndroidThermalMonitor(platformContext.context)
+    private val frameThrottler = FrameThrottler(config.thermalPolicy)
 
     @Volatile
     internal var currentCameraFacing: CameraFacing = config.cameraFacing
@@ -121,6 +125,7 @@ internal class MediaPipeHandTracker(
             handLandmarker?.close()
             handLandmarker = null
             imageConverter.release()
+            thermalMonitor.release()
             analysisExecutor.shutdown()
             _state.value = TrackingState.RELEASED
         }
@@ -211,6 +216,13 @@ internal class MediaPipeHandTracker(
             return
         }
 
+        // Thermal throttling: skip frame if needed
+        val currentThermalState = thermalMonitor.thermalState.value
+        if (!frameThrottler.shouldProcess(timestampMs, currentThermalState)) {
+            sharedCameraSession?.returnInFlightBitmap(timestampMs)
+            return
+        }
+
         lastImageWidth = width
         lastImageHeight = height
 
@@ -226,6 +238,13 @@ internal class MediaPipeHandTracker(
     private fun processFrame(imageProxy: ImageProxy) {
         val landmarker = handLandmarker
         if (landmarker == null || _state.value != TrackingState.TRACKING) {
+            imageProxy.close()
+            return
+        }
+
+        // Thermal throttling: skip frame if needed
+        val currentThermalState = thermalMonitor.thermalState.value
+        if (!frameThrottler.shouldProcess(SystemClock.elapsedRealtime(), currentThermalState)) {
             imageProxy.close()
             return
         }
@@ -318,6 +337,7 @@ internal class MediaPipeHandTracker(
             sourceImageHeight = lastImageHeight,
             timestampMs = timestampMs,
             isTracking = true,
+            thermalState = thermalMonitor.thermalState.value,
         )
 
         _trackingData.tryEmit(data)

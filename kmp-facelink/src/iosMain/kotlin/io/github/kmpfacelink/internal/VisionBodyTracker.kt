@@ -13,7 +13,9 @@ import io.github.kmpfacelink.model.CameraFacing
 import io.github.kmpfacelink.model.SmoothingConfig
 import io.github.kmpfacelink.model.TrackedBody
 import io.github.kmpfacelink.util.BodyLandmarkSmoother
+import io.github.kmpfacelink.util.FrameThrottler
 import io.github.kmpfacelink.util.PlatformLock
+import io.github.kmpfacelink.util.ThermalMonitor
 import io.github.kmpfacelink.util.createBodySmoother
 import io.github.kmpfacelink.util.withLock
 import kotlinx.coroutines.flow.Flow
@@ -74,6 +76,8 @@ internal class VisionBodyTracker(
     private val processing = AtomicInt(0)
 
     private var smoother: BodyLandmarkSmoother? = config.smoothingConfig.createBodySmoother()
+    private val thermalMonitor: ThermalMonitor = IosThermalMonitor()
+    private val frameThrottler = FrameThrottler(config.thermalPolicy)
 
     private var currentCameraFacing: CameraFacing = config.cameraFacing
     private val bodyPoseRequest = VNDetectHumanBodyPoseRequest()
@@ -132,6 +136,7 @@ internal class VisionBodyTracker(
                 captureSession?.stopRunning()
                 captureSession = null
             }
+            thermalMonitor.release()
             _state.value = TrackingState.RELEASED
         }
     }
@@ -244,6 +249,10 @@ internal class VisionBodyTracker(
             val pixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) ?: return
             val timestampMs = currentTimeMillis()
 
+            // Thermal throttling: skip frame if needed
+            val currentThermalState = thermalMonitor.thermalState.value
+            if (!frameThrottler.shouldProcess(timestampMs, currentThermalState)) return
+
             // Get source image dimensions from pixel buffer
             val imageWidth = CVPixelBufferGetWidth(pixelBuffer).toInt()
             val imageHeight = CVPixelBufferGetHeight(pixelBuffer).toInt()
@@ -268,6 +277,7 @@ internal class VisionBodyTracker(
                     sourceImageHeight = imageHeight,
                     timestampMs = timestampMs,
                     isTracking = true,
+                    thermalState = currentThermalState,
                 ),
             )
         } finally {

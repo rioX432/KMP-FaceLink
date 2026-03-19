@@ -26,8 +26,10 @@ import io.github.kmpfacelink.model.TrackedFace
 import io.github.kmpfacelink.util.BlendShapeEnhancer
 import io.github.kmpfacelink.util.BlendShapeSmoother
 import io.github.kmpfacelink.util.Calibrator
+import io.github.kmpfacelink.util.FrameThrottler
 import io.github.kmpfacelink.util.GazeEstimator
 import io.github.kmpfacelink.util.PlatformLock
+import io.github.kmpfacelink.util.ThermalMonitor
 import io.github.kmpfacelink.util.TransformUtils
 import io.github.kmpfacelink.util.createSmoother
 import io.github.kmpfacelink.util.withLock
@@ -46,6 +48,7 @@ import java.util.concurrent.atomic.AtomicReference
 import kotlin.concurrent.atomics.AtomicInt
 import kotlin.concurrent.atomics.ExperimentalAtomicApi
 
+@Suppress("TooManyFunctions")
 @OptIn(ExperimentalAtomicApi::class)
 internal class MediaPipeFaceTracker(
     private val platformContext: PlatformContext,
@@ -74,6 +77,8 @@ internal class MediaPipeFaceTracker(
         warmupFrames = config.calibrationConfig.warmupFrames,
         decayRate = config.calibrationConfig.rangeDecayRate,
     )
+    private val thermalMonitor: ThermalMonitor = AndroidThermalMonitor(platformContext.context)
+    private val frameThrottler = FrameThrottler(config.thermalPolicy)
     private val analysisExecutor = Executors.newSingleThreadExecutor()
     private val imageConverter = ImageProxyConverter()
     private val cameraManager = if (sharedCameraSession == null) CameraXManager(platformContext) else null
@@ -161,6 +166,7 @@ internal class MediaPipeFaceTracker(
             faceLandmarker = null
             cameraManager?.unbindAll()
             imageConverter.release()
+            thermalMonitor.release()
         }
         analysisExecutor.shutdown()
         @Suppress("TooGenericExceptionCaught")
@@ -258,6 +264,13 @@ internal class MediaPipeFaceTracker(
             return
         }
 
+        // Thermal throttling: skip frame if needed
+        val currentThermalState = thermalMonitor.thermalState.value
+        if (!frameThrottler.shouldProcess(timestampMs, currentThermalState)) {
+            sharedCameraSession?.returnInFlightBitmap(timestampMs)
+            return
+        }
+
         lastImageWidth = width
         lastImageHeight = height
 
@@ -273,6 +286,13 @@ internal class MediaPipeFaceTracker(
     private fun processFrame(imageProxy: ImageProxy) {
         val landmarker = faceLandmarker
         if (landmarker == null || _state.value != TrackingState.TRACKING) {
+            imageProxy.close()
+            return
+        }
+
+        // Thermal throttling: skip frame if needed
+        val currentThermalState = thermalMonitor.thermalState.value
+        if (!frameThrottler.shouldProcess(SystemClock.elapsedRealtime(), currentThermalState)) {
             imageProxy.close()
             return
         }
@@ -341,6 +361,7 @@ internal class MediaPipeFaceTracker(
             timestampMs = timestampMs,
             isTracking = true,
             faces = faces,
+            thermalState = thermalMonitor.thermalState.value,
         )
 
         _trackingData.tryEmit(data)
@@ -356,7 +377,9 @@ internal class MediaPipeFaceTracker(
         return pipelineLock.withLock {
             if (released.load() != 0) return null
 
-            enhancer?.let { result = it.enhance(result, landmarks) }
+            if (!frameThrottler.shouldDisableEnhancer(thermalMonitor.thermalState.value)) {
+                enhancer?.let { result = it.enhance(result, landmarks) }
+            }
 
             if (config.calibrationConfig.enabled) {
                 result = calibrator.calibrate(result)

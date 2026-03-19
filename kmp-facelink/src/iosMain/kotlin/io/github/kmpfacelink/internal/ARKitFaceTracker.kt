@@ -14,8 +14,10 @@ import io.github.kmpfacelink.model.SmoothingConfig
 import io.github.kmpfacelink.model.TrackedFace
 import io.github.kmpfacelink.util.BlendShapeSmoother
 import io.github.kmpfacelink.util.Calibrator
+import io.github.kmpfacelink.util.FrameThrottler
 import io.github.kmpfacelink.util.GazeEstimator
 import io.github.kmpfacelink.util.PlatformLock
+import io.github.kmpfacelink.util.ThermalMonitor
 import io.github.kmpfacelink.util.TransformUtils
 import io.github.kmpfacelink.util.createSmoother
 import io.github.kmpfacelink.util.withLock
@@ -66,6 +68,9 @@ internal class ARKitFaceTracker(
         warmupFrames = config.calibrationConfig.warmupFrames,
         decayRate = config.calibrationConfig.rangeDecayRate,
     )
+
+    private val thermalMonitor: ThermalMonitor = IosThermalMonitor()
+    private val frameThrottler = FrameThrottler(config.thermalPolicy)
 
     // Initial capacity hint for blend shape map to avoid rehashing
     private val blendShapeMapCapacity = BlendShape.entries.size
@@ -122,6 +127,7 @@ internal class ARKitFaceTracker(
             arSession?.pause()
             arSession?.delegate = null
             arSession = null
+            thermalMonitor.release()
             _state.value = TrackingState.RELEASED
         }
     }
@@ -156,6 +162,10 @@ internal class ARKitFaceTracker(
     private fun processFaceAnchor(faceAnchor: ARFaceAnchor) {
         val timestampMs = (arSession?.currentFrame?.timestamp?.times(1000))?.toLong()
             ?: currentTimeMillis()
+
+        // Thermal throttling: skip frame if needed
+        val currentThermalState = thermalMonitor.thermalState.value
+        if (!frameThrottler.shouldProcess(timestampMs, currentThermalState)) return
 
         // Extract blend shapes
         @Suppress("UNCHECKED_CAST")
@@ -196,6 +206,7 @@ internal class ARKitFaceTracker(
             timestampMs = timestampMs,
             isTracking = true,
             faces = listOf(trackedFace),
+            thermalState = currentThermalState,
         )
 
         _trackingData.tryEmit(data)

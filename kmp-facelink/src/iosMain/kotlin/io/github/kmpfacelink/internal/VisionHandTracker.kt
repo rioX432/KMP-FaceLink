@@ -13,9 +13,11 @@ import io.github.kmpfacelink.model.HandTrackerConfig
 import io.github.kmpfacelink.model.HandTrackingData
 import io.github.kmpfacelink.model.SmoothingConfig
 import io.github.kmpfacelink.model.TrackedHand
+import io.github.kmpfacelink.util.FrameThrottler
 import io.github.kmpfacelink.util.GestureClassifier
 import io.github.kmpfacelink.util.HandLandmarkSmoother
 import io.github.kmpfacelink.util.PlatformLock
+import io.github.kmpfacelink.util.ThermalMonitor
 import io.github.kmpfacelink.util.createHandSmoother
 import io.github.kmpfacelink.util.withLock
 import kotlinx.coroutines.flow.Flow
@@ -76,6 +78,8 @@ internal class VisionHandTracker(
     private val processing = AtomicInt(0)
 
     private var smoother: HandLandmarkSmoother? = config.smoothingConfig.createHandSmoother()
+    private val thermalMonitor: ThermalMonitor = IosThermalMonitor()
+    private val frameThrottler = FrameThrottler(config.thermalPolicy)
 
     private var currentCameraFacing: CameraFacing = config.cameraFacing
     private val handPoseRequest = VNDetectHumanHandPoseRequest().apply {
@@ -139,6 +143,7 @@ internal class VisionHandTracker(
                 captureSession?.stopRunning()
                 captureSession = null
             }
+            thermalMonitor.release()
             _state.value = TrackingState.RELEASED
         }
     }
@@ -251,6 +256,10 @@ internal class VisionHandTracker(
             val pixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) ?: return
             val timestampMs = currentTimeMillis()
 
+            // Thermal throttling: skip frame if needed
+            val currentThermalState = thermalMonitor.thermalState.value
+            if (!frameThrottler.shouldProcess(timestampMs, currentThermalState)) return
+
             // Get source image dimensions from pixel buffer
             val imageWidth = CVPixelBufferGetWidth(pixelBuffer).toInt()
             val imageHeight = CVPixelBufferGetHeight(pixelBuffer).toInt()
@@ -273,6 +282,7 @@ internal class VisionHandTracker(
                     sourceImageHeight = imageHeight,
                     timestampMs = timestampMs,
                     isTracking = true,
+                    thermalState = currentThermalState,
                 ),
             )
         } finally {

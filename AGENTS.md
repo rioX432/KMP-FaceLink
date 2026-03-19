@@ -131,7 +131,6 @@ Note: `kmp-facelink-llm` uses platform code only for `HttpClientProvider` (Ktor 
 - Public API in `commonMain` only — keep it minimal and clean
 - Platform implementations are `internal`, exposed only through shared interfaces
 - Use `Flow<T>` for streaming data (not callbacks)
-- `expect`/`actual` declarations require `-Xexpect-actual-classes` compiler flag
 
 ### Detekt Rules
 

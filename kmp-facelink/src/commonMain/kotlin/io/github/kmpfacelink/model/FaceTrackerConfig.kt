@@ -36,6 +36,10 @@ public data class CalibrationConfig(
  *           Android only.
  * @property releaseTimeoutMs Maximum milliseconds to wait for the camera analysis executor to
  *           terminate during [io.github.kmpfacelink.api.FaceTracker.release]. Android only.
+ * @property maxFaces Maximum number of faces to detect simultaneously (1–[MAX_FACES]).
+ *           Android (MediaPipe): fully supported — up to [MAX_FACES] faces tracked at once.
+ *           iOS (ARKit): ARKit only supports one face; values greater than 1 have no effect.
+ *           Default is 1 (single-face mode).
  */
 public data class FaceTrackerConfig(
     val smoothingConfig: SmoothingConfig = SmoothingConfig.Ema(),
@@ -45,7 +49,19 @@ public data class FaceTrackerConfig(
     val modelAssetPath: String = "models/face_landmarker_v2_with_blendshapes.task",
     val stopDrainDelayMs: Long = 100L,
     val releaseTimeoutMs: Long = 500L,
-)
+    val maxFaces: Int = 1,
+) {
+    init {
+        require(maxFaces in 1..MAX_FACES) {
+            "maxFaces must be in 1..$MAX_FACES, was $maxFaces"
+        }
+    }
+
+    public companion object {
+        /** Maximum number of faces that can be tracked simultaneously. */
+        public const val MAX_FACES: Int = 4
+    }
+}
 
 /**
  * Smoothing filter configuration.

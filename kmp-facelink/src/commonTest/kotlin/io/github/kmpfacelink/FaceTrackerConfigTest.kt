@@ -72,6 +72,45 @@ class FaceTrackerConfigTest {
         assertEquals(CameraFacing.BACK, copy.cameraFacing)
         assertEquals(original.modelAssetPath, copy.modelAssetPath)
     }
+
+    @Test
+    fun maxFacesDefaultsToOne() {
+        val config = FaceTrackerConfig()
+        assertEquals(1, config.maxFaces)
+    }
+
+    @Test
+    fun maxFacesAcceptsValidRange() {
+        for (n in 1..FaceTrackerConfig.MAX_FACES) {
+            val config = FaceTrackerConfig(maxFaces = n)
+            assertEquals(n, config.maxFaces)
+        }
+    }
+
+    @Test
+    fun maxFacesRejectsZero() {
+        try {
+            FaceTrackerConfig(maxFaces = 0)
+            fail("Expected IllegalArgumentException for maxFaces = 0")
+        } catch (e: IllegalArgumentException) {
+            assertTrue(e.message!!.contains("maxFaces"))
+        }
+    }
+
+    @Test
+    fun maxFacesRejectsValueAboveMax() {
+        try {
+            FaceTrackerConfig(maxFaces = FaceTrackerConfig.MAX_FACES + 1)
+            fail("Expected IllegalArgumentException for maxFaces > MAX_FACES")
+        } catch (e: IllegalArgumentException) {
+            assertTrue(e.message!!.contains("maxFaces"))
+        }
+    }
+
+    @Test
+    fun maxFacesConstantIsFour() {
+        assertEquals(4, FaceTrackerConfig.MAX_FACES)
+    }
 }
 
 class SmoothingConfigTest {

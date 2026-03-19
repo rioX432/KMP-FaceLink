@@ -22,6 +22,7 @@ import io.github.kmpfacelink.model.FaceTrackerConfig
 import io.github.kmpfacelink.model.FaceTrackingData
 import io.github.kmpfacelink.model.HeadTransform
 import io.github.kmpfacelink.model.SmoothingConfig
+import io.github.kmpfacelink.model.TrackedFace
 import io.github.kmpfacelink.util.BlendShapeEnhancer
 import io.github.kmpfacelink.util.BlendShapeSmoother
 import io.github.kmpfacelink.util.Calibrator
@@ -215,7 +216,7 @@ internal class MediaPipeFaceTracker(
         val options = FaceLandmarker.FaceLandmarkerOptions.builder()
             .setBaseOptions(baseOptions)
             .setRunningMode(RunningMode.LIVE_STREAM)
-            .setNumFaces(1)
+            .setNumFaces(config.maxFaces)
             .setMinFaceDetectionConfidence(0.5f)
             .setMinTrackingConfidence(0.5f)
             .setMinFacePresenceConfidence(0.5f)
@@ -323,69 +324,108 @@ internal class MediaPipeFaceTracker(
             return
         }
 
-        // Extract landmarks (478 normalized points) — needed for enhancer
-        val landmarks = if (result.faceLandmarks().isNotEmpty()) {
-            result.faceLandmarks()[0].map { landmark ->
-                FaceLandmark(
-                    x = landmark.x(),
-                    y = landmark.y(),
-                    z = landmark.z(),
-                )
-            }
-        } else {
-            emptyList()
-        }
+        val primaryLandmarks = extractLandmarks(result, faceIndex = 0)
+        val primaryBlendShapes = extractBlendShapes(result, faceIndex = 0)
+        val processedPrimary = processPrimaryPipeline(primaryBlendShapes, primaryLandmarks, timestampMs) ?: return
+        val primaryHeadTransform = extractHeadTransform(result, faceIndex = 0)
 
-        // Extract blend shapes
-        val categories = result.faceBlendshapes().get()[0].map { category ->
-            category.categoryName() to category.score()
-        }
-        var blendShapes: BlendShapeData = BlendShapeMapper.mapFromMediaPipe(categories)
-
-        // Pipeline: enhance → calibrate → smooth (protected by lock)
-        val processedBlendShapes = pipelineLock.withLock {
-            if (released.load() != 0) return
-
-            // Enhance low-accuracy blend shapes using geometric landmark calculations
-            enhancer?.let { blendShapes = it.enhance(blendShapes, landmarks) }
-
-            // Apply calibration
-            if (config.calibrationConfig.enabled) {
-                blendShapes = calibrator.calibrate(blendShapes)
-            }
-
-            // Apply smoothing
-            smoother?.let { blendShapes = it.smooth(blendShapes, timestampMs) }
-
-            blendShapes
-        }
-
-        // Extract head transform
-        val headTransform = if (result.facialTransformationMatrixes().isPresent &&
-            result.facialTransformationMatrixes().get().isNotEmpty()
-        ) {
-            // MediaPipe returns flat column-major float array (16 elements)
-            val flatMatrix = result.facialTransformationMatrixes().get()[0]
-            TransformUtils.fromMatrix(flatMatrix)
-        } else {
-            HeadTransform()
-        }
+        val faces = buildTrackedFaces(result, processedPrimary, primaryLandmarks, primaryHeadTransform, timestampMs)
 
         val data = FaceTrackingData(
-            blendShapes = processedBlendShapes,
-            headTransform = headTransform,
-            gazeData = GazeEstimator.estimate(processedBlendShapes),
-            landmarks = landmarks,
+            blendShapes = processedPrimary,
+            headTransform = primaryHeadTransform,
+            gazeData = GazeEstimator.estimate(processedPrimary),
+            landmarks = primaryLandmarks,
             sourceImageWidth = lastImageWidth,
             sourceImageHeight = lastImageHeight,
             timestampMs = timestampMs,
             isTracking = true,
+            faces = faces,
         )
 
         _trackingData.tryEmit(data)
     }
 
+    /** Runs enhance → calibrate → smooth on the primary face. Returns null if tracker is released. */
+    private fun processPrimaryPipeline(
+        blendShapes: BlendShapeData,
+        landmarks: List<FaceLandmark>,
+        timestampMs: Long,
+    ): BlendShapeData? {
+        var result = blendShapes
+        return pipelineLock.withLock {
+            if (released.load() != 0) return null
+
+            enhancer?.let { result = it.enhance(result, landmarks) }
+
+            if (config.calibrationConfig.enabled) {
+                result = calibrator.calibrate(result)
+            }
+
+            smoother?.let { result = it.smooth(result, timestampMs) }
+
+            result
+        }
+    }
+
+    private fun buildTrackedFaces(
+        result: FaceLandmarkerResult,
+        processedPrimary: BlendShapeData,
+        primaryLandmarks: List<FaceLandmark>,
+        primaryHeadTransform: HeadTransform,
+        timestampMs: Long,
+    ): List<TrackedFace> {
+        val faceCount = result.faceBlendshapes().get().size
+        return List(faceCount) { index ->
+            if (index == 0) {
+                TrackedFace(
+                    faceIndex = 0,
+                    blendShapes = processedPrimary,
+                    headTransform = primaryHeadTransform,
+                    gazeData = GazeEstimator.estimate(processedPrimary),
+                    landmarks = primaryLandmarks,
+                )
+            } else {
+                val landmarks = extractLandmarks(result, index)
+                val headTransform = extractHeadTransform(result, index)
+                // Secondary faces: apply only smoothing (no per-face calibration/enhancement state)
+                var blendShapes = extractBlendShapes(result, index)
+                pipelineLock.withLock { smoother?.let { blendShapes = it.smooth(blendShapes, timestampMs) } }
+                TrackedFace(
+                    faceIndex = index,
+                    blendShapes = blendShapes,
+                    headTransform = headTransform,
+                    gazeData = GazeEstimator.estimate(blendShapes),
+                    landmarks = landmarks,
+                )
+            }
+        }
+    }
+
     companion object {
         private const val TAG = "MediaPipeFaceTracker"
+
+        private fun extractLandmarks(result: FaceLandmarkerResult, faceIndex: Int): List<FaceLandmark> {
+            val allLandmarks = result.faceLandmarks()
+            if (faceIndex >= allLandmarks.size) return emptyList()
+            return allLandmarks[faceIndex].map { landmark ->
+                FaceLandmark(x = landmark.x(), y = landmark.y(), z = landmark.z())
+            }
+        }
+
+        private fun extractBlendShapes(result: FaceLandmarkerResult, faceIndex: Int): BlendShapeData {
+            val categories = result.faceBlendshapes().get()[faceIndex].map { category ->
+                category.categoryName() to category.score()
+            }
+            return BlendShapeMapper.mapFromMediaPipe(categories)
+        }
+
+        private fun extractHeadTransform(result: FaceLandmarkerResult, faceIndex: Int): HeadTransform {
+            if (!result.facialTransformationMatrixes().isPresent) return HeadTransform()
+            val matrices = result.facialTransformationMatrixes().get()
+            if (faceIndex >= matrices.size) return HeadTransform()
+            // MediaPipe returns flat column-major float array (16 elements)
+            return TransformUtils.fromMatrix(matrices[faceIndex])
+        }
     }
 }

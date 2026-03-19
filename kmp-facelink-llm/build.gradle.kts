@@ -14,10 +14,6 @@ dokka {
 kotlin {
     explicitApi()
 
-    compilerOptions {
-        freeCompilerArgs.add("-Xexpect-actual-classes")
-    }
-
     androidLibrary {
         namespace = "io.github.kmpfacelink.llm"
         compileSdk = 35

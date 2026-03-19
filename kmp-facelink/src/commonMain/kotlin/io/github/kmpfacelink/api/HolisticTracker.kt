@@ -1,5 +1,6 @@
 package io.github.kmpfacelink.api
 
+import io.github.kmpfacelink.model.CameraFacing
 import io.github.kmpfacelink.model.HolisticTrackingData
 import io.github.kmpfacelink.model.SmoothingConfig
 import io.github.kmpfacelink.model.TrackingModality
@@ -90,4 +91,20 @@ public interface HolisticTracker : Releasable {
      * @throws IllegalStateException if called after [release]
      */
     public fun updateSmoothing(config: SmoothingConfig)
+
+    /**
+     * Switch to a different camera at runtime for all enabled modalities.
+     *
+     * If the tracker is currently tracking, it will stop, switch the camera, and restart.
+     * If the tracker is stopped or idle, the new facing will be applied on the next [start].
+     *
+     * Note: On iOS, face tracking always uses the front TrueDepth camera regardless of this
+     * setting. Switching to [CameraFacing.BACK] when face tracking is enabled will throw
+     * [UnsupportedOperationException].
+     *
+     * @param facing The camera direction to switch to
+     * @throws UnsupportedOperationException if the requested camera is not available
+     * @throws IllegalStateException if called after [release]
+     */
+    public suspend fun switchCamera(facing: CameraFacing)
 }

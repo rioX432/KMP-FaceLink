@@ -57,7 +57,11 @@ internal class MediaPipeBodyTracker(
     private val released = AtomicInt(0)
 
     private var smoother: BodyLandmarkSmoother? = config.smoothingConfig.createBodySmoother()
-    private val isFrontCamera = config.cameraFacing == CameraFacing.FRONT
+
+    @Volatile
+    internal var currentCameraFacing: CameraFacing = config.cameraFacing
+    private val isFrontCamera: Boolean
+        get() = currentCameraFacing == CameraFacing.FRONT
     private val analysisExecutor = Executors.newSingleThreadExecutor()
     private val imageConverter = ImageProxyConverter()
     private val cameraManager = if (sharedCameraSession == null) CameraXManager(platformContext) else null
@@ -135,6 +139,17 @@ internal class MediaPipeBodyTracker(
         }
     }
 
+    override suspend fun switchCamera(facing: CameraFacing) {
+        pipelineLock.withLock {
+            check(released.load() == 0) { "Cannot switch camera on a released tracker" }
+        }
+        if (currentCameraFacing == facing) return
+        val wasTracking = _state.value == TrackingState.TRACKING
+        if (wasTracking) stop()
+        currentCameraFacing = facing
+        if (wasTracking) start()
+    }
+
     @Suppress("TooGenericExceptionCaught") // MediaPipe GPU delegate throws RuntimeException
     private fun initPoseLandmarker() {
         poseLandmarker = try {
@@ -179,7 +194,7 @@ internal class MediaPipeBodyTracker(
                 .also { it.setAnalyzer(analysisExecutor, ::processFrame) }
 
             cameraManager!!.startCamera(
-                cameraFacing = config.cameraFacing,
+                cameraFacing = currentCameraFacing,
                 imageAnalysis = imageAnalysis,
                 surfaceProvider = previewSurfaceProvider,
             )

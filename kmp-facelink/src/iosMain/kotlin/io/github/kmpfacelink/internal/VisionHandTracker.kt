@@ -76,6 +76,8 @@ internal class VisionHandTracker(
     private val processing = AtomicInt(0)
 
     private var smoother: HandLandmarkSmoother? = config.smoothingConfig.createHandSmoother()
+
+    private var currentCameraFacing: CameraFacing = config.cameraFacing
     private val handPoseRequest = VNDetectHumanHandPoseRequest().apply {
         @Suppress("CAST_NEVER_SUCCEEDS")
         maximumHandCount = config.maxHands.toULong()
@@ -155,12 +157,31 @@ internal class VisionHandTracker(
         }
     }
 
+    override suspend fun switchCamera(facing: CameraFacing) {
+        pipelineLock.withLock {
+            check(released.load() == 0) { "Cannot switch camera on a released tracker" }
+        }
+        if (currentCameraFacing == facing) return
+        val wasTracking = _state.value == TrackingState.TRACKING
+        if (wasTracking) {
+            if (sharedVisionSession == null) {
+                captureSession?.stopRunning()
+                captureSession = null
+            }
+        }
+        currentCameraFacing = facing
+        if (wasTracking && sharedVisionSession == null) {
+            setupCaptureSession()
+            captureSession?.startRunning()
+        }
+    }
+
     @Suppress("LongMethod")
     private fun setupCaptureSession() {
         val session = AVCaptureSession()
         session.sessionPreset = AVCaptureSessionPreset352x288
 
-        val position = when (config.cameraFacing) {
+        val position = when (currentCameraFacing) {
             CameraFacing.FRONT -> AVCaptureDevicePositionFront
             CameraFacing.BACK -> AVCaptureDevicePositionBack
         }

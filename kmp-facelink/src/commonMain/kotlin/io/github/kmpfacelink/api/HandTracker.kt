@@ -1,5 +1,6 @@
 package io.github.kmpfacelink.api
 
+import io.github.kmpfacelink.model.CameraFacing
 import io.github.kmpfacelink.model.HandTrackingData
 import io.github.kmpfacelink.model.SmoothingConfig
 import kotlinx.coroutines.flow.Flow
@@ -71,4 +72,16 @@ public interface HandTracker : Releasable {
      * @throws IllegalStateException if called after [release]
      */
     public fun resetSmoothing()
+
+    /**
+     * Switch to a different camera at runtime.
+     *
+     * If the tracker is currently tracking, it will stop, switch the camera, and restart.
+     * If the tracker is stopped or idle, the new facing will be applied on the next [start].
+     *
+     * @param facing The camera direction to switch to
+     * @throws UnsupportedOperationException if the requested camera is not available
+     * @throws IllegalStateException if called after [release]
+     */
+    public suspend fun switchCamera(facing: CameraFacing)
 }

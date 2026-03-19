@@ -76,7 +76,11 @@ internal class MediaPipeFaceTracker(
     private val analysisExecutor = Executors.newSingleThreadExecutor()
     private val imageConverter = ImageProxyConverter()
     private val cameraManager = if (sharedCameraSession == null) CameraXManager(platformContext) else null
-    private val isFrontCamera = config.cameraFacing == CameraFacing.FRONT
+
+    @Volatile
+    internal var currentCameraFacing: CameraFacing = config.cameraFacing
+    private val isFrontCamera: Boolean
+        get() = currentCameraFacing == CameraFacing.FRONT
 
     private var faceLandmarker: FaceLandmarker? = null
     private var previewSurfaceProvider: Preview.SurfaceProvider? = null
@@ -95,8 +99,12 @@ internal class MediaPipeFaceTracker(
     }
 
     override suspend fun start() {
-        if (!platformContext.context.packageManager.hasSystemFeature(PackageManager.FEATURE_CAMERA_FRONT)) {
-            throw UnsupportedOperationException("No front camera available")
+        val requiredFeature = when (currentCameraFacing) {
+            CameraFacing.FRONT -> PackageManager.FEATURE_CAMERA_FRONT
+            CameraFacing.BACK -> PackageManager.FEATURE_CAMERA
+        }
+        if (!platformContext.context.packageManager.hasSystemFeature(requiredFeature)) {
+            throw UnsupportedOperationException("No ${currentCameraFacing.name.lowercase()} camera available")
         }
 
         pipelineLock.withLock {
@@ -176,6 +184,17 @@ internal class MediaPipeFaceTracker(
         }
     }
 
+    override suspend fun switchCamera(facing: CameraFacing) {
+        pipelineLock.withLock {
+            check(released.load() == 0) { "Cannot switch camera on a released tracker" }
+        }
+        if (currentCameraFacing == facing) return
+        val wasTracking = _state.value == TrackingState.TRACKING
+        if (wasTracking) stop()
+        currentCameraFacing = facing
+        if (wasTracking) start()
+    }
+
     @Suppress("TooGenericExceptionCaught") // MediaPipe GPU delegate throws RuntimeException
     private fun initFaceLandmarker() {
         // Try GPU delegate first, fall back to CPU on failure
@@ -223,7 +242,7 @@ internal class MediaPipeFaceTracker(
                 .also { it.setAnalyzer(analysisExecutor, ::processFrame) }
 
             cameraManager!!.startCamera(
-                cameraFacing = config.cameraFacing,
+                cameraFacing = currentCameraFacing,
                 imageAnalysis = imageAnalysis,
                 surfaceProvider = previewSurfaceProvider,
             )

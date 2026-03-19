@@ -282,7 +282,7 @@ internal class VisionHandTracker(
                     sourceImageHeight = imageHeight,
                     timestampMs = timestampMs,
                     isTracking = true,
-                    thermalState = thermalMonitor.thermalState.value,
+                    thermalState = currentThermalState,
                 ),
             )
         } finally {

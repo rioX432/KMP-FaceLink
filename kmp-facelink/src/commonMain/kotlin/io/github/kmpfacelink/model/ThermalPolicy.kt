@@ -20,15 +20,26 @@ public sealed class ThermalPolicy {
      *           when thermal state reaches [ThermalState.SERIOUS] or above. Android only.
      */
     public data class Adaptive(
-        val fairTargetFps: Int = 25,
-        val seriousTargetFps: Int = 20,
-        val criticalTargetFps: Int = 15,
+        val fairTargetFps: Int = DEFAULT_FAIR_TARGET_FPS,
+        val seriousTargetFps: Int = DEFAULT_SERIOUS_TARGET_FPS,
+        val criticalTargetFps: Int = DEFAULT_CRITICAL_TARGET_FPS,
         val disableEnhancerOnSerious: Boolean = true,
     ) : ThermalPolicy() {
         init {
             require(fairTargetFps > 0) { "fairTargetFps must be positive, was $fairTargetFps" }
             require(seriousTargetFps > 0) { "seriousTargetFps must be positive, was $seriousTargetFps" }
             require(criticalTargetFps > 0) { "criticalTargetFps must be positive, was $criticalTargetFps" }
+        }
+
+        public companion object {
+            /** Default target FPS when thermal state is [ThermalState.FAIR]. */
+            public const val DEFAULT_FAIR_TARGET_FPS: Int = 25
+
+            /** Default target FPS when thermal state is [ThermalState.SERIOUS]. */
+            public const val DEFAULT_SERIOUS_TARGET_FPS: Int = 20
+
+            /** Default target FPS when thermal state is [ThermalState.CRITICAL]. */
+            public const val DEFAULT_CRITICAL_TARGET_FPS: Int = 15
         }
     }
 }

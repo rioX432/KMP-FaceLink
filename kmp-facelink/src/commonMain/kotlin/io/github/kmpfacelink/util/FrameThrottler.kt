@@ -2,15 +2,15 @@ package io.github.kmpfacelink.util
 
 import io.github.kmpfacelink.model.ThermalPolicy
 import io.github.kmpfacelink.model.ThermalState
+import kotlin.concurrent.atomics.AtomicLong
+import kotlin.concurrent.atomics.ExperimentalAtomicApi
 
 /**
  * Decides whether to process or skip a frame based on thermal state and policy.
- *
- * Thread-safety: read/write races on [lastProcessedMs] are benign — worst case
- * one extra frame is processed or skipped.
  */
+@OptIn(ExperimentalAtomicApi::class)
 internal class FrameThrottler(private val policy: ThermalPolicy) {
-    private var lastProcessedMs: Long = -1_000_000L
+    private val lastProcessedMs = AtomicLong(-1_000_000L)
 
     /**
      * Returns true if this frame should be processed, false if it should be skipped.
@@ -20,23 +20,23 @@ internal class FrameThrottler(private val policy: ThermalPolicy) {
      */
     fun shouldProcess(timestampMs: Long, thermalState: ThermalState): Boolean {
         if (policy is ThermalPolicy.Disabled || thermalState == ThermalState.NOMINAL) {
-            lastProcessedMs = timestampMs
+            lastProcessedMs.store(timestampMs)
             return true
         }
 
         val adaptive = policy as ThermalPolicy.Adaptive
         val targetFps = when (thermalState) {
-            ThermalState.NOMINAL -> return true.also { lastProcessedMs = timestampMs }
             ThermalState.FAIR -> adaptive.fairTargetFps
             ThermalState.SERIOUS -> adaptive.seriousTargetFps
             ThermalState.CRITICAL -> adaptive.criticalTargetFps
+            ThermalState.NOMINAL -> return true // unreachable, handled above
         }
 
         val minIntervalMs = 1000L / targetFps
-        val elapsed = timestampMs - lastProcessedMs
+        val elapsed = timestampMs - lastProcessedMs.load()
         if (elapsed < minIntervalMs) return false
 
-        lastProcessedMs = timestampMs
+        lastProcessedMs.store(timestampMs)
         return true
     }
 

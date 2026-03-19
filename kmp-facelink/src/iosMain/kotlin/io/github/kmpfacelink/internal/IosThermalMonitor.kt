@@ -9,7 +9,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import platform.Foundation.NSNotificationCenter
 import platform.Foundation.NSNumber
-import platform.Foundation.NSOperationQueue
 import platform.Foundation.NSProcessInfo
 import platform.Foundation.NSProcessInfoThermalStateDidChangeNotification
 import platform.Foundation.valueForKey
@@ -25,7 +24,7 @@ internal class IosThermalMonitor : ThermalMonitor {
         observer = NSNotificationCenter.defaultCenter.addObserverForName(
             name = NSProcessInfoThermalStateDidChangeNotification,
             `object` = null,
-            queue = NSOperationQueue.mainQueue,
+            queue = null,
         ) { _ ->
             _thermalState.value = readThermalState()
         }
@@ -37,12 +36,16 @@ internal class IosThermalMonitor : ThermalMonitor {
     }
 
     companion object {
-        // NSProcessInfoThermalState raw values
+        // NSProcessInfoThermalState raw values (stable NS_ENUM, will not change)
         private const val THERMAL_STATE_NOMINAL = 0L
         private const val THERMAL_STATE_FAIR = 1L
         private const val THERMAL_STATE_SERIOUS = 2L
         private const val THERMAL_STATE_CRITICAL = 3L
 
+        /**
+         * Read thermal state via KVO because K/N cinterop does not expose
+         * `NSProcessInfo.thermalState` as a direct property.
+         */
         private fun readThermalState(): ThermalState {
             val rawValue = (NSProcessInfo.processInfo.valueForKey("thermalState") as? NSNumber)
                 ?.longValue ?: THERMAL_STATE_NOMINAL

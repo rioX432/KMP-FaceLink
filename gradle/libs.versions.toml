@@ -2,7 +2,7 @@
 kotlin = "2.2.0"
 agp = "8.8.2"
 coroutines = "1.10.2"
-mediapipe = "0.10.32"
+mediapipe = "0.20230731"
 camerax = "1.4.2"
 androidxCore = "1.16.0"
 androidxLifecycle = "2.9.0"

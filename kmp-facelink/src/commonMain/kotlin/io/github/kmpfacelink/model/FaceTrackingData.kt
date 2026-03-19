@@ -24,6 +24,7 @@ package io.github.kmpfacelink.model
  * @property faces All detected faces in this frame. Empty when no face is detected.
  *           When tracking, contains at least one entry; index 0 corresponds to the primary face
  *           represented by the top-level single-face properties.
+ * @property thermalState Current device thermal state at the time of this frame.
  */
 public data class FaceTrackingData(
     val blendShapes: BlendShapeData,
@@ -35,6 +36,7 @@ public data class FaceTrackingData(
     val timestampMs: Long,
     val isTracking: Boolean,
     val faces: List<TrackedFace> = emptyList(),
+    val thermalState: ThermalState = ThermalState.NOMINAL,
 ) {
     public companion object {
         /**

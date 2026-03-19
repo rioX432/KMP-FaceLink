@@ -44,14 +44,17 @@ internal class CompositeHolisticTracker(
         }
 
     private val faceTracker = if (config.enableFace) {
-        ARKitFaceTracker(config.faceConfig)
+        ARKitFaceTracker(config.faceConfig.copy(thermalPolicy = config.thermalPolicy))
     } else {
         null
     }
 
     private val handTracker = if (config.enableHand) {
         VisionHandTracker(
-            config.handConfig.copy(cameraFacing = config.cameraFacing),
+            config.handConfig.copy(
+                cameraFacing = config.cameraFacing,
+                thermalPolicy = config.thermalPolicy,
+            ),
             sharedVisionSession = sharedVisionSession,
         )
     } else {
@@ -60,7 +63,10 @@ internal class CompositeHolisticTracker(
 
     private val bodyTracker = if (config.enableBody) {
         VisionBodyTracker(
-            config.bodyConfig.copy(cameraFacing = config.cameraFacing),
+            config.bodyConfig.copy(
+                cameraFacing = config.cameraFacing,
+                thermalPolicy = config.thermalPolicy,
+            ),
             sharedVisionSession = sharedVisionSession,
         )
     } else {
@@ -184,12 +190,20 @@ internal class CompositeHolisticTracker(
                 hand?.timestampMs ?: 0L,
                 body?.timestampMs ?: 0L,
             )
+            // Use the most severe thermal state from any sub-tracker
+            val thermalState = maxOf(
+                face?.thermalState?.ordinal ?: 0,
+                hand?.thermalState?.ordinal ?: 0,
+                body?.thermalState?.ordinal ?: 0,
+            ).let { io.github.kmpfacelink.model.ThermalState.entries[it] }
+
             HolisticTrackingData(
                 face = face,
                 hand = hand,
                 body = body,
                 timestampMs = timestampMs,
                 activeModalities = enabledModalities,
+                thermalState = thermalState,
             )
         }
     }

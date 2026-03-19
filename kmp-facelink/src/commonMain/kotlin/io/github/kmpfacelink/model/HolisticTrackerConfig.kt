@@ -13,6 +13,8 @@ package io.github.kmpfacelink.model
  * @property handConfig Configuration for the hand tracker (used when [enableHand] is true)
  * @property bodyConfig Configuration for the body tracker (used when [enableBody] is true)
  * @property cameraFacing Which camera to use. Overrides per-tracker camera facing settings.
+ * @property thermalPolicy Policy controlling how all sub-trackers adapt to thermal pressure.
+ *           Overrides per-tracker thermal policy settings. Defaults to [ThermalPolicy.Disabled].
  */
 public data class HolisticTrackerConfig(
     val enableFace: Boolean = true,
@@ -22,6 +24,7 @@ public data class HolisticTrackerConfig(
     val handConfig: HandTrackerConfig = HandTrackerConfig(),
     val bodyConfig: BodyTrackerConfig = BodyTrackerConfig(),
     val cameraFacing: CameraFacing = CameraFacing.FRONT,
+    val thermalPolicy: ThermalPolicy = ThermalPolicy.Disabled,
 ) {
     init {
         require(enableFace || enableHand || enableBody) {

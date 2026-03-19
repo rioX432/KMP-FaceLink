@@ -8,6 +8,7 @@ package io.github.kmpfacelink.model
  * @property sourceImageHeight Height of the source image in pixels (after rotation)
  * @property timestampMs Frame timestamp in milliseconds
  * @property isTracking Whether any hands are currently being tracked
+ * @property thermalState Current device thermal state at the time of this frame.
  */
 public data class HandTrackingData(
     val hands: List<TrackedHand>,
@@ -15,6 +16,7 @@ public data class HandTrackingData(
     val sourceImageHeight: Int = 0,
     val timestampMs: Long,
     val isTracking: Boolean,
+    val thermalState: ThermalState = ThermalState.NOMINAL,
 ) {
     public companion object {
         /**

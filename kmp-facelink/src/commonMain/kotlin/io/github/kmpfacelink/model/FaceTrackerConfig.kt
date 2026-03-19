@@ -40,6 +40,8 @@ public data class CalibrationConfig(
  *           Android (MediaPipe): fully supported — up to [MAX_FACES] faces tracked at once.
  *           iOS (ARKit): ARKit only supports one face; values greater than 1 have no effect.
  *           Default is 1 (single-face mode).
+ * @property thermalPolicy Policy controlling how the tracker adapts to thermal pressure.
+ *           Defaults to [ThermalPolicy.Disabled].
  */
 public data class FaceTrackerConfig(
     val smoothingConfig: SmoothingConfig = SmoothingConfig.Ema(),
@@ -50,6 +52,7 @@ public data class FaceTrackerConfig(
     val stopDrainDelayMs: Long = 100L,
     val releaseTimeoutMs: Long = 500L,
     val maxFaces: Int = 1,
+    val thermalPolicy: ThermalPolicy = ThermalPolicy.Disabled,
 ) {
     init {
         require(maxFaces in 1..MAX_FACES) {

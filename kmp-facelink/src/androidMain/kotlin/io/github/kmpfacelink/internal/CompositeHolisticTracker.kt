@@ -6,6 +6,7 @@ import io.github.kmpfacelink.api.HolisticTracker
 import io.github.kmpfacelink.api.PlatformContext
 import io.github.kmpfacelink.api.TrackingState
 import io.github.kmpfacelink.model.BodyTrackingData
+import io.github.kmpfacelink.model.CameraFacing
 import io.github.kmpfacelink.model.FaceTrackingData
 import io.github.kmpfacelink.model.HandTrackingData
 import io.github.kmpfacelink.model.HolisticTrackerConfig
@@ -83,6 +84,9 @@ internal class CompositeHolisticTracker(
     private val pipelineLock = PlatformLock()
     private val released = AtomicInt(0)
 
+    @Volatile
+    private var currentCameraFacing: CameraFacing = config.cameraFacing
+
     override fun setSurfaceProvider(surfaceProvider: Preview.SurfaceProvider?) {
         sharedCamera.setSurfaceProvider(surfaceProvider)
     }
@@ -140,6 +144,24 @@ internal class CompositeHolisticTracker(
             faceTracker?.updateSmoothing(config)
             handTracker?.updateSmoothing(config)
             bodyTracker?.updateSmoothing(config)
+        }
+    }
+
+    override suspend fun switchCamera(facing: CameraFacing) {
+        pipelineLock.withLock {
+            check(released.load() == 0) { "Cannot switch camera on a released tracker" }
+        }
+        if (currentCameraFacing == facing) return
+        val wasTracking = _state.value == TrackingState.TRACKING
+        if (wasTracking) {
+            sharedCamera.stop()
+        }
+        currentCameraFacing = facing
+        faceTracker?.let { it.currentCameraFacing = facing }
+        handTracker?.let { it.currentCameraFacing = facing }
+        bodyTracker?.let { it.currentCameraFacing = facing }
+        if (wasTracking) {
+            sharedCamera.start(facing)
         }
     }
 

@@ -3,6 +3,7 @@ package io.github.kmpfacelink.internal
 import io.github.kmpfacelink.api.HolisticTracker
 import io.github.kmpfacelink.api.TrackingState
 import io.github.kmpfacelink.model.BodyTrackingData
+import io.github.kmpfacelink.model.CameraFacing
 import io.github.kmpfacelink.model.FaceTrackingData
 import io.github.kmpfacelink.model.HandTrackingData
 import io.github.kmpfacelink.model.HolisticTrackerConfig
@@ -83,6 +84,8 @@ internal class CompositeHolisticTracker(
     private val pipelineLock = PlatformLock()
     private val released = AtomicInt(0)
 
+    private var currentCameraFacing: CameraFacing = config.cameraFacing
+
     /**
      * The underlying ARSession from the face tracker, for camera preview.
      * Only available after [start] when face tracking is enabled.
@@ -149,6 +152,24 @@ internal class CompositeHolisticTracker(
             faceTracker?.updateSmoothing(config)
             handTracker?.updateSmoothing(config)
             bodyTracker?.updateSmoothing(config)
+        }
+    }
+
+    override suspend fun switchCamera(facing: CameraFacing) {
+        pipelineLock.withLock {
+            check(released.load() == 0) { "Cannot switch camera on a released tracker" }
+        }
+        if (currentCameraFacing == facing) return
+        // ARKit face tracking only supports front camera
+        if (config.enableFace && facing == CameraFacing.BACK) {
+            throw UnsupportedOperationException(
+                "Cannot switch to back camera: ARKit face tracking requires TrueDepth front camera",
+            )
+        }
+        val wasTracking = _state.value == TrackingState.TRACKING
+        currentCameraFacing = facing
+        if (wasTracking) {
+            sharedVisionSession?.switchCamera(facing)
         }
     }
 

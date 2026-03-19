@@ -6,6 +6,7 @@ import io.github.kmpfacelink.api.FaceTracker
 import io.github.kmpfacelink.api.TrackingState
 import io.github.kmpfacelink.model.BlendShape
 import io.github.kmpfacelink.model.BlendShapeData
+import io.github.kmpfacelink.model.CameraFacing
 import io.github.kmpfacelink.model.FaceTrackerConfig
 import io.github.kmpfacelink.model.FaceTrackingData
 import io.github.kmpfacelink.model.HeadTransform
@@ -137,6 +138,18 @@ internal class ARKitFaceTracker(
             check(released.load() == 0) { "Cannot update smoothing on a released tracker" }
             smoother = config.createSmoother()
         }
+    }
+
+    override suspend fun switchCamera(facing: CameraFacing) {
+        pipelineLock.withLock {
+            check(released.load() == 0) { "Cannot switch camera on a released tracker" }
+        }
+        if (facing == CameraFacing.BACK) {
+            throw UnsupportedOperationException(
+                "ARKit face tracking requires the front-facing TrueDepth camera",
+            )
+        }
+        // Already using front camera — no-op
     }
 
     private fun processFaceAnchor(faceAnchor: ARFaceAnchor) {

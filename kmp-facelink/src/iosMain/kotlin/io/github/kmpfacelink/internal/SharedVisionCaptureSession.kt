@@ -34,8 +34,10 @@ import platform.darwin.dispatch_queue_create
  * so that hand and body tracking share a single RGB camera session.
  */
 internal class SharedVisionCaptureSession(
-    private val cameraFacing: CameraFacing,
+    cameraFacing: CameraFacing,
 ) {
+    var currentCameraFacing: CameraFacing = cameraFacing
+        private set
     private val handlersLock = io.github.kmpfacelink.util.PlatformLock()
     private val frameHandlers = mutableListOf<(CMSampleBufferRef?) -> Unit>()
 
@@ -59,7 +61,7 @@ internal class SharedVisionCaptureSession(
         val session = AVCaptureSession()
         session.sessionPreset = AVCaptureSessionPreset352x288
 
-        val position = when (cameraFacing) {
+        val position = when (currentCameraFacing) {
             CameraFacing.FRONT -> AVCaptureDevicePositionFront
             CameraFacing.BACK -> AVCaptureDevicePositionBack
         }
@@ -99,6 +101,14 @@ internal class SharedVisionCaptureSession(
 
         captureSession = session
         session.startRunning()
+    }
+
+    fun switchCamera(facing: CameraFacing) {
+        if (currentCameraFacing == facing) return
+        stop()
+        captureSession = null
+        currentCameraFacing = facing
+        start()
     }
 
     fun stop() {

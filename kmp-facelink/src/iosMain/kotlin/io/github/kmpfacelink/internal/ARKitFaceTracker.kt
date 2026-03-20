@@ -12,6 +12,7 @@ import io.github.kmpfacelink.model.FaceTrackingData
 import io.github.kmpfacelink.model.HeadTransform
 import io.github.kmpfacelink.model.SmoothingConfig
 import io.github.kmpfacelink.model.TrackedFace
+import io.github.kmpfacelink.util.BlendShapeMapPool
 import io.github.kmpfacelink.util.BlendShapeSmoother
 import io.github.kmpfacelink.util.Calibrator
 import io.github.kmpfacelink.util.FrameThrottler
@@ -72,8 +73,13 @@ internal class ARKitFaceTracker(
     private val thermalMonitor: ThermalMonitor = IosThermalMonitor()
     private val frameThrottler = FrameThrottler(config.thermalPolicy)
 
-    // Initial capacity hint for blend shape map to avoid rehashing
-    private val blendShapeMapCapacity = BlendShape.entries.size
+    // Pre-allocated scratch map for mapARKitBlendShapes — reused each frame.
+    // Callers that store the result must copy via HashMap(result).
+    private val blendShapePool = BlendShapeMapPool()
+    private val blendShapeScratch: HashMap<BlendShape, Float> = blendShapePool.create()
+
+    // Pre-allocated FloatArray for the 4x4 transform matrix — reused each frame.
+    private val transformMatrix = FloatArray(16)
 
     /**
      * The underlying ARSession, exposed for camera preview sharing.
@@ -184,7 +190,10 @@ internal class ARKitFaceTracker(
             // Apply smoothing
             smoother?.let { blendShapes = it.smooth(blendShapes, timestampMs) }
 
-            blendShapes
+            // Defensive copy: pipeline stages return reusable scratch maps.
+            // The result is stored in FaceTrackingData (held by the SharedFlow replay buffer),
+            // so we must snapshot it before the next frame overwrites the scratch map.
+            HashMap(blendShapes)
         }
 
         // Extract head transform from simd_float4x4
@@ -213,31 +222,34 @@ internal class ARKitFaceTracker(
     }
 
     private fun mapARKitBlendShapes(rawBlendShapes: Map<String, NSNumber>): BlendShapeData {
-        val result = HashMap<BlendShape, Float>(blendShapeMapCapacity)
+        blendShapeScratch.clear()
 
         for ((key, value) in rawBlendShapes) {
             val shape = BlendShape.fromArKitName(key) ?: continue
-            result[shape] = value.floatValue.coerceIn(0f, 1f)
+            blendShapeScratch[shape] = value.floatValue.coerceIn(0f, 1f)
         }
 
         // Fill missing shapes
         for (shape in BlendShape.entries) {
-            if (shape !in result) {
-                result[shape] = 0f
+            if (shape !in blendShapeScratch) {
+                blendShapeScratch[shape] = 0f
             }
         }
-        return result
+        return blendShapeScratch
     }
 
     private fun extractTransform(faceAnchor: ARFaceAnchor): HeadTransform {
         // simd_float4x4 is 16 contiguous floats in memory (column-major order).
         // Use raw pointer reinterpretation since Kotlin/Native cinterop
         // does not expose simd_float4x4 struct fields.
-        val matrix = faceAnchor.transform.useContents {
+        // Reuse the pre-allocated transformMatrix array to avoid a FloatArray allocation per frame.
+        faceAnchor.transform.useContents {
             val floatPtr = this.ptr.reinterpret<FloatVar>()
-            FloatArray(16) { index -> floatPtr[index] }
+            for (i in transformMatrix.indices) {
+                transformMatrix[i] = floatPtr[i]
+            }
         }
-        return TransformUtils.fromMatrix(matrix)
+        return TransformUtils.fromMatrix(transformMatrix)
     }
 
     private inner class FaceTrackingDelegate : NSObject(), ARSessionDelegateProtocol {

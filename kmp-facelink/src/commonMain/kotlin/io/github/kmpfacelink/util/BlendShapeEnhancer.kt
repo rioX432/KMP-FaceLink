@@ -22,6 +22,10 @@ internal class BlendShapeEnhancer(
 
     private val correlator = ExpressionCorrelator()
 
+    // Pre-allocated scratch map reused each frame to avoid per-call toMutableMap() allocations.
+    // Callers that store the result must copy it via HashMap(result).
+    private val scratch: HashMap<BlendShape, Float> = BlendShapeMapPool().create()
+
     /**
      * Enhance blend shape data using face landmarks.
      *
@@ -35,7 +39,9 @@ internal class BlendShapeEnhancer(
     ): BlendShapeData {
         if (landmarks.size < LandmarkSolvers.MIN_LANDMARKS) return blendShapes
 
-        val result = blendShapes.toMutableMap()
+        scratch.clear()
+        scratch.putAll(blendShapes)
+        val result = scratch
 
         // Step 1: Geometric solver override
         applyGeometricOverrides(result, landmarks)

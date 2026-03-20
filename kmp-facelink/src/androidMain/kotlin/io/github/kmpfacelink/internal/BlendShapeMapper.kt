@@ -2,6 +2,7 @@ package io.github.kmpfacelink.internal
 
 import io.github.kmpfacelink.model.BlendShape
 import io.github.kmpfacelink.model.BlendShapeData
+import io.github.kmpfacelink.util.BlendShapeMapPool
 
 /**
  * Maps MediaPipe FaceLandmarker blend shape output to our [BlendShape] enum.
@@ -19,25 +20,33 @@ internal object BlendShapeMapper {
         BlendShape.entries.associateBy { it.arKitName }
     }
 
+    // Pre-allocated scratch map reused across calls on the analysis thread.
+    // mapFromMediaPipe is always called from a single executor thread (analysisExecutor),
+    // so no synchronization is needed. Callers that store the result must copy via HashMap(result).
+    private val scratch: HashMap<BlendShape, Float> = BlendShapeMapPool().create()
+
     /**
      * Convert MediaPipe blend shape categories to [BlendShapeData].
+     *
+     * The returned map is the internal scratch buffer — copy it if you need to hold a reference
+     * across the next [mapFromMediaPipe] call.
      *
      * @param categories List of (name, score) pairs from MediaPipe FaceLandmarkerResult
      */
     fun mapFromMediaPipe(categories: List<Pair<String, Float>>): BlendShapeData {
-        val result = mutableMapOf<BlendShape, Float>()
+        scratch.clear()
         for ((name, score) in categories) {
             if (name == "_neutral") continue
             val shape = nameToBlendShape[name] ?: continue
-            result[shape] = score.coerceIn(0f, 1f)
+            scratch[shape] = score.coerceIn(0f, 1f)
         }
 
         // Fill missing shapes with 0.0 (e.g. tongueOut not supported by MediaPipe)
         for (shape in BlendShape.entries) {
-            if (shape !in result) {
-                result[shape] = 0f
+            if (shape !in scratch) {
+                scratch[shape] = 0f
             }
         }
-        return result
+        return scratch
     }
 }

@@ -23,28 +23,32 @@ internal class CategoryAwareSmoother(
     private var lastTimestampMs: Long = -1L
     private val states = mutableMapOf<BlendShape, ShapeState>()
 
+    // Pre-allocated scratch map reused each frame to avoid per-call HashMap allocations.
+    // Callers that store the result must copy it via HashMap(result).
+    private val scratch: HashMap<BlendShape, Float> = BlendShapeMapPool().create()
+
     override fun smooth(data: BlendShapeData, timestampMs: Long): BlendShapeData {
         // First frame or same timestamp — pass through and initialise states
         if (lastTimestampMs < 0 || timestampMs <= lastTimestampMs) {
             lastTimestampMs = timestampMs
-            val result = HashMap<BlendShape, Float>(data.size)
+            scratch.clear()
             for ((shape, value) in data) {
                 states[shape] = ShapeState(value, 0f)
-                result[shape] = value
+                scratch[shape] = value
             }
-            return result
+            return scratch
         }
 
         val dt = (timestampMs - lastTimestampMs) / MILLIS_PER_SECOND
         lastTimestampMs = timestampMs
 
-        val result = HashMap<BlendShape, Float>(data.size)
+        scratch.clear()
         for ((shape, rawValue) in data) {
             val params = shape.category().toParams()
             val state = states[shape]
             if (state == null) {
                 states[shape] = ShapeState(rawValue, 0f)
-                result[shape] = rawValue
+                scratch[shape] = rawValue
                 continue
             }
 
@@ -55,10 +59,10 @@ internal class CategoryAwareSmoother(
             val filtered = lowPass(rawValue, state.x, smoothingFactor(dt, cutoff))
 
             states[shape] = ShapeState(filtered, edx)
-            result[shape] = filtered
+            scratch[shape] = filtered
         }
 
-        return result
+        return scratch
     }
 
     override fun reset() {

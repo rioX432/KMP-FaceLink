@@ -37,6 +37,10 @@ internal class Calibrator(
     private val neutralDetector = NeutralDetector(windowSize = neutralWindowSize)
     private var neutralBaseline: BlendShapeData? = null
 
+    // Pre-allocated scratch map reused each frame to avoid per-call HashMap allocations.
+    // Callers that store the result must copy it via HashMap(result).
+    private val scratch: HashMap<BlendShape, Float> = BlendShapeMapPool().create()
+
     /**
      * Update observed ranges and return calibrated blend shape data.
      *
@@ -48,7 +52,7 @@ internal class Calibrator(
         frameCount++
         val isWarmup = frameCount <= warmupFrames
 
-        val calibrated = mutableMapOf<BlendShape, Float>()
+        scratch.clear()
         for ((shape, value) in data) {
             val currentMin = minValues[shape]
             val currentMax = maxValues[shape]
@@ -66,7 +70,7 @@ internal class Calibrator(
             minValues[shape] = newMin
             maxValues[shape] = newMax
 
-            calibrated[shape] = if (isWarmup) {
+            scratch[shape] = if (isWarmup) {
                 value
             } else {
                 val range = newMax - newMin
@@ -87,7 +91,7 @@ internal class Calibrator(
             }
         }
 
-        return calibrated
+        return scratch
     }
 
     fun reset() {

@@ -5,11 +5,15 @@ package io.github.kmpfacelink.model
  */
 public typealias BlendShapeData = Map<BlendShape, Float>
 
+/** Cached empty [BlendShapeData] — all 52 blend shapes set to 0.0. Allocated once. */
+private val EMPTY_BLEND_SHAPE_DATA: BlendShapeData = BlendShape.entries.associateWith { 0f }
+
 /**
- * Creates an empty [BlendShapeData] with all blend shapes set to 0.0.
+ * Returns a cached [BlendShapeData] with all blend shapes set to 0.0.
+ *
+ * The returned map is shared and immutable — do not attempt to cast or mutate it.
  */
-public fun emptyBlendShapeData(): BlendShapeData =
-    BlendShape.entries.associateWith { 0f }
+public fun emptyBlendShapeData(): BlendShapeData = EMPTY_BLEND_SHAPE_DATA
 
 /**
  * Returns the value for the given blend shape, defaulting to 0.0 if absent.

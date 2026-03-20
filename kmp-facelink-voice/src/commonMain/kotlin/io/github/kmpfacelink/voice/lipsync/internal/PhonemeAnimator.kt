@@ -41,7 +41,7 @@ internal object PhonemeAnimator {
         // Pre-compute viseme keyframes
         val keyframes = phonemeEvents.map { event ->
             Keyframe(
-                viseme = VisemeMapper.map(event.phoneme),
+                viseme = VisemeMapper.map(event.phoneme, config.language),
                 startMs = event.startMs,
                 endMs = event.endMs,
             )

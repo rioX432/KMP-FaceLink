@@ -1,10 +1,12 @@
 ---
-description: "Break a task into KMP-layered subtasks: commonMain → expect → androidMain → iosMain → tests → sample app"
+name: decompose
+description: "Break a task into ordered subtasks with dependencies"
+user-invocable: true
 ---
 
-# Task Decomposition for KMP-FaceLink
+# Task Decomposition
 
-Break down a development task into small, executable subtasks following KMP architecture layers.
+Break down a development task into small, executable subtasks with clear dependencies.
 
 ## When to Use
 
@@ -15,7 +17,7 @@ Break down a development task into small, executable subtasks following KMP arch
 ## Input Requirements
 
 You need these before decomposing:
-1. Investigation results (affected modules, data flow, impact)
+1. Investigation results (affected files, data flow, impact)
 2. Decision matrix from dig phase (resolved ambiguities)
 3. Confirmed approach
 
@@ -31,42 +33,53 @@ Each task must include:
 - **Where**: Target file(s) with paths
 - **How**: Specific implementation approach
 - **Why**: Reason this change is needed
-- **Verify**: How to confirm it works
+- **Verify**: How to confirm it works (test command, manual check, etc.)
 
-### KMP Layer-Based Decomposition
+### Architecture-Based Ordering
 
-Split by architecture layer, inner to outer:
+Read CLAUDE.md to understand the project's architecture layers, then split by layer from inner to outer.
 
+**General pattern (adapt to project):**
 ```
-1. commonMain API — data classes, interfaces, enums (public, explicit visibility)
-2. expect declarations — only if platform-specific implementation needed
-3. androidMain actual — MediaPipe/CameraX/Android-specific code (internal)
-4. iosMain actual — ARKit/Vision/AVFoundation-specific code (internal)
-5. commonTest — unit tests for shared logic, mappers, filters
-6. Android sample app — Compose UI in androidApp/ (if visible output)
-7. iOS sample app — SwiftUI in iosApp/ + project.yml update (optional)
-8. Cross-cutting — detekt + explicitApi compliance + platform-checker
+1. Core types      — data classes, interfaces, enums
+2. Business logic  — use cases, services, domain rules
+3. Infrastructure  — repositories, API clients, DB
+4. Presentation    — UI components, view models, controllers
+5. Tests           — unit tests, integration tests
+6. Cross-cutting   — lint, formatting, CI checks
+```
+
+**For KMP projects:**
+```
+1. commonMain API  — shared types, interfaces
+2. expect/actual   — platform abstractions
+3. androidMain     — Android-specific implementation
+4. iosMain         — iOS-specific implementation
+5. Tests           — commonTest, platform tests
+6. Sample apps     — androidApp, iosApp
+7. Cross-cutting   — detekt, explicitApi
+```
+
+**For web projects:**
+```
+1. Types/schemas   — shared types, API contracts
+2. Backend logic   — API handlers, services
+3. Frontend logic  — state management, hooks
+4. UI components   — views, pages
+5. Tests           — unit, E2E
+6. Cross-cutting   — lint, build
 ```
 
 ### Pairing Rules
-- **expect + actual (both platforms) = 1 task** when the actual implementations are simple
-- **androidMain actual + iosMain actual = separate tasks** when platform internals are complex
-- **Data class + mapper = 1 task**: Type and its transformation go together
-- **Test = paired with implementation**: Never separate implementation from its test
+- **Type + mapper = 1 task**: Data type and its transformation go together
+- **Implementation + test = 1 task**: Never separate implementation from its test
 - **Cross-cutting checks = last task**: After all implementations are done
 
 ### Dependency Order
-Set `addBlockedBy` on tasks that depend on earlier ones:
-- commonMain API tasks block expect/actual tasks
-- expect/actual tasks block platform implementation tasks
-- All implementation tasks block test tasks
+Set dependencies on tasks that require earlier ones:
+- Core type tasks block implementation tasks
+- Implementation tasks block test tasks
 - All tasks block cross-cutting checks
-
-### Multi-Module Tasks
-When multiple modules are affected:
-1. Order by dependency tree (core first, extensions after)
-2. Complete one module's layer stack before moving to the next
-3. Exception: if modules share a new data type, define it in core first
 
 ## TaskCreate Format
 
@@ -85,19 +98,17 @@ activeForm: "Implementing {What}"
 
 ## Output
 
-After creating all tasks:
+After creating all tasks, show the full task list with dependencies:
 
-1. Show the full task list with dependencies:
 ```
-| # | Layer | Module | Description | Blocked By |
-|---|-------|--------|-------------|------------|
-| 1 | commonMain | kmp-facelink | Define FooData data class | — |
-| 2 | expect | kmp-facelink | Add expect fun createFoo() | #1 |
-| 3 | androidMain | kmp-facelink | MediaPipe-based FooTracker | #2 |
-| 4 | iosMain | kmp-facelink | ARKit-based FooTracker | #2 |
-| 5 | commonTest | kmp-facelink | Unit tests for FooData | #1 |
-| 6 | cross-cutting | — | detekt + explicitApi + platform-checker | #3, #4 |
+| # | Layer | Description | Blocked By |
+|---|-------|-------------|------------|
+| 1 | Core | Define FooData data class | — |
+| 2 | Logic | Implement FooService | #1 |
+| 3 | Infra | Add FooRepository | #2 |
+| 4 | UI | Add FooScreen component | #2, #3 |
+| 5 | Test | Unit tests for FooService | #2 |
+| 6 | Cross | Lint + format check | #3, #4 |
 ```
 
-2. Show the decision matrix from dig phase
-3. Ask user to confirm before starting implementation
+Ask user to confirm before starting implementation.

@@ -1,10 +1,12 @@
 ---
-description: "Clarify ambiguities in plans with structured questions"
+name: dig
+description: "Clarify ambiguities in plans with structured questions and auto-decide rules"
+user-invocable: true
 ---
 
-# Dig — Structured Ambiguity Resolution for KMP
+# Dig — Structured Ambiguity Resolution
 
-Resolve ambiguities before implementation by generating structured questions with options. Auto-decides choices that follow established KMP-FaceLink patterns.
+Resolve ambiguities before implementation by generating structured questions with options. Auto-decides choices that follow established project patterns.
 
 ## When to Use
 
@@ -20,59 +22,32 @@ From the investigation results, identify every decision point:
 
 | # | Ambiguity | Category | Auto-decidable? |
 |---|-----------|----------|-----------------|
-| 1 | ... | source-set / module / api-design / expect-actual / flow / threading / performance | yes/no |
+| 1 | ... | architecture / api-design / data-flow / concurrency / error-handling / naming / testing | yes/no |
 
 ### Step 2: Apply Auto-Decide Rules
 
-For each auto-decidable ambiguity, apply the matching rule below. Record the decision with the rule name.
+For auto-decidable ambiguities, check the project's CLAUDE.md, rules/*.md, and existing codebase patterns to determine the answer.
 
-#### Source Set Placement
-- Uses platform API (MediaPipe, CameraX, ARKit, Vision, AVFoundation)? → `androidMain` or `iosMain`
-- Pure Kotlin logic, data classes, interfaces, utilities? → `commonMain`
-- Needs different implementations per platform but same API? → `expect` in commonMain + `actual` in platform source sets
+**How to auto-decide:**
+1. Check if CLAUDE.md or rules/ explicitly defines a convention for this decision
+2. Check if the codebase has an established pattern (Grep for similar implementations)
+3. If a clear, consistent pattern exists → auto-decide and record the rule
 
-#### expect/actual Pattern
-- Platform-specific class with methods? → Define `interface` in commonMain + `expect fun create*(): Interface`
-- Platform type alias only? → `expect class` (e.g., PlatformContext)
-- Platform constant/config? → `expect val` in commonMain
-- Business logic? → NEVER use expect/actual, keep in commonMain
-
-#### Module Placement (from AGENTS.md dependency tree)
-- Core tracking data types, trackers? → `kmp-facelink`
-- BlendShape → Live2D parameter mapping? → `kmp-facelink-avatar`
-- Gesture/expression triggers? → `kmp-facelink-actions`
-- Audio (ASR/TTS/lip sync)? → `kmp-facelink-voice`
-- LLM integration? → `kmp-facelink-llm`
-- Cross-cutting utility? → `kmp-facelink` core util/
-
-#### Flow Usage
-- Continuous data stream (tracking, audio)? → `Flow<T>`
-- Observable state (tracking state, connection status)? → `StateFlow<T>`
-- One-shot result? → `suspend fun`
-- Never callbacks/listeners for streaming data
-
-#### Thread Safety
-- Mutable state shared across coroutines? → `PlatformLock` wrapper
-- Counter/flag shared across threads? → `AtomicInt`
-- Start/stop lifecycle methods? → Guard with state check under lock
-
-#### API Visibility
-- Public API types? → `commonMain` only, explicit `public` modifier
-- Platform implementations? → `internal` visibility
-- Extensions for inter-module integration? → `public` in the depending module
-
-#### Naming
-- BlendShape parameters? → ARKit names (e.g., `eyeBlinkLeft`, `jawOpen`)
-- Tracking data classes? → `{Type}TrackingData` (e.g., `FaceTrackingData`)
-- Factory functions? → `{Type}Factory.create(config, context)`
-- Tracker interfaces? → `{Type}Tracker` with `start()`/`stop()`, `trackingData: Flow<T>`
+**Common decision categories:**
+- **Architecture**: Where does this code belong? (Check CLAUDE.md architecture section)
+- **API Design**: Public or internal? What return type? (Check existing public API patterns)
+- **Data Flow**: Sync or async? Callback or stream? (Check established patterns)
+- **Concurrency**: Thread safety approach? (Check existing locking/synchronization patterns)
+- **Error Handling**: Exception, Result type, or null? (Check existing error patterns)
+- **Naming**: Follow project naming conventions (Check CLAUDE.md or rules/)
+- **Testing**: Unit, integration, or both? (Check existing test patterns)
 
 ### Step 3: Investigate Remaining Unknowns
 
 For non-auto-decidable ambiguities:
-1. Use `module-explorer` agent to find existing patterns
-2. Use `platform-checker` agent to check if similar feature exists on one platform
-3. Use `kmp-investigator` agent to trace related code paths
+1. Use Explore agent to find existing patterns in the codebase
+2. Check if similar features already exist and how they handle the same decision
+3. Read relevant documentation or ADRs
 
 ### Step 4: Ask User (max 3 rounds, max 4 questions per round)
 
@@ -89,17 +64,17 @@ Present remaining unknowns with `AskUserQuestion`:
 ### Auto-Decided
 | # | Decision | Rule | Result |
 |---|----------|------|--------|
-| 1 | Source set for X | platform API → iosMain | iosMain |
+| 1 | Where to place X | CLAUDE.md: "feature code in src/features/" | src/features/x/ |
 
 ### Investigated
 | # | Decision | Finding | Result |
 |---|----------|---------|--------|
-| 2 | ... | existing pattern in {file} | ... |
+| 2 | Error handling approach | Existing pattern in src/api/client.kt uses Result<T> | Result<T> |
 
 ### User-Decided
 | # | Decision | Choice | Reason |
 |---|----------|--------|--------|
-| 3 | ... | Option A | user preference |
+| 3 | Public API surface | Option A: minimal | user preference |
 
 ### Assumptions (if any)
 | # | Assumption | Risk |

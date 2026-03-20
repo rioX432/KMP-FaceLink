@@ -387,7 +387,10 @@ internal class MediaPipeFaceTracker(
 
             smoother?.let { result = it.smooth(result, timestampMs) }
 
-            result
+            // Defensive copy: pipeline stages return reusable scratch maps.
+            // The result is stored in FaceTrackingData (held by the SharedFlow replay buffer),
+            // so we must snapshot it before the next frame overwrites the scratch map.
+            HashMap(result)
         }
     }
 
@@ -413,7 +416,12 @@ internal class MediaPipeFaceTracker(
                 val headTransform = extractHeadTransform(result, index)
                 // Secondary faces: apply only smoothing (no per-face calibration/enhancement state)
                 var blendShapes = extractBlendShapes(result, index)
-                pipelineLock.withLock { smoother?.let { blendShapes = it.smooth(blendShapes, timestampMs) } }
+                pipelineLock.withLock {
+                    smoother?.let {
+                        // Defensive copy: smoother returns a reusable scratch map.
+                        blendShapes = HashMap(it.smooth(blendShapes, timestampMs))
+                    }
+                }
                 TrackedFace(
                     faceIndex = index,
                     blendShapes = blendShapes,

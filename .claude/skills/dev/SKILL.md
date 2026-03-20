@@ -1,7 +1,7 @@
 ---
 name: dev
-description: "KMP E2E: investigate → dig → decompose → implement → test → review → PR"
-argument-hint: "[GitHub issue number, e.g. 42]"
+description: "E2E development: investigate → dig → decompose → implement → test → review → PR"
+argument-hint: "[issue number or ID, e.g. #42 or PGR-1234]"
 user-invocable: true
 disable-model-invocation: true
 allowed-tools:
@@ -13,7 +13,6 @@ allowed-tools:
   - Bash(git log:*)
   - Bash(git status)
   - Bash(git branch:*)
-  - Bash(./gradlew *)
   - Bash(gh pr create:*)
   - Bash(gh issue view:*)
   - Glob
@@ -21,65 +20,59 @@ allowed-tools:
   - Read
   - Edit
   - Write
+  - Agent
   - Skill
-  - Task
   - TaskCreate
   - TaskUpdate
   - TaskList
   - TaskGet
   - ToolSearch
   - AskUserQuestion
-  - mcp__codex__codex
-  - mcp__codex__codex-reply
-  - mcp__gemini-cli__ask-gemini
 ---
 
-# /dev — KMP-FaceLink E2E Development Workflow
+# /dev — E2E Development Workflow
 
-Resolve GitHub Issue #$ARGUMENTS from investigation to PR creation.
+Resolve Issue $ARGUMENTS from investigation to PR creation.
 
-**Target:** Issue #$ARGUMENTS
+**Target:** $ARGUMENTS
 
 ## Setup: Create Task Tracker
 
-Use `TaskCreate` to create a task for each phase at the start. This provides progress visibility and persistence across `/compact` and context compression.
+Use `TaskCreate` to create a task for each phase. This provides progress visibility and persistence across `/compact`.
 
-Create these tasks immediately:
-1. "Understand issue #$ARGUMENTS"
-2. "Investigate codebase (kmp-investigator)"
+1. "Gather context from issue"
+2. "Investigate codebase"
 3. "Resolve ambiguities (/dig)"
 4. "Decompose into subtasks (/decompose)"
 5. "Implement changes"
-6. "Build verification"
-7. "Review (kmp-reviewer + platform-checker + Codex)"
+6. "Run quality gate"
+7. "Review changes"
 8. "Commit & create PR"
 
 Use `TaskUpdate` to mark each task `in_progress` when starting and `completed` when done.
 
-## Workflow Overview
+## Workflow
 
 ```
-Phase 1: Issue Understanding (GitHub Issue)
+Phase 1: Issue Understanding
     ↓
-Phase 2: Investigation (← kmp-investigator subagent)
+Phase 2: Investigation (← Explore subagent)
     ↓
-Phase 3: Ambiguity Resolution (/dig skill)
+Phase 3: Ambiguity Resolution (/dig)
     ↓
-Phase 4: Task Decomposition (/decompose skill)
+Phase 4: Task Decomposition (/decompose)
     ↓
 ── AskUserQuestion: confirm approach + task list ──
     ↓
-Phase 5: Branch Creation
+Phase 5: Branch & Implement
     ↓
-Phase 6: Autonomous Implementation Loop
+Phase 6: Quality Gate (build + test + lint from CLAUDE.md)
     ↓
-Phase 7: Build Verification (← build-runner subagent)
-    ↓
-Phase 8: Review (kmp-reviewer + platform-checker + Codex)
+Phase 7: Review (/review)
     ↓
 ── AskUserQuestion: commit + PR confirmation ──
     ↓
-Phase 9: Commit & PR Creation
+Phase 8: Commit & PR Creation
 ```
 
 ---
@@ -88,11 +81,25 @@ Phase 9: Commit & PR Creation
 
 Mark task 1 `in_progress`.
 
-1. `gh issue view $ARGUMENTS --json title,body,labels,assignees,comments`
+Detect the issue source from "$ARGUMENTS":
+
+**GitHub Issue** (starts with `#` or is a number):
+1. `gh issue view <number> --json number,title,body,labels,assignees,comments`
 2. Extract: title, description, acceptance criteria, labels
-3. Determine branch name:
-   - Bug label → `fix/issue-$ARGUMENTS-{kebab-case-short-desc}`
-   - Otherwise → `feat/issue-$ARGUMENTS-{kebab-case-short-desc}`
+
+**Linear Issue** (matches `XXX-1234` pattern):
+1. Use `ToolSearch` with `+linear` to load the Linear MCP
+2. Call `mcp__linear__get_issue` with the issue ID
+
+**Figma links** in the issue description (`figma.com/design/...`):
+1. Use `ToolSearch` with `+figma-remote` to load Figma MCP
+2. Fetch design context and screenshot
+
+**Branch naming** (from labels or issue type):
+- Bug → `fix/{issue-ref}-{kebab-case-short-desc}`
+- Otherwise → `feat/{issue-ref}-{kebab-case-short-desc}`
+
+Read `CLAUDE.md` for project architecture and conventions.
 
 Mark task 1 `completed`.
 
@@ -102,64 +109,50 @@ Mark task 1 `completed`.
 
 Mark task 2 `in_progress`.
 
-Delegate to `kmp-investigator` agent via `Task` tool:
+Delegate to Explore agent:
 
 ```
-Task(
-  subagent_type: "general-purpose",
-  model: "sonnet",
-  prompt: <include issue details and instruct to follow .claude/agents/kmp-investigator.md>
+Agent(
+  subagent_type: "Explore",
+  prompt: <include issue details, keywords, ask for "very thorough" investigation>
 )
 ```
 
-The investigator traces:
-1. commonMain API → expect/actual → platform implementations
-2. Module dependency paths
-3. Platform asymmetries
-4. Existing tests and missing coverage
-
-Only the structured report enters our context.
+The investigator must:
+1. Find relevant code with Grep/Glob
+2. Actually read every involved file — no speculation
+3. Trace the data flow end-to-end
+4. Check existing tests
+5. List files needing changes, callers, downstream dependencies
 
 ### Think Twice
 
-After receiving the investigation report, re-evaluate:
-1. Did the investigator actually read the code confirming the root cause?
+After receiving the report:
+1. Did the investigator actually read the code?
 2. Are there other possible causes not considered?
-3. Is the impact analysis complete (all modules affected)?
-4. Does this affect both platforms or just one?
+3. Is impact analysis complete?
 
-If anything is ambiguous, use `AskUserQuestion` before proceeding. **Never assume.**
+If anything is ambiguous, use `AskUserQuestion`. **Never assume.**
 
 Mark task 2 `completed`.
 
 ---
 
-## Phase 3: Ambiguity Resolution (/dig)
+## Phase 3: Ambiguity Resolution
 
 Mark task 3 `in_progress`.
 
-Use the `/dig` skill with investigation results:
-
-1. Extract decision points from the investigation
-2. Auto-decide using KMP rules (source set, module, expect/actual, Flow, threading)
-3. Investigate remaining unknowns with module-explorer or platform-checker
-4. Ask user for true unknowns (max 3 rounds, max 4 questions per round)
-5. Output Decision Matrix
+Use the `/dig` skill with investigation results to resolve decision points.
 
 Mark task 3 `completed`.
 
 ---
 
-## Phase 4: Task Decomposition (/decompose)
+## Phase 4: Task Decomposition
 
 Mark task 4 `in_progress`.
 
-Use the `/decompose` skill:
-
-1. Break task into KMP layer-ordered subtasks
-2. Each subtask: What / Where / How / Why / Verify
-3. Register all with `TaskCreate` and set dependencies
-4. KMP order: commonMain API → expect → androidMain → iosMain → tests → sample → cross-cutting
+Use the `/decompose` skill to break the work into ordered subtasks.
 
 Mark task 4 `completed`.
 
@@ -168,107 +161,79 @@ Mark task 4 `completed`.
 ## ── AskUserQuestion: Approach Confirmation ──
 
 Present to the user:
-1. **Decision Matrix** (from dig)
-2. **Task List** (from decompose, with dependencies)
+1. **Decision Matrix** (from /dig)
+2. **Task List** (from /decompose, with dependencies)
 3. **Investigation summary** (key findings)
 
 Ask the user to confirm before implementation.
 
 ---
 
-## Phase 5: Branch Creation
+## Phase 5: Branch & Implement
+
+Mark task 5 `in_progress`.
+
+### 5a. Create Branch
 
 ```bash
 git checkout -b {branch-name}
 ```
 
-Use the branch name from Phase 1.
-
----
-
-## Phase 6: Autonomous Implementation Loop
-
-Mark task 5 `in_progress`.
+### 5b. Implement
 
 ```
-LOOP for each task (in dependency order):
+LOOP for each subtask (in dependency order):
   1. TaskUpdate → in_progress
   2. Read target code (MUST read before editing)
   3. Implement changes (Edit/Write)
   4. Self-verify (run Verify step from task description)
   5. TaskUpdate → completed
-  6. Proceed to next task
 
 INTERRUPT conditions:
-  - Unexpected problem → AskUserQuestion for guidance
-  - 3 consecutive failures → STOP and report to user
+  - Unexpected problem → AskUserQuestion
+  - 3 consecutive failures → STOP and report
 ```
 
-**Guidelines:**
+Guidelines:
 - Follow existing code patterns (read surrounding code first)
-- Follow AGENTS.md conventions (explicitApi, Detekt rules, Flow patterns)
+- Follow CLAUDE.md conventions
 - Keep changes minimal and focused
 
 Mark task 5 `completed`.
 
 ---
 
-## Phase 7: Build Verification (Subagent)
+## Phase 6: Quality Gate
 
 Mark task 6 `in_progress`.
 
-Delegate to `build-runner` agent:
+Run the project's build, test, and lint commands as defined in CLAUDE.md's Commands section.
 
-```
-Task(
-  subagent_type: "general-purpose",
-  model: "haiku",
-  prompt: <instruct to follow .claude/agents/build-runner.md, run ./gradlew build && ./gradlew allTests && ./gradlew detekt>
-)
-```
-
-Only concise PASS/FAIL report returns. Full logs stay in subagent context.
+If CLAUDE.md doesn't specify commands, detect from project files:
+- `build.gradle.kts` / `gradlew` → `./gradlew build`, `./gradlew test`, `./gradlew detekt`
+- `package.json` → `npm test`, `npm run lint`
+- `Cargo.toml` → `cargo build`, `cargo test`, `cargo clippy`
+- `pyproject.toml` / `setup.py` → `pytest`, `ruff check`
 
 ### Failure Handling
-1. Analyze the failure from the report
+1. Analyze the failure
 2. Fix the issue
-3. Re-run via build-runner subagent
+3. Re-run the failing check
 4. **Maximum 3 fix attempts** — if still failing, report to user and stop
 
 Mark task 6 `completed`.
 
 ---
 
-## Phase 8: Review
+## Phase 7: Review
 
 Mark task 7 `in_progress`.
 
-### 8a. KMP Review (kmp-reviewer agent)
-```
-Task(
-  subagent_type: "kmp-reviewer",
-  prompt: <review changed .kt files>
-)
-```
-
-### 8b. Platform Parity Check (platform-checker agent)
-```
-Task(
-  subagent_type: "platform-checker",
-  prompt: <check expect/actual completeness and feature parity on changed files>
-)
-```
-
-Launch 8a and 8b **in parallel** (single message).
-
-### 8c. Cross-Review (Codex)
-Use `mcp__codex__codex` with `sandbox: read-only`:
-- Verify architecture correctness
-- Check for blind spots missed by kmp-reviewer
+Use the `/review` skill to run multi-agent parallel review.
 
 ### Review Result Handling
-- **Critical**: STOP. Report to user. Do NOT proceed to PR.
-- **Warning**: Fix, re-run build verification (Phase 7)
+- **Critical**: STOP. Report to user. Do NOT proceed.
+- **Warning**: Fix, re-run Quality Gate (Phase 6)
 - **Suggestion**: Note but don't block
 
 Mark task 7 `completed`.
@@ -279,17 +244,17 @@ Mark task 7 `completed`.
 
 Show the user:
 1. Summary of all changes
-2. Build verification results
+2. Quality gate results
 3. Review findings and resolutions
 4. Proposed commit message (single line, no AI stamps)
 
 ---
 
-## Phase 9: Commit & PR Creation
+## Phase 8: Commit & PR Creation
 
 Mark task 8 `in_progress`.
 
-### 9a. Commit
+### 8a. Commit
 ```bash
 git add {specific files}
 git commit -m "{concise message}"
@@ -297,21 +262,22 @@ git commit -m "{concise message}"
 - Explicit file staging (no `git add .`)
 - No Co-Authored-By, no AI stamps
 
-### 9b. Push & PR
+### 8b. Push & PR
 ```bash
 git push -u origin {branch-name}
+```
+
+Use the project's `pull_request_template.md` if available. Only fill in Description and Related Issues.
+
+```bash
 gh pr create --title "#{issue} {description}" --body "$(cat <<'EOF'
 ## Description
 - {bullet point summary}
 
-Closes #$ARGUMENTS
+## Related Issues
+Closes #{issue}
 EOF
 )"
-```
-
-### 9c. Close Issue
-```bash
-gh issue close $ARGUMENTS
 ```
 
 Report PR URL to the user.
@@ -325,11 +291,10 @@ Mark task 8 `completed`.
 | Situation | Action |
 |-----------|--------|
 | Issue not found | Report error, stop |
-| Branch already exists | Ask user: continue or create new |
+| Figma fetch fails | Warn, continue without design |
 | Investigation unclear | AskUserQuestion before proceeding |
-| Dig reveals blocking ambiguity | AskUserQuestion (max 3 rounds) |
 | Tests fail (≤3 attempts) | Fix and retry |
 | Tests fail (>3 attempts) | Report to user, stop |
 | Critical review finding | Report to user, stop |
-| Warning review finding | Fix, re-run build verification |
-| 3 consecutive task failures | Stop, report to user |
+| Warning review finding | Fix, re-run quality gate |
+| Git/PR creation fails | Report error, stop |

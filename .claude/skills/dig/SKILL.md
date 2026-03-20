@@ -41,10 +41,8 @@ For each auto-decidable ambiguity, apply the matching rule below. Record the dec
 - Core tracking data types, trackers? → `kmp-facelink`
 - BlendShape → Live2D parameter mapping? → `kmp-facelink-avatar`
 - Gesture/expression triggers? → `kmp-facelink-actions`
-- Visual face effects? → `kmp-facelink-effects`
-- Live2D Cubism rendering? → `kmp-facelink-live2d`
-- WebSocket/network streaming? → `kmp-facelink-stream`
 - Audio (ASR/TTS/lip sync)? → `kmp-facelink-voice`
+- LLM integration? → `kmp-facelink-llm`
 - Cross-cutting utility? → `kmp-facelink` core util/
 
 #### Flow Usage

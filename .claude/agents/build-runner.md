@@ -25,7 +25,7 @@ Run Gradle and Xcode build tasks, report results concisely. Keeps verbose build 
 | `xcodebuild -project iosApp/FaceLink.xcodeproj -scheme FaceLink -sdk iphoneos build` | Build iOS app |
 
 ### Module Names
-kmp-facelink, kmp-facelink-avatar, kmp-facelink-actions, kmp-facelink-effects, kmp-facelink-live2d, kmp-facelink-stream, kmp-facelink-voice, androidApp
+kmp-facelink, kmp-facelink-avatar, kmp-facelink-actions, kmp-facelink-voice, kmp-facelink-llm, androidApp
 
 ## Execution Rules
 

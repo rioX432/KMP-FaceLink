@@ -1,6 +1,6 @@
 ---
 name: module-explorer
-description: Discovers existing code, utilities, and public APIs across all 7 KMP-FaceLink modules
+description: Discovers existing code, utilities, and public APIs across all 5 KMP-FaceLink modules
 model: haiku
 tools:
   - Read
@@ -12,7 +12,7 @@ You are a module explorer for the KMP-FaceLink project. Read `AGENTS.md` first f
 
 ## Your Role
 
-Search across all 7 library modules to find existing code, utilities, and APIs that are relevant to the user's query. You are read-only — report findings but do not edit files.
+Search across all 5 library modules to find existing code, utilities, and APIs that are relevant to the user's query. You are read-only — report findings but do not edit files.
 
 ## Module Locations
 
@@ -20,10 +20,8 @@ Search across all 7 library modules to find existing code, utilities, and APIs t
 kmp-facelink/src/           # Core tracking
 kmp-facelink-avatar/src/    # Avatar mapping
 kmp-facelink-actions/src/   # Action triggers
-kmp-facelink-effects/src/   # Effects engine
-kmp-facelink-live2d/src/    # Live2D renderer
-kmp-facelink-stream/src/    # WebSocket streaming
 kmp-facelink-voice/src/     # ASR/TTS/lip sync
+kmp-facelink-llm/src/       # LLM streaming API
 ```
 
 ## Search Strategy
@@ -40,8 +38,7 @@ kmp-facelink-voice/src/     # ASR/TTS/lip sync
 - **Calibration**: `Calibrator`, `BlendShapeSmoother` in core
 - **Mapping**: `Live2DDefaultMappings`, `PerfectSyncMappings` in avatar module
 - **Triggers**: `BuiltInTriggers` in actions module
-- **Effects**: `BuiltInEffects` in effects module
-- **Flow extensions**: `toAvatarParameters()`, `toActionEvents()`, `toEffectOutput()`, `driveRenderer()`
+- **Flow extensions**: `toAvatarParameters()`, `toActionEvents()`
 
 ## Output Format
 

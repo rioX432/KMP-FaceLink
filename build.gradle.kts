@@ -25,10 +25,7 @@ val publishableModules = setOf(
     "kmp-facelink",
     "kmp-facelink-avatar",
     "kmp-facelink-actions",
-    "kmp-facelink-effects",
-    "kmp-facelink-stream",
     "kmp-facelink-voice",
-    "kmp-facelink-rive",
     "kmp-facelink-llm",
 )
 
@@ -36,10 +33,7 @@ val pomDescriptions = mapOf(
     "kmp-facelink" to "Kotlin Multiplatform face, hand, and body tracking library",
     "kmp-facelink-avatar" to "Live2D parameter mapping for KMP-FaceLink",
     "kmp-facelink-actions" to "Gesture and expression trigger system for KMP-FaceLink",
-    "kmp-facelink-effects" to "Real-time face effects engine for KMP-FaceLink",
-    "kmp-facelink-stream" to "WebSocket streaming (VTubeStudio protocol) for KMP-FaceLink",
     "kmp-facelink-voice" to "ASR, TTS, and lip sync for KMP-FaceLink",
-    "kmp-facelink-rive" to "Rive avatar integration for KMP-FaceLink",
     "kmp-facelink-llm" to "LLM streaming API for KMP-FaceLink",
 )
 
@@ -57,11 +51,7 @@ dependencies {
     dokka(project(":kmp-facelink"))
     dokka(project(":kmp-facelink-avatar"))
     dokka(project(":kmp-facelink-actions"))
-    dokka(project(":kmp-facelink-effects"))
-    dokka(project(":kmp-facelink-live2d"))
-    dokka(project(":kmp-facelink-stream"))
     dokka(project(":kmp-facelink-voice"))
-    dokka(project(":kmp-facelink-rive"))
     dokka(project(":kmp-facelink-llm"))
 }
 
@@ -168,41 +158,6 @@ project(":kmp-facelink-actions") {
     }
 }
 
-project(":kmp-facelink-effects") {
-    afterEvaluate {
-        detekt {
-            source.setFrom(
-                "src/commonMain/kotlin",
-                "src/commonTest/kotlin",
-            )
-        }
-    }
-}
-
-project(":kmp-facelink-live2d") {
-    afterEvaluate {
-        detekt {
-            source.setFrom(
-                "src/commonMain/kotlin",
-                "src/commonTest/kotlin",
-            )
-        }
-    }
-}
-
-project(":kmp-facelink-stream") {
-    afterEvaluate {
-        detekt {
-            source.setFrom(
-                "src/commonMain/kotlin",
-                "src/androidMain/kotlin",
-                "src/iosMain/kotlin",
-                "src/commonTest/kotlin",
-            )
-        }
-    }
-}
-
 project(":kmp-facelink-voice") {
     afterEvaluate {
         detekt {
@@ -210,18 +165,6 @@ project(":kmp-facelink-voice") {
                 "src/commonMain/kotlin",
                 "src/androidMain/kotlin",
                 "src/iosMain/kotlin",
-                "src/commonTest/kotlin",
-            )
-        }
-    }
-}
-
-project(":kmp-facelink-rive") {
-    afterEvaluate {
-        detekt {
-            source.setFrom(
-                "src/commonMain/kotlin",
-                "src/androidMain/kotlin",
                 "src/commonTest/kotlin",
             )
         }

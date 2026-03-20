@@ -9,11 +9,7 @@ Unified face, hand & body tracking SDK for Kotlin Multiplatform — one API, bot
 | `kmp-facelink` | Core face, hand & body tracking API | **Stable** |
 | `kmp-facelink-avatar` | BlendShape → Live2D parameter mapping | **Stable** |
 | `kmp-facelink-actions` | Gesture/expression triggers, emotion, recording | **Stable** |
-| `kmp-facelink-effects` | Real-time face effects engine | **Mostly stable** |
-| `kmp-facelink-live2d` | Live2D Cubism SDK rendering | **Experimental** |
-| `kmp-facelink-stream` | WebSocket streaming (VTubeStudio protocol) | **Stable** |
 | `kmp-facelink-voice` | TTS, ASR, lip sync | **Mostly stable** |
-| `kmp-facelink-rive` | Rive avatar integration | **Experimental** |
 | `kmp-facelink-llm` | LLM streaming API (OpenAI, Anthropic, Gemini) | **Experimental** |
 
 ## Tech Stack
@@ -24,7 +20,6 @@ Unified face, hand & body tracking SDK for Kotlin Multiplatform — one API, bot
 | Android | MediaPipe, CameraX, Jetpack Compose |
 | iOS | ARKit, Vision, SwiftUI |
 | Interop | SKIE (Swift-Kotlin Flow) |
-| Avatar | Live2D Cubism SDK Native |
 
 ## Platform Requirements
 

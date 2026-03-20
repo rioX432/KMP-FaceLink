@@ -4,7 +4,7 @@ This file provides guidance to AI coding agents working with this repository.
 
 ## Project Overview
 
-KMP-FaceLink is a Kotlin Multiplatform SDK for real-time face/hand/body tracking and VTuber applications. It wraps MediaPipe (Android) and ARKit/Vision (iOS) into shared Kotlin interfaces, with extension modules for avatar mapping, actions, effects, Live2D rendering, streaming, and voice.
+KMP-FaceLink is a Kotlin Multiplatform SDK for real-time face/hand/body tracking. It wraps MediaPipe (Android) and ARKit/Vision (iOS) into shared Kotlin interfaces, with extension modules for avatar mapping, actions, voice, and LLM integration.
 
 ## Modules
 
@@ -13,11 +13,7 @@ KMP-FaceLink is a Kotlin Multiplatform SDK for real-time face/hand/body tracking
 | `kmp-facelink` | Core tracking (face, hand, body) | Stable |
 | `kmp-facelink-avatar` | Live2D parameter mapping (BlendShape → ParamAngleX etc.) | Stable |
 | `kmp-facelink-actions` | Gesture/expression trigger system with debounce | Stable |
-| `kmp-facelink-effects` | Real-time face effects engine (TikTok-style filters) | Stable |
-| `kmp-facelink-live2d` | Live2D Cubism SDK Native renderer | Experimental |
-| `kmp-facelink-stream` | WebSocket streaming (VTubeStudio protocol) | Stable |
 | `kmp-facelink-voice` | ASR (Whisper) / TTS (OpenAI, ElevenLabs, Voicevox) + lip sync | Experimental |
-| `kmp-facelink-rive` | Rive avatar integration (parameter mapping + Android renderer) | Experimental |
 | `kmp-facelink-llm` | LLM streaming API (OpenAI, Anthropic, Gemini) with conversation management | Experimental |
 
 ### Dependency Tree
@@ -25,12 +21,8 @@ KMP-FaceLink is a Kotlin Multiplatform SDK for real-time face/hand/body tracking
 ```
 kmp-facelink (core)
   ├── kmp-facelink-avatar    → depends on core
-  │     └── kmp-facelink-live2d  → exports core + avatar
   ├── kmp-facelink-actions   → depends on core
-  ├── kmp-facelink-effects   → depends on core
-  ├── kmp-facelink-stream    → depends on core
   ├── kmp-facelink-voice     → depends on core
-  ├── kmp-facelink-rive      → depends on core
   └── kmp-facelink-llm       → standalone (no core dependency)
 ```
 
@@ -46,8 +38,8 @@ Each library module follows this pattern:
   └── iosMain/       # iOS platform impl (if needed)
 ```
 
-Modules with platform code: `kmp-facelink`, `kmp-facelink-stream`, `kmp-facelink-voice`, `kmp-facelink-rive`, `kmp-facelink-llm`
-Pure common modules: `kmp-facelink-avatar`, `kmp-facelink-actions`, `kmp-facelink-effects`, `kmp-facelink-live2d`
+Modules with platform code: `kmp-facelink`, `kmp-facelink-voice`, `kmp-facelink-llm`
+Pure common modules: `kmp-facelink-avatar`, `kmp-facelink-actions`
 Note: `kmp-facelink-llm` uses platform code only for `HttpClientProvider` (Ktor engine selection); all LLM logic is in `commonMain`.
 
 ## Commands
@@ -90,14 +82,12 @@ Note: `kmp-facelink-llm` uses platform code only for `HttpClientProvider` (Ktor 
 - Hand: `MediaPipeHandTracker` (Hand Landmarker)
 - Body: `MediaPipeBodyTracker` (Pose Landmarker)
 - Camera: `CameraXManager` + `ImageProxyConverter` + `BitmapPool` (bitmap reuse)
-- Stream: Ktor OkHttp engine
 - Voice: WhisperCpp native bindings, Android AudioRecord/AudioTrack
 
 **iOS (ARKit + Vision)**
 - Face: `ARKitFaceTracker` (ARFaceTrackingConfiguration)
 - Hand: `VisionHandTracker` (VNDetectHumanHandPoseRequest + AVCaptureSession)
 - Body: `VisionBodyTracker` (VNDetectHumanBodyPoseRequest + AVCaptureSession)
-- Stream: Ktor Darwin engine
 - Voice: WhisperCpp native bindings, AVFoundation
 
 ### Key Public APIs
@@ -108,11 +98,7 @@ Note: `kmp-facelink-llm` uses platform code only for `HttpClientProvider` (Ktor 
 | Core | `HolisticTracker` | `start()`/`stop()`, `trackingData: Flow<HolisticTrackingData>`, configurable modalities |
 | Avatar | `Live2DParameterMapper` | `map(FaceTrackingData): Map<String, Float>` + `PerfectSyncMappings` |
 | Actions | `ActionSystem` | `register(ActionBinding)`, `events: Flow<ActionEvent>`, `BuiltInTriggers` |
-| Effects | `EffectEngine` | `addEffect(Effect)`, `processFace(data): EffectOutput` |
-| Live2D | `Live2DRenderer` | `initialize(modelInfo)`, `updateParameters(params)` (`@ExperimentalFaceLinkApi`) |
-| Stream | `VtsStreamClient` | `connect()`/`disconnect()`, `sendParameters(params, faceFound)` |
 | Voice | `VoicePipeline` | `speak(text): Flow<BlendShapes>`, `startListening()`, `transcriptions: Flow<T>` |
-| Rive | `RiveRenderer`, `RiveDefaultMappings` | `loadModel(path, sm)`, `updateInputs(map)`, `toRiveInputs(mapper)` |
 | LLM | `LlmClient`, `LlmConfig` | `LlmClient.create(config)`, `chat(history): Flow<String>`, `chatOnce(history): String` (`@ExperimentalFaceLinkApi`) |
 
 ### Key Design Decisions

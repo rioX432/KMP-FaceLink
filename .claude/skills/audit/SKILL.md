@@ -135,8 +135,7 @@ Scan for API quality issues in KMP-FaceLink library modules.
 
 Root: /Users/rio/workspace/projects/KMP-FaceLink/
 Module paths: kmp-facelink/src/, kmp-facelink-avatar/src/, kmp-facelink-actions/src/,
-              kmp-facelink-effects/src/, kmp-facelink-stream/src/, kmp-facelink-voice/src/,
-              kmp-facelink-rive/src/, kmp-facelink-live2d/src/
+              kmp-facelink-voice/src/, kmp-facelink-llm/src/
 
 ## Checks to perform:
 

@@ -6,12 +6,8 @@ enum TrackingMode: String, CaseIterable {
     case face = "Face"
     case hand = "Hand"
     case holistic = "Holistic"
-    case avatar = "Avatar"
     case actions = "Actions"
-    case effects = "Effects"
-    case stream = "Stream"
     case voice = "Voice"
-    case rive = "Rive"
 }
 
 struct ContentView: View {
@@ -44,18 +40,10 @@ struct ContentView: View {
                 HandTrackingView()
             case .holistic:
                 HolisticTrackingView()
-            case .avatar:
-                AvatarTrackingView()
             case .actions:
                 ActionsTrackingView()
-            case .effects:
-                EffectsTrackingView()
-            case .stream:
-                StreamTrackingView()
             case .voice:
                 VoiceTrackingView()
-            case .rive:
-                RiveTrackingView()
             }
         }
     }

@@ -164,18 +164,18 @@ internal class CompositeHolisticTracker(
     override suspend fun switchCamera(facing: CameraFacing) {
         pipelineLock.withLock {
             check(released.load() == 0) { "Cannot switch camera on a released tracker" }
-        }
-        if (currentCameraFacing == facing) return
-        // ARKit face tracking only supports front camera
-        if (config.enableFace && facing == CameraFacing.BACK) {
-            throw UnsupportedOperationException(
-                "Cannot switch to back camera: ARKit face tracking requires TrueDepth front camera",
-            )
-        }
-        val wasTracking = _state.value == TrackingState.TRACKING
-        currentCameraFacing = facing
-        if (wasTracking) {
-            sharedVisionSession?.switchCamera(facing)
+            if (currentCameraFacing == facing) return
+            // ARKit face tracking only supports front camera
+            if (config.enableFace && facing == CameraFacing.BACK) {
+                throw UnsupportedOperationException(
+                    "Cannot switch to back camera: ARKit face tracking requires TrueDepth front camera",
+                )
+            }
+            val wasTracking = _state.value == TrackingState.TRACKING
+            currentCameraFacing = facing
+            if (wasTracking) {
+                sharedVisionSession?.switchCamera(facing)
+            }
         }
     }
 

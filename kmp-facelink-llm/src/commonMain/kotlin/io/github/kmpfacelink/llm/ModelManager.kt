@@ -13,9 +13,9 @@ public interface ModelManager {
      * Downloads a model to local storage.
      *
      * @param modelInfo Model metadata including download URL and checksum
-     * @return Flow emitting download progress as a fraction (0.0 to 1.0)
+     * @return Flow emitting [DownloadProgress] with bytes downloaded and progress fraction
      */
-    public fun download(modelInfo: ModelInfo): Flow<Float>
+    public fun download(modelInfo: ModelInfo): Flow<DownloadProgress>
 
     /**
      * Deletes a previously downloaded model from local storage.

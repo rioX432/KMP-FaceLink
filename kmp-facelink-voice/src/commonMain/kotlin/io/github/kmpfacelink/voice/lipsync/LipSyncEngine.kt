@@ -1,5 +1,6 @@
 package io.github.kmpfacelink.voice.lipsync
 
+import io.github.kmpfacelink.api.Releasable
 import io.github.kmpfacelink.voice.audio.AudioData
 import io.github.kmpfacelink.voice.tts.PhonemeEvent
 import kotlinx.coroutines.flow.Flow
@@ -11,7 +12,7 @@ import kotlinx.coroutines.flow.Flow
  * - **Phoneme-based**: Uses phoneme timing data from VOICEVOX/ElevenLabs for accurate lip sync
  * - **Amplitude-based**: Uses audio volume as fallback for backends without timing data (OpenAI TTS)
  */
-public interface LipSyncEngine {
+public interface LipSyncEngine : Releasable {
     /**
      * Generates lip sync frames from phoneme timing data.
      *
@@ -37,4 +38,7 @@ public interface LipSyncEngine {
         audio: AudioData,
         config: LipSyncConfig = LipSyncConfig(),
     ): Flow<LipSyncFrame>
+
+    /** Releases resources held by this engine. No-op by default. */
+    override fun release(): Unit = Unit
 }

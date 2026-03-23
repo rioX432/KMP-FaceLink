@@ -171,6 +171,7 @@ public class VoicePipeline(
     public fun release() {
         scope.cancel()
         runCatching { tts.release() }
+        runCatching { lipSync.release() }
         runCatching { asr?.release() }
         runCatching { audioRecorder?.release() }
         runCatching { audioPlayer?.release() }

@@ -2,6 +2,9 @@ package io.github.kmpfacelink.llm
 
 /**
  * Strategy for routing queries between on-device and cloud LLM backends.
+ *
+ * Use [AlwaysOnDevice] or [AlwaysCloud] for fixed routing, or [Auto] to
+ * route dynamically based on query complexity scoring.
  */
 public sealed class RoutingStrategy {
     /** Always route to the on-device model. */

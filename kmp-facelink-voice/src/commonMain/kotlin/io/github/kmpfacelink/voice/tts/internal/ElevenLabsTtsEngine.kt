@@ -21,14 +21,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
-
-// Base64 decoding constants
-private const val BASE64_GROUP_SIZE = 4
-private const val BASE64_LOW_NIBBLE_MASK = 0x0F
-private const val BASE64_LOW_TWO_BITS_MASK = 0x03
-private const val BASE64_SHIFT_2 = 2
-private const val BASE64_SHIFT_4 = 4
-private const val BASE64_SHIFT_6 = 6
+import kotlin.io.encoding.Base64
+import kotlin.io.encoding.ExperimentalEncodingApi
 
 /**
  * ElevenLabs TTS engine with character-level timestamp support.
@@ -36,6 +30,7 @@ private const val BASE64_SHIFT_6 = 6
  * Uses the /v1/text-to-speech/{voice_id}/with-timestamps endpoint
  * to get character alignment data for approximate phoneme lip sync.
  */
+@OptIn(ExperimentalEncodingApi::class)
 internal class ElevenLabsTtsEngine(private val config: TtsConfig.ElevenLabs) : TtsEngine {
 
     private val _state = MutableStateFlow<TtsState>(TtsState.Idle)
@@ -73,7 +68,7 @@ internal class ElevenLabsTtsEngine(private val config: TtsConfig.ElevenLabs) : T
             val responseText = response.bodyAsText()
             val parsed = json.decodeFromString(ElevenLabsResponse.serializer(), responseText)
 
-            val audioBytes = decodeBase64(parsed.audioBase64)
+            val audioBytes = Base64.decode(parsed.audioBase64)
             val format = AudioFormat(
                 sampleRate = AudioConstants.SAMPLE_RATE_44K,
                 channels = 1,
@@ -139,30 +134,6 @@ internal class ElevenLabsTtsEngine(private val config: TtsConfig.ElevenLabs) : T
         val bytesPerSample = format.bitsPerSample / Byte.SIZE_BITS
         val totalSamples = byteCount / bytesPerSample / format.channels
         return totalSamples.toLong() * AudioConstants.MILLIS_PER_SECOND / format.sampleRate
-    }
-
-    private fun decodeBase64(encoded: String): ByteArray {
-        val table = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
-        val clean = encoded.filter { it in table || it == '=' }
-        val output = mutableListOf<Byte>()
-
-        var i = 0
-        while (i < clean.length) {
-            val b0 = table.indexOf(clean[i])
-            val b1 = if (i + 1 < clean.length) table.indexOf(clean[i + 1]) else 0
-            val b2 = if (i + 2 < clean.length && clean[i + 2] != '=') table.indexOf(clean[i + 2]) else -1
-            val b3 = if (i + 3 < clean.length && clean[i + 3] != '=') table.indexOf(clean[i + 3]) else -1
-
-            output.add(((b0 shl BASE64_SHIFT_2) or (b1 shr BASE64_SHIFT_4)).toByte())
-            if (b2 >= 0) {
-                output.add((((b1 and BASE64_LOW_NIBBLE_MASK) shl BASE64_SHIFT_4) or (b2 shr BASE64_SHIFT_2)).toByte())
-            }
-            if (b3 >= 0) output.add((((b2 and BASE64_LOW_TWO_BITS_MASK) shl BASE64_SHIFT_6) or b3).toByte())
-
-            i += BASE64_GROUP_SIZE
-        }
-
-        return output.toByteArray()
     }
 
     @Serializable

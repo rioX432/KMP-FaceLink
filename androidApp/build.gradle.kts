@@ -83,6 +83,7 @@ tasks.named("preBuild") {
 }
 
 dependencies {
+    implementation(project(":sampleShared"))
     implementation(project(":kmp-facelink"))
     implementation(project(":kmp-facelink-avatar"))
     implementation(project(":kmp-facelink-actions"))

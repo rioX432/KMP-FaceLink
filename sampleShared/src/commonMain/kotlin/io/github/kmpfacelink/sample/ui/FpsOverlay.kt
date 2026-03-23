@@ -13,6 +13,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kotlin.math.roundToInt
 import kotlinx.coroutines.delay
 
 private const val FPS_DISPLAY_COUNT = 30
@@ -20,7 +21,7 @@ private const val FPS_UPDATE_INTERVAL_MS = 500L
 private const val MILLIS_PER_SECOND = 1000f
 
 @Composable
-internal fun FpsOverlay(
+fun FpsOverlay(
     frameTimestampMs: Long,
     modifier: Modifier = Modifier,
 ) {
@@ -52,7 +53,7 @@ internal fun FpsOverlay(
     }
 
     Text(
-        text = "%.0f FPS".format(fps),
+        text = "${fps.roundToInt()} FPS",
         color = SampleColors.TextSecondary,
         fontSize = 10.sp,
         fontFamily = FontFamily.Monospace,

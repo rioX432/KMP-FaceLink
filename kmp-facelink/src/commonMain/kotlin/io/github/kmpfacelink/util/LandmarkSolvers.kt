@@ -35,6 +35,8 @@ import io.github.kmpfacelink.util.LandmarkIndices.RIGHT_NOSE_WING
  * Each solver takes the full landmark list and returns a value in [0, 1].
  * Landmarks use MediaPipe normalized coordinates: x,y in [0,1], z is relative depth.
  */
+// Each public function maps 1:1 to an ARKit blend shape (11 solvers for 11 shapes).
+// All solvers share common helpers (iod, EAR) and thresholds — splitting would duplicate state.
 @Suppress("TooManyFunctions")
 internal object LandmarkSolvers {
 

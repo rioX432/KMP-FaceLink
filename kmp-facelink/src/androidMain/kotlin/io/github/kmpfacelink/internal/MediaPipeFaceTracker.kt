@@ -48,6 +48,10 @@ import java.util.concurrent.atomic.AtomicReference
 import kotlin.concurrent.atomics.AtomicInt
 import kotlin.concurrent.atomics.ExperimentalAtomicApi
 
+// Lifecycle (start/stop/release/switchCamera), config (resetCalibration/updateSmoothing),
+// camera pipeline (startCamera/processFrame/processSharedFrame), and result mapping
+// (onFaceLandmarkerResult/processPrimaryPipeline/buildTrackedFaces) form a cohesive unit.
+// Extracting these would split tightly coupled camera+MediaPipe state across classes.
 @Suppress("TooManyFunctions")
 @OptIn(ExperimentalAtomicApi::class)
 internal class MediaPipeFaceTracker(
@@ -145,10 +149,14 @@ internal class MediaPipeFaceTracker(
         }
         // Drain any in-flight frame processing on the analysis executor
         if (cameraManager != null) {
-            @Suppress("TooGenericExceptionCaught")
+            @Suppress("TooGenericExceptionCaught") // RejectedExecutionException or InterruptedException
             try {
                 withContext(Dispatchers.IO) { analysisExecutor.submit {}.get() }
-            } catch (_: Exception) { /* executor may be shut down */ }
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                throw e
+            } catch (_: Exception) {
+                // Executor may already be shut down — safe to ignore
+            }
         }
         // Allow final async detection result from MediaPipe to be delivered
         if (landmarkerToClose != null) {
@@ -169,10 +177,14 @@ internal class MediaPipeFaceTracker(
             thermalMonitor.release()
         }
         analysisExecutor.shutdown()
+        // release() is synchronous (not suspend) — no CancellationException concern.
+        // awaitTermination can throw InterruptedException; catch broadly for best-effort cleanup.
         @Suppress("TooGenericExceptionCaught")
         try {
             analysisExecutor.awaitTermination(config.releaseTimeoutMs, TimeUnit.MILLISECONDS)
-        } catch (_: Exception) { /* best-effort */ }
+        } catch (_: Exception) {
+            // Best-effort shutdown — safe to ignore
+        }
         landmarkerToClose?.close()
     }
 
@@ -202,9 +214,10 @@ internal class MediaPipeFaceTracker(
         if (wasTracking) start()
     }
 
-    @Suppress("TooGenericExceptionCaught") // MediaPipe GPU delegate throws RuntimeException
+    @Suppress("TooGenericExceptionCaught") // MediaPipe GPU delegate failures surface as RuntimeException
     private fun initFaceLandmarker() {
-        // Try GPU delegate first, fall back to CPU on failure
+        // GPU delegate can fail with RuntimeException on devices lacking OpenGL ES 3.1+
+        // or when the GPU driver rejects the model. Fall back to CPU in that case.
         faceLandmarker = try {
             createLandmarker(Delegate.GPU)
         } catch (e: RuntimeException) {

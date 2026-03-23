@@ -12,12 +12,14 @@ public sealed class TtsConfig {
      * Does not provide phoneme timing — lip sync uses amplitude-based animation.
      *
      * @property apiKey OpenAI API key
+     * @property baseUrl Base URL for the API (supports OpenAI-compatible endpoints)
      * @property voice Voice name (e.g. "alloy", "echo", "fable", "onyx", "nova", "shimmer")
      * @property model Model name (e.g. "tts-1", "tts-1-hd")
      * @property speed Speech speed multiplier (0.25–4.0)
      */
     public data class OpenAiTts(
         val apiKey: String,
+        val baseUrl: String = "https://api.openai.com/v1",
         val voice: String = "alloy",
         val model: String = "tts-1",
         val speed: Float = 1.0f,
@@ -29,6 +31,7 @@ public sealed class TtsConfig {
      * Provides character-level timestamps for approximate phoneme lip sync.
      *
      * @property apiKey ElevenLabs API key
+     * @property baseUrl Base URL for the API (supports self-hosted or proxy endpoints)
      * @property voiceId Voice ID
      * @property modelId Model ID (e.g. "eleven_multilingual_v2")
      * @property stability Voice stability (0.0–1.0)
@@ -36,6 +39,7 @@ public sealed class TtsConfig {
      */
     public data class ElevenLabs(
         val apiKey: String,
+        val baseUrl: String = "https://api.elevenlabs.io/v1",
         val voiceId: String,
         val modelId: String = "eleven_multilingual_v2",
         val stability: Float = 0.5f,

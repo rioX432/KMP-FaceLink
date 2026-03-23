@@ -6,11 +6,12 @@ Unified face, hand & body tracking SDK for Kotlin Multiplatform — one API, bot
 
 | Module | Purpose | Stability |
 |---|---|---|
-| `kmp-facelink` | Core face, hand & body tracking API | **Stable** |
-| `kmp-facelink-avatar` | BlendShape → Live2D parameter mapping | **Stable** |
-| `kmp-facelink-actions` | Gesture/expression triggers, emotion, recording | **Stable** |
-| `kmp-facelink-voice` | TTS, ASR, lip sync | **Mostly stable** |
-| `kmp-facelink-llm` | LLM streaming API (OpenAI, Anthropic, Gemini) | **Experimental** |
+| `kmp-facelink` | Core face, hand & body tracking API (Android, iOS, JVM) | **Stable** |
+| `kmp-facelink-avatar` | BlendShape → Live2D / VRM parameter mapping | **Stable** |
+| `kmp-facelink-actions` | Gesture/expression triggers, emotion classification, recording | **Stable** |
+| `kmp-facelink-voice` | TTS, ASR, multilingual lip sync | **Mostly stable** |
+| `kmp-facelink-llm` | LLM streaming API (cloud + on-device) with hybrid routing | **Experimental** |
+| `kmp-facelink-pipeline` | AI avatar pipeline: Voice → LLM → TTS → LipSync → Expression | **Experimental** |
 
 ## Tech Stack
 

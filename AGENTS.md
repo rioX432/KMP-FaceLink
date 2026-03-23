@@ -10,11 +10,12 @@ KMP-FaceLink is a Kotlin Multiplatform SDK for real-time face/hand/body tracking
 
 | Module | Purpose | Stability |
 |--------|---------|-----------|
-| `kmp-facelink` | Core tracking (face, hand, body) | Stable |
-| `kmp-facelink-avatar` | Live2D parameter mapping (BlendShape → ParamAngleX etc.) | Stable |
+| `kmp-facelink` | Core tracking (face, hand, body) — Android, iOS, JVM targets | Stable |
+| `kmp-facelink-avatar` | Live2D + VRM parameter mapping (BlendShape → avatar params) | Stable |
 | `kmp-facelink-actions` | Gesture/expression trigger system with debounce | Stable |
 | `kmp-facelink-voice` | ASR (Whisper) / TTS (OpenAI, ElevenLabs, Voicevox) + lip sync | Experimental |
-| `kmp-facelink-llm` | LLM streaming API (OpenAI, Anthropic, Gemini) with conversation management | Experimental |
+| `kmp-facelink-llm` | LLM streaming API (cloud + on-device) with hybrid routing | Experimental |
+| `kmp-facelink-pipeline` | AI avatar pipeline: Voice → LLM → TTS → LipSync → Expression | Experimental |
 
 ### Dependency Tree
 
@@ -23,7 +24,8 @@ kmp-facelink (core)
   ├── kmp-facelink-avatar    → depends on core
   ├── kmp-facelink-actions   → depends on core
   ├── kmp-facelink-voice     → depends on core
-  └── kmp-facelink-llm       → standalone (no core dependency)
+  ├── kmp-facelink-llm       → depends on core
+  └── kmp-facelink-pipeline  → depends on core, voice, llm, actions, avatar
 ```
 
 ### Source Set Layout
@@ -38,9 +40,10 @@ Each library module follows this pattern:
   └── iosMain/       # iOS platform impl (if needed)
 ```
 
-Modules with platform code: `kmp-facelink`, `kmp-facelink-voice`, `kmp-facelink-llm`
-Pure common modules: `kmp-facelink-avatar`, `kmp-facelink-actions`
-Note: `kmp-facelink-llm` uses platform code only for `HttpClientProvider` (Ktor engine selection); all LLM logic is in `commonMain`.
+Modules with platform code: `kmp-facelink` (android/ios/jvm), `kmp-facelink-voice`, `kmp-facelink-llm`
+Pure common modules: `kmp-facelink-avatar`, `kmp-facelink-actions`, `kmp-facelink-pipeline`
+Note: `kmp-facelink` has a `jvmMain` source set with no-op tracker stubs for desktop/JVM target support.
+Note: `kmp-facelink-llm` includes platform-specific inference engines (llama.cpp on Android, MLX on iOS) for on-device LLM.
 
 ## Commands
 
@@ -66,14 +69,15 @@ Note: `kmp-facelink-llm` uses platform code only for `HttpClientProvider` (Ktor 
 
 ### Tech Stack
 
-- **Kotlin 2.1.20** — KMP with `explicitApi()` on all modules
-- **Android**: MediaPipe 0.10.32, CameraX 1.4.2, Compose
+- **Kotlin 2.2.0** — KMP with `explicitApi()` on all modules
+- **Android**: MediaPipe 0.10.32, CameraX 1.5.3, Compose
 - **iOS**: ARKit, Vision framework, SwiftUI
 - **Networking**: Ktor 3.1.1 (OkHttp on Android, Darwin on iOS)
 - **Serialization**: kotlinx-serialization-json 1.8.1
 - **Coroutines**: kotlinx-coroutines 1.10.2
-- **Interop**: SKIE 0.10.9 (Swift-Kotlin Flow bridging)
+- **Interop**: SKIE 0.10.10 (Swift-Kotlin Flow bridging)
 - **Build**: AGP 8.8.2, Detekt 1.23.8, Dokka 2.1.0
+- **On-device AI**: llama.cpp (Android JNI), MLX (iOS, planned)
 
 ### Platform Implementations
 
@@ -96,10 +100,13 @@ Note: `kmp-facelink-llm` uses platform code only for `HttpClientProvider` (Ktor 
 |--------|-------------|---------|
 | Core | `FaceTracker`, `HandTracker`, `BodyTracker` | `start()`/`stop()`, `trackingData: Flow<T>`, `state: StateFlow<TrackingState>` |
 | Core | `HolisticTracker` | `start()`/`stop()`, `trackingData: Flow<HolisticTrackingData>`, configurable modalities |
-| Avatar | `Live2DParameterMapper` | `map(FaceTrackingData): Map<String, Float>` + `PerfectSyncMappings` |
+| Avatar | `Live2DParameterMapper`, `VrmParameterMapper` | `map(FaceTrackingData): Map<String, Float>`, VRM 0.x/1.0 support |
 | Actions | `ActionSystem` | `register(ActionBinding)`, `events: Flow<ActionEvent>`, `BuiltInTriggers` |
+| Actions | `EmotionClassifier` | `classify(BlendShapeData): EmotionResult`, FACS-based cosine similarity |
 | Voice | `VoicePipeline` | `speak(text): Flow<BlendShapes>`, `startListening()`, `transcriptions: Flow<T>` |
-| LLM | `LlmClient`, `LlmConfig` | `LlmClient.create(config)`, `chat(history): Flow<String>`, `chatOnce(history): String` (`@ExperimentalFaceLinkApi`) |
+| LLM | `LlmClient`, `LlmConfig` | `LlmClient.create(config)`, `chat(history): Flow<String>`, cloud + on-device + hybrid routing |
+| LLM | `ModelManager`, `ModelRegistry` | Model download/cache, on-device inference (llama.cpp/MLX) |
+| Pipeline | `AvatarPipeline`, `buildAvatarPipeline {}` | `listen()`, `processText()`, `output: Flow<AvatarPipelineOutput>`, streaming LLM→TTS→LipSync |
 
 ### Key Design Decisions
 

@@ -440,7 +440,13 @@ internal class MediaPipeFaceTracker(
             val allLandmarks = result.faceLandmarks()
             if (faceIndex >= allLandmarks.size) return emptyList()
             return allLandmarks[faceIndex].map { landmark ->
-                FaceLandmark(x = landmark.x(), y = landmark.y(), z = landmark.z())
+                FaceLandmark(
+                    x = landmark.x(),
+                    y = landmark.y(),
+                    z = landmark.z(),
+                    visibility = landmark.visibility().orElse(0f),
+                    presence = landmark.presence().orElse(0f),
+                )
             }
         }
 

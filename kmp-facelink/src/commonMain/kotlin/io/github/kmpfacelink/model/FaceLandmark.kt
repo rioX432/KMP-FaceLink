@@ -13,9 +13,17 @@ package io.github.kmpfacelink.model
  * @property x Horizontal position, normalized 0.0 (left) to 1.0 (right)
  * @property y Vertical position, normalized 0.0 (top) to 1.0 (bottom)
  * @property z Depth relative to the face center (negative = closer to camera)
+ * @property visibility Likelihood that the landmark is visible (not occluded) in the image
+ *           (0.0–1.0). On Android (MediaPipe) this comes from the model output.
+ *           On iOS (ARKit) this is always 0.0 (ARKit does not provide per-landmark visibility).
+ * @property presence Likelihood that the landmark exists on the face (0.0–1.0).
+ *           On Android (MediaPipe) this comes from the model output.
+ *           On iOS (ARKit) this is always 0.0 (ARKit does not provide per-landmark presence).
  */
 public data class FaceLandmark(
     val x: Float,
     val y: Float,
     val z: Float = 0f,
+    val visibility: Float = 0f,
+    val presence: Float = 0f,
 )

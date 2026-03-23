@@ -177,9 +177,9 @@ internal class MediaPipeHandTracker(
             .setBaseOptions(baseOptions)
             .setRunningMode(RunningMode.LIVE_STREAM)
             .setNumHands(config.maxHands)
-            .setMinHandDetectionConfidence(0.5f)
-            .setMinTrackingConfidence(0.5f)
-            .setMinHandPresenceConfidence(0.5f)
+            .setMinHandDetectionConfidence(config.minDetectionConfidence)
+            .setMinTrackingConfidence(config.minTrackingConfidence)
+            .setMinHandPresenceConfidence(config.minPresenceConfidence)
             .setResultListener(::onHandLandmarkerResult)
             .setErrorListener { error ->
                 Log.e(TAG, "HandLandmarker error: ${error.message}", error)

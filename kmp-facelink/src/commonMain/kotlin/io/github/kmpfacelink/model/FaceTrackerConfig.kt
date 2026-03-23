@@ -40,6 +40,12 @@ public data class CalibrationConfig(
  *           Android (MediaPipe): fully supported — up to [MAX_FACES] faces tracked at once.
  *           iOS (ARKit): ARKit only supports one face; values greater than 1 have no effect.
  *           Default is 1 (single-face mode).
+ * @property minDetectionConfidence Minimum confidence score for face detection to be considered
+ *           successful. Android (MediaPipe) only — has no effect on iOS (ARKit). Must be in 0.0..1.0.
+ * @property minTrackingConfidence Minimum confidence score for face tracking to be considered
+ *           successful. Android (MediaPipe) only — has no effect on iOS (ARKit). Must be in 0.0..1.0.
+ * @property minPresenceConfidence Minimum confidence score for face presence to be considered
+ *           valid. Android (MediaPipe) only — has no effect on iOS (ARKit). Must be in 0.0..1.0.
  * @property thermalPolicy Policy controlling how the tracker adapts to thermal pressure.
  *           Defaults to [ThermalPolicy.Disabled].
  */
@@ -52,17 +58,32 @@ public data class FaceTrackerConfig(
     val stopDrainDelayMs: Long = 100L,
     val releaseTimeoutMs: Long = 500L,
     val maxFaces: Int = 1,
+    val minDetectionConfidence: Float = DEFAULT_CONFIDENCE,
+    val minTrackingConfidence: Float = DEFAULT_CONFIDENCE,
+    val minPresenceConfidence: Float = DEFAULT_CONFIDENCE,
     val thermalPolicy: ThermalPolicy = ThermalPolicy.Disabled,
 ) {
     init {
         require(maxFaces in 1..MAX_FACES) {
             "maxFaces must be in 1..$MAX_FACES, was $maxFaces"
         }
+        require(minDetectionConfidence in 0f..1f) {
+            "minDetectionConfidence must be in 0.0..1.0, was $minDetectionConfidence"
+        }
+        require(minTrackingConfidence in 0f..1f) {
+            "minTrackingConfidence must be in 0.0..1.0, was $minTrackingConfidence"
+        }
+        require(minPresenceConfidence in 0f..1f) {
+            "minPresenceConfidence must be in 0.0..1.0, was $minPresenceConfidence"
+        }
     }
 
     public companion object {
         /** Maximum number of faces that can be tracked simultaneously. */
         public const val MAX_FACES: Int = 4
+
+        /** Default MediaPipe confidence threshold. */
+        public const val DEFAULT_CONFIDENCE: Float = 0.5f
     }
 }
 

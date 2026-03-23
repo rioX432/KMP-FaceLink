@@ -175,9 +175,9 @@ internal class MediaPipeBodyTracker(
             .setBaseOptions(baseOptions)
             .setRunningMode(RunningMode.LIVE_STREAM)
             .setNumPoses(config.maxBodies)
-            .setMinPoseDetectionConfidence(CONFIDENCE_THRESHOLD)
-            .setMinTrackingConfidence(CONFIDENCE_THRESHOLD)
-            .setMinPosePresenceConfidence(CONFIDENCE_THRESHOLD)
+            .setMinPoseDetectionConfidence(config.minDetectionConfidence)
+            .setMinTrackingConfidence(config.minTrackingConfidence)
+            .setMinPosePresenceConfidence(config.minPresenceConfidence)
             .setResultListener(::onPoseLandmarkerResult)
             .setErrorListener { error ->
                 Log.e(TAG, "PoseLandmarker error: ${error.message}", error)
@@ -319,6 +319,5 @@ internal class MediaPipeBodyTracker(
     companion object {
         private const val TAG = "MediaPipeBodyTracker"
         private const val MODEL_ASSET_PATH = "models/pose_landmarker_lite.task"
-        private const val CONFIDENCE_THRESHOLD = 0.5f
     }
 }

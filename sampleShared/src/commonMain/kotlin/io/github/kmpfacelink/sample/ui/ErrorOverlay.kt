@@ -18,7 +18,7 @@ import androidx.compose.ui.unit.sp
 private val CORNER_RADIUS = 8.dp
 
 @Composable
-internal fun ErrorOverlay(
+fun ErrorOverlay(
     message: String,
     onRetry: (() -> Unit)? = null,
     modifier: Modifier = Modifier,

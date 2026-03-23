@@ -2,7 +2,7 @@ package io.github.kmpfacelink.sample.ui
 
 import androidx.compose.ui.graphics.Color
 
-internal object SampleColors {
+object SampleColors {
     val Background = Color(0xFF121212)
     val Surface = Color(0xFF1E1E1E)
     val Overlay = Color.Black.copy(alpha = 0.7f)

@@ -201,11 +201,14 @@ internal class ARKitFaceTracker(
 
         val gazeData = GazeEstimator.estimate(processedBlendShapes)
 
+        val faceConfidence = if (faceAnchor.isTracked) 1.0f else 0.0f
+
         val trackedFace = TrackedFace(
             faceIndex = 0,
             blendShapes = processedBlendShapes,
             headTransform = headTransform,
             gazeData = gazeData,
+            confidence = faceConfidence,
         )
 
         val data = FaceTrackingData(

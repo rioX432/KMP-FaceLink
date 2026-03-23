@@ -1,6 +1,7 @@
 package io.github.kmpfacelink
 
 import io.github.kmpfacelink.model.BlendShape
+import io.github.kmpfacelink.model.FaceLandmark
 import io.github.kmpfacelink.model.FaceTrackingData
 import io.github.kmpfacelink.model.GazeData
 import io.github.kmpfacelink.model.HeadTransform
@@ -152,5 +153,25 @@ class FaceTrackingDataTest {
         )
         assertEquals(2, face.faceIndex)
         assertEquals(0.8f, face.confidence)
+    }
+
+    @Test
+    fun faceLandmarkVisibilityAndPresenceDefaultToZero() {
+        val landmark = FaceLandmark(x = 0.5f, y = 0.5f, z = 0.1f)
+        assertEquals(0f, landmark.visibility)
+        assertEquals(0f, landmark.presence)
+    }
+
+    @Test
+    fun faceLandmarkStoresVisibilityAndPresence() {
+        val landmark = FaceLandmark(
+            x = 0.5f,
+            y = 0.5f,
+            z = 0.1f,
+            visibility = 0.95f,
+            presence = 0.88f,
+        )
+        assertEquals(0.95f, landmark.visibility)
+        assertEquals(0.88f, landmark.presence)
     }
 }

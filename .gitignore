@@ -13,6 +13,7 @@ local.properties
 /kmp-facelink-avatar/build
 /kmp-facelink-effects/build
 /androidApp/build
+/sampleShared/build
 *.hprof
 .kotlin/
 progress.txt

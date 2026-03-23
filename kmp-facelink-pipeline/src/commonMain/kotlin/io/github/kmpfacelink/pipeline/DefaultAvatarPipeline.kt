@@ -75,7 +75,8 @@ public class DefaultAvatarPipeline(
                 collectAsrAndProcess(asr)
             } catch (e: kotlinx.coroutines.CancellationException) {
                 throw e
-            } catch (@Suppress("TooGenericExceptionCaught") e: Exception) {
+            } catch (e: Exception) {
+                // Catch all non-cancellation exceptions for graceful error reporting
                 _state.value = AvatarPipelineState.Error(
                     message = "ASR failed: ${e.message}",
                     cause = e,
@@ -93,7 +94,8 @@ public class DefaultAvatarPipeline(
                 executeTextProcessing(text)
             } catch (e: kotlinx.coroutines.CancellationException) {
                 throw e
-            } catch (@Suppress("TooGenericExceptionCaught") e: Exception) {
+            } catch (e: Exception) {
+                // Catch all non-cancellation exceptions for graceful error reporting
                 _state.value = AvatarPipelineState.Error(
                     message = "LLM failed: ${e.message}",
                     cause = e,

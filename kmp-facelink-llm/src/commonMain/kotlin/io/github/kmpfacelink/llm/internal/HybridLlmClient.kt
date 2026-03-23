@@ -4,6 +4,7 @@ import io.github.kmpfacelink.llm.ConversationHistory
 import io.github.kmpfacelink.llm.LlmClient
 import io.github.kmpfacelink.llm.LlmState
 import io.github.kmpfacelink.llm.RoutingStrategy
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -37,7 +38,10 @@ internal class HybridLlmClient(
         val primary = selectClient(history)
         try {
             primary.chat(history).collect { emit(it) }
-        } catch (@Suppress("TooGenericExceptionCaught") e: Exception) {
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            // Catch all non-cancellation exceptions for fallback to cloud
             if (primary === onDeviceClient) {
                 cloudClient.chat(history).collect { emit(it) }
             } else {
@@ -56,7 +60,10 @@ internal class HybridLlmClient(
         val primary = selectClient(history)
         return try {
             primary.chatOnce(history)
-        } catch (@Suppress("TooGenericExceptionCaught") e: Exception) {
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            // Catch all non-cancellation exceptions for fallback to cloud
             if (primary === onDeviceClient) {
                 cloudClient.chatOnce(history)
             } else {

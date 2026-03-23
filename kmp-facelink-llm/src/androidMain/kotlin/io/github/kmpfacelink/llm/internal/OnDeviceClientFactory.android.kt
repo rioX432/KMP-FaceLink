@@ -10,5 +10,5 @@ internal actual fun createOnDeviceLlmClient(config: LlmConfig.OnDevice): LlmClie
     val cacheDir = platformModelCacheDir()
     val httpClient = HttpClient(OkHttp)
     val modelManager = DefaultModelManager(httpClient, cacheDir)
-    return OnDeviceLlmClient.createDefault(config, modelManager)
+    return createAndroidOnDeviceLlmClient(config, modelManager)
 }

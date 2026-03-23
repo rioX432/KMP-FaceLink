@@ -13,5 +13,10 @@ internal object LlmClientFactory {
         is LlmConfig.Anthropic -> AnthropicLlmClient(config)
         is LlmConfig.Gemini -> GeminiLlmClient(config)
         is LlmConfig.OnDevice -> createOnDeviceLlmClient(config)
+        is LlmConfig.Hybrid -> HybridLlmClient(
+            onDeviceClient = create(config.onDeviceConfig),
+            cloudClient = create(config.cloudConfig),
+            routingStrategy = config.routingStrategy,
+        )
     }
 }

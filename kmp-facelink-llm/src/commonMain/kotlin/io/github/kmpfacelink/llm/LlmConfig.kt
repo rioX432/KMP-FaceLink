@@ -72,4 +72,20 @@ public sealed class LlmConfig {
         val maxTokens: Int = DEFAULT_MAX_TOKENS,
         val temperature: Double = DEFAULT_TEMPERATURE,
     ) : LlmConfig()
+
+    /**
+     * Hybrid routing configuration that automatically routes between on-device and cloud.
+     *
+     * Uses [routingStrategy] to decide whether each query should be handled locally
+     * or sent to a cloud provider. On-device failures can fall back to cloud.
+     *
+     * @property onDeviceConfig Configuration for the on-device model
+     * @property cloudConfig Configuration for the cloud model (OpenAi, Anthropic, or Gemini)
+     * @property routingStrategy Strategy for routing decisions
+     */
+    public data class Hybrid(
+        val onDeviceConfig: OnDevice,
+        val cloudConfig: LlmConfig,
+        val routingStrategy: RoutingStrategy = RoutingStrategy.Auto(),
+    ) : LlmConfig()
 }

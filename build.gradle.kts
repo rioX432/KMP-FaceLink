@@ -184,3 +184,14 @@ project(":kmp-facelink-llm") {
         }
     }
 }
+
+project(":kmp-facelink-pipeline") {
+    afterEvaluate {
+        detekt {
+            source.setFrom(
+                "src/commonMain/kotlin",
+                "src/commonTest/kotlin",
+            )
+        }
+    }
+}

@@ -57,4 +57,19 @@ public sealed class LlmConfig {
         val maxTokens: Int = DEFAULT_MAX_TOKENS,
         val temperature: Double = DEFAULT_TEMPERATURE,
     ) : LlmConfig()
+
+    /**
+     * On-device LLM inference configuration.
+     *
+     * Uses a locally downloaded model for inference without network access.
+     *
+     * @property modelId Identifier matching a [ModelRegistry] entry (e.g. "gemma-3-1b-int4")
+     * @property maxTokens Maximum tokens in the response
+     * @property temperature Sampling temperature (0.0–2.0)
+     */
+    public data class OnDevice(
+        val modelId: String,
+        val maxTokens: Int = DEFAULT_MAX_TOKENS,
+        val temperature: Double = DEFAULT_TEMPERATURE,
+    ) : LlmConfig()
 }

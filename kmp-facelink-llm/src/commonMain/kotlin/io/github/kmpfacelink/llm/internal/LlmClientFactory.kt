@@ -12,5 +12,9 @@ internal object LlmClientFactory {
         is LlmConfig.OpenAi -> OpenAiLlmClient(config)
         is LlmConfig.Anthropic -> AnthropicLlmClient(config)
         is LlmConfig.Gemini -> GeminiLlmClient(config)
+        is LlmConfig.OnDevice -> throw UnsupportedOperationException(
+            "On-device LLM requires platform-specific InferenceEngine. " +
+                "Use OnDeviceLlmClient directly with an InferenceEngine and ModelManager instance.",
+        )
     }
 }

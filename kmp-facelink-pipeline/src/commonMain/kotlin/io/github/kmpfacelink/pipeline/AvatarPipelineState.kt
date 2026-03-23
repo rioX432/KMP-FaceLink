@@ -2,6 +2,9 @@ package io.github.kmpfacelink.pipeline
 
 /**
  * State of the avatar pipeline.
+ *
+ * The pipeline progresses through [Idle] -> [Listening] -> [Processing] -> [Speaking]
+ * during a normal conversation turn. Any stage may transition to [Error] on failure.
  */
 public sealed class AvatarPipelineState {
     /** Pipeline is idle and ready. */

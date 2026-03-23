@@ -11,6 +11,10 @@ import platform.ARKit.ARSession
  *
  * Use this to share the tracker's session with an `ARSCNView` instead of creating
  * a second session that would compete for the TrueDepth camera.
+ *
+ * This extension casts the public [FaceTracker] interface to the internal
+ * [ARKitFaceTracker] implementation. It requires the tracker to be created
+ * via the standard factory; custom implementations will return null.
  */
 public fun FaceTracker.getARSession(): ARSession? =
     (this as? ARKitFaceTracker)?.arSession

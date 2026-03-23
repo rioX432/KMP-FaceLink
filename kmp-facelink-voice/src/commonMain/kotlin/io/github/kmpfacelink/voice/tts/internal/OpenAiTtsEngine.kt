@@ -20,8 +20,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 
-private const val OPENAI_TTS_URL = "https://api.openai.com/v1/audio/speech"
-
 /**
  * OpenAI TTS engine using /v1/audio/speech endpoint.
  *
@@ -61,7 +59,7 @@ internal class OpenAiTtsEngine(private val config: TtsConfig.OpenAiTts) : TtsEng
                 ),
             )
 
-            val response = client.post(OPENAI_TTS_URL) {
+            val response = client.post("${config.baseUrl}/audio/speech") {
                 header("Authorization", "Bearer ${config.apiKey}")
                 contentType(ContentType.Application.Json)
                 setBody(requestBody)

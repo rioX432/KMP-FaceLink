@@ -22,8 +22,6 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 
-private const val ELEVENLABS_API_URL = "https://api.elevenlabs.io/v1/text-to-speech"
-
 // Base64 decoding constants
 private const val BASE64_GROUP_SIZE = 4
 private const val BASE64_LOW_NIBBLE_MASK = 0x0F
@@ -65,7 +63,7 @@ internal class ElevenLabsTtsEngine(private val config: TtsConfig.ElevenLabs) : T
             )
 
             val response = client.post(
-                "$ELEVENLABS_API_URL/${config.voiceId}/with-timestamps",
+                "${config.baseUrl}/text-to-speech/${config.voiceId}/with-timestamps",
             ) {
                 header("xi-api-key", config.apiKey)
                 contentType(ContentType.Application.Json)

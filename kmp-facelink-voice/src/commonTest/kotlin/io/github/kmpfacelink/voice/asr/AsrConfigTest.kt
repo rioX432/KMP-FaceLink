@@ -22,6 +22,21 @@ class AsrConfigTest {
     }
 
     @Test
+    fun openAiWhisperDefaultBaseUrl() {
+        val config = AsrConfig.OpenAiWhisper(apiKey = "key")
+        assertEquals("https://api.openai.com/v1", config.baseUrl)
+    }
+
+    @Test
+    fun openAiWhisperCustomBaseUrl() {
+        val config = AsrConfig.OpenAiWhisper(
+            apiKey = "key",
+            baseUrl = "https://proxy.example.com/v1",
+        )
+        assertEquals("https://proxy.example.com/v1", config.baseUrl)
+    }
+
+    @Test
     fun openAiWhisperApiKeyIsStored() {
         val config = AsrConfig.OpenAiWhisper(apiKey = "sk-whisper-key")
         assertEquals("sk-whisper-key", config.apiKey)

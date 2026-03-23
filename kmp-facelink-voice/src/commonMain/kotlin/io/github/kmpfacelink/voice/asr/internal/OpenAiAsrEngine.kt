@@ -22,8 +22,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 
-private const val OPENAI_TRANSCRIPTION_URL = "https://api.openai.com/v1/audio/transcriptions"
-
 /**
  * OpenAI Whisper cloud ASR engine.
  *
@@ -54,7 +52,7 @@ internal class OpenAiAsrEngine(private val config: AsrConfig.OpenAiWhisper) : As
         _state.value = AsrState.Processing
         return try {
             val response = client.submitFormWithBinaryData(
-                url = OPENAI_TRANSCRIPTION_URL,
+                url = "${config.baseUrl}/audio/transcriptions",
                 formData = formData {
                     append(
                         "file",

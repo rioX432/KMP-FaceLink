@@ -27,6 +27,18 @@ class TtsConfigTest {
     }
 
     @Test
+    fun openAiTtsDefaultBaseUrl() {
+        val config = TtsConfig.OpenAiTts(apiKey = "key")
+        assertEquals("https://api.openai.com/v1", config.baseUrl)
+    }
+
+    @Test
+    fun openAiTtsCustomBaseUrl() {
+        val config = TtsConfig.OpenAiTts(apiKey = "key", baseUrl = "https://proxy.example.com/v1")
+        assertEquals("https://proxy.example.com/v1", config.baseUrl)
+    }
+
+    @Test
     fun openAiTtsApiKeyIsStored() {
         val config = TtsConfig.OpenAiTts(apiKey = "sk-test-key")
         assertEquals("sk-test-key", config.apiKey)
@@ -69,6 +81,22 @@ class TtsConfigTest {
     fun elevenLabsDefaultSimilarityBoost() {
         val config = TtsConfig.ElevenLabs(apiKey = "key", voiceId = "voice-1")
         assertEquals(0.75f, config.similarityBoost)
+    }
+
+    @Test
+    fun elevenLabsDefaultBaseUrl() {
+        val config = TtsConfig.ElevenLabs(apiKey = "key", voiceId = "voice-1")
+        assertEquals("https://api.elevenlabs.io/v1", config.baseUrl)
+    }
+
+    @Test
+    fun elevenLabsCustomBaseUrl() {
+        val config = TtsConfig.ElevenLabs(
+            apiKey = "key",
+            baseUrl = "https://proxy.example.com/v1",
+            voiceId = "voice-1",
+        )
+        assertEquals("https://proxy.example.com/v1", config.baseUrl)
     }
 
     @Test

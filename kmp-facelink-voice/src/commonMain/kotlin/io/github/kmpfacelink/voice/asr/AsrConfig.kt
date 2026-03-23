@@ -10,11 +10,13 @@ public sealed class AsrConfig {
      * OpenAI Whisper cloud API configuration.
      *
      * @property apiKey OpenAI API key
+     * @property baseUrl Base URL for the API (supports OpenAI-compatible endpoints)
      * @property model Whisper model name
      * @property language Optional language hint (ISO 639-1)
      */
     public data class OpenAiWhisper(
         val apiKey: String,
+        val baseUrl: String = "https://api.openai.com/v1",
         val model: String = "whisper-1",
         val language: String? = null,
     ) : AsrConfig()

@@ -159,18 +159,18 @@ internal class CompositeHolisticTracker(
     override suspend fun switchCamera(facing: CameraFacing) {
         pipelineLock.withLock {
             check(released.load() == 0) { "Cannot switch camera on a released tracker" }
-        }
-        if (currentCameraFacing == facing) return
-        val wasTracking = _state.value == TrackingState.TRACKING
-        if (wasTracking) {
-            sharedCamera.stop()
-        }
-        currentCameraFacing = facing
-        faceTracker?.let { it.currentCameraFacing = facing }
-        handTracker?.let { it.currentCameraFacing = facing }
-        bodyTracker?.let { it.currentCameraFacing = facing }
-        if (wasTracking) {
-            sharedCamera.start(facing)
+            if (currentCameraFacing == facing) return
+            val wasTracking = _state.value == TrackingState.TRACKING
+            if (wasTracking) {
+                sharedCamera.stop()
+            }
+            currentCameraFacing = facing
+            faceTracker?.let { it.currentCameraFacing = facing }
+            handTracker?.let { it.currentCameraFacing = facing }
+            bodyTracker?.let { it.currentCameraFacing = facing }
+            if (wasTracking) {
+                sharedCamera.start(facing)
+            }
         }
     }
 

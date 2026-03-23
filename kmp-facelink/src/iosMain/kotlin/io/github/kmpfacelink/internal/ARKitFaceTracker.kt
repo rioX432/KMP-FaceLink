@@ -173,7 +173,9 @@ internal class ARKitFaceTracker(
         val currentThermalState = thermalMonitor.thermalState.value
         if (!frameThrottler.shouldProcess(timestampMs, currentThermalState)) return
 
-        // Extract blend shapes
+        // ARKit's blendShapes property is typed as [ARBlendShapeLocation: NSNumber] in Swift,
+        // but Kotlin/Native cinterop exposes it as Map<Any?, *>. The safe cast (as?) handles
+        // any unexpected type by falling back to emptyMap().
         @Suppress("UNCHECKED_CAST")
         val rawBlendShapes = faceAnchor.blendShapes as? Map<String, NSNumber> ?: emptyMap()
         var blendShapes: BlendShapeData = mapARKitBlendShapes(rawBlendShapes)

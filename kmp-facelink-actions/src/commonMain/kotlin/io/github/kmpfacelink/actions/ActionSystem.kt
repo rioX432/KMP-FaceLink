@@ -109,7 +109,17 @@ public class ActionSystem {
         return result
     }
 
-    @Suppress("LoopWithTooManyJumpStatements")
+    /**
+     * Evaluate a single binding against the current tracking data.
+     *
+     * The do-while loop implements a state-machine that allows same-frame phase
+     * progression so transient phases (IDLE -> PENDING with holdTimeMs=0,
+     * COOLDOWN -> IDLE) do not cost an extra frame. The two `break` statements
+     * terminate the loop when ACTIVE or COOLDOWN is newly entered (those phases
+     * need a future frame to advance). Refactoring to eliminate breaks would
+     * obscure the state-machine semantics.
+     */
+    @Suppress("LoopWithTooManyJumpStatements") // State-machine loop — breaks are phase exit points
     private fun processBinding(
         binding: ActionBinding,
         state: TriggerState,
@@ -123,10 +133,6 @@ public class ActionSystem {
         )
         state.markConditionMet(conditionMet)
 
-        // Loop allows same-frame phase progression so that transient phases
-        // (IDLE -> PENDING with holdTimeMs=0, COOLDOWN -> IDLE) do not cost
-        // an extra frame.  The loop terminates when the phase stabilises or
-        // when ACTIVE / COOLDOWN is newly entered (those need a future frame).
         val entryPhase = state.phase
         var previousPhase: TriggerState.Phase
         do {

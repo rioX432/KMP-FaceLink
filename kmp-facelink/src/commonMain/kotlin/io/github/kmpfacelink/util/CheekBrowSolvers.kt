@@ -22,6 +22,8 @@ import io.github.kmpfacelink.util.LandmarkIndices.RIGHT_INFRAORBITAL
  * Each solver uses IOD-normalized 2D landmark distances and [remap] to produce [0, 1].
  * Thresholds are initial estimates — tune with real device data.
  */
+// Each public function maps 1:1 to an ARKit blend shape (7 solvers for 7 shapes).
+// Splitting into separate objects would scatter related geometric computations.
 @Suppress("TooManyFunctions")
 internal object CheekBrowSolvers {
 

@@ -2,7 +2,6 @@ package io.github.kmpfacelink.llm
 
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertFailsWith
 import kotlin.test.assertIs
 
 class OnDeviceConfigTest {
@@ -37,11 +36,8 @@ class OnDeviceConfigTest {
         assertIs<LlmConfig.OnDevice>(config)
     }
 
-    @Test
-    fun onDeviceCreateThrowsUnsupported() {
-        val config = LlmConfig.OnDevice(modelId = "gemma-3-1b-int4")
-        assertFailsWith<UnsupportedOperationException> {
-            LlmClient.create(config)
-        }
-    }
+    // Note: LlmClient.create(OnDevice) behavior is platform-specific.
+    // Android creates a real OnDeviceLlmClient (requires native lib).
+    // iOS throws UnsupportedOperationException (MLX not yet implemented).
+    // Platform-specific tests cover this in their respective source sets.
 }

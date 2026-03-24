@@ -15,6 +15,9 @@ package io.github.kmpfacelink.model
  *           valid. Android (MediaPipe) only — has no effect on iOS (Vision). Must be in 0.0..1.0.
  * @property thermalPolicy Policy controlling how the tracker adapts to thermal pressure.
  *           Defaults to [ThermalPolicy.Disabled].
+ *           **Ignored when [powerMode] is set.**
+ * @property powerMode Power management profile. When non-null, overrides [thermalPolicy].
+ *           See [FaceTrackerConfig.powerMode] for details.
  */
 public data class HandTrackerConfig(
     val smoothingConfig: SmoothingConfig = SmoothingConfig.Ema(),
@@ -25,6 +28,7 @@ public data class HandTrackerConfig(
     val minTrackingConfidence: Float = DEFAULT_CONFIDENCE,
     val minPresenceConfidence: Float = DEFAULT_CONFIDENCE,
     val thermalPolicy: ThermalPolicy = ThermalPolicy.Disabled,
+    val powerMode: PowerMode? = null,
 ) {
     init {
         require(maxHands in 1..2) { "maxHands must be 1 or 2, was $maxHands" }

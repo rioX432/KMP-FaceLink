@@ -14,6 +14,9 @@ package io.github.kmpfacelink.model
  *           valid. Android (MediaPipe) only. Must be in 0.0..1.0.
  * @property thermalPolicy Policy controlling how the tracker adapts to thermal pressure.
  *           Defaults to [ThermalPolicy.Disabled].
+ *           **Ignored when [powerMode] is set.**
+ * @property powerMode Power management profile. When non-null, overrides [thermalPolicy].
+ *           See [FaceTrackerConfig.powerMode] for details.
  */
 public data class BodyTrackerConfig(
     val smoothingConfig: SmoothingConfig = SmoothingConfig.Ema(),
@@ -23,6 +26,7 @@ public data class BodyTrackerConfig(
     val minTrackingConfidence: Float = DEFAULT_CONFIDENCE,
     val minPresenceConfidence: Float = DEFAULT_CONFIDENCE,
     val thermalPolicy: ThermalPolicy = ThermalPolicy.Disabled,
+    val powerMode: PowerMode? = null,
 ) {
     init {
         require(maxBodies in 1..MAX_BODIES) { "maxBodies must be 1-$MAX_BODIES, was $maxBodies" }

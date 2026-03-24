@@ -221,3 +221,14 @@ project(":kmp-facelink-ifm") {
         }
     }
 }
+
+project(":kmp-facelink-stream") {
+    afterEvaluate {
+        detekt {
+            source.setFrom(
+                "src/commonMain/kotlin",
+                "src/commonTest/kotlin",
+            )
+        }
+    }
+}

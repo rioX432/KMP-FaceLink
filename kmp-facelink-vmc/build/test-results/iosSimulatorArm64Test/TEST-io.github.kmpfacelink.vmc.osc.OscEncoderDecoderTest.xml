@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.kmpfacelink.vmc.osc.OscEncoderDecoderTest" tests="7" skipped="0" failures="0" errors="0" timestamp="2026-03-24T01:09:43" hostname="Ryosukes-MacBook-Pro.local" time="0.001">
+  <properties/>
+  <testcase name="encodeAndDecodeSimpleMessage[iosSimulatorArm64]" classname="io.github.kmpfacelink.vmc.osc.OscEncoderDecoderTest" time="0.0"/>
+  <testcase name="encodeAndDecodeEmptyArguments[iosSimulatorArm64]" classname="io.github.kmpfacelink.vmc.osc.OscEncoderDecoderTest" time="0.0"/>
+  <testcase name="encodeAndDecodeBlendValMessage[iosSimulatorArm64]" classname="io.github.kmpfacelink.vmc.osc.OscEncoderDecoderTest" time="0.0"/>
+  <testcase name="encodeAndDecodeBonePosMessage[iosSimulatorArm64]" classname="io.github.kmpfacelink.vmc.osc.OscEncoderDecoderTest" time="0.0"/>
+  <testcase name="encodeAndDecodeBundle[iosSimulatorArm64]" classname="io.github.kmpfacelink.vmc.osc.OscEncoderDecoderTest" time="0.0"/>
+  <testcase name="allEncodedMessagesAre4ByteAligned[iosSimulatorArm64]" classname="io.github.kmpfacelink.vmc.osc.OscEncoderDecoderTest" time="0.0"/>
+  <testcase name="paddingCalculation[iosSimulatorArm64]" classname="io.github.kmpfacelink.vmc.osc.OscEncoderDecoderTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

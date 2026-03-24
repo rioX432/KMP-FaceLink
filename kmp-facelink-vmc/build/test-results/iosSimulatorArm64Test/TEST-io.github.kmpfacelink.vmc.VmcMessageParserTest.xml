@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.kmpfacelink.vmc.VmcMessageParserTest" tests="7" skipped="0" failures="0" errors="0" timestamp="2026-03-24T01:09:43" hostname="Ryosukes-MacBook-Pro.local" time="0.002">
+  <properties/>
+  <testcase name="parseBlendValMessages[iosSimulatorArm64]" classname="io.github.kmpfacelink.vmc.VmcMessageParserTest" time="0.0"/>
+  <testcase name="parseHeadBonePosMessage[iosSimulatorArm64]" classname="io.github.kmpfacelink.vmc.VmcMessageParserTest" time="0.0"/>
+  <testcase name="parseIgnoresNonHeadBones[iosSimulatorArm64]" classname="io.github.kmpfacelink.vmc.VmcMessageParserTest" time="0.0"/>
+  <testcase name="parseOkStatusLoaded[iosSimulatorArm64]" classname="io.github.kmpfacelink.vmc.VmcMessageParserTest" time="0.0"/>
+  <testcase name="parseTimestamp[iosSimulatorArm64]" classname="io.github.kmpfacelink.vmc.VmcMessageParserTest" time="0.0"/>
+  <testcase name="parseIgnoresUnknownAddresses[iosSimulatorArm64]" classname="io.github.kmpfacelink.vmc.VmcMessageParserTest" time="0.0"/>
+  <testcase name="parseIgnoresUnknownBlendShapeNames[iosSimulatorArm64]" classname="io.github.kmpfacelink.vmc.VmcMessageParserTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

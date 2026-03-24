@@ -1,18 +1,33 @@
 package io.github.kmpfacelink.llm.internal
 
-import io.github.kmpfacelink.llm.DefaultModelManager
+import io.github.kmpfacelink.llm.FoundationModelsProviderRegistry
 import io.github.kmpfacelink.llm.LlmClient
 import io.github.kmpfacelink.llm.LlmConfig
-import io.github.kmpfacelink.llm.ModelRegistry
-import io.ktor.client.HttpClient
-import io.ktor.client.engine.darwin.Darwin
 
+/**
+ * iOS factory for on-device LLM clients.
+ *
+ * On iOS 26+, prefer [LlmConfig.FoundationModels] which uses the system
+ * language model with no download required.
+ *
+ * For [LlmConfig.OnDevice] (GGUF models), this factory checks if Foundation Models
+ * is available and transparently upgrades to it when possible, avoiding unnecessary
+ * model downloads.
+ */
 internal actual fun createOnDeviceLlmClient(config: LlmConfig.OnDevice): LlmClient {
-    val modelInfo = ModelRegistry.findById(config.modelId)
-    requireNotNull(modelInfo) { "Unknown model ID: ${config.modelId}" }
-    val cacheDir = platformModelCacheDir()
-    val httpClient = HttpClient(Darwin)
-    val modelManager = DefaultModelManager(httpClient, cacheDir)
-    val engine = IosInferenceEngine()
-    return OnDeviceLlmClient(config, engine, modelManager)
+    // If Foundation Models is available, prefer it over downloading a GGUF model
+    val provider = FoundationModelsProviderRegistry.get()
+    if (provider != null && provider.isAvailable()) {
+        val fmConfig = LlmConfig.FoundationModels(
+            maxTokens = config.maxTokens,
+            temperature = config.temperature,
+        )
+        return FoundationModelsLlmClient(fmConfig, provider)
+    }
+
+    // Fallback: GGUF model path (MLX stubs removed — this path is non-functional on iOS)
+    error(
+        "On-device GGUF inference is not supported on iOS. " +
+            "Use LlmConfig.FoundationModels on iOS 26+ or a cloud provider as fallback.",
+    )
 }

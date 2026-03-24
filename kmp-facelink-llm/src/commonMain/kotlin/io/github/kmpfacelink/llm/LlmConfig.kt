@@ -74,6 +74,22 @@ public sealed class LlmConfig {
     ) : LlmConfig()
 
     /**
+     * Apple Foundation Models framework configuration (iOS 26+).
+     *
+     * Uses the on-device system language model provided by Apple Intelligence.
+     * No model download is required — the model is built into the OS.
+     *
+     * @property instructions System instructions for the language model session
+     * @property maxTokens Maximum tokens in the response
+     * @property temperature Sampling temperature (0.0–2.0)
+     */
+    public data class FoundationModels(
+        val instructions: String = "",
+        val maxTokens: Int = DEFAULT_MAX_TOKENS,
+        val temperature: Double = DEFAULT_TEMPERATURE,
+    ) : LlmConfig()
+
+    /**
      * Hybrid routing configuration that automatically routes between on-device and cloud.
      *
      * Uses [routingStrategy] to decide whether each query should be handled locally

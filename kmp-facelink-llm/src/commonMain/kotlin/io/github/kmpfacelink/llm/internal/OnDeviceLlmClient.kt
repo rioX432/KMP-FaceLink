@@ -21,7 +21,7 @@ import kotlinx.coroutines.sync.withLock
  * Manages model loading lifecycle and delegates generation to the engine.
  * Follows the same state management pattern as cloud-based LLM clients.
  *
- * Shared across Android (llama.cpp) and iOS (MLX) platforms.
+ * Used on Android (llama.cpp). On iOS 26+, prefer [FoundationModelsLlmClient].
  *
  * @param config On-device configuration with model ID and generation parameters
  * @param engine Platform-specific inference engine

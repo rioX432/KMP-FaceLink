@@ -47,7 +47,7 @@ Each library module follows this pattern:
 Modules with platform code: `kmp-facelink` (android/ios/jvm), `kmp-facelink-voice`, `kmp-facelink-llm`
 Pure common modules: `kmp-facelink-avatar`, `kmp-facelink-actions`, `kmp-facelink-pipeline`
 Note: `kmp-facelink` has a `jvmMain` source set with no-op tracker stubs for desktop/JVM target support.
-Note: `kmp-facelink-llm` includes platform-specific inference engines (llama.cpp on Android, MLX on iOS) for on-device LLM.
+Note: `kmp-facelink-llm` includes platform-specific inference engines (llama.cpp on Android, Apple Foundation Models on iOS 26+) for on-device LLM.
 
 ## Commands
 
@@ -81,7 +81,7 @@ Note: `kmp-facelink-llm` includes platform-specific inference engines (llama.cpp
 - **Coroutines**: kotlinx-coroutines 1.10.2
 - **Interop**: SKIE 0.10.10 (Swift-Kotlin Flow bridging)
 - **Build**: AGP 8.8.2, Detekt 1.23.8, Dokka 2.1.0
-- **On-device AI**: llama.cpp (Android JNI), MLX (iOS, planned)
+- **On-device AI**: llama.cpp (Android JNI), Apple Foundation Models (iOS 26+)
 
 ### Platform Implementations
 
@@ -109,7 +109,8 @@ Note: `kmp-facelink-llm` includes platform-specific inference engines (llama.cpp
 | Actions | `EmotionClassifier` | `classify(BlendShapeData): EmotionResult`, FACS-based cosine similarity |
 | Voice | `VoicePipeline` | `speak(text): Flow<BlendShapes>`, `startListening()`, `transcriptions: Flow<T>` |
 | LLM | `LlmClient`, `LlmConfig` | `LlmClient.create(config)`, `chat(history): Flow<String>`, cloud + on-device + hybrid routing |
-| LLM | `ModelManager`, `ModelRegistry` | Model download/cache, on-device inference (llama.cpp/MLX) |
+| LLM | `ModelManager`, `ModelRegistry` | Model download/cache, on-device inference (llama.cpp) |
+| LLM | `FoundationModelsProvider`, `FoundationModelsProviderRegistry` | Apple Foundation Models bridge (iOS 26+, no download needed) |
 | Pipeline | `AvatarPipeline`, `buildAvatarPipeline {}` | `listen()`, `processText()`, `output: Flow<AvatarPipelineOutput>`, streaming LLM→TTS→LipSync |
 
 ### Key Design Decisions

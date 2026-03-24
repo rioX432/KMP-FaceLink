@@ -131,4 +131,41 @@ class LlmConfigTest {
         val config: LlmConfig = LlmConfig.Gemini(apiKey = "k")
         assertIs<LlmConfig.Gemini>(config)
     }
+
+    // FoundationModels defaults
+    @Test
+    fun foundationModelsDefaultInstructions() {
+        val config = LlmConfig.FoundationModels()
+        assertEquals("", config.instructions)
+    }
+
+    @Test
+    fun foundationModelsDefaultMaxTokens() {
+        val config = LlmConfig.FoundationModels()
+        assertEquals(1024, config.maxTokens)
+    }
+
+    @Test
+    fun foundationModelsDefaultTemperature() {
+        val config = LlmConfig.FoundationModels()
+        assertEquals(0.7, config.temperature)
+    }
+
+    @Test
+    fun foundationModelsCustomValues() {
+        val config = LlmConfig.FoundationModels(
+            instructions = "Be helpful",
+            maxTokens = 2048,
+            temperature = 0.5,
+        )
+        assertEquals("Be helpful", config.instructions)
+        assertEquals(2048, config.maxTokens)
+        assertEquals(0.5, config.temperature)
+    }
+
+    @Test
+    fun foundationModelsIsSubclassOfLlmConfig() {
+        val config: LlmConfig = LlmConfig.FoundationModels()
+        assertIs<LlmConfig.FoundationModels>(config)
+    }
 }

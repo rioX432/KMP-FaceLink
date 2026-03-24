@@ -37,7 +37,7 @@ internal class SentenceBuffer {
         while (true) {
             val boundary = findNextBoundary() ?: break
             val sentence = buffer.substring(0, boundary + 1).trim()
-            buffer.delete(0, boundary + 1)
+            buffer.deleteRange(0, boundary + 1)
             if (sentence.isNotEmpty()) {
                 sentences.add(sentence)
             }

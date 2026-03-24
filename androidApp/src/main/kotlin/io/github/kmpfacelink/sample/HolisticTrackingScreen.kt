@@ -31,6 +31,8 @@ import io.github.kmpfacelink.api.HolisticTracker
 import io.github.kmpfacelink.api.TrackingState
 import io.github.kmpfacelink.internal.PreviewableHolisticTracker
 import io.github.kmpfacelink.model.HolisticTrackingData
+import io.github.kmpfacelink.sample.ui.FaceLandmarkOverlay
+import io.github.kmpfacelink.sample.ui.HandLandmarkOverlay
 import kotlinx.coroutines.flow.MutableStateFlow
 
 @Suppress("LongMethod")

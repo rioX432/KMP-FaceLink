@@ -101,7 +101,11 @@ internal class MediaPipeHandTracker(
                     _state.value = TrackingState.TRACKING
                 }
             }
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e
         } catch (e: Exception) {
+            // MediaPipe model loading and CameraX binding can throw various RuntimeException
+            // subclasses; catch broadly to set error state before rethrowing
             Log.e(TAG, "Failed to start hand tracking", e)
             _errorMessage.value = e.message ?: e.toString()
             _state.value = TrackingState.ERROR
@@ -156,12 +160,12 @@ internal class MediaPipeHandTracker(
         if (wasTracking) start()
     }
 
-    @Suppress("TooGenericExceptionCaught") // MediaPipe GPU delegate throws RuntimeException
     private fun initHandLandmarker() {
-        // Try GPU delegate first, fall back to CPU on failure
+        // GPU delegate can fail with RuntimeException on devices lacking OpenGL ES 3.1+
+        // or when the GPU driver rejects the model. Fall back to CPU in that case.
         handLandmarker = try {
             createLandmarker(Delegate.GPU)
-        } catch (e: RuntimeException) {
+        } catch (@Suppress("TooGenericExceptionCaught") e: RuntimeException) {
             Log.w(TAG, "GPU delegate unavailable, falling back to CPU", e)
             createLandmarker(Delegate.CPU)
         }
@@ -230,6 +234,8 @@ internal class MediaPipeHandTracker(
         try {
             landmarker.detectAsync(mpImage, timestampMs)
         } catch (e: Exception) {
+            // MediaPipe may throw IllegalArgumentException (non-monotonic timestamp) or
+            // MediaPipeException on internal errors; must not crash the frame processing loop
             Log.w(TAG, "detectAsync failed", e)
             sharedCameraSession?.returnInFlightBitmap(timestampMs)
         }
@@ -266,6 +272,8 @@ internal class MediaPipeHandTracker(
         try {
             landmarker.detectAsync(mpImage, timestampMs)
         } catch (e: Exception) {
+            // MediaPipe may throw IllegalArgumentException (non-monotonic timestamp) or
+            // MediaPipeException on internal errors; must not crash the frame processing loop
             Log.w(TAG, "detectAsync failed", e)
             if (inFlightBitmap.compareAndSet(bitmap, null)) {
                 imageConverter.returnBitmap(bitmap)

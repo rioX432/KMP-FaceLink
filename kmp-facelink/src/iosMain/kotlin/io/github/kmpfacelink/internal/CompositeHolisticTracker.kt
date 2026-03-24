@@ -106,7 +106,6 @@ internal class CompositeHolisticTracker(
     val visionCaptureSession: AVCaptureSession?
         get() = sharedVisionSession?.captureSession
 
-    @Suppress("TooGenericExceptionCaught")
     override suspend fun start() {
         pipelineLock.withLock {
             check(released.load() == 0) { "Cannot start a released tracker" }
@@ -124,7 +123,11 @@ internal class CompositeHolisticTracker(
             sharedVisionSession?.start()
 
             _state.value = TrackingState.TRACKING
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e
         } catch (e: Exception) {
+            // Sub-tracker start() can throw various exceptions from ARKit/Vision
+            // initialization; catch broadly to set error state before rethrowing
             _errorMessage.value = e.message ?: e.toString()
             _state.value = TrackingState.ERROR
             throw e

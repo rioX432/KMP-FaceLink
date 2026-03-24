@@ -154,7 +154,8 @@ internal fun VoiceTrackingScreen(
                         }
                         speakJob?.cancel()
                         speakJob = scope.launch {
-                            @Suppress("TooGenericExceptionCaught")
+                            @Suppress("TooGenericExceptionCaught") // UI error handler: voice pipeline
+                            // can fail with IOException (network TTS), RuntimeException (ASR), etc.
                             try {
                                 newPipeline.speak(speakText).collect { }
                             } catch (e: Exception) {

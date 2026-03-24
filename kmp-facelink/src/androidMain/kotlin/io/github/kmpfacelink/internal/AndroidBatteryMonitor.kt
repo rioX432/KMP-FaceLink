@@ -49,10 +49,9 @@ internal class AndroidBatteryMonitor(private val context: Context) : BatteryMoni
     }
 
     override fun release() {
-        @Suppress("TooGenericExceptionCaught")
         try {
             context.unregisterReceiver(receiver)
-        } catch (_: Exception) {
+        } catch (_: IllegalArgumentException) {
             // Receiver may already be unregistered — safe to ignore
         }
     }

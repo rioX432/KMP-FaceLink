@@ -35,6 +35,7 @@ progress.txt
 /kmp-facelink-llm/build
 /kmp-facelink-pipeline/build
 /kmp-facelink-vmc/build
+/kmp-facelink-ifm/build
 /androidApp/src/main/assets/live2d/
 /iosApp/FaceLink/Resources/Live2D/
 /iosApp/Live2DConfig.generated.xcconfig

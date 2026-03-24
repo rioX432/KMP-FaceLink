@@ -10,6 +10,7 @@ import io.github.kmpfacelink.pipeline.internal.TextOnlyProcessor
 import io.github.kmpfacelink.voice.asr.AsrEngine
 import io.github.kmpfacelink.voice.lipsync.LipSyncEngine
 import io.github.kmpfacelink.voice.tts.TtsEngine
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -36,6 +37,7 @@ private const val OUTPUT_BUFFER_CAPACITY = 64
  * @param ttsEngine Optional TTS engine; if null, text-only output is produced
  * @param lipSyncEngine Optional lip sync engine; if null, text-only output is produced
  * @param asrEngine Optional ASR engine; if null, [listen] throws [IllegalStateException]
+ * @param dispatcher Coroutine dispatcher for background work (defaults to [Dispatchers.Default])
  */
 public class DefaultAvatarPipeline(
     private val config: AvatarPipelineConfig,
@@ -43,9 +45,10 @@ public class DefaultAvatarPipeline(
     private val ttsEngine: TtsEngine? = null,
     private val lipSyncEngine: LipSyncEngine? = null,
     private val asrEngine: AsrEngine? = null,
+    dispatcher: CoroutineDispatcher = Dispatchers.Default,
 ) : AvatarPipeline {
 
-    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+    private val scope = CoroutineScope(SupervisorJob() + dispatcher)
     private val _state = MutableStateFlow<AvatarPipelineState>(AvatarPipelineState.Idle)
     private val _output = MutableSharedFlow<AvatarPipelineOutput>(extraBufferCapacity = OUTPUT_BUFFER_CAPACITY)
 

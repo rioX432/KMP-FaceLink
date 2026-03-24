@@ -28,6 +28,7 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
@@ -64,6 +65,7 @@ class DefaultAvatarPipelineTest {
         ttsEngine = ttsEngine,
         lipSyncEngine = lipSyncEngine,
         asrEngine = asrEngine,
+        dispatcher = UnconfinedTestDispatcher(),
     )
 
     // endregion

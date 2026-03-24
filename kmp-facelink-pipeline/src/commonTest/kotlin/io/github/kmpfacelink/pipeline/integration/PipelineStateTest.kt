@@ -17,6 +17,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
@@ -42,6 +43,7 @@ class PipelineStateTest {
             config = testConfig,
             llmClient = DelayedMockLlmClient(),
             asrEngine = asr,
+            dispatcher = UnconfinedTestDispatcher(),
         )
         pipeline.start()
         assertEquals(AvatarPipelineState.Idle, pipeline.state.value)
@@ -63,6 +65,7 @@ class PipelineStateTest {
             llmClient = DelayedMockLlmClient(tokens = listOf("OK.")),
             ttsEngine = tts,
             lipSyncEngine = lipSync,
+            dispatcher = UnconfinedTestDispatcher(),
         )
         pipeline.start()
 
@@ -99,6 +102,7 @@ class PipelineStateTest {
                 tokens = listOf("Slow", " response."),
                 delayPerTokenMs = SLOW_TOKEN_DELAY_MS,
             ),
+            dispatcher = UnconfinedTestDispatcher(),
         )
         pipeline.start()
 
@@ -118,6 +122,7 @@ class PipelineStateTest {
         val pipeline = DefaultAvatarPipeline(
             config = testConfig,
             llmClient = failingLlm,
+            dispatcher = UnconfinedTestDispatcher(),
         )
         pipeline.start()
 
@@ -133,6 +138,7 @@ class PipelineStateTest {
         val recoveredPipeline = DefaultAvatarPipeline(
             config = testConfig,
             llmClient = workingLlm,
+            dispatcher = UnconfinedTestDispatcher(),
         )
         recoveredPipeline.start()
 
@@ -153,6 +159,7 @@ class PipelineStateTest {
         val pipeline = DefaultAvatarPipeline(
             config = testConfig,
             llmClient = slowLlm,
+            dispatcher = UnconfinedTestDispatcher(),
         )
         pipeline.start()
 

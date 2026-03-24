@@ -9,6 +9,7 @@ import io.github.kmpfacelink.pipeline.benchmark.PipelineLatencyTracker
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
@@ -44,6 +45,7 @@ class PipelineLatencyTest {
             llmClient = llm,
             ttsEngine = tts,
             lipSyncEngine = lipSync,
+            dispatcher = UnconfinedTestDispatcher(),
         )
         pipeline.start()
 
@@ -113,6 +115,7 @@ class PipelineLatencyTest {
             llmClient = llm,
             ttsEngine = tts,
             lipSyncEngine = lipSync,
+            dispatcher = UnconfinedTestDispatcher(),
         )
         pipeline.start()
 

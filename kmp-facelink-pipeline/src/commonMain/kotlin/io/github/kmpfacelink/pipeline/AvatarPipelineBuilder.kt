@@ -8,6 +8,8 @@ import io.github.kmpfacelink.model.ThermalState
 import io.github.kmpfacelink.voice.asr.AsrEngine
 import io.github.kmpfacelink.voice.lipsync.LipSyncEngine
 import io.github.kmpfacelink.voice.tts.TtsEngine
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
@@ -38,6 +40,7 @@ public class AvatarPipelineBuilder {
     private var customLipSyncEngine: LipSyncEngine? = null
     private var customAsrEngine: AsrEngine? = null
     private var thermalState: StateFlow<ThermalState>? = null
+    private var customDispatcher: CoroutineDispatcher = Dispatchers.Default
 
     /** Sets the LLM provider configuration. */
     public fun llm(config: LlmConfig) {
@@ -74,6 +77,11 @@ public class AvatarPipelineBuilder {
         customAsrEngine = engine
     }
 
+    /** Sets the coroutine dispatcher for background work. */
+    public fun dispatcher(dispatcher: CoroutineDispatcher) {
+        customDispatcher = dispatcher
+    }
+
     /**
      * Sets the thermal state provider for adaptive LLM routing.
      *
@@ -98,6 +106,7 @@ public class AvatarPipelineBuilder {
             ttsEngine = customTtsEngine,
             lipSyncEngine = customLipSyncEngine,
             asrEngine = customAsrEngine,
+            dispatcher = customDispatcher,
         )
     }
 

@@ -10,6 +10,7 @@ import io.github.kmpfacelink.voice.lipsync.LipSyncEngine
 import io.github.kmpfacelink.voice.lipsync.internal.DefaultLipSyncEngine
 import io.github.kmpfacelink.voice.tts.TtsEngine
 import io.github.kmpfacelink.voice.tts.internal.TtsEngineFactory
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -38,7 +39,9 @@ import kotlinx.coroutines.launch
  * @param ttsEngine Optional pre-built TTS engine (overrides config.ttsConfig)
  * @param asrEngine Optional pre-built ASR engine (overrides config.asrConfig)
  * @param lipSyncEngine Optional pre-built lip sync engine
+ * @param dispatcher Coroutine dispatcher for background work (defaults to [Dispatchers.Default])
  */
+@Suppress("LongParameterList")
 public class VoicePipeline(
     private val config: VoicePipelineConfig,
     private val audioRecorder: AudioRecorder? = null,
@@ -46,8 +49,9 @@ public class VoicePipeline(
     ttsEngine: TtsEngine? = null,
     asrEngine: AsrEngine? = null,
     lipSyncEngine: LipSyncEngine? = null,
+    dispatcher: CoroutineDispatcher = Dispatchers.Default,
 ) : AutoCloseable {
-    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+    private val scope = CoroutineScope(SupervisorJob() + dispatcher)
 
     private val _state = MutableStateFlow<VoicePipelineState>(VoicePipelineState.Idle)
 

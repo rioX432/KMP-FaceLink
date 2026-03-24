@@ -11,6 +11,7 @@ import io.github.kmpfacelink.voice.tts.PhonemeEvent
 import io.github.kmpfacelink.voice.tts.TtsConfig
 import io.github.kmpfacelink.voice.tts.TtsResult
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -36,6 +37,7 @@ class VoicePipelineTest {
         audioPlayer = fakePlayer,
         ttsEngine = fakeTts,
         asrEngine = fakeAsr,
+        dispatcher = UnconfinedTestDispatcher(),
     )
 
     @Test

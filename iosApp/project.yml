@@ -11,6 +11,7 @@ settings:
     FRAMEWORK_SEARCH_PATHS:
       - $(inherited)
       - $(SRCROOT)/../kmp-facelink/build/xcode-frameworks/$(CONFIGURATION)/$(SDK_NAME)
+      - $(SRCROOT)/../sampleShared/build/xcode-frameworks/$(CONFIGURATION)/$(SDK_NAME)
 
 targets:
   FaceLink:
@@ -21,11 +22,14 @@ targets:
     dependencies:
       - framework: ../kmp-facelink/build/xcode-frameworks/$(CONFIGURATION)/$(SDK_NAME)/KMPFaceLink.framework
         embed: false
+      - framework: ../sampleShared/build/xcode-frameworks/$(CONFIGURATION)/$(SDK_NAME)/SampleShared.framework
+        embed: false
     preBuildScripts:
-      - name: Build KMP Framework
+      - name: Build KMP Frameworks
         script: |
           cd "$SRCROOT/.."
           ./gradlew :kmp-facelink:embedAndSignAppleFrameworkForXcode
+          ./gradlew :sampleShared:embedAndSignAppleFrameworkForXcode
         basedOnDependencyAnalysis: false
     info:
       path: FaceLink/Info.plist

@@ -1,6 +1,7 @@
 import SwiftUI
 import ARKit
 import KMPFaceLink
+import SampleShared
 
 enum TrackingMode: String, CaseIterable {
     case face = "Face"
@@ -35,9 +36,9 @@ struct ContentView: View {
             // Content
             switch selectedMode {
             case .face:
-                FaceTrackingContentView()
+                CMPFaceTrackingView()
             case .hand:
-                HandTrackingView()
+                CMPHandTrackingView()
             case .holistic:
                 HolisticTrackingView()
             case .actions:
@@ -69,173 +70,120 @@ struct ModeChip: View {
     }
 }
 
-struct FaceTrackingContentView: View {
-    @StateObject private var viewModel = FaceTrackingViewModel()
-    @StateObject private var smoothingSettings = SmoothingSettings()
-    @State private var showBlendShapes = false
-    @State private var showLandmarks = true
-    @State private var showSettings = false
+// MARK: - CMP Hand Tracking (Compose Multiplatform)
+
+/// Compose Multiplatform hand tracking screen hosted via ComposeUIViewController.
+struct CMPHandTrackingView: View {
+    @StateObject private var viewModel = CMPHandTrackingViewModel()
 
     var body: some View {
-        ZStack {
-            // Camera preview — uses tracker's ARSession to avoid dual-session conflict
-            ARCameraView(
-                isRunning: $viewModel.isTracking,
-                showLandmarks: $showLandmarks,
-                externalSession: viewModel.arSession
+        ComposeViewControllerWrapper {
+            HandTrackingViewControllerKt.HandTrackingViewController(
+                handTracker: viewModel.tracker,
+                trackingDataState: viewModel.dataFlow,
+                onModeChange: { _ in
+                    // Mode change is handled by SwiftUI's own mode picker above
+                },
+                onStartClick: {
+                    viewModel.startTracking()
+                },
+                onStopClick: {
+                    viewModel.stopTracking()
+                }
             )
-            .ignoresSafeArea()
-
-            // Tracking overlay
-            VStack {
-                // Status bar at top
-                HStack {
-                    StatusBadge(text: viewModel.statusText, isTracking: viewModel.isTracking)
-                    if viewModel.isTracking {
-                        FpsOverlayView(frameTimestamp: viewModel.frameTimestamp)
-                    }
-                    Spacer()
-                    HStack(spacing: 16) {
-                        Button {
-                            showSettings = true
-                        } label: {
-                            Image(systemName: "slider.horizontal.3")
-                                .font(.title2)
-                                .foregroundStyle(.white)
-                        }
-                        Button {
-                            showLandmarks.toggle()
-                        } label: {
-                            Image(systemName: showLandmarks ? "face.smiling.fill" : "face.smiling")
-                                .font(.title2)
-                                .foregroundStyle(showLandmarks ? .cyan : .white)
-                        }
-                        Button {
-                            showBlendShapes.toggle()
-                        } label: {
-                            Image(systemName: showBlendShapes ? "list.bullet.circle.fill" : "list.bullet.circle")
-                                .font(.title2)
-                                .foregroundStyle(.white)
-                        }
-                    }
-                }
-                .padding()
-
-                if let error = viewModel.errorMessage {
-                    ErrorOverlayView(message: error) {
-                        viewModel.toggleTracking()
-                    }
-                }
-
-                Spacer()
-
-                // Head rotation display
-                HeadRotationView(text: viewModel.headRotationText)
-                    .padding(.horizontal)
-
-                // Blend shapes panel (collapsible)
-                if showBlendShapes {
-                    BlendShapesPanel(text: viewModel.blendShapesText)
-                        .frame(maxHeight: 200)
-                        .padding(.horizontal)
-                        .transition(.move(edge: .bottom).combined(with: .opacity))
-                }
-
-                // Control button
-                Button(viewModel.isTracking ? "Stop" : "Start") {
-                    withAnimation {
-                        viewModel.toggleTracking()
-                    }
-                }
-                .buttonStyle(TrackingButtonStyle(isTracking: viewModel.isTracking))
-                .padding(.bottom, 40)
-            }
         }
-        .animation(.easeInOut(duration: 0.2), value: showBlendShapes)
-        .animation(.easeInOut(duration: 0.2), value: showLandmarks)
-        .sheet(isPresented: $showSettings) {
-            SmoothingSettingsView(settings: smoothingSettings) { config in
-                viewModel.updateSmoothing(config)
-                showSettings = false
-            }
-            .presentationDetents([.medium, .large])
-        }
+        .ignoresSafeArea()
     }
 }
-
-// MARK: - Subviews
-
-struct StatusBadge: View {
-    let text: String
-    let isTracking: Bool
-
-    var body: some View {
-        HStack(spacing: 6) {
-            Circle()
-                .fill(isTracking ? .green : .gray)
-                .frame(width: 8, height: 8)
-            Text(text)
-                .font(.subheadline.weight(.medium))
-        }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 6)
-        .background(.ultraThinMaterial, in: Capsule())
-    }
-}
-
-struct HeadRotationView: View {
-    let text: String
-
-    var body: some View {
-        Text(text)
-            .font(.system(.body, design: .monospaced))
-            .padding(.horizontal, 16)
-            .padding(.vertical, 10)
-            .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 12))
-    }
-}
-
-struct BlendShapesPanel: View {
-    let text: String
-
-    var body: some View {
-        ScrollView {
-            Text(text)
-                .font(.system(.caption, design: .monospaced))
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(12)
-        }
-        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 12))
-    }
-}
-
-struct TrackingButtonStyle: ButtonStyle {
-    let isTracking: Bool
-
-    func makeBody(configuration: Configuration) -> some View {
-        configuration.label
-            .font(.headline)
-            .foregroundStyle(.white)
-            .frame(width: 100, height: 50)
-            .background(isTracking ? .red : .blue, in: Capsule())
-            .scaleEffect(configuration.isPressed ? 0.95 : 1.0)
-    }
-}
-
-// MARK: - ViewModel
 
 @MainActor
-class FaceTrackingViewModel: ObservableObject {
-    @Published var statusText = "Idle"
-    @Published var headRotationText = "P: 0.0  Y: 0.0  R: 0.0"
-    @Published var blendShapesText = "Tap Start to begin tracking..."
-    @Published var isTracking = false
-    @Published var arSession: ARSession?
-    @Published var errorMessage: String?
-    @Published var frameTimestamp: Int64 = 0
+class CMPHandTrackingViewModel: ObservableObject {
+    let tracker: HandTracker
+    let dataFlow: Kotlinx_coroutines_coreMutableStateFlow
 
-    private var tracker: FaceTracker?
-    private var observeTasks: [Task<Void, Never>] = []
+    private var observeTask: Task<Void, Never>?
+
+    init() {
+        let config = HandTrackerConfig(
+            smoothingConfig: SmoothingConfig.Ema(alpha: 0.4),
+            maxHands: 2,
+            enableGestureRecognition: true,
+            cameraFacing: .front
+        )
+        tracker = HandTrackerFactory_iosKt.createHandTracker(
+            platformContext: PlatformContext(),
+            config: config
+        )
+        dataFlow = FlowUtilsKt.createHandTrackingDataStateFlow()
+    }
+
+    func startTracking() {
+        Task {
+            do {
+                observeTask = Task { [weak self] in
+                    guard let self else { return }
+                    for await data in self.tracker.trackingData {
+                        guard !Task.isCancelled else { break }
+                        self.dataFlow.value = data
+                    }
+                }
+                try await tracker.start()
+            } catch {
+                print("Failed to start hand tracking: \(error)")
+            }
+        }
+    }
+
+    func stopTracking() {
+        observeTask?.cancel()
+        observeTask = nil
+        Task {
+            do {
+                try await tracker.stop()
+            } catch {
+                // Ignore stop errors
+            }
+        }
+    }
+
+    deinit {
+        observeTask?.cancel()
+        tracker.release()
+    }
+}
+
+// MARK: - CMP Face Tracking (Compose Multiplatform)
+
+/// Compose Multiplatform face tracking screen hosted via ComposeUIViewController.
+struct CMPFaceTrackingView: View {
+    @StateObject private var viewModel = CMPFaceTrackingViewModel()
+
+    var body: some View {
+        ComposeViewControllerWrapper {
+            FaceTrackingViewControllerKt.FaceTrackingViewController(
+                faceTracker: viewModel.tracker,
+                trackingDataState: viewModel.dataFlow,
+                onModeChange: { _ in
+                    // Mode change is handled by SwiftUI's own mode picker above
+                },
+                onStartClick: {
+                    viewModel.startTracking()
+                },
+                onStopClick: {
+                    viewModel.stopTracking()
+                }
+            )
+        }
+        .ignoresSafeArea()
+    }
+}
+
+@MainActor
+class CMPFaceTrackingViewModel: ObservableObject {
+    let tracker: FaceTracker
+    let dataFlow: Kotlinx_coroutines_coreMutableStateFlow
+
+    private var observeTask: Task<Void, Never>?
 
     init() {
         let companion = BlendShapeEnhancerConfig.Companion.shared
@@ -253,95 +201,41 @@ class FaceTrackingViewModel: ObservableObject {
             platformContext: PlatformContext(),
             config: config
         )
+        dataFlow = FlowUtilsKt.createFaceTrackingDataStateFlow()
     }
 
-    func toggleTracking() {
-        if isTracking {
-            stopTracking()
-        } else {
-            startTracking()
-        }
-    }
-
-    func updateSmoothing(_ config: SmoothingConfig) {
-        tracker?.updateSmoothing(config: config)
-    }
-
-    private func startTracking() {
-        guard let tracker = tracker else { return }
-        errorMessage = nil
+    func startTracking() {
         Task {
             do {
+                observeTask = Task { [weak self] in
+                    guard let self else { return }
+                    for await data in self.tracker.trackingData {
+                        guard !Task.isCancelled else { break }
+                        self.dataFlow.value = data
+                    }
+                }
                 try await tracker.start()
-                arSession = FaceTrackerARSessionKt.getARSession(tracker)
-                isTracking = true
-                statusText = "Tracking"
-                observeData()
             } catch {
-                errorMessage = error.localizedDescription
-                statusText = "Error"
+                print("Failed to start tracking: \(error)")
             }
         }
     }
 
-    private func stopTracking() {
-        guard let tracker = tracker else { return }
-        cancelObserveTasks()
+    func stopTracking() {
+        observeTask?.cancel()
+        observeTask = nil
         Task {
             do {
                 try await tracker.stop()
             } catch {
                 // Ignore stop errors
             }
-            isTracking = false
-            statusText = "Stopped"
         }
-    }
-
-    private func observeData() {
-        guard let tracker = tracker else { return }
-
-        let dataTask = Task { [weak self] in
-            for await data in tracker.trackingData {
-                guard let self, !Task.isCancelled else { break }
-                self.frameTimestamp = data.timestampMs
-                let head = data.headTransform
-                self.headRotationText = String(
-                    format: "P: %+.1f  Y: %+.1f  R: %+.1f",
-                    head.pitch, head.yaw, head.roll
-                )
-                let lines = data.blendShapes.sorted { $0.key.name < $1.key.name }
-                    .map { "\($0.key.arKitName): \(String(format: "%.3f", $0.value.floatValue))" }
-                self.blendShapesText = lines.joined(separator: "\n")
-            }
-        }
-
-        let stateTask = Task { [weak self] in
-            for await state in tracker.state {
-                guard let self, !Task.isCancelled else { break }
-                switch state {
-                case .idle: self.statusText = "Idle"
-                case .starting: self.statusText = "Starting..."
-                case .tracking: self.statusText = "Tracking"
-                case .stopped: self.statusText = "Stopped"
-                case .error: self.statusText = "Error"
-                case .released: self.statusText = "Released"
-                default: self.statusText = "Unknown"
-                }
-            }
-        }
-
-        observeTasks = [dataTask, stateTask]
-    }
-
-    private func cancelObserveTasks() {
-        observeTasks.forEach { $0.cancel() }
-        observeTasks = []
     }
 
     deinit {
-        observeTasks.forEach { $0.cancel() }
-        tracker?.release()
+        observeTask?.cancel()
+        tracker.release()
     }
 }
 

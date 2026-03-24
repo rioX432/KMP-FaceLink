@@ -29,6 +29,7 @@ import io.github.kmpfacelink.util.Calibrator
 import io.github.kmpfacelink.util.FrameThrottler
 import io.github.kmpfacelink.util.GazeEstimator
 import io.github.kmpfacelink.util.PlatformLock
+import io.github.kmpfacelink.util.PowerModeManager
 import io.github.kmpfacelink.util.ThermalMonitor
 import io.github.kmpfacelink.util.TransformUtils
 import io.github.kmpfacelink.util.createSmoother
@@ -82,7 +83,17 @@ internal class MediaPipeFaceTracker(
         decayRate = config.calibrationConfig.rangeDecayRate,
     )
     private val thermalMonitor: ThermalMonitor = AndroidThermalMonitor(platformContext.context)
+    private val batteryMonitor = AndroidBatteryMonitor(platformContext.context)
     private val frameThrottler = FrameThrottler(config.thermalPolicy)
+    private val powerModeManager: PowerModeManager? = config.powerMode?.let { mode ->
+        PowerModeManager(
+            powerMode = mode,
+            thermalMonitor = thermalMonitor,
+            batteryMonitor = batteryMonitor,
+            lowBatteryThreshold = config.lowBatteryThreshold,
+            enableIdleDetection = config.enableIdleDetection,
+        )
+    }
     private val analysisExecutor = Executors.newSingleThreadExecutor()
     private val imageConverter = ImageProxyConverter()
     private val cameraManager = if (sharedCameraSession == null) CameraXManager(platformContext) else null
@@ -175,6 +186,8 @@ internal class MediaPipeFaceTracker(
             cameraManager?.unbindAll()
             imageConverter.release()
             thermalMonitor.release()
+            batteryMonitor.release()
+            powerModeManager?.release()
         }
         analysisExecutor.shutdown()
         // release() is synchronous (not suspend) — no CancellationException concern.
@@ -277,9 +290,8 @@ internal class MediaPipeFaceTracker(
             return
         }
 
-        // Thermal throttling: skip frame if needed
-        val currentThermalState = thermalMonitor.thermalState.value
-        if (!frameThrottler.shouldProcess(timestampMs, currentThermalState)) {
+        // Frame throttling: use PowerModeManager when available, else legacy FrameThrottler
+        if (!shouldProcessFrame(timestampMs)) {
             sharedCameraSession?.returnInFlightBitmap(timestampMs)
             return
         }
@@ -303,9 +315,8 @@ internal class MediaPipeFaceTracker(
             return
         }
 
-        // Thermal throttling: skip frame if needed
-        val currentThermalState = thermalMonitor.thermalState.value
-        if (!frameThrottler.shouldProcess(SystemClock.elapsedRealtime(), currentThermalState)) {
+        // Frame throttling: use PowerModeManager when available, else legacy FrameThrottler
+        if (!shouldProcessFrame(SystemClock.elapsedRealtime())) {
             imageProxy.close()
             return
         }
@@ -380,6 +391,24 @@ internal class MediaPipeFaceTracker(
         _trackingData.tryEmit(data)
     }
 
+    /** Whether a frame at the given timestamp should be processed. */
+    private fun shouldProcessFrame(timestampMs: Long): Boolean {
+        return if (powerModeManager != null) {
+            powerModeManager.shouldProcess(timestampMs)
+        } else {
+            frameThrottler.shouldProcess(timestampMs, thermalMonitor.thermalState.value)
+        }
+    }
+
+    /** Whether the blend shape enhancer should be disabled. */
+    private fun shouldDisableEnhancer(): Boolean {
+        return if (powerModeManager != null) {
+            powerModeManager.shouldDisableEnhancer()
+        } else {
+            frameThrottler.shouldDisableEnhancer(thermalMonitor.thermalState.value)
+        }
+    }
+
     /** Runs enhance → calibrate → smooth on the primary face. Returns null if tracker is released. */
     private fun processPrimaryPipeline(
         blendShapes: BlendShapeData,
@@ -390,7 +419,7 @@ internal class MediaPipeFaceTracker(
         return pipelineLock.withLock {
             if (released.load() != 0) return null
 
-            if (!frameThrottler.shouldDisableEnhancer(thermalMonitor.thermalState.value)) {
+            if (!shouldDisableEnhancer()) {
                 enhancer?.let { result = it.enhance(result, landmarks) }
             }
 
@@ -399,6 +428,9 @@ internal class MediaPipeFaceTracker(
             }
 
             smoother?.let { result = it.smooth(result, timestampMs) }
+
+            // Notify power mode manager for idle detection
+            powerModeManager?.onFrameProcessed(result, timestampMs)
 
             // Defensive copy: pipeline stages return reusable scratch maps.
             // The result is stored in FaceTrackingData (held by the SharedFlow replay buffer),

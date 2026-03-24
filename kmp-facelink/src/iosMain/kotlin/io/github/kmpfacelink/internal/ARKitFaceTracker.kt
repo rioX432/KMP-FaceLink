@@ -18,6 +18,7 @@ import io.github.kmpfacelink.util.Calibrator
 import io.github.kmpfacelink.util.FrameThrottler
 import io.github.kmpfacelink.util.GazeEstimator
 import io.github.kmpfacelink.util.PlatformLock
+import io.github.kmpfacelink.util.PowerModeManager
 import io.github.kmpfacelink.util.ThermalMonitor
 import io.github.kmpfacelink.util.TransformUtils
 import io.github.kmpfacelink.util.createSmoother
@@ -71,7 +72,17 @@ internal class ARKitFaceTracker(
     )
 
     private val thermalMonitor: ThermalMonitor = IosThermalMonitor()
+    private val batteryMonitor = IosBatteryMonitor()
     private val frameThrottler = FrameThrottler(config.thermalPolicy)
+    private val powerModeManager: PowerModeManager? = config.powerMode?.let { mode ->
+        PowerModeManager(
+            powerMode = mode,
+            thermalMonitor = thermalMonitor,
+            batteryMonitor = batteryMonitor,
+            lowBatteryThreshold = config.lowBatteryThreshold,
+            enableIdleDetection = config.enableIdleDetection,
+        )
+    }
 
     // Pre-allocated scratch map for mapARKitBlendShapes — reused each frame.
     // Callers that store the result must copy via HashMap(result).
@@ -134,6 +145,8 @@ internal class ARKitFaceTracker(
             arSession?.delegate = null
             arSession = null
             thermalMonitor.release()
+            batteryMonitor.release()
+            powerModeManager?.release()
             _state.value = TrackingState.RELEASED
         }
     }
@@ -165,13 +178,21 @@ internal class ARKitFaceTracker(
         // Already using front camera — no-op
     }
 
+    /** Whether a frame at the given timestamp should be processed. */
+    private fun shouldProcessFrame(timestampMs: Long): Boolean {
+        return if (powerModeManager != null) {
+            powerModeManager.shouldProcess(timestampMs)
+        } else {
+            frameThrottler.shouldProcess(timestampMs, thermalMonitor.thermalState.value)
+        }
+    }
+
     private fun processFaceAnchor(faceAnchor: ARFaceAnchor) {
         val timestampMs = (arSession?.currentFrame?.timestamp?.times(1000))?.toLong()
             ?: currentTimeMillis()
 
-        // Thermal throttling: skip frame if needed
-        val currentThermalState = thermalMonitor.thermalState.value
-        if (!frameThrottler.shouldProcess(timestampMs, currentThermalState)) return
+        // Frame throttling: use PowerModeManager when available, else legacy FrameThrottler
+        if (!shouldProcessFrame(timestampMs)) return
 
         // ARKit's blendShapes property is typed as [ARBlendShapeLocation: NSNumber] in Swift,
         // but Kotlin/Native cinterop exposes it as Map<Any?, *>. The safe cast (as?) handles
@@ -191,6 +212,9 @@ internal class ARKitFaceTracker(
 
             // Apply smoothing
             smoother?.let { blendShapes = it.smooth(blendShapes, timestampMs) }
+
+            // Notify power mode manager for idle detection
+            powerModeManager?.onFrameProcessed(blendShapes, timestampMs)
 
             // Defensive copy: pipeline stages return reusable scratch maps.
             // The result is stored in FaceTrackingData (held by the SharedFlow replay buffer),
@@ -220,7 +244,7 @@ internal class ARKitFaceTracker(
             timestampMs = timestampMs,
             isTracking = true,
             faces = listOf(trackedFace),
-            thermalState = currentThermalState,
+            thermalState = thermalMonitor.thermalState.value,
         )
 
         _trackingData.tryEmit(data)

@@ -48,6 +48,16 @@ public data class CalibrationConfig(
  *           valid. Android (MediaPipe) only — has no effect on iOS (ARKit). Must be in 0.0..1.0.
  * @property thermalPolicy Policy controlling how the tracker adapts to thermal pressure.
  *           Defaults to [ThermalPolicy.Disabled].
+ *           **Ignored when [powerMode] is set** — [PowerMode] provides a higher-level
+ *           abstraction that subsumes thermal policy.
+ * @property powerMode Power management profile controlling frame rate, thermal adaptation,
+ *           idle detection, and battery-aware downgrade. When non-null, overrides [thermalPolicy].
+ *           Defaults to null (legacy behavior using [thermalPolicy]).
+ * @property lowBatteryThreshold Battery level (0.0–1.0) at which the tracker auto-downgrades
+ *           the power mode by one step. Only effective when [powerMode] is set.
+ *           Defaults to 0.15 (15%).
+ * @property enableIdleDetection Whether to reduce frame rate when the face is stationary.
+ *           Only effective when [powerMode] is set. Defaults to true.
  */
 public data class FaceTrackerConfig(
     val smoothingConfig: SmoothingConfig = SmoothingConfig.Ema(),
@@ -62,6 +72,9 @@ public data class FaceTrackerConfig(
     val minTrackingConfidence: Float = DEFAULT_CONFIDENCE,
     val minPresenceConfidence: Float = DEFAULT_CONFIDENCE,
     val thermalPolicy: ThermalPolicy = ThermalPolicy.Disabled,
+    val powerMode: PowerMode? = null,
+    val lowBatteryThreshold: Float = DEFAULT_LOW_BATTERY_THRESHOLD,
+    val enableIdleDetection: Boolean = true,
 ) {
     init {
         require(maxFaces in 1..MAX_FACES) {
@@ -76,6 +89,9 @@ public data class FaceTrackerConfig(
         require(minPresenceConfidence in 0f..1f) {
             "minPresenceConfidence must be in 0.0..1.0, was $minPresenceConfidence"
         }
+        require(lowBatteryThreshold in 0f..1f) {
+            "lowBatteryThreshold must be in 0.0..1.0, was $lowBatteryThreshold"
+        }
     }
 
     public companion object {
@@ -84,6 +100,9 @@ public data class FaceTrackerConfig(
 
         /** Default MediaPipe confidence threshold. */
         public const val DEFAULT_CONFIDENCE: Float = 0.5f
+
+        /** Default battery level at which power mode auto-downgrades (15%). */
+        public const val DEFAULT_LOW_BATTERY_THRESHOLD: Float = 0.15f
     }
 }
 

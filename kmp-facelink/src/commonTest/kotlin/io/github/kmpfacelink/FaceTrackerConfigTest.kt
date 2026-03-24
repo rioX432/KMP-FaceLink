@@ -3,11 +3,13 @@ package io.github.kmpfacelink
 import io.github.kmpfacelink.model.CalibrationConfig
 import io.github.kmpfacelink.model.CameraFacing
 import io.github.kmpfacelink.model.FaceTrackerConfig
+import io.github.kmpfacelink.model.PowerMode
 import io.github.kmpfacelink.model.SmoothingConfig
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 import kotlin.test.fail
 
@@ -110,6 +112,56 @@ class FaceTrackerConfigTest {
     @Test
     fun maxFacesConstantIsFour() {
         assertEquals(4, FaceTrackerConfig.MAX_FACES)
+    }
+
+    @Test
+    fun powerModeDefaultsToNull() {
+        val config = FaceTrackerConfig()
+        assertNull(config.powerMode)
+    }
+
+    @Test
+    fun powerModeCanBeSet() {
+        val config = FaceTrackerConfig(powerMode = PowerMode.BALANCED)
+        assertEquals(PowerMode.BALANCED, config.powerMode)
+    }
+
+    @Test
+    fun lowBatteryThresholdDefaults() {
+        val config = FaceTrackerConfig()
+        assertEquals(0.15f, config.lowBatteryThreshold)
+    }
+
+    @Test
+    fun lowBatteryThresholdRejectsNegative() {
+        try {
+            FaceTrackerConfig(lowBatteryThreshold = -0.1f)
+            fail("Expected IllegalArgumentException")
+        } catch (e: IllegalArgumentException) {
+            assertTrue(e.message!!.contains("lowBatteryThreshold"))
+        }
+    }
+
+    @Test
+    fun lowBatteryThresholdRejectsAboveOne() {
+        try {
+            FaceTrackerConfig(lowBatteryThreshold = 1.1f)
+            fail("Expected IllegalArgumentException")
+        } catch (e: IllegalArgumentException) {
+            assertTrue(e.message!!.contains("lowBatteryThreshold"))
+        }
+    }
+
+    @Test
+    fun enableIdleDetectionDefaultsToTrue() {
+        val config = FaceTrackerConfig()
+        assertTrue(config.enableIdleDetection)
+    }
+
+    @Test
+    fun enableIdleDetectionCanBeDisabled() {
+        val config = FaceTrackerConfig(enableIdleDetection = false)
+        assertFalse(config.enableIdleDetection)
     }
 }
 

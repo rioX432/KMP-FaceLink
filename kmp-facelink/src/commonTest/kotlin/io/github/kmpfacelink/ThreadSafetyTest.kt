@@ -48,7 +48,7 @@ class ThreadSafetyTest {
                         val value = (i % 100) / 100f
                         lock.withLock { calibrator.calibrate(sampleBlendShapes(value)) }
                     }
-                } catch (@Suppress("TooGenericExceptionCaught") e: Exception) {
+                } catch (e: Exception) {
                     failed.addAndFetch(1)
                     fail("Unexpected exception: ${e.message}")
                 }
@@ -75,7 +75,7 @@ class ThreadSafetyTest {
                         val value = (i % 100) / 100f
                         lock.withLock { smoother.smooth(sampleBlendShapes(value), ts) }
                     }
-                } catch (@Suppress("TooGenericExceptionCaught") e: Exception) {
+                } catch (e: Exception) {
                     failed.addAndFetch(1)
                     fail("Unexpected exception: ${e.message}")
                 }
@@ -105,7 +105,7 @@ class ThreadSafetyTest {
                             smoother?.smooth(sampleBlendShapes(value), ts)
                         }
                     }
-                } catch (@Suppress("TooGenericExceptionCaught") e: Exception) {
+                } catch (e: Exception) {
                     failed.addAndFetch(1)
                     fail("Unexpected exception: ${e.message}")
                 }
@@ -156,7 +156,7 @@ class ThreadSafetyTest {
                         val calibrated = calibrator.calibrate(sampleBlendShapes(value))
                         smoother.smooth(calibrated, ts)
                     }
-                } catch (@Suppress("TooGenericExceptionCaught") e: Exception) {
+                } catch (e: Exception) {
                     failed.addAndFetch(1)
                     fail("Unexpected exception: ${e.message}")
                 }
@@ -205,7 +205,7 @@ class ThreadSafetyTest {
                             completedBeforeRelease.addAndFetch(1)
                         }
                     }
-                } catch (@Suppress("TooGenericExceptionCaught") e: Exception) {
+                } catch (e: Exception) {
                     failed.addAndFetch(1)
                     fail("Unexpected exception: ${e.message}")
                 }

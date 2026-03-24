@@ -49,6 +49,9 @@ internal class HybridLlmClient(
         } catch (e: CancellationException) {
             throw e
         } catch (@Suppress("TooGenericExceptionCaught") e: Exception) {
+            // Generic catch required: LLM backends throw diverse exceptions
+            // (IOException for network, RuntimeException for model/parsing errors)
+            // and all should trigger fallback to cloud client
             fallbackChat(decision, history, e)
         }
     }.onCompletion { cause ->
@@ -62,6 +65,9 @@ internal class HybridLlmClient(
         } catch (e: CancellationException) {
             throw e
         } catch (@Suppress("TooGenericExceptionCaught") e: Exception) {
+            // Generic catch required: LLM backends throw diverse exceptions
+            // (IOException for network, RuntimeException for model/parsing errors)
+            // and on-device failures should fall back to cloud client
             if (decision.client === onDeviceClient) {
                 recordCost()
                 cloudClient.chatOnce(history)

@@ -183,7 +183,6 @@ class MainActivity : ComponentActivity() {
         TrackingMode.HOLISTIC -> holisticTracker.state.value == TrackingState.TRACKING
     }
 
-    @Suppress("TooGenericExceptionCaught")
     private suspend fun stopCurrentTracker(mode: TrackingMode) {
         try {
             when (mode) {
@@ -204,7 +203,10 @@ class MainActivity : ComponentActivity() {
                     faceTracker.stop()
                 }
             }
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e
         } catch (e: Exception) {
+            // Best-effort stop: tracker may fail during shutdown (e.g., already released)
             Log.w("MainActivity", "Error stopping tracker", e)
         }
     }
@@ -219,13 +221,13 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    @Suppress("TooGenericExceptionCaught")
     private fun startTracking() {
         errorState.value = null
         lifecycleScope.launch {
             try {
                 startTrackingForMode(trackingModeState.value)
             } catch (e: Exception) {
+                // Tracker start can fail with various exceptions from MediaPipe/CameraX
                 errorState.value = e.message ?: "Failed to start tracking"
                 Log.e("MainActivity", "Failed to start tracking", e)
             }

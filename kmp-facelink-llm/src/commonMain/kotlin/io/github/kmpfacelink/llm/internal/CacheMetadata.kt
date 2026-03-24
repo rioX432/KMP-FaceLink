@@ -1,6 +1,7 @@
 package io.github.kmpfacelink.llm.internal
 
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.SerializationException
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
@@ -34,7 +35,7 @@ internal class CacheMetadataStore(private val cacheDir: String) {
         val text = FileSystem.readText(metadataPath) ?: return CacheMetadata()
         return try {
             json.decodeFromString<CacheMetadata>(text)
-        } catch (@Suppress("TooGenericExceptionCaught") _: Exception) {
+        } catch (_: SerializationException) {
             CacheMetadata()
         }
     }

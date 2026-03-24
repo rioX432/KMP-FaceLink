@@ -100,7 +100,6 @@ internal class CompositeHolisticTracker(
         sharedCamera.setSurfaceProvider(surfaceProvider)
     }
 
-    @Suppress("TooGenericExceptionCaught")
     override suspend fun start() {
         pipelineLock.withLock {
             check(released.load() == 0) { "Cannot start a released tracker" }
@@ -118,7 +117,11 @@ internal class CompositeHolisticTracker(
             sharedCamera.start(config.cameraFacing)
 
             _state.value = TrackingState.TRACKING
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e
         } catch (e: Exception) {
+            // Sub-tracker start() can throw various exceptions from MediaPipe/CameraX
+            // initialization; catch broadly to set error state before rethrowing
             Log.e(TAG, "Failed to start holistic tracking", e)
             _errorMessage.value = e.message ?: e.toString()
             _state.value = TrackingState.ERROR

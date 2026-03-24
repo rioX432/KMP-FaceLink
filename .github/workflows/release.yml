@@ -1,0 +1,191 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  JAVA_VERSION: '17'
+  JAVA_DISTRIBUTION: 'zulu'
+
+jobs:
+  publish-maven:
+    name: Publish to Maven Central
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-java@v5
+        with:
+          distribution: ${{ env.JAVA_DISTRIBUTION }}
+          java-version: ${{ env.JAVA_VERSION }}
+
+      - uses: gradle/actions/setup-gradle@v5
+
+      - uses: actions/cache@v5
+        with:
+          path: ~/.konan
+          key: konan-${{ runner.os }}-${{ hashFiles('gradle/libs.versions.toml') }}
+          restore-keys: konan-${{ runner.os }}-
+
+      - name: Setup whisper.cpp for iOS
+        run: ./scripts/setup-whisper-ios.sh
+
+      - name: Publish to Maven Central
+        run: ./gradlew publishToSonatype closeAndReleaseSonatypeStagingRepository
+        env:
+          OSSRH_USERNAME: ${{ secrets.OSSRH_USERNAME }}
+          OSSRH_PASSWORD: ${{ secrets.OSSRH_PASSWORD }}
+          GPG_KEY_ID: ${{ secrets.GPG_KEY_ID }}
+          GPG_KEY: ${{ secrets.GPG_KEY }}
+          GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+
+  build-xcframeworks:
+    name: Build XCFrameworks
+    runs-on: macos-15
+    strategy:
+      matrix:
+        module:
+          - name: kmp-facelink
+            framework: KMPFaceLink
+          - name: kmp-facelink-avatar
+            framework: KMPFaceLinkAvatar
+          - name: kmp-facelink-actions
+            framework: KMPFaceLinkActions
+          - name: kmp-facelink-voice
+            framework: KMPFaceLinkVoice
+          - name: kmp-facelink-llm
+            framework: KMPFaceLinkLlm
+          - name: kmp-facelink-pipeline
+            framework: KMPFaceLinkPipeline
+          - name: kmp-facelink-networking
+            framework: KMPFaceLinkNetworking
+          - name: kmp-facelink-vmc
+            framework: KMPFaceLinkVMC
+          - name: kmp-facelink-ifm
+            framework: KMPFaceLinkIFM
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-java@v5
+        with:
+          distribution: ${{ env.JAVA_DISTRIBUTION }}
+          java-version: ${{ env.JAVA_VERSION }}
+
+      - uses: gradle/actions/setup-gradle@v5
+
+      - uses: actions/cache@v5
+        with:
+          path: ~/.konan
+          key: konan-${{ runner.os }}-${{ hashFiles('gradle/libs.versions.toml') }}
+          restore-keys: konan-${{ runner.os }}-
+
+      - name: Setup whisper.cpp for iOS
+        if: matrix.module.name == 'kmp-facelink-voice'
+        run: ./scripts/setup-whisper-ios.sh
+
+      - name: Build XCFramework
+        run: ./gradlew :${{ matrix.module.name }}:assemble${{ matrix.module.framework }}XCFramework
+
+      - name: Package XCFramework
+        run: |
+          cd ${{ matrix.module.name }}/build/XCFrameworks/release
+          zip -r ${{ matrix.module.framework }}.xcframework.zip ${{ matrix.module.framework }}.xcframework
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.module.framework }}-xcframework
+          path: ${{ matrix.module.name }}/build/XCFrameworks/release/${{ matrix.module.framework }}.xcframework.zip
+
+  create-release:
+    name: Create GitHub Release
+    needs: [publish-maven, build-xcframeworks]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+          pattern: '*-xcframework'
+
+      - name: Collect XCFramework zips
+        run: |
+          mkdir -p release-assets
+          find artifacts -name '*.xcframework.zip' -exec cp {} release-assets/ \;
+
+      - name: Compute checksums
+        run: |
+          cd release-assets
+          sha256sum *.zip > checksums.txt
+          cat checksums.txt
+
+      - name: Update Package.swift checksums
+        run: |
+          cd release-assets
+          python3 ../scripts/update-package-swift.py ../Package.swift checksums.txt ${{ github.ref_name }}
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Package-swift
+          path: Package.swift
+
+      - name: Create release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create ${{ github.ref_name }} \
+            --title "${{ github.ref_name }}" \
+            --generate-notes \
+            release-assets/*.xcframework.zip
+
+  deploy-docs:
+    name: Deploy Dokka Docs
+    needs: [publish-maven]
+    runs-on: macos-15
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-java@v5
+        with:
+          distribution: ${{ env.JAVA_DISTRIBUTION }}
+          java-version: ${{ env.JAVA_VERSION }}
+
+      - uses: gradle/actions/setup-gradle@v5
+
+      - uses: actions/cache@v5
+        with:
+          path: ~/.konan
+          key: konan-${{ runner.os }}-${{ hashFiles('gradle/libs.versions.toml') }}
+          restore-keys: konan-${{ runner.os }}-
+
+      - name: Setup whisper.cpp for iOS
+        run: ./scripts/setup-whisper-ios.sh
+
+      - name: Generate Dokka HTML
+        run: ./gradlew dokkaGenerate
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: build/dokka/html
+
+      - name: Deploy to GitHub Pages
+        id: deploy
+        uses: actions/deploy-pages@v4

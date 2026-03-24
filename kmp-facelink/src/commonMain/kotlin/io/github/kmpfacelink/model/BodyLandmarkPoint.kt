@@ -11,7 +11,9 @@ package io.github.kmpfacelink.model
  * @property x Horizontal position, normalized 0.0 (left) to 1.0 (right)
  * @property y Vertical position, normalized 0.0 (top) to 1.0 (bottom)
  * @property z Depth relative to the hip midpoint (negative = closer to camera).
- *           Always 0 on iOS (Vision framework does not provide depth).
+ *           On iOS with [BodyTrackerConfig.enable3D] = true, provides depth in meters
+ *           relative to the root joint via VNDetectHumanBodyPose3DRequest.
+ *           On iOS with 2D mode (default), always 0.
  * @property visibility Landmark visibility (0.0-1.0). 0 means the joint is not
  *           detected or not supported on the current platform.
  */

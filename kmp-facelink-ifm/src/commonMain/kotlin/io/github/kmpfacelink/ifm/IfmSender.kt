@@ -1,10 +1,10 @@
 package io.github.kmpfacelink.ifm
 
-import io.github.kmpfacelink.ifm.internal.UdpSocket
 import io.github.kmpfacelink.model.BlendShapeData
 import io.github.kmpfacelink.model.FaceTrackingData
 import io.github.kmpfacelink.model.GazeData
 import io.github.kmpfacelink.model.HeadTransform
+import io.github.kmpfacelink.networking.UdpSocket
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job

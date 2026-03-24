@@ -1,7 +1,8 @@
 package io.github.kmpfacelink.ifm
 
-import io.github.kmpfacelink.ifm.internal.UdpSocket
 import io.github.kmpfacelink.model.FaceTrackingData
+import io.github.kmpfacelink.networking.UdpSocket
+import io.github.kmpfacelink.networking.currentTimeMs
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -108,5 +109,3 @@ public class IfmReceiver(
  */
 public const val HANDSHAKE_STRING: String =
     "iFacialMocap_sahuasouryya9218sauhuiayeta91555dy3719"
-
-internal expect fun currentTimeMs(): Long

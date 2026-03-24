@@ -95,4 +95,76 @@ class VmcMessageBuilderTest {
         assertEquals(1, message.arguments.size)
         assertEquals(1.5f, (message.arguments[0] as OscArgument.FloatArg).value)
     }
+
+    // --- Expression messages (VRM 1.0 / 0.x pre-mapped parameters) ---
+
+    @Test
+    fun buildExpressionMessagesCreatesOnePerParamPlusApply() {
+        val expressions = mapOf(
+            "happy" to 0.8f,
+            "aa" to 0.5f,
+            "blink" to 0.3f,
+        )
+
+        val messages = VmcMessageBuilder.buildExpressionMessages(expressions)
+
+        // 3 Blend/Val messages + 1 Blend/Apply
+        assertEquals(4, messages.size)
+        assertEquals(VmcAddress.BLEND_APPLY, messages.last().address)
+    }
+
+    @Test
+    fun buildExpressionMessagesUsesProvidedNames() {
+        val expressions = mapOf("happy" to 0.9f)
+
+        val messages = VmcMessageBuilder.buildExpressionMessages(expressions)
+
+        val nameArg = messages[0].arguments[0] as OscArgument.StringArg
+        val valueArg = messages[0].arguments[1] as OscArgument.FloatArg
+        assertEquals("happy", nameArg.value)
+        assertEquals(0.9f, valueArg.value)
+    }
+
+    @Test
+    fun buildExpressionMessagesExcludesSpecifiedKeys() {
+        val expressions = mapOf(
+            "happy" to 0.8f,
+            "headYaw" to 15f,
+            "headPitch" to -10f,
+            "headRoll" to 5f,
+        )
+        val headKeys = setOf("headYaw", "headPitch", "headRoll")
+
+        val messages = VmcMessageBuilder.buildExpressionMessages(expressions, excludeKeys = headKeys)
+
+        // 1 expression + 1 apply
+        assertEquals(2, messages.size)
+        val nameArg = messages[0].arguments[0] as OscArgument.StringArg
+        assertEquals("happy", nameArg.value)
+    }
+
+    @Test
+    fun buildExpressionMessagesEmptyMapProducesOnlyApply() {
+        val messages = VmcMessageBuilder.buildExpressionMessages(emptyMap())
+
+        assertEquals(1, messages.size)
+        assertEquals(VmcAddress.BLEND_APPLY, messages[0].address)
+    }
+
+    @Test
+    fun buildExpressionMessagesVrm0xNames() {
+        val expressions = mapOf(
+            "Joy" to 0.7f,
+            "A" to 0.5f,
+            "Blink" to 0.4f,
+        )
+
+        val messages = VmcMessageBuilder.buildExpressionMessages(expressions)
+
+        assertEquals(4, messages.size)
+        val names = messages.dropLast(1).map { (it.arguments[0] as OscArgument.StringArg).value }
+        assertTrue("Joy" in names)
+        assertTrue("A" in names)
+        assertTrue("Blink" in names)
+    }
 }

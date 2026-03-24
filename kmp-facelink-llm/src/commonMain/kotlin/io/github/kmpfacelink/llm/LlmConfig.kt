@@ -1,5 +1,9 @@
 package io.github.kmpfacelink.llm
 
+import io.github.kmpfacelink.model.ThermalState
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+
 private const val DEFAULT_MAX_TOKENS = 1024
 private const val DEFAULT_TEMPERATURE = 0.7
 
@@ -95,13 +99,19 @@ public sealed class LlmConfig {
      * Uses [routingStrategy] to decide whether each query should be handled locally
      * or sent to a cloud provider. On-device failures can fall back to cloud.
      *
+     * When using [RoutingStrategy.Adaptive], provide a [thermalStateProvider] so the
+     * router can consider device thermal state in its decisions.
+     *
      * @property onDeviceConfig Configuration for the on-device model
      * @property cloudConfig Configuration for the cloud model (OpenAi, Anthropic, or Gemini)
      * @property routingStrategy Strategy for routing decisions
+     * @property thermalStateProvider Source of current device thermal state (required for Adaptive)
      */
     public data class Hybrid(
         val onDeviceConfig: OnDevice,
         val cloudConfig: LlmConfig,
         val routingStrategy: RoutingStrategy = RoutingStrategy.Auto(),
+        val thermalStateProvider: StateFlow<ThermalState> =
+            MutableStateFlow(ThermalState.NOMINAL),
     ) : LlmConfig()
 }

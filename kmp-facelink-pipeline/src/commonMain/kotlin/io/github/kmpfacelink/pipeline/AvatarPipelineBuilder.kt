@@ -3,9 +3,13 @@ package io.github.kmpfacelink.pipeline
 import io.github.kmpfacelink.llm.LlmClient
 import io.github.kmpfacelink.llm.LlmConfig
 import io.github.kmpfacelink.llm.PersonaConfig
+import io.github.kmpfacelink.llm.RoutingStrategy
+import io.github.kmpfacelink.model.ThermalState
 import io.github.kmpfacelink.voice.asr.AsrEngine
 import io.github.kmpfacelink.voice.lipsync.LipSyncEngine
 import io.github.kmpfacelink.voice.tts.TtsEngine
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 
 private const val DEFAULT_EXPRESSION_BLEND_RATIO = 0.7f
 
@@ -33,6 +37,7 @@ public class AvatarPipelineBuilder {
     private var customTtsEngine: TtsEngine? = null
     private var customLipSyncEngine: LipSyncEngine? = null
     private var customAsrEngine: AsrEngine? = null
+    private var thermalState: StateFlow<ThermalState>? = null
 
     /** Sets the LLM provider configuration. */
     public fun llm(config: LlmConfig) {
@@ -70,6 +75,16 @@ public class AvatarPipelineBuilder {
     }
 
     /**
+     * Sets the thermal state provider for adaptive LLM routing.
+     *
+     * When using [RoutingStrategy.Adaptive], this thermal state is passed to
+     * the hybrid LLM router to avoid on-device inference when overheating.
+     */
+    public fun thermalStateProvider(provider: StateFlow<ThermalState>) {
+        thermalState = provider
+    }
+
+    /**
      * Builds the [AvatarPipeline].
      *
      * @throws IllegalStateException if neither [llmClient] nor [llm] was provided
@@ -88,9 +103,22 @@ public class AvatarPipelineBuilder {
 
     private fun resolveClient(): LlmClient {
         customLlmClient?.let { return it }
-        val config = llmConfig
-            ?: error("LLM configuration required: call llm() or llmClient()")
+        val config = injectThermalState(
+            llmConfig ?: error("LLM configuration required: call llm() or llmClient()"),
+        )
         return LlmClient.create(config)
+    }
+
+    /**
+     * If the LLM config is Hybrid with Adaptive routing and a thermal provider
+     * was set on the builder, inject it into the config.
+     */
+    private fun injectThermalState(config: LlmConfig): LlmConfig {
+        val thermal = thermalState ?: return config
+        if (config is LlmConfig.Hybrid && config.routingStrategy is RoutingStrategy.Adaptive) {
+            return config.copy(thermalStateProvider = thermal)
+        }
+        return config
     }
 
     private fun buildConfig(): AvatarPipelineConfig {
@@ -99,10 +127,13 @@ public class AvatarPipelineBuilder {
         // persona and expressionBlendRatio from the config — not llmConfig.
         val effectiveLlmConfig = llmConfig
             ?: LlmConfig.OpenAi(apiKey = "")
+        val effectiveThermal = thermalState
+            ?: MutableStateFlow(ThermalState.NOMINAL)
         return AvatarPipelineConfig(
             llmConfig = effectiveLlmConfig,
             persona = personaConfig ?: PersonaConfig(),
             expressionBlendRatio = blendRatio ?: DEFAULT_EXPRESSION_BLEND_RATIO,
+            thermalStateProvider = effectiveThermal,
         )
     }
 }

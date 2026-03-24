@@ -3,7 +3,6 @@ package io.github.kmpfacelink.vmc
 import io.github.kmpfacelink.networking.UdpSocket
 import io.github.kmpfacelink.vmc.osc.OscDecoder
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -20,8 +19,9 @@ import kotlinx.coroutines.launch
  *
  * Usage:
  * ```kotlin
+ * val scope = CoroutineScope(Dispatchers.Default + SupervisorJob())
  * val receiver = VmcReceiver(port = 39539)
- * receiver.start()
+ * receiver.start(scope)
  * receiver.receivedData.collect { data ->
  *     // Use data.blendShapes, data.headPosition, etc.
  * }
@@ -45,12 +45,15 @@ public class VmcReceiver(
     /**
      * Starts listening for VMC messages on the configured port.
      *
+     * The caller owns [scope] and is responsible for cancelling it
+     * when receiving is no longer needed.
+     *
      * @param scope Coroutine scope for the listener job
      */
-    public fun start(scope: CoroutineScope = CoroutineScope(Dispatchers.Default)) {
+    public fun start(scope: CoroutineScope) {
         stop()
         socket.bind(port)
-        listenJob = scope.launch(Dispatchers.Default) {
+        listenJob = scope.launch {
             receiveLoop()
         }
     }

@@ -3,7 +3,6 @@ package io.github.kmpfacelink.stream
 import io.github.kmpfacelink.model.FaceTrackingData
 import io.github.kmpfacelink.model.HandTrackingData
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
@@ -19,10 +18,11 @@ import kotlinx.coroutines.sync.withLock
  *
  * Usage:
  * ```kotlin
+ * val scope = CoroutineScope(Dispatchers.Default + SupervisorJob())
  * val server = StreamServer(config)
  * val sender = StreamSender(server, config)
- * server.start()
- * sender.start(faceTracker.trackingData, handTracker.trackingData)
+ * server.start(scope)
+ * sender.start(faceTracker.trackingData, handTracker.trackingData, scope)
  * // ... later
  * sender.stop()
  * server.stop()
@@ -45,6 +45,9 @@ public class StreamSender(
     /**
      * Starts collecting from tracking flows and streaming at the configured FPS.
      *
+     * The caller owns [scope] and is responsible for cancelling it
+     * when streaming is no longer needed.
+     *
      * @param faceFlow Face tracking data flow, or null to skip face data
      * @param handFlow Hand tracking data flow, or null to skip hand data
      * @param scope Coroutine scope for collection jobs
@@ -52,7 +55,7 @@ public class StreamSender(
     public fun start(
         faceFlow: Flow<FaceTrackingData>? = null,
         handFlow: Flow<HandTrackingData>? = null,
-        scope: CoroutineScope = CoroutineScope(Dispatchers.Default),
+        scope: CoroutineScope,
     ) {
         stop()
         faceJob = faceFlow?.let { flow ->

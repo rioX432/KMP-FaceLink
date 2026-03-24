@@ -4,7 +4,6 @@ import io.github.kmpfacelink.model.FaceTrackingData
 import io.github.kmpfacelink.networking.UdpSocket
 import io.github.kmpfacelink.networking.currentTimeMs
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -21,8 +20,9 @@ import kotlinx.coroutines.launch
  *
  * Usage:
  * ```kotlin
+ * val scope = CoroutineScope(Dispatchers.Default + SupervisorJob())
  * val receiver = IfmReceiver()
- * receiver.start()
+ * receiver.start(scope)
  * receiver.sendHandshake("192.168.1.50") // iOS device IP
  * receiver.trackingData.collect { data ->
  *     // Use data.blendShapes, data.headTransform, etc.
@@ -47,12 +47,15 @@ public class IfmReceiver(
     /**
      * Starts listening for iFacialMocap messages on the configured port.
      *
+     * The caller owns [scope] and is responsible for cancelling it
+     * when receiving is no longer needed.
+     *
      * @param scope Coroutine scope for the listener job
      */
-    public fun start(scope: CoroutineScope = CoroutineScope(Dispatchers.Default)) {
+    public fun start(scope: CoroutineScope) {
         stop()
         socket.bind(port)
-        listenJob = scope.launch(Dispatchers.Default) {
+        listenJob = scope.launch {
             receiveLoop()
         }
     }

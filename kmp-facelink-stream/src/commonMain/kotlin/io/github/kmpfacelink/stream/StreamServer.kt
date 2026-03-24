@@ -14,7 +14,6 @@ import io.ktor.websocket.close
 import io.ktor.websocket.send
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -35,8 +34,9 @@ import kotlin.time.Duration.Companion.milliseconds
  *
  * Usage:
  * ```kotlin
+ * val scope = CoroutineScope(Dispatchers.Default + SupervisorJob())
  * val server = StreamServer(StreamConfig(port = 21412))
- * server.start()
+ * server.start(scope)
  * // Send frames from a tracking flow
  * trackingFlow.collect { data ->
  *     server.sendFrame(buildStreamFrame(data, null, data.timestampMs))
@@ -71,9 +71,12 @@ public class StreamServer(
     /**
      * Starts the WebSocket server.
      *
+     * The caller owns [scope] and is responsible for cancelling it
+     * when the server is no longer needed.
+     *
      * @param scope Coroutine scope for the server lifecycle
      */
-    public fun start(scope: CoroutineScope = CoroutineScope(Dispatchers.Default)) {
+    public fun start(scope: CoroutineScope) {
         if (isRunning) return
         serverJob = scope.launch { runServer() }
     }

@@ -20,6 +20,8 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import java.io.ByteArrayOutputStream
 
 private const val BUFFER_SIZE_FACTOR = 2
@@ -40,6 +42,9 @@ internal class PlatformAudioRecorder : AudioRecorder {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private var audioRecord: AudioRecord? = null
     private var recordingJob: Job? = null
+
+    /** Guards [recordedData] and [currentFormat] against concurrent coroutine access. */
+    private val dataMutex = Mutex()
     private var recordedData = ByteArrayOutputStream()
     private var currentFormat = AudioFormat()
 
@@ -47,8 +52,10 @@ internal class PlatformAudioRecorder : AudioRecorder {
     override suspend fun start(format: AudioFormat) {
         if (_isRecording.value) return
 
-        currentFormat = format
-        recordedData.reset()
+        dataMutex.withLock {
+            currentFormat = format
+            recordedData.reset()
+        }
 
         val channelConfig = if (format.channels == 1) {
             android.media.AudioFormat.CHANNEL_IN_MONO
@@ -84,7 +91,7 @@ internal class PlatformAudioRecorder : AudioRecorder {
                 val bytesRead = audioRecord?.read(buffer, 0, buffer.size) ?: -1
                 if (bytesRead > 0) {
                     val chunk = buffer.copyOf(bytesRead)
-                    recordedData.write(chunk)
+                    dataMutex.withLock { recordedData.write(chunk) }
                     _audioChunks.tryEmit(chunk)
                 }
             }
@@ -100,14 +107,16 @@ internal class PlatformAudioRecorder : AudioRecorder {
 
         audioRecord?.stop()
 
-        val bytes = recordedData.toByteArray()
-        if (bytes.isEmpty()) return null
+        return dataMutex.withLock {
+            val bytes = recordedData.toByteArray()
+            if (bytes.isEmpty()) return null
 
-        val bytesPerSample = currentFormat.bitsPerSample / Byte.SIZE_BITS
-        val totalSamples = bytes.size / bytesPerSample / currentFormat.channels
-        val durationMs = totalSamples.toLong() * AudioConstants.MILLIS_PER_SECOND / currentFormat.sampleRate
+            val bytesPerSample = currentFormat.bitsPerSample / Byte.SIZE_BITS
+            val totalSamples = bytes.size / bytesPerSample / currentFormat.channels
+            val durationMs = totalSamples.toLong() * AudioConstants.MILLIS_PER_SECOND / currentFormat.sampleRate
 
-        return AudioData(bytes = bytes, format = currentFormat, durationMs = durationMs)
+            AudioData(bytes = bytes, format = currentFormat, durationMs = durationMs)
+        }
     }
 
     override fun release() {

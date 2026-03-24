@@ -45,7 +45,7 @@ LlmClient.create(config)
 | `LlmConfig.OnDevice` | `commonMain/.../llm/LlmConfig.kt` | Configuration for on-device models |
 | `LlmConfig.Hybrid` | `commonMain/.../llm/LlmConfig.kt` | Configuration for hybrid routing |
 | `InferenceEngine` | `commonMain/.../llm/InferenceEngine.kt` | Platform abstraction for native inference |
-| `ModelRegistry` | `commonMain/.../llm/ModelRegistry.kt` | Catalog of available models |
+| `ModelRegistry` | `commonMain/.../llm/ModelRegistry.kt` | Catalog of available models with RAM-based selection |
 | `ModelManager` | `commonMain/.../llm/ModelManager.kt` | Model download and cache management |
 | `RoutingStrategy` | `commonMain/.../llm/RoutingStrategy.kt` | Hybrid routing decision logic |
 | `IntentClassifier` | `commonMain/.../llm/internal/IntentClassifier.kt` | Query complexity estimation |
@@ -55,12 +55,52 @@ LlmClient.create(config)
 
 Models are defined in `ModelRegistry` and downloaded as GGUF files.
 
-| Model ID | Display Name | Size | Quantization | Notes |
-|----------|-------------|------|-------------|-------|
-| `gemma-3-1b-int4` | Gemma 3 1B (INT4) | ~800 MB | INT4 | Smallest, fastest; good for simple tasks |
-| `gemma-3-4b-int4` | Gemma 3 4B (INT4) | ~2.5 GB | INT4 | Better quality; needs more RAM |
-| `phi-3-mini-int4` | Phi-3 Mini (INT4) | ~2.3 GB | INT4 | Strong reasoning for its size |
-| `phi-4-mini-int4` | Phi-4 Mini (INT4) | ~2.4 GB | INT4 | Latest Phi series |
+### Recommended Models (Gemma 3n)
+
+Gemma 3n (2026) uses MatFormer selective layer activation to achieve high effective parameter counts from larger raw models, optimized for mobile: ~0.75% battery per hour, multimodal (audio+vision), built-in ASR.
+
+| Model ID | Display Name | Download Size | RAM Required | Quantization | Notes |
+|----------|-------------|---------------|-------------|-------------|-------|
+| `gemma-3n-e2b-int4` | Gemma 3n E2B (INT4) | ~1.8 GB | ~2 GB | INT4 | **Default.** 5B raw / 2B effective params. Best balance of quality and size for VTuber chat |
+| `gemma-3n-e4b-int4` | Gemma 3n E4B (INT4) | ~3.2 GB | ~4.5 GB | INT4 | High-quality. 5B raw / 4B effective params. For devices with >4 GB RAM |
+
+### Lightweight Fallback
+
+| Model ID | Display Name | Download Size | RAM Required | Quantization | Notes |
+|----------|-------------|---------------|-------------|-------------|-------|
+| `qwen3-0.6b-int4` | Qwen3 0.6B (INT4) | ~500 MB | ~800 MB | INT4 | Ultra-lightweight fallback for devices with <1 GB available RAM |
+
+### Legacy Models
+
+| Model ID | Display Name | Download Size | RAM Required | Quantization | Notes |
+|----------|-------------|---------------|-------------|-------------|-------|
+| `gemma-3-1b-int4` | Gemma 3 1B (INT4) | ~800 MB | ~1.5 GB | INT4 | Previous default; superseded by Gemma 3n E2B |
+| `gemma-3-4b-int4` | Gemma 3 4B (INT4) | ~2.5 GB | ~4 GB | INT4 | Superseded by Gemma 3n E4B |
+| `phi-3-mini-int4` | Phi-3 Mini (INT4) | ~2.3 GB | ~4 GB | INT4 | Strong reasoning for its size |
+| `phi-4-mini-int4` | Phi-4 Mini (INT4) | ~2.4 GB | ~4 GB | INT4 | Latest Phi series |
+
+### Default Model Selection
+
+`ModelRegistry.recommendForRam(deviceRamBytes)` selects the best model based on available device RAM:
+
+| Device RAM | Selected Model | Rationale |
+|-----------|---------------|-----------|
+| < 1 GB | Qwen3 0.6B | Ultra-lightweight fallback for very constrained devices |
+| 1–4 GB | Gemma 3n E2B | Default. Excellent quality-to-size ratio with MatFormer architecture |
+| > 4 GB | Gemma 3n E4B | High-quality variant with 4B effective parameters |
+
+### Benchmark References
+
+Performance data from external benchmarks (SLM Leaderboard 2026, Google developer guides):
+
+| Model | Params (effective) | MMLU | MT-Bench | Tokens/sec (Pixel 9) | Battery/hr |
+|-------|-------------------|------|----------|----------------------|-----------|
+| Gemma 3n E2B | 2B | ~58% | ~7.2 | ~35 tok/s | ~0.75% |
+| Gemma 3n E4B | 4B | ~65% | ~7.8 | ~18 tok/s | ~1.2% |
+| Qwen3 0.6B | 0.6B | ~42% | ~5.8 | ~80 tok/s | ~0.3% |
+| Gemma 3 1B | 1B | ~45% | ~6.0 | ~50 tok/s | ~0.5% |
+
+> **Note:** These are reference numbers from published benchmarks. Actual performance varies by device, thermal state, and concurrent workloads. Run `LlmBenchmarkRunner` for device-specific measurements.
 
 ## Setup Instructions
 
@@ -119,9 +159,15 @@ When ready to integrate:
 ### Basic On-Device Chat
 
 ```kotlin
+// Use the default model (Gemma 3n E2B)
+val defaultModel = ModelRegistry.defaultModel()
+
+// Or select based on device RAM
+val recommended = ModelRegistry.recommendForRam(deviceRamBytes = 4_000_000_000L)
+
 // Create an on-device client
 val config = LlmConfig.OnDevice(
-    modelId = "gemma-3-1b-int4",
+    modelId = recommended.id,
     maxTokens = 512,
     temperature = 0.7,
 )
@@ -148,7 +194,7 @@ client.release()
 
 ```kotlin
 val config = LlmConfig.Hybrid(
-    onDeviceConfig = LlmConfig.OnDevice(modelId = "gemma-3-1b-int4"),
+    onDeviceConfig = LlmConfig.OnDevice(modelId = "gemma-3n-e2b-int4"),
     cloudConfig = LlmConfig.OpenAi(
         apiKey = "sk-...",
         model = "gpt-4o-mini",
@@ -188,20 +234,20 @@ RoutingStrategy.Auto(complexityThreshold = 0.5f)
 ```kotlin
 val modelManager = DefaultModelManager.create()
 
-// Download a model
-val modelInfo = ModelRegistry.findById("gemma-3-1b-int4")!!
+// Download the recommended model
+val modelInfo = ModelRegistry.recommendForRam(deviceRamBytes = 4_000_000_000L)
 modelManager.download(modelInfo).collect { progress ->
     println("${progress.percent}% downloaded")
 }
 
 // Check if model is available
-val isReady = modelManager.isDownloaded("gemma-3-1b-int4")
+val isReady = modelManager.isDownloaded(modelInfo.id)
 
 // List cached models
 val cached = modelManager.listCached()
 
 // Delete a model
-modelManager.delete("gemma-3-1b-int4")
+modelManager.delete(modelInfo.id)
 ```
 
 ## Benchmarking Guide
@@ -212,13 +258,13 @@ The benchmarking framework (`io.github.kmpfacelink.llm.benchmark`) provides tool
 
 ```kotlin
 // Create a client to benchmark
-val config = LlmConfig.OnDevice(modelId = "gemma-3-1b-int4")
+val config = LlmConfig.OnDevice(modelId = "gemma-3n-e2b-int4")
 val client = LlmClient.create(config)
 
 // Run with standard prompts
 val runner = LlmBenchmarkRunner(
     client = client,
-    modelId = "gemma-3-1b-int4",
+    modelId = "gemma-3n-e2b-int4",
     deviceInfo = "Pixel 8 Pro / Android 15",
 )
 val results = runner.runBenchmark(BenchmarkPrompts.standardSet())
@@ -260,11 +306,17 @@ val results = runner.runBenchmark(customPrompts)
 ## Known Limitations
 
 - **Native libraries not linked:** llama.cpp (Android) and MLX Swift (iOS) stubs exist but native binaries are not yet integrated. On-device inference will throw at runtime until linked.
-- **No actual benchmark data:** Performance numbers will be available after native integration.
+- **No actual benchmark data:** Performance numbers will be available after native integration. Reference numbers in this doc are from external benchmarks.
 - **Memory measurement:** `peakMemoryMb` is always 0 — platform-specific memory profiling is future work.
 - **Thermal throttling:** Not yet monitored. Extended inference on mobile devices may trigger thermal throttling that degrades performance.
 - **Model conversion:** iOS MLX format conversion from GGUF is stubbed but not implemented.
 - **Checksum verification:** Model SHA-256 checksums in `ModelRegistry` are placeholders.
+
+## References
+
+- [Gemma 3n Developer Guide](https://developers.googleblog.com/en/introducing-gemma-3n-developer-guide/)
+- [Gemma 3n Overview](https://ai.google.dev/gemma/docs/gemma-3n)
+- [SLM Leaderboard 2026](https://awesomeagents.ai/leaderboards/small-language-model-leaderboard/)
 
 ## Future Work
 
@@ -276,3 +328,4 @@ val results = runner.runBenchmark(customPrompts)
 - Implement model format conversion (GGUF → MLX) for iOS
 - Add streaming performance metrics (token-to-token jitter)
 - Integrate with CI for automated regression benchmarking
+- Explore Gemma 3n built-in ASR to simplify Whisper dependency in voice module

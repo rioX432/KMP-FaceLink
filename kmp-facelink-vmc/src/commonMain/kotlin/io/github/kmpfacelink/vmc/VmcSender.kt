@@ -62,6 +62,31 @@ public class VmcSender(
     }
 
     /**
+     * Starts collecting from a pre-mapped expression parameter flow and sending VMC messages.
+     *
+     * Use this with the output of `Flow<FaceTrackingData>.toAvatarParameters(VrmParameterMapper)`.
+     * Expression keys are sent as `/VMC/Ext/Blend/Val` names directly. Head rotation keys
+     * specified in [headParamKeys] are sent via `/VMC/Ext/Bone/Pos` instead.
+     *
+     * @param expressionFlow Flow of pre-mapped expression parameter maps
+     * @param scope Coroutine scope for the collection job
+     * @param headParamKeys Keys in the map that represent head rotation (yaw, pitch, roll)
+     */
+    public fun startWithExpressions(
+        expressionFlow: Flow<Map<String, Float>>,
+        scope: CoroutineScope,
+        headParamKeys: VmcHeadParamKeys = VmcHeadParamKeys.VRM_1_0,
+    ) {
+        stop()
+        startTimeMs = currentTimeMs()
+        collectJob = scope.launch {
+            expressionFlow.collect { params ->
+                sendExpressionFrame(params, headParamKeys, currentTimeMs())
+            }
+        }
+    }
+
+    /**
      * Sends a single frame of tracking data immediately.
      *
      * @param blendShapes Blend shape values to send
@@ -74,12 +99,51 @@ public class VmcSender(
     }
 
     /**
+     * Sends a single frame of pre-mapped expression parameters immediately.
+     *
+     * Head rotation values (identified by [headParamKeys]) are extracted and sent
+     * as a bone position message. Remaining parameters are sent as blend shape values.
+     *
+     * @param expressions Pre-mapped expression parameter map (e.g. from VrmParameterMapper)
+     * @param headParamKeys Keys identifying head yaw/pitch/roll in the map
+     * @param timestampMs Frame timestamp in milliseconds
+     */
+    public fun sendExpressionFrame(
+        expressions: Map<String, Float>,
+        headParamKeys: VmcHeadParamKeys = VmcHeadParamKeys.VRM_1_0,
+        timestampMs: Long = currentTimeMs(),
+    ) {
+        val messages = buildExpressionFrameMessages(expressions, headParamKeys, timestampMs)
+        sendMessages(messages)
+    }
+
+    /**
      * Stops collecting tracking data and releases the UDP socket.
      */
     public fun stop() {
         collectJob?.cancel()
         collectJob = null
         socket.close()
+    }
+
+    private fun buildExpressionFrameMessages(
+        expressions: Map<String, Float>,
+        headParamKeys: VmcHeadParamKeys,
+        timestampMs: Long,
+    ): List<OscMessage> {
+        val relativeTimeSec = (timestampMs - startTimeMs).toFloat() / MS_PER_SEC
+        val headKeys = setOf(headParamKeys.yaw, headParamKeys.pitch, headParamKeys.roll)
+        val messages = mutableListOf<OscMessage>()
+        messages.add(VmcMessageBuilder.buildStatusMessage(loaded = 1))
+        messages.addAll(VmcMessageBuilder.buildExpressionMessages(expressions, excludeKeys = headKeys))
+        val headTransform = HeadTransform(
+            yaw = expressions[headParamKeys.yaw] ?: 0f,
+            pitch = expressions[headParamKeys.pitch] ?: 0f,
+            roll = expressions[headParamKeys.roll] ?: 0f,
+        )
+        messages.add(VmcMessageBuilder.buildHeadBoneMessage(headTransform))
+        messages.add(VmcMessageBuilder.buildTimestampMessage(relativeTimeSec))
+        return messages
     }
 
     private fun buildFrameMessages(

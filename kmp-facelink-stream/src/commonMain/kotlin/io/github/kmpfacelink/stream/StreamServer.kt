@@ -12,6 +12,7 @@ import io.ktor.server.websocket.webSocket
 import io.ktor.websocket.Frame
 import io.ktor.websocket.close
 import io.ktor.websocket.send
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -146,12 +147,15 @@ public class StreamServer(
                     session.wsSession.outgoing.send(Frame.Binary(true, bytes))
                 }
             }
+        } catch (e: CancellationException) {
+            throw e
         } catch (_: Exception) {
             try {
                 session.wsSession.close()
             } catch (_: Exception) {
                 // Already closed
             }
+            removeSession(session)
         }
     }
 }

@@ -8,6 +8,8 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 
 /**
  * High-level sender that bridges tracking flows to [StreamServer].
@@ -33,14 +35,11 @@ public class StreamSender(
     private val server: StreamServer,
     private val config: StreamConfig = StreamConfig(),
 ) {
+    private val mutex = Mutex()
     private var faceJob: Job? = null
     private var handJob: Job? = null
     private var broadcastJob: Job? = null
-
-    @Volatile
     private var latestFaceData: FaceTrackingData? = null
-
-    @Volatile
     private var latestHandData: HandTrackingData? = null
 
     /**
@@ -57,10 +56,10 @@ public class StreamSender(
     ) {
         stop()
         faceJob = faceFlow?.let { flow ->
-            scope.launch { flow.collect { latestFaceData = it } }
+            scope.launch { flow.collect { mutex.withLock { latestFaceData = it } } }
         }
         handJob = handFlow?.let { flow ->
-            scope.launch { flow.collect { latestHandData = it } }
+            scope.launch { flow.collect { mutex.withLock { latestHandData = it } } }
         }
         broadcastJob = scope.launch { broadcastLoop() }
     }
@@ -82,10 +81,9 @@ public class StreamSender(
     private suspend fun broadcastLoop() {
         val frameIntervalMs = MS_PER_SEC / config.targetFps
         while (true) {
-            val face = latestFaceData
-            val hand = latestHandData
-            val timestampMs = face?.timestampMs ?: hand?.timestampMs ?: 0L
+            val (face, hand) = mutex.withLock { latestFaceData to latestHandData }
             if (face != null || hand != null) {
+                val timestampMs = face?.timestampMs ?: hand?.timestampMs ?: 0L
                 val frame = buildStreamFrame(face, hand, timestampMs)
                 server.sendFrame(frame)
             }

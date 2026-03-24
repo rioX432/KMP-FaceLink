@@ -12,6 +12,11 @@ Unified face, hand & body tracking SDK for Kotlin Multiplatform — one API, bot
 | `kmp-facelink-voice` | TTS, ASR, multilingual lip sync | **Mostly stable** |
 | `kmp-facelink-llm` | LLM streaming API (cloud + on-device) with hybrid routing | **Experimental** |
 | `kmp-facelink-pipeline` | AI avatar pipeline: Voice → LLM → TTS → LipSync → Expression | **Experimental** |
+| `kmp-facelink-networking` | Shared UDP socket, time utilities, mDNS service discovery | **Stable** |
+| `kmp-facelink-vmc` | VMC Protocol (OSC over UDP) sender/receiver for VRM apps | **Experimental** |
+| `kmp-facelink-ifm` | iFacialMocap protocol output for VTube Studio | **Experimental** |
+| `kmp-facelink-stream` | WebSocket streaming server for phone-as-tracker | **Experimental** |
+| `kmp-facelink-vts` | VTube Studio Plugin API direct integration | **Experimental** |
 
 ## Tech Stack
 
@@ -34,3 +39,5 @@ Unified face, hand & body tracking SDK for Kotlin Multiplatform — one API, bot
 - NSCameraUsageDescription in Info.plist
 - TrueDepth front camera (face tracking)
 - ARKit capability in entitlements
+
+## [Changelog](CHANGELOG.md)

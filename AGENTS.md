@@ -101,7 +101,7 @@ Note: `kmp-facelink-llm` includes platform-specific inference engines (llama.cpp
 **iOS (ARKit + Vision)**
 - Face: `ARKitFaceTracker` (ARFaceTrackingConfiguration)
 - Hand: `VisionHandTracker` (VNDetectHumanHandPoseRequest + AVCaptureSession)
-- Body: `VisionBodyTracker` (VNDetectHumanBodyPoseRequest + AVCaptureSession)
+- Body: `VisionBodyTracker` (VNDetectHumanBodyPose3DRequest + AVCaptureSession)
 - Voice: WhisperCpp native bindings, AVFoundation
 
 ### Key Public APIs

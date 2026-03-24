@@ -3,7 +3,8 @@ package io.github.kmpfacelink.vmc
 import io.github.kmpfacelink.model.BlendShapeData
 import io.github.kmpfacelink.model.FaceTrackingData
 import io.github.kmpfacelink.model.HeadTransform
-import io.github.kmpfacelink.vmc.internal.UdpSocket
+import io.github.kmpfacelink.networking.UdpSocket
+import io.github.kmpfacelink.networking.currentTimeMs
 import io.github.kmpfacelink.vmc.osc.OscEncoder
 import io.github.kmpfacelink.vmc.osc.OscMessage
 import kotlinx.coroutines.CoroutineScope
@@ -106,5 +107,3 @@ public class VmcSender(
 }
 
 private const val MS_PER_SEC = 1000f
-
-internal expect fun currentTimeMs(): Long

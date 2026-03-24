@@ -34,6 +34,7 @@ kotlin {
     sourceSets {
         commonMain.dependencies {
             api(project(":kmp-facelink"))
+            implementation(project(":kmp-facelink-networking"))
             implementation(libs.kotlinx.coroutines.core)
         }
 

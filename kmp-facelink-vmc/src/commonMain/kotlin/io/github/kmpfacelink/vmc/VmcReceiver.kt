@@ -1,6 +1,6 @@
 package io.github.kmpfacelink.vmc
 
-import io.github.kmpfacelink.vmc.internal.UdpSocket
+import io.github.kmpfacelink.networking.UdpSocket
 import io.github.kmpfacelink.vmc.osc.OscDecoder
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers

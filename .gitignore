@@ -34,6 +34,7 @@ progress.txt
 /kmp-facelink-rive/build
 /kmp-facelink-llm/build
 /kmp-facelink-pipeline/build
+/kmp-facelink-networking/build
 /kmp-facelink-vmc/build
 /kmp-facelink-ifm/build
 /androidApp/src/main/assets/live2d/

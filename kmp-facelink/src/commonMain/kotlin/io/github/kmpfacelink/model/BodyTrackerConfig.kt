@@ -17,6 +17,10 @@ package io.github.kmpfacelink.model
  *           **Ignored when [powerMode] is set.**
  * @property powerMode Power management profile. When non-null, overrides [thermalPolicy].
  *           See [FaceTrackerConfig.powerMode] for details.
+ * @property enable3D When true, uses 3D body pose estimation on iOS (VNDetectHumanBodyPose3DRequest,
+ *           requires iOS 17+). Provides z-depth in meters relative to the root joint.
+ *           Ignored on Android (MediaPipe always provides 3D landmarks).
+ *           Defaults to false for backward compatibility.
  */
 public data class BodyTrackerConfig(
     val smoothingConfig: SmoothingConfig = SmoothingConfig.Ema(),
@@ -27,6 +31,7 @@ public data class BodyTrackerConfig(
     val minPresenceConfidence: Float = DEFAULT_CONFIDENCE,
     val thermalPolicy: ThermalPolicy = ThermalPolicy.Disabled,
     val powerMode: PowerMode? = null,
+    val enable3D: Boolean = false,
 ) {
     init {
         require(maxBodies in 1..MAX_BODIES) { "maxBodies must be 1-$MAX_BODIES, was $maxBodies" }

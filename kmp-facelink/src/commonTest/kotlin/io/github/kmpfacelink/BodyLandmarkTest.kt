@@ -82,4 +82,33 @@ class BodyLandmarkTest {
         assertEquals(0, data.sourceImageWidth)
         assertEquals(0, data.sourceImageHeight)
     }
+
+    @Test
+    fun bodyLandmarkPoint3DCoordinates() {
+        val point = BodyLandmarkPoint(
+            joint = BodyJoint.LEFT_WRIST,
+            x = 0.15f,
+            y = 0.9f,
+            z = -0.3f,
+            visibility = 1f,
+        )
+        assertEquals(0.15f, point.x)
+        assertEquals(0.9f, point.y)
+        assertEquals(-0.3f, point.z)
+        assertEquals(1f, point.visibility)
+    }
+
+    @Test
+    fun trackedBodyWith3DLandmarks() {
+        val landmarks = listOf(
+            BodyLandmarkPoint(joint = BodyJoint.NOSE, x = 0f, y = 1.7f, z = 0.1f, visibility = 1f),
+            BodyLandmarkPoint(joint = BodyJoint.LEFT_HIP, x = -0.1f, y = 0f, z = 0f, visibility = 1f),
+            BodyLandmarkPoint(joint = BodyJoint.RIGHT_HIP, x = 0.1f, y = 0f, z = 0f, visibility = 1f),
+        )
+        val body = TrackedBody(landmarks = landmarks)
+        assertEquals(3, body.landmarks.size)
+        // Verify z-depth is preserved
+        assertEquals(0.1f, body.landmarks[0].z)
+        assertEquals(0f, body.landmarks[1].z)
+    }
 }

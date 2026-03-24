@@ -5,6 +5,7 @@ import io.github.kmpfacelink.model.CameraFacing
 import io.github.kmpfacelink.model.SmoothingConfig
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 import kotlin.test.fail
 
@@ -75,5 +76,32 @@ class BodyTrackerConfigTest {
         assertEquals(2, copy.maxBodies)
         assertEquals(CameraFacing.BACK, copy.cameraFacing)
         assertEquals(original.smoothingConfig, copy.smoothingConfig)
+    }
+
+    @Test
+    fun enable3DDefaultIsFalse() {
+        val config = BodyTrackerConfig()
+        assertFalse(config.enable3D)
+    }
+
+    @Test
+    fun enable3DCanBeEnabled() {
+        val config = BodyTrackerConfig(enable3D = true)
+        assertTrue(config.enable3D)
+    }
+
+    @Test
+    fun enable3DPreservedOnCopy() {
+        val original = BodyTrackerConfig(enable3D = true)
+        val copy = original.copy(maxBodies = 2)
+        assertTrue(copy.enable3D)
+        assertEquals(2, copy.maxBodies)
+    }
+
+    @Test
+    fun enable3DCopyCanDisable() {
+        val original = BodyTrackerConfig(enable3D = true)
+        val copy = original.copy(enable3D = false)
+        assertFalse(copy.enable3D)
     }
 }

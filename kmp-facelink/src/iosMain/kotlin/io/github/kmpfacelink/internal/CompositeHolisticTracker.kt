@@ -1,5 +1,6 @@
 package io.github.kmpfacelink.internal
 
+import io.github.kmpfacelink.api.BodyTracker
 import io.github.kmpfacelink.api.HolisticTracker
 import io.github.kmpfacelink.api.TrackingState
 import io.github.kmpfacelink.model.BodyTrackingData
@@ -62,13 +63,7 @@ internal class CompositeHolisticTracker(
     }
 
     private val bodyTracker = if (config.enableBody) {
-        VisionBodyTracker(
-            config.bodyConfig.copy(
-                cameraFacing = config.cameraFacing,
-                thermalPolicy = config.thermalPolicy,
-            ),
-            sharedVisionSession = sharedVisionSession,
-        )
+        createBodyTrackerInternal(config, sharedVisionSession)
     } else {
         null
     }
@@ -179,6 +174,21 @@ internal class CompositeHolisticTracker(
             if (wasTracking) {
                 sharedVisionSession?.switchCamera(facing)
             }
+        }
+    }
+
+    private fun createBodyTrackerInternal(
+        config: HolisticTrackerConfig,
+        sharedSession: SharedVisionCaptureSession?,
+    ): BodyTracker {
+        val bodyConfig = config.bodyConfig.copy(
+            cameraFacing = config.cameraFacing,
+            thermalPolicy = config.thermalPolicy,
+        )
+        return if (bodyConfig.enable3D) {
+            VisionBodyTracker3D(bodyConfig, sharedVisionSession = sharedSession)
+        } else {
+            VisionBodyTracker(bodyConfig, sharedVisionSession = sharedSession)
         }
     }
 

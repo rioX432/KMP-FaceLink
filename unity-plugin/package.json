@@ -1,0 +1,40 @@
+{
+  "name": "io.github.kmpfacelink.unity",
+  "version": "0.1.0",
+  "displayName": "KMP-FaceLink",
+  "description": "Real-time face and hand tracking for VTuber avatar rendering. Wraps KMP-FaceLink native libraries (MediaPipe on Android, ARKit/Vision on iOS) with a unified C# API.",
+  "unity": "2021.3",
+  "keywords": [
+    "face-tracking",
+    "hand-tracking",
+    "vtuber",
+    "live2d",
+    "vrm",
+    "arkit",
+    "mediapipe",
+    "blendshape",
+    "motion-capture"
+  ],
+  "author": {
+    "name": "KMP-FaceLink",
+    "url": "https://github.com/rioX432/KMP-FaceLink"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/rioX432/KMP-FaceLink.git",
+    "directory": "unity-plugin"
+  },
+  "license": "Apache-2.0",
+  "samples": [
+    {
+      "displayName": "Face Tracking",
+      "description": "Basic face tracking with blendshape visualization.",
+      "path": "Samples~/FaceTracking"
+    },
+    {
+      "displayName": "Live2D Integration",
+      "description": "Live2D Cubism model driven by face tracking.",
+      "path": "Samples~/Live2DIntegration"
+    }
+  ]
+}

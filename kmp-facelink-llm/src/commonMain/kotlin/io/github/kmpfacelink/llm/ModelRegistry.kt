@@ -1,12 +1,35 @@
 package io.github.kmpfacelink.llm
 
+private const val GEMMA_3N_E2B_SIZE = 1_800_000_000L
+private const val GEMMA_3N_E4B_SIZE = 3_200_000_000L
+private const val QWEN3_06B_SIZE = 500_000_000L
 private const val GEMMA_3_1B_SIZE = 800_000_000L
 private const val GEMMA_3_4B_SIZE = 2_500_000_000L
 private const val PHI_3_MINI_SIZE = 2_300_000_000L
 private const val PHI_4_MINI_SIZE = 2_400_000_000L
 
+private const val GEMMA_3N_E2B_RAM = 2_000_000_000L
+private const val GEMMA_3N_E4B_RAM = 4_500_000_000L
+private const val QWEN3_06B_RAM = 800_000_000L
+private const val GEMMA_3_1B_RAM = 1_500_000_000L
+private const val GEMMA_3_4B_RAM = 4_000_000_000L
+private const val PHI_3_MINI_RAM = 4_000_000_000L
+private const val PHI_4_MINI_RAM = 4_000_000_000L
+
+/** RAM threshold: devices with this amount or less use E2B, above use E4B. */
+private const val RAM_THRESHOLD_4GB = 4_000_000_000L
+
+/** RAM threshold: devices below this use the ultra-lightweight fallback. */
+private const val RAM_THRESHOLD_1GB = 1_000_000_000L
+
 private const val HF_BASE = "https://huggingface.co"
 
+private const val GEMMA_3N_E2B_URL =
+    "$HF_BASE/google/gemma-3n-E2B-it-qat-q4_0-gguf/resolve/main/gemma-3n-E2B-it-q4_0.gguf"
+private const val GEMMA_3N_E4B_URL =
+    "$HF_BASE/google/gemma-3n-E4B-it-qat-q4_0-gguf/resolve/main/gemma-3n-E4B-it-q4_0.gguf"
+private const val QWEN3_06B_URL =
+    "$HF_BASE/Qwen/Qwen3-0.6B-GGUF/resolve/main/qwen3-0.6b-q4_0.gguf"
 private const val GEMMA_3_1B_URL =
     "$HF_BASE/google/gemma-3-1b-it-qat-q4_0-gguf/resolve/main/gemma-3-1b-it-q4_0.gguf"
 private const val GEMMA_3_4B_URL =
@@ -20,11 +43,40 @@ private const val PHI_4_MINI_URL =
  * Registry of available on-device LLM models.
  *
  * Provides a catalog of models that can be downloaded and used for local inference.
+ * The default model is Gemma 3n E2B, which uses MatFormer selective layer activation
+ * to achieve 2B effective parameters from a 5B raw model at ~2 GB download size.
  */
 public object ModelRegistry {
 
-    /** All available models in the registry. */
+    /** All available models in the registry, ordered by recommendation priority. */
     public val models: List<ModelInfo> = listOf(
+        ModelInfo(
+            id = "gemma-3n-e2b-int4",
+            displayName = "Gemma 3n E2B (INT4)",
+            sizeBytes = GEMMA_3N_E2B_SIZE,
+            quantization = Quantization.INT4,
+            downloadUrl = GEMMA_3N_E2B_URL,
+            sha256Checksum = "placeholder-checksum-gemma-3n-e2b-int4",
+            ramRequirementBytes = GEMMA_3N_E2B_RAM,
+        ),
+        ModelInfo(
+            id = "gemma-3n-e4b-int4",
+            displayName = "Gemma 3n E4B (INT4)",
+            sizeBytes = GEMMA_3N_E4B_SIZE,
+            quantization = Quantization.INT4,
+            downloadUrl = GEMMA_3N_E4B_URL,
+            sha256Checksum = "placeholder-checksum-gemma-3n-e4b-int4",
+            ramRequirementBytes = GEMMA_3N_E4B_RAM,
+        ),
+        ModelInfo(
+            id = "qwen3-0.6b-int4",
+            displayName = "Qwen3 0.6B (INT4)",
+            sizeBytes = QWEN3_06B_SIZE,
+            quantization = Quantization.INT4,
+            downloadUrl = QWEN3_06B_URL,
+            sha256Checksum = "placeholder-checksum-qwen3-0.6b-int4",
+            ramRequirementBytes = QWEN3_06B_RAM,
+        ),
         ModelInfo(
             id = "gemma-3-1b-int4",
             displayName = "Gemma 3 1B (INT4)",
@@ -32,6 +84,7 @@ public object ModelRegistry {
             quantization = Quantization.INT4,
             downloadUrl = GEMMA_3_1B_URL,
             sha256Checksum = "placeholder-checksum-gemma-3-1b-int4",
+            ramRequirementBytes = GEMMA_3_1B_RAM,
         ),
         ModelInfo(
             id = "gemma-3-4b-int4",
@@ -40,6 +93,7 @@ public object ModelRegistry {
             quantization = Quantization.INT4,
             downloadUrl = GEMMA_3_4B_URL,
             sha256Checksum = "placeholder-checksum-gemma-3-4b-int4",
+            ramRequirementBytes = GEMMA_3_4B_RAM,
         ),
         ModelInfo(
             id = "phi-3-mini-int4",
@@ -48,6 +102,7 @@ public object ModelRegistry {
             quantization = Quantization.INT4,
             downloadUrl = PHI_3_MINI_URL,
             sha256Checksum = "placeholder-checksum-phi-3-mini-int4",
+            ramRequirementBytes = PHI_3_MINI_RAM,
         ),
         ModelInfo(
             id = "phi-4-mini-int4",
@@ -56,14 +111,41 @@ public object ModelRegistry {
             quantization = Quantization.INT4,
             downloadUrl = PHI_4_MINI_URL,
             sha256Checksum = "placeholder-checksum-phi-4-mini-int4",
+            ramRequirementBytes = PHI_4_MINI_RAM,
         ),
     )
 
     /**
      * Finds a model by its unique identifier.
      *
-     * @param id Model identifier (e.g. "gemma-3-1b-int4")
+     * @param id Model identifier (e.g. "gemma-3n-e2b-int4")
      * @return The matching [ModelInfo], or null if not found
      */
     public fun findById(id: String): ModelInfo? = models.find { it.id == id }
+
+    /**
+     * Recommends the best model for the given device RAM.
+     *
+     * Selection logic:
+     * - RAM < 1 GB → Qwen3 0.6B (ultra-lightweight fallback)
+     * - RAM ≤ 4 GB → Gemma 3n E2B (default, 2B effective params)
+     * - RAM > 4 GB → Gemma 3n E4B (high-quality, 4B effective params)
+     *
+     * @param deviceRamBytes Total device RAM in bytes
+     * @return The recommended [ModelInfo] for the device
+     */
+    public fun recommendForRam(deviceRamBytes: Long): ModelInfo {
+        return when {
+            deviceRamBytes < RAM_THRESHOLD_1GB -> findById("qwen3-0.6b-int4")!!
+            deviceRamBytes <= RAM_THRESHOLD_4GB -> findById("gemma-3n-e2b-int4")!!
+            else -> findById("gemma-3n-e4b-int4")!!
+        }
+    }
+
+    /**
+     * Returns the default model (Gemma 3n E2B).
+     *
+     * Use [recommendForRam] for device-adaptive selection instead.
+     */
+    public fun defaultModel(): ModelInfo = findById("gemma-3n-e2b-int4")!!
 }

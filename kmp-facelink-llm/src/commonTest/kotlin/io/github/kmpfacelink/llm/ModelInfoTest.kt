@@ -14,6 +14,7 @@ class ModelInfoTest {
             quantization = Quantization.INT4,
             downloadUrl = "https://example.com/model.gguf",
             sha256Checksum = "abc123",
+            ramRequirementBytes = 2_000_000L,
         )
         assertEquals("test-model", info.id)
         assertEquals("Test Model", info.displayName)
@@ -21,6 +22,20 @@ class ModelInfoTest {
         assertEquals(Quantization.INT4, info.quantization)
         assertEquals("https://example.com/model.gguf", info.downloadUrl)
         assertEquals("abc123", info.sha256Checksum)
+        assertEquals(2_000_000L, info.ramRequirementBytes)
+    }
+
+    @Test
+    fun modelInfoRamRequirementDefaultsToZero() {
+        val info = ModelInfo(
+            id = "test-model",
+            displayName = "Test Model",
+            sizeBytes = 1_000_000L,
+            quantization = Quantization.INT4,
+            downloadUrl = "https://example.com/model.gguf",
+            sha256Checksum = "abc123",
+        )
+        assertEquals(0L, info.ramRequirementBytes)
     }
 
     @Test

@@ -63,7 +63,7 @@ public sealed class LlmConfig {
      *
      * Uses a locally downloaded model for inference without network access.
      *
-     * @property modelId Identifier matching a [ModelRegistry] entry (e.g. "gemma-3-1b-int4")
+     * @property modelId Identifier matching a [ModelRegistry] entry (e.g. "gemma-3n-e2b-int4")
      * @property maxTokens Maximum tokens in the response
      * @property temperature Sampling temperature (0.0–2.0)
      */

@@ -20,6 +20,12 @@ import kotlin.concurrent.atomics.ExperimentalAtomicApi
 @OptIn(ExperimentalAtomicApi::class)
 public class ActionSystem {
 
+    /** Immutable snapshot of the latest tracking data, captured under [mutex]. */
+    private data class TrackingSnapshot(
+        val face: FaceTrackingData?,
+        val hand: HandTrackingData?,
+    )
+
     private val mutex = Mutex()
     private val released = AtomicInt(0)
     private val bindings = mutableMapOf<String, ActionBinding>()
@@ -78,7 +84,7 @@ public class ActionSystem {
         val pendingEvents = mutex.withLock {
             if (released.load() != 0) return emptyList()
             latestFace = data
-            processAllBindings(data.timestampMs)
+            processAllBindings(TrackingSnapshot(latestFace, latestHand), data.timestampMs)
         }
         pendingEvents.forEach { _events.trySend(it) }
         return pendingEvents
@@ -94,17 +100,20 @@ public class ActionSystem {
         val pendingEvents = mutex.withLock {
             if (released.load() != 0) return emptyList()
             latestHand = data
-            processAllBindings(data.timestampMs)
+            processAllBindings(TrackingSnapshot(latestFace, latestHand), data.timestampMs)
         }
         pendingEvents.forEach { _events.trySend(it) }
         return pendingEvents
     }
 
-    private fun processAllBindings(timestampMs: Long): List<ActionEvent> {
+    private fun processAllBindings(
+        snapshot: TrackingSnapshot,
+        timestampMs: Long,
+    ): List<ActionEvent> {
         val result = mutableListOf<ActionEvent>()
         for ((actionId, binding) in bindings) {
             val state = states[actionId] ?: continue
-            processBinding(binding, state, timestampMs, result)
+            processBinding(binding, state, snapshot, timestampMs, result)
         }
         return result
     }
@@ -123,13 +132,14 @@ public class ActionSystem {
     private fun processBinding(
         binding: ActionBinding,
         state: TriggerState,
+        snapshot: TrackingSnapshot,
         timestampMs: Long,
         events: MutableList<ActionEvent>,
     ) {
         val conditionMet = TriggerEvaluator.evaluate(
             binding.trigger,
-            latestFace,
-            latestHand,
+            snapshot.face,
+            snapshot.hand,
         )
         state.markConditionMet(conditionMet)
 

@@ -131,6 +131,45 @@ class OscEncoderDecoderTest {
     }
 
     @Test
+    fun unsupportedTypeTagsAreSkippedGracefully() {
+        // Build a raw OSC message with type tags ",Tif" (True + int + float)
+        // The decoder should skip the unsupported 'T' tag (zero-size) and decode the rest
+        val buffer = OscByteBuffer()
+        writeString(buffer, "/test")
+        writeString(buffer, ",Tif")
+        // 'T' has no data bytes; 'i' reads 4 bytes; 'f' reads 4 bytes
+        writeInt(buffer, 99)
+        writeFloat(buffer, 1.5f)
+        val raw = buffer.toByteArray()
+
+        val decoded = OscDecoder.decode(raw)
+
+        assertEquals(1, decoded.size)
+        val msg = decoded[0]
+        assertEquals("/test", msg.address)
+        // 'T' is skipped, so we get 2 arguments: int, float
+        assertEquals(2, msg.arguments.size)
+        assertEquals(99, (msg.arguments[0] as OscArgument.IntArg).value)
+        assertEquals(1.5f, (msg.arguments[1] as OscArgument.FloatArg).value)
+    }
+
+    @Test
+    fun unknownTypeTagDoesNotCrash() {
+        // Build a message where the only argument has an unknown tag 'X'
+        // The decoder should return an empty argument list without throwing
+        val buffer = OscByteBuffer()
+        writeString(buffer, "/unknown")
+        writeString(buffer, ",X")
+        val raw = buffer.toByteArray()
+
+        val decoded = OscDecoder.decode(raw)
+
+        assertEquals(1, decoded.size)
+        assertEquals("/unknown", decoded[0].address)
+        assertTrue(decoded[0].arguments.isEmpty())
+    }
+
+    @Test
     fun paddingCalculation() {
         // Content length 0: total with null = 1, pad to 4 -> 4 null bytes
         assertEquals(4, oscStringPadding(0))

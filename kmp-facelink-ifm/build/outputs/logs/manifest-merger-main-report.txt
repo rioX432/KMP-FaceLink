@@ -1,0 +1,13 @@
+-- Merging decision tree log ---
+manifest
+ADDED from /Users/rio/workspace/projects/KMP-FaceLink/.claude/worktrees/agent-a785d5f1/kmp-facelink-ifm/build/intermediates/tmp/ProcessLibraryManifest/main/tempAndroidManifest1005809389640124789.xml:2:13-83
+INJECTED from /Users/rio/workspace/projects/KMP-FaceLink/.claude/worktrees/agent-a785d5f1/kmp-facelink-ifm/build/intermediates/tmp/ProcessLibraryManifest/main/tempAndroidManifest1005809389640124789.xml:2:13-83
+	package
+		INJECTED from /Users/rio/workspace/projects/KMP-FaceLink/.claude/worktrees/agent-a785d5f1/kmp-facelink-ifm/build/intermediates/tmp/ProcessLibraryManifest/main/tempAndroidManifest1005809389640124789.xml
+	xmlns:android
+		ADDED from /Users/rio/workspace/projects/KMP-FaceLink/.claude/worktrees/agent-a785d5f1/kmp-facelink-ifm/build/intermediates/tmp/ProcessLibraryManifest/main/tempAndroidManifest1005809389640124789.xml:2:23-81
+uses-sdk
+INJECTED from /Users/rio/workspace/projects/KMP-FaceLink/.claude/worktrees/agent-a785d5f1/kmp-facelink-ifm/build/intermediates/tmp/ProcessLibraryManifest/main/tempAndroidManifest1005809389640124789.xml reason: use-sdk injection requested
+INJECTED from /Users/rio/workspace/projects/KMP-FaceLink/.claude/worktrees/agent-a785d5f1/kmp-facelink-ifm/build/intermediates/tmp/ProcessLibraryManifest/main/tempAndroidManifest1005809389640124789.xml
+	android:minSdkVersion
+		INJECTED from /Users/rio/workspace/projects/KMP-FaceLink/.claude/worktrees/agent-a785d5f1/kmp-facelink-ifm/build/intermediates/tmp/ProcessLibraryManifest/main/tempAndroidManifest1005809389640124789.xml

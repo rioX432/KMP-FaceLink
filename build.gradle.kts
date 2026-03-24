@@ -208,3 +208,16 @@ project(":kmp-facelink-vmc") {
         }
     }
 }
+
+project(":kmp-facelink-ifm") {
+    afterEvaluate {
+        detekt {
+            source.setFrom(
+                "src/commonMain/kotlin",
+                "src/androidMain/kotlin",
+                "src/iosMain/kotlin",
+                "src/commonTest/kotlin",
+            )
+        }
+    }
+}

@@ -13,11 +13,12 @@ let package = Package(
         .library(name: "KMPFaceLink", targets: ["KMPFaceLink"]),
         .library(name: "KMPFaceLinkAvatar", targets: ["KMPFaceLinkAvatar"]),
         .library(name: "KMPFaceLinkActions", targets: ["KMPFaceLinkActions"]),
-        .library(name: "KMPFaceLinkEffects", targets: ["KMPFaceLinkEffects"]),
-        .library(name: "KMPFaceLinkStream", targets: ["KMPFaceLinkStream"]),
         .library(name: "KMPFaceLinkVoice", targets: ["KMPFaceLinkVoice"]),
-        .library(name: "KMPFaceLinkRive", targets: ["KMPFaceLinkRive"]),
         .library(name: "KMPFaceLinkLlm", targets: ["KMPFaceLinkLlm"]),
+        .library(name: "KMPFaceLinkPipeline", targets: ["KMPFaceLinkPipeline"]),
+        .library(name: "KMPFaceLinkNetworking", targets: ["KMPFaceLinkNetworking"]),
+        .library(name: "KMPFaceLinkVMC", targets: ["KMPFaceLinkVMC"]),
+        .library(name: "KMPFaceLinkIFM", targets: ["KMPFaceLinkIFM"]),
     ],
     targets: [
         .binaryTarget(
@@ -36,28 +37,33 @@ let package = Package(
             checksum: "CHECKSUM_PLACEHOLDER"
         ),
         .binaryTarget(
-            name: "KMPFaceLinkEffects",
-            url: "\(repoUrl)/KMPFaceLinkEffects.xcframework.zip",
-            checksum: "CHECKSUM_PLACEHOLDER"
-        ),
-        .binaryTarget(
-            name: "KMPFaceLinkStream",
-            url: "\(repoUrl)/KMPFaceLinkStream.xcframework.zip",
-            checksum: "CHECKSUM_PLACEHOLDER"
-        ),
-        .binaryTarget(
             name: "KMPFaceLinkVoice",
             url: "\(repoUrl)/KMPFaceLinkVoice.xcframework.zip",
             checksum: "CHECKSUM_PLACEHOLDER"
         ),
         .binaryTarget(
-            name: "KMPFaceLinkRive",
-            url: "\(repoUrl)/KMPFaceLinkRive.xcframework.zip",
+            name: "KMPFaceLinkLlm",
+            url: "\(repoUrl)/KMPFaceLinkLlm.xcframework.zip",
             checksum: "CHECKSUM_PLACEHOLDER"
         ),
         .binaryTarget(
-            name: "KMPFaceLinkLlm",
-            url: "\(repoUrl)/KMPFaceLinkLlm.xcframework.zip",
+            name: "KMPFaceLinkPipeline",
+            url: "\(repoUrl)/KMPFaceLinkPipeline.xcframework.zip",
+            checksum: "CHECKSUM_PLACEHOLDER"
+        ),
+        .binaryTarget(
+            name: "KMPFaceLinkNetworking",
+            url: "\(repoUrl)/KMPFaceLinkNetworking.xcframework.zip",
+            checksum: "CHECKSUM_PLACEHOLDER"
+        ),
+        .binaryTarget(
+            name: "KMPFaceLinkVMC",
+            url: "\(repoUrl)/KMPFaceLinkVMC.xcframework.zip",
+            checksum: "CHECKSUM_PLACEHOLDER"
+        ),
+        .binaryTarget(
+            name: "KMPFaceLinkIFM",
+            url: "\(repoUrl)/KMPFaceLinkIFM.xcframework.zip",
             checksum: "CHECKSUM_PLACEHOLDER"
         ),
     ]

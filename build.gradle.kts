@@ -28,6 +28,12 @@ val publishableModules = setOf(
     "kmp-facelink-actions",
     "kmp-facelink-voice",
     "kmp-facelink-llm",
+    "kmp-facelink-pipeline",
+    "kmp-facelink-networking",
+    "kmp-facelink-vmc",
+    "kmp-facelink-ifm",
+    "kmp-facelink-stream",
+    "kmp-facelink-vts",
 )
 
 val pomDescriptions = mapOf(
@@ -36,6 +42,12 @@ val pomDescriptions = mapOf(
     "kmp-facelink-actions" to "Gesture and expression trigger system for KMP-FaceLink",
     "kmp-facelink-voice" to "ASR, TTS, and lip sync for KMP-FaceLink",
     "kmp-facelink-llm" to "LLM streaming API for KMP-FaceLink",
+    "kmp-facelink-pipeline" to "AI avatar pipeline orchestrating voice, LLM, and animation for KMP-FaceLink",
+    "kmp-facelink-networking" to "Shared UDP socket and time utilities for KMP-FaceLink protocol modules",
+    "kmp-facelink-vmc" to "VMC Protocol (OSC over UDP) sender and receiver for KMP-FaceLink",
+    "kmp-facelink-ifm" to "iFacialMocap protocol output for KMP-FaceLink",
+    "kmp-facelink-stream" to "WebSocket streaming server for KMP-FaceLink phone-as-tracker use case",
+    "kmp-facelink-vts" to "VTube Studio Plugin API integration for KMP-FaceLink",
 )
 
 val detektFormatting = libs.detekt.formatting
@@ -54,6 +66,12 @@ dependencies {
     dokka(project(":kmp-facelink-actions"))
     dokka(project(":kmp-facelink-voice"))
     dokka(project(":kmp-facelink-llm"))
+    dokka(project(":kmp-facelink-pipeline"))
+    dokka(project(":kmp-facelink-networking"))
+    dokka(project(":kmp-facelink-vmc"))
+    dokka(project(":kmp-facelink-ifm"))
+    dokka(project(":kmp-facelink-stream"))
+    dokka(project(":kmp-facelink-vts"))
 }
 
 subprojects {

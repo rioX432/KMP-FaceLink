@@ -20,6 +20,7 @@ KMP-FaceLink is a Kotlin Multiplatform SDK for real-time face/hand/body tracking
 | `kmp-facelink-vmc` | VMC Protocol (OSC over UDP) sender/receiver for VRM apps | Experimental |
 | `kmp-facelink-ifm` | iFacialMocap protocol output (MeowFace replacement) for VTube Studio | Experimental |
 | `kmp-facelink-stream` | WebSocket streaming server for phone-as-tracker use case | Experimental |
+| `kmp-facelink-vts` | VTube Studio Plugin API direct integration via WebSocket | Experimental |
 
 ### Dependency Tree
 
@@ -33,7 +34,8 @@ kmp-facelink (core)
   ├── kmp-facelink-networking → standalone (UDP + time utils)
   ├── kmp-facelink-vmc      → depends on core, networking
   ├── kmp-facelink-ifm      → depends on core, networking
-  └── kmp-facelink-stream   → depends on core
+  ├── kmp-facelink-stream   → depends on core
+  └── kmp-facelink-vts     → depends on core
 ```
 
 ### Source Set Layout
@@ -49,7 +51,7 @@ Each library module follows this pattern:
 ```
 
 Modules with platform code: `kmp-facelink` (android/ios/jvm), `kmp-facelink-networking` (android/ios), `kmp-facelink-voice`, `kmp-facelink-llm`
-Pure common modules: `kmp-facelink-avatar`, `kmp-facelink-actions`, `kmp-facelink-pipeline`
+Pure common modules: `kmp-facelink-avatar`, `kmp-facelink-actions`, `kmp-facelink-pipeline`, `kmp-facelink-vts`
 Note: `kmp-facelink` has a `jvmMain` source set with no-op tracker stubs for desktop/JVM target support.
 Note: `kmp-facelink-llm` includes platform-specific inference engines (llama.cpp on Android, Apple Foundation Models on iOS 26+) for on-device LLM.
 

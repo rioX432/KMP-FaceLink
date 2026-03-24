@@ -11,6 +11,10 @@ import androidx.camera.core.ImageProxy
  *
  * Reuses a source bitmap and a [BitmapPool] for output bitmaps to eliminate
  * per-frame allocation and GC pressure.
+ *
+ * All public methods are `@Synchronized` to prevent concurrent access to
+ * mutable bitmap state (source bitmap, packed buffer, row data). This ensures
+ * that [release] cannot recycle a bitmap while [convert] is still drawing.
  */
 internal class ImageProxyConverter {
 
@@ -24,6 +28,7 @@ internal class ImageProxyConverter {
     private var rowData: ByteArray? = null
     private var rowDataCapacity: Int = 0
 
+    @Synchronized
     fun convert(imageProxy: ImageProxy, mirrorHorizontally: Boolean = false): Bitmap? {
         val fullWidth = imageProxy.width
         val fullHeight = imageProxy.height
@@ -115,10 +120,12 @@ internal class ImageProxyConverter {
         }
     }
 
+    @Synchronized
     fun returnBitmap(bitmap: Bitmap) {
         bitmapPool.returnBitmap(bitmap)
     }
 
+    @Synchronized
     fun release() {
         sourceBitmap?.recycle()
         sourceBitmap = null

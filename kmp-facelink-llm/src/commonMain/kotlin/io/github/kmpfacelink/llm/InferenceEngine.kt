@@ -3,10 +3,13 @@ package io.github.kmpfacelink.llm
 import kotlinx.coroutines.flow.Flow
 
 /**
- * Engine for running on-device LLM inference.
+ * Engine for running on-device LLM inference with downloaded GGUF models.
  *
- * Platform implementations (e.g. llama.cpp on Android, MLX on iOS)
- * implement this interface and are injected via factory.
+ * Platform implementations (e.g. llama.cpp on Android) implement this interface
+ * and are injected via factory.
+ *
+ * Note: On iOS 26+, prefer [LlmConfig.FoundationModels] which uses Apple's
+ * built-in system language model instead of downloaded models.
  */
 public interface InferenceEngine {
 

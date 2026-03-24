@@ -5,7 +5,7 @@ import io.github.kmpfacelink.llm.ConversationHistory
 
 /**
  * Formats a [ConversationHistory] into a ChatML prompt string
- * suitable for instruction-tuned models (GGUF / MLX).
+ * suitable for instruction-tuned GGUF models.
  *
  * Shared across Android (llama.cpp) and iOS (MLX) on-device clients.
  */

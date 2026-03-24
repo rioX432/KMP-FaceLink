@@ -37,7 +37,7 @@ class OnDeviceConfigTest {
     }
 
     // Note: LlmClient.create(OnDevice) behavior is platform-specific.
-    // Android creates a real OnDeviceLlmClient (requires native lib).
-    // iOS throws UnsupportedOperationException (MLX not yet implemented).
+    // Android creates a real OnDeviceLlmClient (requires llama.cpp native lib).
+    // iOS transparently upgrades to Foundation Models on iOS 26+ or throws error.
     // Platform-specific tests cover this in their respective source sets.
 }

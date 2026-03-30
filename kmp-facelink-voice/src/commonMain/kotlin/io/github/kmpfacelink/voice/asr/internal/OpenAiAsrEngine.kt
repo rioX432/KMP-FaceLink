@@ -46,6 +46,8 @@ internal class OpenAiAsrEngine(private val config: AsrConfig.OpenAiWhisper) : As
         expectSuccess = true
     }
 
+    @Volatile private var released = false
+
     private val json = Json { ignoreUnknownKeys = true }
 
     override suspend fun transcribe(audio: AudioData): TranscriptionResult {
@@ -96,6 +98,8 @@ internal class OpenAiAsrEngine(private val config: AsrConfig.OpenAiWhisper) : As
     }
 
     override fun release() {
+        if (released) return
+        released = true
         client.close()
     }
 

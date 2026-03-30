@@ -44,6 +44,8 @@ internal class VoicevoxTtsEngine(private val config: TtsConfig.Voicevox) : TtsEn
         expectSuccess = true
     }
 
+    @Volatile private var released = false
+
     private val json = Json { ignoreUnknownKeys = true }
 
     override suspend fun synthesize(text: String): TtsResult {
@@ -95,6 +97,8 @@ internal class VoicevoxTtsEngine(private val config: TtsConfig.Voicevox) : TtsEn
     }
 
     override fun release() {
+        if (released) return
+        released = true
         client.close()
     }
 

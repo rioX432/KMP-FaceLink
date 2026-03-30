@@ -43,6 +43,8 @@ internal class OpenAiTtsEngine(private val config: TtsConfig.OpenAiTts) : TtsEng
         expectSuccess = true
     }
 
+    @Volatile private var released = false
+
     private val json = Json { ignoreUnknownKeys = true }
 
     override suspend fun synthesize(text: String): TtsResult {
@@ -86,6 +88,8 @@ internal class OpenAiTtsEngine(private val config: TtsConfig.OpenAiTts) : TtsEng
     }
 
     override fun release() {
+        if (released) return
+        released = true
         client.close()
     }
 

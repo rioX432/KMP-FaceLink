@@ -71,6 +71,41 @@ class VtsMessageBuilderTest {
     }
 
     @Test
+    fun postProcessingListRequestHasCorrectStructure() {
+        val request = VtsMessageBuilder.buildPostProcessingListRequest(
+            fillPresets = true,
+            fillEffects = true,
+            effectIdFilter = listOf("ChromaticAberration"),
+            requestId = "pp-1",
+        )
+        val envelope = json.decodeFromString<VtsEnvelope>(request)
+        assertEquals("PostProcessingListRequest", envelope.messageType)
+        assertEquals("pp-1", envelope.requestID)
+        val data = envelope.data!!
+        assertTrue(data.containsKey("fillPostProcessingPresetsArray"))
+        assertTrue(data.containsKey("fillPostProcessingEffectsArray"))
+        assertTrue(data.containsKey("effectIDFilter"))
+    }
+
+    @Test
+    fun postProcessingUpdateRequestHasCorrectStructure() {
+        val request = VtsMessageBuilder.buildPostProcessingUpdateRequest(
+            values = listOf(
+                PostProcessingValueData("Backlight_Strength", "0.8"),
+            ),
+            postProcessingOn = true,
+            fadeTime = 0.5,
+            requestId = "pp-2",
+        )
+        val envelope = json.decodeFromString<VtsEnvelope>(request)
+        assertEquals("SetPostProcessingEffectValues", envelope.messageType)
+        val data = envelope.data!!
+        assertTrue(data.containsKey("postProcessingOn"))
+        assertTrue(data.containsKey("postProcessingValues"))
+        assertTrue(data.containsKey("postProcessingFadeTime"))
+    }
+
+    @Test
     fun parameterCreationRequestHasCorrectFields() {
         val request = VtsMessageBuilder.buildParameterCreationRequest(
             data = ParameterCreationData(

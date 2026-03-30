@@ -12,24 +12,46 @@ import kotlinx.coroutines.launch
  * Bridges face tracking data to VTube Studio via the Plugin API WebSocket.
  * Handles connection, authentication, and continuous parameter injection.
  *
- * Usage:
+ * ## Phone-as-Tracker Example
+ *
+ * Use a mobile device as a wireless face tracker for VTube Studio running
+ * on a desktop PC on the same Wi-Fi network:
+ *
  * ```kotlin
+ * // On the mobile device (Android/iOS)
+ * val faceTracker = FaceTracker(context)
  * val scope = CoroutineScope(Dispatchers.Default + SupervisorJob())
+ *
  * val sender = VtsSender(VtsConfig(
- *     pluginName = "MyApp",
+ *     host = "192.168.1.100",  // Desktop PC IP address
+ *     pluginName = "MyTracker",
  *     pluginDeveloper = "MyName",
- *     authToken = savedToken, // null for first-time
+ *     authToken = savedToken,  // null for first-time (shows VTS popup)
  * ))
+ *
+ * faceTracker.start()
  * sender.start(faceTracker.trackingData, scope)
- * // Save sender.authToken for next session
- * // ... later
+ *
+ * // After start(), save the token for next session:
+ * preferences.save("vts_token", sender.authToken)
+ *
+ * // When done:
  * sender.stop()
+ * faceTracker.stop()
+ * scope.cancel()
  * ```
  *
- * Tracking data is produced by [io.github.kmpfacelink.api.FaceTracker] in the core module.
+ * ## Token Persistence
+ *
+ * The first authentication triggers a permission popup in VTube Studio.
+ * After the user approves, [authToken] is populated with a reusable token.
+ * Save this token and pass it via [VtsConfig.authToken] on subsequent sessions
+ * to skip the popup.
  *
  * @param config VTS connection and plugin configuration
  * @param client Optional [VtsClient] instance (created internally if not provided)
+ * @see VtsClient for lower-level API access including post-processing
+ * @see VtsParameterConverter for the blendshape-to-VTS parameter mapping
  */
 public class VtsSender(
     private val config: VtsConfig = VtsConfig(),

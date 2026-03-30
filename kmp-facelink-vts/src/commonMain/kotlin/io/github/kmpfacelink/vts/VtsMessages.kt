@@ -99,6 +99,76 @@ internal data class ParameterCreationResponseData(
     val parameterName: String,
 )
 
+// -- Post-Processing List --
+
+@Serializable
+internal data class PostProcessingListRequestData(
+    val fillPostProcessingPresetsArray: Boolean = false,
+    val fillPostProcessingEffectsArray: Boolean = true,
+    val effectIDFilter: List<String> = emptyList(),
+)
+
+@Serializable
+internal data class PostProcessingListResponseData(
+    val postProcessingSupported: Boolean = true,
+    val postProcessingActive: Boolean = false,
+    val presetCount: Int = 0,
+    val activePreset: String = "",
+    val postProcessingPresets: List<PostProcessingPresetData> = emptyList(),
+    val postProcessingEffects: List<PostProcessingEffectData> = emptyList(),
+)
+
+@Serializable
+internal data class PostProcessingPresetData(
+    val id: String,
+    val name: String,
+    val index: Int = 0,
+    val isActive: Boolean = false,
+)
+
+@Serializable
+internal data class PostProcessingEffectData(
+    val internalID: String,
+    val enumID: String = "",
+    val explanation: String = "",
+    val isActive: Boolean = false,
+    val configEntries: List<PostProcessingConfigEntryData> = emptyList(),
+)
+
+@Serializable
+internal data class PostProcessingConfigEntryData(
+    val internalID: String,
+    val explanation: String = "",
+    val type: String = "",
+    val activationConfig: Boolean = false,
+    val currentValue: String = "",
+    val minValue: String = "",
+    val maxValue: String = "",
+    val defaultValue: String = "",
+)
+
+// -- Post-Processing Update --
+
+@Serializable
+internal data class PostProcessingUpdateRequestData(
+    val postProcessingOn: Boolean = true,
+    val setPostProcessingPreset: Boolean = false,
+    val setPostProcessingValues: Boolean = true,
+    val presetToSet: String = "",
+    val postProcessingFadeTime: Double = 0.0,
+    val setAllOtherValuesToDefault: Boolean = false,
+    val usingRestrictedEffects: Boolean = false,
+    val randomizeAll: Boolean = false,
+    val randomizeAllChaosLevel: Double = 0.5,
+    val postProcessingValues: List<PostProcessingValueData> = emptyList(),
+)
+
+@Serializable
+internal data class PostProcessingValueData(
+    val configId: String,
+    val configValue: String,
+)
+
 // -- Error --
 
 @Serializable

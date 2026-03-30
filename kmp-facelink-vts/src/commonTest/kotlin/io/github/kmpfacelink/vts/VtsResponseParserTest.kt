@@ -96,6 +96,62 @@ class VtsResponseParserTest {
     }
 
     @Test
+    fun parsePostProcessingListResponse() {
+        val responseJson = """
+            {
+                "apiName": "VTubeStudioPublicAPI",
+                "apiVersion": "1.0",
+                "timestamp": 1625405710728,
+                "requestID": "pp-1",
+                "messageType": "PostProcessingListResponse",
+                "data": {
+                    "postProcessingSupported": true,
+                    "postProcessingActive": true,
+                    "presetCount": 2,
+                    "activePreset": "MyPreset",
+                    "postProcessingEffects": [
+                        {
+                            "internalID": "bloom_001",
+                            "enumID": "Bloom",
+                            "explanation": "Adds glow effect",
+                            "isActive": true,
+                            "configEntries": [
+                                {
+                                    "internalID": "Bloom_Strength",
+                                    "explanation": "Bloom intensity",
+                                    "type": "Float",
+                                    "activationConfig": false,
+                                    "currentValue": "0.5",
+                                    "minValue": "0",
+                                    "maxValue": "1",
+                                    "defaultValue": "0.3"
+                                }
+                            ]
+                        }
+                    ]
+                }
+            }
+        """.trimIndent()
+        val envelope = VtsResponseParser.parseEnvelope(responseJson)
+        assertEquals("PostProcessingListResponse", envelope.messageType)
+        assertFalse(VtsResponseParser.isError(envelope))
+
+        val data = VtsResponseParser.parsePostProcessingListResponse(envelope.data!!)
+        assertTrue(data.postProcessingSupported)
+        assertTrue(data.postProcessingActive)
+        assertEquals("MyPreset", data.activePreset)
+        assertEquals(1, data.postProcessingEffects.size)
+
+        val effect = data.postProcessingEffects[0]
+        assertEquals("bloom_001", effect.internalID)
+        assertEquals("Bloom", effect.enumID)
+        assertTrue(effect.isActive)
+        assertEquals(1, effect.configEntries.size)
+        assertEquals("Bloom_Strength", effect.configEntries[0].internalID)
+        assertEquals("0.5", effect.configEntries[0].currentValue)
+    }
+
+    @Test
     fun parseUnknownFieldsIgnored() {
         val responseJson = """
             {

@@ -34,4 +34,8 @@ internal object VtsResponseParser {
     /** Extracts API state from APIStateResponse. */
     fun parseApiStateResponse(data: JsonObject): ApiStateResponseData =
         json.decodeFromJsonElement(data)
+
+    /** Extracts post-processing list from PostProcessingListResponse. */
+    fun parsePostProcessingListResponse(data: JsonObject): PostProcessingListResponseData =
+        json.decodeFromJsonElement(data)
 }

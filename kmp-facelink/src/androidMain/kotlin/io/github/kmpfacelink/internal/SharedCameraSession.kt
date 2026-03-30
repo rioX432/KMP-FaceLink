@@ -12,7 +12,9 @@ import androidx.core.content.ContextCompat
 import io.github.kmpfacelink.api.PlatformContext
 import io.github.kmpfacelink.model.CameraFacing
 import kotlinx.coroutines.suspendCancellableCoroutine
+import java.util.concurrent.CancellationException
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.ExecutionException
 import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.coroutines.resume
@@ -170,7 +172,9 @@ internal class SharedCameraSession(
                 {
                     try {
                         cont.resume(future.get())
-                    } catch (e: Exception) {
+                    } catch (e: ExecutionException) {
+                        cont.resumeWithException(e.cause ?: e)
+                    } catch (e: CancellationException) {
                         cont.resumeWithException(e)
                     }
                 },

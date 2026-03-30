@@ -12,6 +12,9 @@ public const val DEFAULT_BUFFER_SIZE: Int = 8192
  * Thread-safe: concurrent calls to [send], [bind], [receive], and [close]
  * are synchronized to prevent race conditions during lazy socket creation.
  *
+ * Used by [io.github.kmpfacelink.vmc.VmcSender], [io.github.kmpfacelink.vmc.VmcReceiver],
+ * and [io.github.kmpfacelink.ifm.IfmSender] for protocol transport.
+ *
  * @param bufferSize receive buffer size in bytes (default [DEFAULT_BUFFER_SIZE])
  */
 public expect class UdpSocket(bufferSize: Int = DEFAULT_BUFFER_SIZE) {

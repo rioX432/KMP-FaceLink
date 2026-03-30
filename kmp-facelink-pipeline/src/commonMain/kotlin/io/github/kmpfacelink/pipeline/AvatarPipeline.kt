@@ -14,6 +14,16 @@ import kotlinx.coroutines.flow.StateFlow
  * - After speech completes, returns to [AvatarPipelineState.Idle]
  *
  * Collect [output] to receive continuous avatar animation frames.
+ *
+ * ## Related modules
+ *
+ * - **kmp-facelink-voice**: Provides ASR/TTS/lip sync via [io.github.kmpfacelink.voice.asr.AsrEngine]
+ *   and [io.github.kmpfacelink.voice.tts.TtsEngine].
+ * - **kmp-facelink-llm**: Provides LLM streaming via [io.github.kmpfacelink.llm.LlmEngine].
+ * - **kmp-facelink-avatar**: Maps blend shapes to avatar parameters via
+ *   [io.github.kmpfacelink.avatar.AvatarParameterMapper].
+ *
+ * @see AvatarPipelineBuilder
  */
 public interface AvatarPipeline : Releasable {
 

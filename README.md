@@ -1,5 +1,12 @@
 # KMP-FaceLink
 
+[![CI](https://github.com/rioX432/KMP-FaceLink/actions/workflows/ci.yml/badge.svg)](https://github.com/rioX432/KMP-FaceLink/actions/workflows/ci.yml)
+[![Maven Central](https://img.shields.io/maven-central/v/io.github.rioX432/kmp-facelink)](https://central.sonatype.com/namespace/io.github.rioX432)
+[![Kotlin](https://img.shields.io/badge/Kotlin-2.2.0-7F52FF.svg?logo=kotlin)](https://kotlinlang.org)
+[![Platforms](https://img.shields.io/badge/Platforms-Android%20%7C%20iOS%20%7C%20JVM-blue)](https://kotlinlang.org/docs/multiplatform.html)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![API Docs](https://img.shields.io/badge/API%20Docs-Dokka-blue)](https://rioX432.github.io/KMP-FaceLink/)
+
 Unified face, hand & body tracking SDK for Kotlin Multiplatform — one API, both platforms.
 
 ## Modules
@@ -39,5 +46,9 @@ Unified face, hand & body tracking SDK for Kotlin Multiplatform — one API, bot
 - NSCameraUsageDescription in Info.plist
 - TrueDepth front camera (face tracking)
 - ARKit capability in entitlements
+
+## Documentation
+
+Full API documentation is available at **[rioX432.github.io/KMP-FaceLink](https://rioX432.github.io/KMP-FaceLink/)**, generated with [Dokka](https://github.com/Kotlin/dokka) and deployed automatically on each release.
 
 ## [Changelog](CHANGELOG.md)

@@ -28,6 +28,9 @@ import kotlinx.coroutines.launch
  * sender.stop()
  * ```
  *
+ * Tracking data is produced by [io.github.kmpfacelink.api.FaceTracker] in the core module.
+ * UDP transport is provided by [io.github.kmpfacelink.networking.UdpSocket].
+ *
  * @param config VMC connection configuration
  */
 public class VmcSender(

@@ -87,7 +87,7 @@ public class VtsClient(
             pendingRequests.clear()
         }
         if (ownsClient) {
-            // Don't close user-provided client
+            client.close()
         }
     }
 

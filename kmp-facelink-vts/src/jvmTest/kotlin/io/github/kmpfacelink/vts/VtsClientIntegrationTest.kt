@@ -10,6 +10,7 @@ import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
@@ -154,5 +155,23 @@ class VtsClientIntegrationTest {
             httpClient.close()
             serverJob.cancel()
         }
+    }
+
+    @Test
+    fun disconnectWithoutConnectClosesOwnedHttpClient() = runTest {
+        // VtsClient created without an explicit HttpClient — it owns the internal one.
+        // Calling disconnect() without a prior connect() must not throw and must
+        // leave isConnected == false (exercising the ownsClient == true code path).
+        val config = VtsConfig(
+            host = "127.0.0.1",
+            port = testPort + 4,
+            pluginName = "TestPlugin",
+            pluginDeveloper = "TestDev",
+        )
+        val client = VtsClient(config)
+
+        assertFalse(client.isConnected)
+        client.disconnect()
+        assertFalse(client.isConnected)
     }
 }

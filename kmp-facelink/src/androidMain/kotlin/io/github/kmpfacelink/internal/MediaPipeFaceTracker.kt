@@ -273,7 +273,9 @@ internal class MediaPipeFaceTracker(
             sharedCameraSession.addFrameHandler(::processSharedFrame)
         } else {
             val imageAnalysis = ImageAnalysis.Builder()
-                .setResolutionSelector(CameraXManager.buildAnalysisResolutionSelector())
+                .setResolutionSelector(
+                    CameraXManager.buildAnalysisResolutionSelector(config.analysisWidth, config.analysisHeight),
+                )
                 .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
                 .setOutputImageFormat(ImageAnalysis.OUTPUT_IMAGE_FORMAT_RGBA_8888)
                 .build()

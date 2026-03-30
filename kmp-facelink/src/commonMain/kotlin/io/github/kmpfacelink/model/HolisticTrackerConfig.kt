@@ -18,6 +18,12 @@ package io.github.kmpfacelink.model
  *           **Ignored when [powerMode] is set.**
  * @property powerMode Power management profile for all sub-trackers. When non-null,
  *           overrides both [thermalPolicy] and per-tracker power mode settings.
+ * @property analysisWidth Width of the shared camera analysis stream in pixels. Android only.
+ *           Overrides per-tracker analysis width settings for the shared session.
+ *           Lower values improve performance at the cost of accuracy. Defaults to 640.
+ * @property analysisHeight Height of the shared camera analysis stream in pixels. Android only.
+ *           Overrides per-tracker analysis height settings for the shared session.
+ *           Lower values improve performance at the cost of accuracy. Defaults to 480.
  */
 public data class HolisticTrackerConfig(
     val enableFace: Boolean = true,
@@ -29,11 +35,23 @@ public data class HolisticTrackerConfig(
     val cameraFacing: CameraFacing = CameraFacing.FRONT,
     val thermalPolicy: ThermalPolicy = ThermalPolicy.Disabled,
     val powerMode: PowerMode? = null,
+    val analysisWidth: Int = DEFAULT_ANALYSIS_WIDTH,
+    val analysisHeight: Int = DEFAULT_ANALYSIS_HEIGHT,
 ) {
     init {
         require(enableFace || enableHand || enableBody) {
             "At least one tracking modality must be enabled"
         }
+        require(analysisWidth > 0) { "analysisWidth must be positive, was $analysisWidth" }
+        require(analysisHeight > 0) { "analysisHeight must be positive, was $analysisHeight" }
+    }
+
+    public companion object {
+        /** Default camera analysis stream width in pixels. */
+        public const val DEFAULT_ANALYSIS_WIDTH: Int = 640
+
+        /** Default camera analysis stream height in pixels. */
+        public const val DEFAULT_ANALYSIS_HEIGHT: Int = 480
     }
 }
 

@@ -65,7 +65,7 @@ internal class SharedCameraSession(
         surfaceProvider = provider
     }
 
-    suspend fun start(cameraFacing: CameraFacing) {
+    suspend fun start(cameraFacing: CameraFacing, analysisWidth: Int, analysisHeight: Int) {
         isFrontCamera = cameraFacing == CameraFacing.FRONT
         val provider = getCameraProvider()
         cameraProvider = provider
@@ -84,7 +84,7 @@ internal class SharedCameraSession(
         }
 
         val imageAnalysis = ImageAnalysis.Builder()
-            .setResolutionSelector(CameraXManager.buildAnalysisResolutionSelector())
+            .setResolutionSelector(CameraXManager.buildAnalysisResolutionSelector(analysisWidth, analysisHeight))
             .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
             .setOutputImageFormat(ImageAnalysis.OUTPUT_IMAGE_FORMAT_RGBA_8888)
             .build()

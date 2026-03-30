@@ -114,7 +114,7 @@ internal class CompositeHolisticTracker(
             bodyTracker?.start()
 
             // Start the shared camera session (binds all registered ImageAnalysis use cases)
-            sharedCamera.start(config.cameraFacing)
+            sharedCamera.start(config.cameraFacing, config.analysisWidth, config.analysisHeight)
 
             _state.value = TrackingState.TRACKING
         } catch (e: kotlinx.coroutines.CancellationException) {
@@ -172,7 +172,7 @@ internal class CompositeHolisticTracker(
             handTracker?.let { it.currentCameraFacing = facing }
             bodyTracker?.let { it.currentCameraFacing = facing }
             if (wasTracking) {
-                sharedCamera.start(facing)
+                sharedCamera.start(facing, config.analysisWidth, config.analysisHeight)
             }
         }
     }

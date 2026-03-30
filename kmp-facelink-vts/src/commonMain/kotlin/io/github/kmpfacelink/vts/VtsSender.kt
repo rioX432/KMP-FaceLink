@@ -26,6 +26,8 @@ import kotlinx.coroutines.launch
  * sender.stop()
  * ```
  *
+ * Tracking data is produced by [io.github.kmpfacelink.api.FaceTracker] in the core module.
+ *
  * @param config VTS connection and plugin configuration
  * @param client Optional [VtsClient] instance (created internally if not provided)
  */

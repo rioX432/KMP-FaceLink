@@ -22,6 +22,15 @@ import kotlinx.coroutines.flow.StateFlow
  *   lock to ensure data consistency.
  * - Calling any method after [release] throws [IllegalStateException].
  *
+ * ## Related modules
+ *
+ * - **kmp-facelink-avatar**: Map [FaceTrackingData] to Live2D / VRM parameters via
+ *   [io.github.kmpfacelink.avatar.AvatarParameterMapper].
+ * - **kmp-facelink-actions**: Register gesture/expression triggers via
+ *   [io.github.kmpfacelink.actions.ActionSystem].
+ * - **kmp-facelink-pipeline**: Orchestrate voice, LLM, and avatar animation via
+ *   [io.github.kmpfacelink.pipeline.AvatarPipeline].
+ *
  * Usage:
  * ```kotlin
  * val tracker = FaceTracker.create(config)

@@ -16,6 +16,11 @@ import kotlin.concurrent.atomics.ExperimentalAtomicApi
  * Register [ActionBinding]s and feed tracking data via [processFace] / [processHand].
  * Both methods return the list of [ActionEvent]s produced for that frame **and** send
  * them to the [events] flow, so callers can choose whichever consumption style fits best.
+ *
+ * Tracking data is produced by [io.github.kmpfacelink.api.FaceTracker] and
+ * [io.github.kmpfacelink.api.HandTracker] in the core module.
+ *
+ * @see io.github.kmpfacelink.actions.BuiltInTriggers
  */
 @OptIn(ExperimentalAtomicApi::class)
 public class ActionSystem {

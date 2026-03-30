@@ -46,6 +46,8 @@ import kotlin.time.Duration.Companion.milliseconds
  * server.stop()
  * ```
  *
+ * Tracking data is produced by [io.github.kmpfacelink.api.FaceTracker] in the core module.
+ *
  * @param config Server configuration
  */
 @OptIn(ExperimentalAtomicApi::class)

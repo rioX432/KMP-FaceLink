@@ -14,15 +14,16 @@ private const val TAG = "FaceLandmarkerFactory"
 /**
  * Creates [FaceLandmarker] instances from a [FaceTrackerConfig].
  *
- * Tries GPU delegate first; falls back to CPU if the GPU delegate is unavailable.
+ * Uses [DelegateResolver] to apply the configured [FaceTrackerConfig.inferenceDelegate]
+ * with automatic fallback when the preferred delegate is unavailable.
  */
 internal object FaceLandmarkerFactory {
 
     /**
      * Creates a [FaceLandmarker] configured for live-stream mode.
      *
-     * Attempts GPU delegate first. Falls back to CPU on [RuntimeException] (e.g. missing
-     * OpenGL ES 3.1+ support or GPU driver rejection).
+     * Applies the delegate preference from [config] with automatic fallback.
+     * See [DelegateResolver] for the fallback chain behavior.
      *
      * @param platformContext Android platform context for asset loading
      * @param config Tracker configuration
@@ -33,11 +34,8 @@ internal object FaceLandmarkerFactory {
         config: FaceTrackerConfig,
         resultListener: (FaceLandmarkerResult, com.google.mediapipe.framework.image.MPImage) -> Unit,
     ): FaceLandmarker {
-        return try {
-            createWithDelegate(platformContext, config, resultListener, Delegate.GPU)
-        } catch (@Suppress("TooGenericExceptionCaught") e: RuntimeException) {
-            FaceLinkLogger.w(TAG, "GPU delegate unavailable, falling back to CPU", e)
-            createWithDelegate(platformContext, config, resultListener, Delegate.CPU)
+        return DelegateResolver.createWithFallback(config.inferenceDelegate) { delegate ->
+            createWithDelegate(platformContext, config, resultListener, delegate)
         }
     }
 

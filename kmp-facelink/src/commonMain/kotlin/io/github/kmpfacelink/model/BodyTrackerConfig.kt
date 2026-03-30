@@ -17,6 +17,9 @@ package io.github.kmpfacelink.model
  *           **Ignored when [powerMode] is set.**
  * @property powerMode Power management profile. When non-null, overrides [thermalPolicy].
  *           See [FaceTrackerConfig.powerMode] for details.
+ * @property inferenceDelegate Preferred hardware accelerator for ML model inference.
+ *           Android (MediaPipe) only — has no effect on iOS (Vision).
+ *           Defaults to [InferenceDelegate.AUTO] (GPU with CPU fallback).
  * @property enable3D When true, uses 3D body pose estimation on iOS (VNDetectHumanBodyPose3DRequest,
  *           requires iOS 17+). Provides z-depth in meters relative to the root joint.
  *           Ignored on Android (MediaPipe always provides 3D landmarks).
@@ -35,6 +38,7 @@ public data class BodyTrackerConfig(
     val minPresenceConfidence: Float = DEFAULT_CONFIDENCE,
     val thermalPolicy: ThermalPolicy = ThermalPolicy.Disabled,
     val powerMode: PowerMode? = null,
+    val inferenceDelegate: InferenceDelegate = InferenceDelegate.AUTO,
     val enable3D: Boolean = false,
     val analysisWidth: Int = DEFAULT_ANALYSIS_WIDTH,
     val analysisHeight: Int = DEFAULT_ANALYSIS_HEIGHT,

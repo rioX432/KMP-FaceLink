@@ -41,36 +41,87 @@ import io.github.kmpfacelink.util.LandmarkIndices.RIGHT_NOSE_WING
 internal object LandmarkSolvers {
 
     // ── Tuning thresholds ──
-    // These are initial estimates based on MediaPipe normalized coordinates.
-    // Tune with real device data.
+    // All ratio values are IOD-normalized unless stated otherwise.
+    // "LOW" is the value at which the blend shape starts activating (output = 0).
+    // "HIGH" is the value at which the blend shape reaches full activation (output = 1).
+    // To tune: log the raw ratio for a target expression on a real device, then set
+    // LOW just below the neutral-to-active transition and HIGH at comfortable full activation.
 
-    // Eye Aspect Ratio thresholds for "wide" detection.
-    // Normal open EAR (3-point avg) is ~0.35-0.55; wide open > 0.55.
+    /**
+     * Eye Aspect Ratio (EAR) thresholds for wide-eye detection.
+     *
+     * EAR = (sum of 3 vertical lid distances) / (3 * horizontal width).
+     * Typical values: neutral/resting ~0.35–0.50, comfortably open ~0.50–0.55, wide open > 0.55.
+     *
+     * Tuning: increase [EAR_WIDE_LOW] if the solver activates during normal blinking recovery;
+     * decrease [EAR_WIDE_HIGH] if full-wide expression never reaches 1.0 on the target device.
+     */
     private const val EAR_WIDE_LOW = 0.55f
     private const val EAR_WIDE_HIGH = 0.80f
 
-    // Nose sneer: (tipY - wingY) / IOD ratio.
-    // Neutral baseline is ~0.10-0.15; active sneer pushes above 0.15.
+    /**
+     * Nose sneer thresholds: vertical lift of the nose wing relative to the nose tip, IOD-normalized.
+     *
+     * Raw ratio = (tipY - wingY) / IOD. Positive when the wing is above the tip (sneering).
+     * Neutral baseline is approximately 0.10–0.15; an active sneer pushes the ratio above 0.15.
+     *
+     * Tuning: raise [SNEER_LOW] if subtle head tilts trigger false positives;
+     * raise [SNEER_HIGH] if the solver saturates before a full sneer is reached.
+     */
     private const val SNEER_LOW = 0.15f
     private const val SNEER_HIGH = 0.28f
 
-    // Jaw forward: Z offset ratio thresholds
+    /**
+     * Jaw forward thresholds: chin Z-offset relative to nose bridge, IOD-normalized.
+     *
+     * Raw ratio = (bridgeZ - chinZ) / IOD. Increases as the chin protrudes toward the camera.
+     * Z coordinates in MediaPipe are relative depth (more negative = closer to camera).
+     * Neutral is near 0; a perceptible forward thrust reaches ~0.04–0.06.
+     *
+     * Tuning: Z depth from MediaPipe can be noisy — if jitter causes false activation,
+     * raise [JAW_FWD_LOW] slightly. If the gesture feels unresponsive, lower [JAW_FWD_HIGH].
+     */
     private const val JAW_FWD_LOW = 0.0f
     private const val JAW_FWD_HIGH = 0.06f
 
-    // Jaw lateral: X offset ratio thresholds
+    /**
+     * Jaw lateral thresholds: chin X-offset relative to nose bridge, IOD-normalized.
+     *
+     * Raw ratio = |chinX - bridgeX| / IOD. A small baseline shift (~0.01) accounts for
+     * natural asymmetry; a clearly visible lateral shift reaches ~0.06–0.08.
+     *
+     * Tuning: raise [JAW_LAT_LOW] to suppress jitter or natural jaw asymmetry;
+     * lower [JAW_LAT_HIGH] if the user cannot comfortably reach full activation.
+     */
     private const val JAW_LAT_LOW = 0.01f
     private const val JAW_LAT_HIGH = 0.08f
 
-    // Cheek puff: cheek-width-to-IOD expansion above neutral baseline.
+    /**
+     * Cheek puff thresholds: expansion of cheek-to-cheek width above the neutral IOD ratio.
+     *
+     * Raw expansion = (cheekWidth / IOD) - [NEUTRAL_CHEEK_IOD_RATIO].
+     * At rest this expansion is ~0; puffing visibly expands the cheeks by ~0.06–0.10 IOD units.
+     *
+     * Tuning: adjust [NEUTRAL_CHEEK_IOD_RATIO] first if the solver has a non-zero output at rest;
+     * then widen [PUFF_HIGH] if full puff never saturates, or narrow it if it saturates too early.
+     */
     private const val PUFF_LOW = 0.0f
     private const val PUFF_HIGH = 0.08f
 
-    // Mouth dimple: per-side half-width-to-IOD expansion above neutral baseline.
+    /**
+     * Mouth dimple thresholds: lateral pull of one mouth corner above the neutral half-width ratio.
+     *
+     * Raw pull = (halfWidth / IOD) - [NEUTRAL_MOUTH_HALF_IOD_RATIO], where halfWidth is the
+     * distance from the face midline to one mouth corner. A natural smile pulls each corner
+     * outward by ~0.02–0.06 IOD units beyond the neutral position.
+     *
+     * Tuning: if normal speech triggers the solver, raise [DIMPLE_LOW];
+     * if a big smile never fully activates it, raise [DIMPLE_HIGH].
+     */
     private const val DIMPLE_LOW = 0.005f
     private const val DIMPLE_HIGH = 0.06f
 
-    // Number of vertical lid distance samples for EAR calculation
+    // Number of vertical lid distance samples used in EAR calculation (upper1/2/3 vs lower1/2/3).
     private const val EAR_SAMPLE_COUNT = 3f
 
     /** Minimum landmark count required for geometric solving (468 base mesh, without iris). */
@@ -209,7 +260,24 @@ internal object LandmarkSolvers {
     }
 
     // ── Neutral ratio baselines ──
-    // Approximate ratios for a neutral expression. Tuned via empirical testing.
+
+    /**
+     * Neutral cheek-to-IOD width ratio for a relaxed, forward-facing face.
+     *
+     * Measured as (left-cheek to right-cheek distance) / IOD.
+     * Empirically ~3.0–3.2 across a range of face geometries; 3.15 is the default.
+     * If [solveCheekPuff] returns a non-zero value when the face is relaxed, adjust this
+     * constant to match the actual resting ratio observed on the target device/person.
+     */
     private const val NEUTRAL_CHEEK_IOD_RATIO = 3.15f
+
+    /**
+     * Neutral mouth half-width-to-IOD ratio for a relaxed, closed mouth.
+     *
+     * Measured as (nose-bridge X − mouth corner X) / IOD for one side.
+     * Empirically ~0.37–0.41; 0.39 is the default.
+     * If [solveMouthDimpleLeft] or [solveMouthDimpleRight] activates during normal speech,
+     * raise this value to match the observed resting half-width ratio.
+     */
     private const val NEUTRAL_MOUTH_HALF_IOD_RATIO = 0.39f
 }

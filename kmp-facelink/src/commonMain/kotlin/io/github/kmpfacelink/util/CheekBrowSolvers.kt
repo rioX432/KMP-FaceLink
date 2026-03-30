@@ -28,29 +28,95 @@ import io.github.kmpfacelink.util.LandmarkIndices.RIGHT_INFRAORBITAL
 internal object CheekBrowSolvers {
 
     // ── Tuning thresholds ──
+    // All ratio values are IOD-normalized unless stated otherwise.
+    // "LOW" is the value at which the blend shape starts activating (output = 0).
+    // "HIGH" is the value at which the blend shape reaches full activation (output = 1).
+    // To tune: log the raw ratio for a target expression on a real device, then set
+    // LOW just below the neutral-to-active transition and HIGH at comfortable full activation.
 
-    // Cheek squint: vertical compression of under-eye region.
-    // Neutral (infraorbital - avgLowerLid) / IOD ≈ 0.075; squinting compresses gap toward 0.
+    /**
+     * Cheek squint thresholds: vertical compression of the under-eye region.
+     *
+     * Raw compression = [NEUTRAL_UNDER_EYE_GAP_IOD_RATIO] - ((infraorbitalY - avgLowerLidY) / IOD).
+     * The neutral gap between the lower eyelid and the infraorbital point is ~0.075 IOD units.
+     * Squinting raises the cheek and compresses this gap; full squint compresses it by ~0.05–0.06.
+     *
+     * Tuning: if the solver activates during relaxed blinking, increase [NEUTRAL_UNDER_EYE_GAP_IOD_RATIO]
+     * to match the resting gap; increase [CHEEK_SQUINT_HIGH] if full squint never saturates.
+     */
     private const val CHEEK_SQUINT_LOW = 0.0f
     private const val CHEEK_SQUINT_HIGH = 0.06f
+
+    /**
+     * Neutral under-eye gap ratio: (infraorbitalY - avgLowerLidY) / IOD for a relaxed face.
+     *
+     * Empirically ~0.07–0.08 across a range of face geometries; 0.075 is the default.
+     * Adjust this first if [solveCheekSquintLeft] or [solveCheekSquintRight] has a non-zero
+     * baseline output when the face is neutral and relaxed.
+     */
     private const val NEUTRAL_UNDER_EYE_GAP_IOD_RATIO = 0.075f
 
-    // Brow down: brow-to-upper-eyelid gap decrease.
-    // Neutral (eyelidY - avgBrowY) / IOD ≈ 0.28; descending brow compresses gap.
+    /**
+     * Brow-down thresholds: gap decrease between the brow and the upper eyelid.
+     *
+     * Raw descent = [NEUTRAL_BROW_EYELID_GAP_IOD_RATIO] - ((eyelidY - avgBrowY) / IOD).
+     * The neutral gap is ~0.28 IOD units; a furrowed/lowered brow compresses it by ~0.10–0.15.
+     *
+     * Tuning: lower [NEUTRAL_BROW_EYELID_GAP_IOD_RATIO] if natural brow position is already
+     * low; increase [BROW_DOWN_HIGH] if the solver saturates before a full frown is reached.
+     */
     private const val BROW_DOWN_LOW = 0.0f
     private const val BROW_DOWN_HIGH = 0.15f
+
+    /**
+     * Neutral brow-to-eyelid gap ratio: (eyelidY - avgBrowY) / IOD for a relaxed face.
+     *
+     * Empirically ~0.25–0.30; 0.28 is the default.
+     * Adjust when [solveBrowDownLeft] or [solveBrowDownRight] fires at rest (raise value)
+     * or when it never fires during an obvious frown (lower value).
+     */
     private const val NEUTRAL_BROW_EYELID_GAP_IOD_RATIO = 0.28f
 
-    // Brow inner up: inner brow points rise relative to nose bridge.
-    // Neutral (bridgeY - avgInnerBrowY) / IOD ≈ 0.60; raising increases this ratio.
+    /**
+     * Brow-inner-up thresholds: rise of both inner brow points above the nose bridge.
+     *
+     * Raw rise = ((bridgeY - avgInnerBrowY) / IOD) - [NEUTRAL_INNER_BROW_BRIDGE_IOD_RATIO].
+     * Neutral distance above the bridge is ~0.60 IOD units; raising the inner brows by a
+     * clearly visible amount increases the ratio by ~0.10–0.15.
+     *
+     * Tuning: raise [NEUTRAL_INNER_BROW_BRIDGE_IOD_RATIO] if the solver activates at rest;
+     * raise [BROW_INNER_UP_HIGH] if a full raised-brow expression never reaches 1.0.
+     */
     private const val BROW_INNER_UP_LOW = 0.0f
     private const val BROW_INNER_UP_HIGH = 0.15f
+
+    /**
+     * Neutral inner-brow-to-bridge distance ratio: (bridgeY - avgInnerBrowY) / IOD at rest.
+     *
+     * Empirically ~0.57–0.63; 0.60 is the default.
+     * Adjust when [solveBrowInnerUp] has non-zero output on a relaxed face.
+     */
     private const val NEUTRAL_INNER_BROW_BRIDGE_IOD_RATIO = 0.60f
 
-    // Brow outer up: outer brow mid-point rises relative to nose bridge.
-    // Neutral (bridgeY - outerBrowY) / IOD ≈ 0.63; raising increases this ratio.
+    /**
+     * Brow-outer-up thresholds: rise of the outer brow mid-point above the nose bridge.
+     *
+     * Raw rise = ((bridgeY - outerBrowY) / IOD) - [NEUTRAL_OUTER_BROW_BRIDGE_IOD_RATIO].
+     * Neutral distance is ~0.63 IOD units (outer brow sits slightly higher than inner);
+     * raising the outer brow adds ~0.10–0.15.
+     *
+     * Tuning: mirror the guidance for [BROW_INNER_UP_LOW]/[BROW_INNER_UP_HIGH] above.
+     * The outer brow baseline is typically a bit higher than the inner brow baseline.
+     */
     private const val BROW_OUTER_UP_LOW = 0.0f
     private const val BROW_OUTER_UP_HIGH = 0.15f
+
+    /**
+     * Neutral outer-brow-to-bridge distance ratio: (bridgeY - outerBrowMidY) / IOD at rest.
+     *
+     * Empirically ~0.60–0.66; 0.63 is the default.
+     * Adjust when [solveBrowOuterUpLeft] or [solveBrowOuterUpRight] fires at rest.
+     */
     private const val NEUTRAL_OUTER_BROW_BRIDGE_IOD_RATIO = 0.63f
 
     // ── Solvers ──

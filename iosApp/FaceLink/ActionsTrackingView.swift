@@ -104,16 +104,18 @@ struct TriggerLedsView: View {
     private let triggerNames = ["smile", "winkL", "winkR", "tongueOut", "surprised"]
 
     var body: some View {
-        HStack(spacing: 12) {
+        HStack(spacing: 4) {
             ForEach(triggerNames, id: \.self) { name in
-                VStack(spacing: 2) {
+                VStack(spacing: 4) {
                     Circle()
                         .fill(activeTriggers.contains(name) ? .green : .gray)
-                        .frame(width: 10, height: 10)
+                        .frame(width: 16, height: 16)
                     Text(name)
                         .font(.system(.caption2, design: .monospaced))
                         .foregroundStyle(.secondary)
                 }
+                .frame(minWidth: 44, minHeight: 44)
+                .accessibilityLabel(Text("\(name): \(activeTriggers.contains(name) ? "active" : "inactive")"))
             }
         }
     }

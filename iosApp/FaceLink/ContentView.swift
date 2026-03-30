@@ -4,6 +4,7 @@ import KMPFaceLink
 import SampleShared
 
 enum TrackingMode: String, CaseIterable {
+    case home = "Home"
     case face = "Face"
     case hand = "Hand"
     case holistic = "Holistic"
@@ -12,29 +13,33 @@ enum TrackingMode: String, CaseIterable {
 }
 
 struct ContentView: View {
-    @State private var selectedMode: TrackingMode = .face
+    @State private var selectedMode: TrackingMode = .home
 
     var body: some View {
         VStack(spacing: 0) {
-            // Scrollable mode picker
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 8) {
-                    ForEach(TrackingMode.allCases, id: \.self) { mode in
-                        ModeChip(
-                            title: mode.rawValue,
-                            isSelected: selectedMode == mode
-                        ) {
-                            selectedMode = mode
+            if selectedMode != .home {
+                // Scrollable mode picker (hidden on home)
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 8) {
+                        ForEach(TrackingMode.allCases.filter { $0 != .home }, id: \.self) { mode in
+                            ModeChip(
+                                title: mode.rawValue,
+                                isSelected: selectedMode == mode
+                            ) {
+                                selectedMode = mode
+                            }
                         }
                     }
+                    .padding(.horizontal)
+                    .padding(.vertical, 8)
                 }
-                .padding(.horizontal)
-                .padding(.vertical, 8)
+                .background(Color.black)
             }
-            .background(Color.black)
 
             // Content
             switch selectedMode {
+            case .home:
+                HomeView(onModeSelect: { selectedMode = $0 })
             case .face:
                 CMPFaceTrackingView()
             case .hand:

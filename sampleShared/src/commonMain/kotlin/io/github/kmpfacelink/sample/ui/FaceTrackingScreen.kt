@@ -50,6 +50,7 @@ public fun FaceTrackingScreen(
             )
             ModeToggle(currentMode = TrackingMode.FACE, onModeChange = onModeChange)
             SmoothingFilterChips(faceTracker = faceTracker)
+            StreamingToggle()
 
             Spacer(modifier = Modifier.weight(1f))
 

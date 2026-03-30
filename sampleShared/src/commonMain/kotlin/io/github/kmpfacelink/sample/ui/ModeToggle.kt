@@ -33,7 +33,7 @@ public fun ModeToggle(
             .horizontalScroll(scrollState)
             .padding(horizontal = 12.dp, vertical = 4.dp),
     ) {
-        TrackingMode.entries.forEach { mode ->
+        TrackingMode.entries.filter { it != TrackingMode.HOME }.forEach { mode ->
             FilterChip(
                 selected = currentMode == mode,
                 onClick = { onModeChange(mode) },

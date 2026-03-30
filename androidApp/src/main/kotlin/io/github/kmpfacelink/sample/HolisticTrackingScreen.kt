@@ -177,10 +177,11 @@ internal fun BodyLandmarkOverlay(
         val scaleX = size.width / sourceImageWidth
         val scaleY = size.height / sourceImageHeight
 
+        val radius = size.minDimension * 0.008f
         for (landmark in landmarks) {
             drawCircle(
                 color = Color.Cyan,
-                radius = 4f,
+                radius = radius,
                 center = Offset(landmark.x * scaleX, landmark.y * scaleY),
             )
         }

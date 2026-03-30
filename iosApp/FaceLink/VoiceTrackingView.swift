@@ -59,6 +59,7 @@ struct VoiceTrackingView: View {
                         .padding(.horizontal, 16)
                         .padding(.vertical, 8)
                         .background(.blue, in: Capsule())
+                        .disabled(viewModel.isLoading)
 
                     Button(viewModel.isListening ? "Stop Mic" : "Listen") {
                         viewModel.toggleListening()
@@ -68,6 +69,14 @@ struct VoiceTrackingView: View {
                     .padding(.horizontal, 16)
                     .padding(.vertical, 8)
                     .background(viewModel.isListening ? .red : .blue, in: Capsule())
+                    .disabled(viewModel.isLoading)
+
+                    if viewModel.isLoading {
+                        ProgressView()
+                            .progressViewStyle(.circular)
+                            .tint(.white)
+                            .scaleEffect(0.8)
+                    }
                 }
 
                 // Pipeline state
@@ -129,6 +138,7 @@ class VoiceTrackingViewModel: ObservableObject {
     @Published var pipelineStateText = "Idle"
     @Published var pipelineStateColor: Color = .gray
     @Published var isListening = false
+    @Published var isLoading = false
     @Published var transcription = ""
     @Published var lipSyncShapes: [String: Float] = [:]
 
@@ -155,7 +165,9 @@ class VoiceTrackingViewModel: ObservableObject {
         pipeline = newPipeline
         observePipeline(newPipeline)
 
+        isLoading = true
         Task {
+            defer { isLoading = false }
             let flow = try await newPipeline.speak(text: speakText)
             for await _ in flow { }
         }
@@ -164,13 +176,17 @@ class VoiceTrackingViewModel: ObservableObject {
     func toggleListening() {
         guard let pipeline = pipeline else { return }
         if isListening {
+            isLoading = true
             Task {
+                defer { isLoading = false }
                 let result = try? await pipeline.stopListening()
                 transcription = result?.text ?? "(no result)"
                 isListening = false
             }
         } else {
+            isLoading = true
             Task {
+                defer { isLoading = false }
                 try? await pipeline.startListening()
                 isListening = true
             }

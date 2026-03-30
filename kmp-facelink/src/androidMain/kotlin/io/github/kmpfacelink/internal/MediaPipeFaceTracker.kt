@@ -2,7 +2,6 @@ package io.github.kmpfacelink.internal
 
 import android.content.pm.PackageManager
 import android.os.SystemClock
-import android.util.Log
 import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.ImageProxy
 import androidx.camera.core.Preview
@@ -23,6 +22,7 @@ import io.github.kmpfacelink.model.TrackedFace
 import io.github.kmpfacelink.util.BlendShapeEnhancer
 import io.github.kmpfacelink.util.BlendShapeSmoother
 import io.github.kmpfacelink.util.Calibrator
+import io.github.kmpfacelink.util.FaceLinkLogger
 import io.github.kmpfacelink.util.FrameThrottler
 import io.github.kmpfacelink.util.GazeEstimator
 import io.github.kmpfacelink.util.PowerModeManager
@@ -123,7 +123,7 @@ internal class MediaPipeFaceTracker(
         } catch (e: Exception) {
             // MediaPipe model loading and CameraX binding can throw various RuntimeException
             // subclasses; catch broadly to set error state before rethrowing
-            Log.e(TAG, "Failed to start face tracking", e)
+            FaceLinkLogger.e(TAG, "Failed to start face tracking", e)
             setError(e.message ?: e.toString())
             throw e
         }
@@ -248,7 +248,7 @@ internal class MediaPipeFaceTracker(
         } catch (e: Exception) {
             // MediaPipe may throw IllegalArgumentException (non-monotonic timestamp) or
             // MediaPipeException on internal errors; must not crash the frame processing loop
-            Log.w(TAG, "detectAsync failed", e)
+            FaceLinkLogger.w(TAG, "detectAsync failed", e)
             sharedCameraSession?.returnInFlightBitmap(timestampMs)
         }
     }
@@ -287,7 +287,7 @@ internal class MediaPipeFaceTracker(
         } catch (e: Exception) {
             // MediaPipe may throw IllegalArgumentException (non-monotonic timestamp) or
             // MediaPipeException on internal errors; must not crash the frame processing loop
-            Log.w(TAG, "detectAsync failed", e)
+            FaceLinkLogger.w(TAG, "detectAsync failed", e)
             // No result callback will fire — return bitmap now if we still own it
             if (inFlightBitmap.compareAndSet(bitmap, null)) {
                 imageConverter.returnBitmap(bitmap)

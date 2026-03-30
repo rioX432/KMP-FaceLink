@@ -13,6 +13,7 @@ import io.github.kmpfacelink.model.HandTrackerConfig
 import io.github.kmpfacelink.model.HandTrackingData
 import io.github.kmpfacelink.model.SmoothingConfig
 import io.github.kmpfacelink.model.TrackedHand
+import io.github.kmpfacelink.util.FaceLinkLogger
 import io.github.kmpfacelink.util.FrameThrottler
 import io.github.kmpfacelink.util.GestureClassifier
 import io.github.kmpfacelink.util.HandLandmarkSmoother
@@ -211,7 +212,7 @@ internal class VisionHandTracker(
             device.lockForConfiguration(null)
             true
         } catch (e: Exception) {
-            println("[FaceLinkDebug] VisionHandTracker: failed to lock device for frame rate configuration — $e")
+            FaceLinkLogger.w(TAG, "failed to lock device for frame rate configuration — $e")
             false
         }
         if (!locked) return
@@ -321,6 +322,7 @@ internal class VisionHandTracker(
     }
 
     private companion object {
+        private const val TAG = "VisionHandTracker"
         private const val TARGET_FPS = 15
         private const val HAND_POSE_REVISION = 1UL
     }

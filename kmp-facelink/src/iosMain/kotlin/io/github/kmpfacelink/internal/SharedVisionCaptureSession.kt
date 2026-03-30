@@ -6,6 +6,7 @@
 package io.github.kmpfacelink.internal
 
 import io.github.kmpfacelink.model.CameraFacing
+import io.github.kmpfacelink.util.FaceLinkLogger
 import io.github.kmpfacelink.util.withLock
 import platform.AVFoundation.AVCaptureConnection
 import platform.AVFoundation.AVCaptureDevice
@@ -127,10 +128,7 @@ internal class SharedVisionCaptureSession(
             device.lockForConfiguration(null)
             true
         } catch (e: Exception) {
-            println(
-                "[FaceLinkDebug] SharedVisionCaptureSession: " +
-                    "failed to lock device for frame rate configuration — $e",
-            )
+            FaceLinkLogger.w(TAG, "failed to lock device for frame rate configuration — $e")
             false
         }
         if (!locked) return
@@ -157,6 +155,7 @@ internal class SharedVisionCaptureSession(
     }
 
     private companion object {
+        private const val TAG = "SharedVisionCaptureSession"
         private const val TARGET_FPS = 15
     }
 }

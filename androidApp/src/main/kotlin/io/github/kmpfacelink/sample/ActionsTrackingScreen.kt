@@ -54,16 +54,81 @@ import io.github.kmpfacelink.actions.surprisedTrigger
 import io.github.kmpfacelink.actions.tongueOutTrigger
 import io.github.kmpfacelink.actions.winkLeftTrigger
 import io.github.kmpfacelink.actions.winkRightTrigger
+import io.github.kmpfacelink.api.FaceTracker
 import io.github.kmpfacelink.api.TrackingState
 import io.github.kmpfacelink.internal.PreviewableFaceTracker
 import io.github.kmpfacelink.sample.ui.FpsOverlay
 import io.github.kmpfacelink.sample.ui.SampleColors
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 
 private val TRIGGER_NAMES = listOf("smile", "winkL", "winkR", "tongueOut", "surprised")
 
-@Suppress("LongMethod")
+/**
+ * Holds action system, emotion classifier, recorder, and coroutine jobs for ActionsTrackingScreen.
+ */
+private class ActionsTrackingStateHolder(private val scope: CoroutineScope) {
+    val actionSystem = ActionSystem()
+    val classifier = EmotionClassifier()
+    val recorder = TrackingRecorder()
+    var actionsJob: Job? = null
+    var eventsJob: Job? = null
+
+    fun startTracking(
+        faceTracker: FaceTracker,
+        activeTriggers: MutableList<String>,
+        onEmotionResult: (EmotionResult?) -> Unit,
+    ) {
+        eventsJob = scope.launch {
+            actionSystem.events.collect { event ->
+                handleActionEvent(event, activeTriggers)
+            }
+        }
+        actionsJob = scope.launch {
+            faceTracker.trackingData.collect { data ->
+                onEmotionResult(classifier.classify(data))
+                actionSystem.processFace(data)
+                if (recorder.isRecording) recorder.record(data)
+            }
+        }
+    }
+
+    fun stopTracking() {
+        actionsJob?.cancel()
+        eventsJob?.cancel()
+    }
+
+    suspend fun toggleRecording(
+        isRecording: Boolean,
+        onRecordingChange: (Boolean) -> Unit,
+        onSessionChange: (TrackingSession?) -> Unit,
+    ) {
+        if (isRecording) {
+            onSessionChange(recorder.stop())
+            onRecordingChange(false)
+        } else {
+            recorder.start()
+            onRecordingChange(true)
+            onSessionChange(null)
+        }
+    }
+
+    suspend fun registerTriggers() {
+        actionSystem.register(ActionBinding("smile", smileTrigger()))
+        actionSystem.register(ActionBinding("winkL", winkLeftTrigger()))
+        actionSystem.register(ActionBinding("winkR", winkRightTrigger()))
+        actionSystem.register(ActionBinding("tongueOut", tongueOutTrigger()))
+        actionSystem.register(ActionBinding("surprised", surprisedTrigger()))
+    }
+
+    fun release() {
+        actionsJob?.cancel()
+        eventsJob?.cancel()
+        actionSystem.release()
+    }
+}
+
 @Composable
 internal fun ActionsTrackingScreen(
     activity: MainActivity,
@@ -76,45 +141,22 @@ internal fun ActionsTrackingScreen(
     val trackingData by activity.faceTrackingDataState.collectAsState()
     val isTracking = state == TrackingState.TRACKING
 
-    val actionSystem = remember { ActionSystem() }
-    val classifier = remember { EmotionClassifier() }
-    val recorder = remember { TrackingRecorder() }
-
+    val holder = remember { ActionsTrackingStateHolder(scope) }
     var emotionResult by remember { mutableStateOf<EmotionResult?>(null) }
     val activeTriggers = remember { mutableStateListOf<String>() }
     var session by remember { mutableStateOf<TrackingSession?>(null) }
     var isRecording by remember { mutableStateOf(false) }
-    var actionsJob by remember { mutableStateOf<Job?>(null) }
-    var eventsJob by remember { mutableStateOf<Job?>(null) }
 
     DisposableEffect(Unit) {
-        scope.launch {
-            registerBuiltInTriggers(actionSystem)
-        }
-        onDispose {
-            actionsJob?.cancel()
-            eventsJob?.cancel()
-            actionSystem.release()
-        }
+        scope.launch { holder.registerTriggers() }
+        onDispose { holder.release() }
     }
 
     DisposableEffect(isTracking) {
         if (isTracking) {
-            eventsJob = scope.launch {
-                actionSystem.events.collect { event ->
-                    handleActionEvent(event, activeTriggers)
-                }
-            }
-            actionsJob = scope.launch {
-                activity.faceTracker.trackingData.collect { data ->
-                    emotionResult = classifier.classify(data)
-                    actionSystem.processFace(data)
-                    if (recorder.isRecording) recorder.record(data)
-                }
-            }
+            holder.startTracking(activity.faceTracker, activeTriggers) { emotionResult = it }
         } else {
-            actionsJob?.cancel()
-            eventsJob?.cancel()
+            holder.stopTracking()
         }
         onDispose { }
     }
@@ -133,23 +175,16 @@ internal fun ActionsTrackingScreen(
         onStopClick = onStopClick,
         onRecordToggle = {
             scope.launch {
-                if (isRecording) {
-                    session = recorder.stop()
-                    isRecording = false
-                } else {
-                    recorder.start()
-                    isRecording = true
-                    session = null
-                }
+                holder.toggleRecording(isRecording, { isRecording = it }, { session = it })
             }
         },
     )
 }
 
-@Suppress("LongMethod", "LongParameterList")
+@Suppress("LongParameterList")
 @Composable
 private fun ActionsScreenContent(
-    faceTracker: io.github.kmpfacelink.api.FaceTracker,
+    faceTracker: FaceTracker,
     state: TrackingState,
     isTracking: Boolean,
     emotionResult: EmotionResult?,
@@ -223,7 +258,6 @@ private fun ActionsTopBar(
     }
 }
 
-@Suppress("LongMethod")
 @Composable
 private fun ActionsBottomPanel(
     emotionResult: EmotionResult?,
@@ -240,19 +274,16 @@ private fun ActionsBottomPanel(
             .padding(8.dp)
             .verticalScroll(rememberScrollState()),
     ) {
-        // Emotion section
         Text("Emotions", color = SampleColors.TextPrimary, fontSize = 13.sp, fontWeight = FontWeight.Bold)
         EmotionBars(emotionResult)
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        // Triggers section
         Text("Triggers", color = SampleColors.TextPrimary, fontSize = 13.sp, fontWeight = FontWeight.Bold)
         TriggerLeds(activeTriggers)
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        // Recording section
         Text("Recording", color = SampleColors.TextPrimary, fontSize = 13.sp, fontWeight = FontWeight.Bold)
         RecordingControls(isRecording, session, onRecordToggle)
     }
@@ -355,14 +386,6 @@ private fun RecordingControls(
             )
         }
     }
-}
-
-private suspend fun registerBuiltInTriggers(system: ActionSystem) {
-    system.register(ActionBinding("smile", smileTrigger()))
-    system.register(ActionBinding("winkL", winkLeftTrigger()))
-    system.register(ActionBinding("winkR", winkRightTrigger()))
-    system.register(ActionBinding("tongueOut", tongueOutTrigger()))
-    system.register(ActionBinding("surprised", surprisedTrigger()))
 }
 
 private fun handleActionEvent(event: ActionEvent, activeTriggers: MutableList<String>) {

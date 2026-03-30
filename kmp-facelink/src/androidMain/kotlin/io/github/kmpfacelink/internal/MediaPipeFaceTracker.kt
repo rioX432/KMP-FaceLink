@@ -7,9 +7,6 @@ import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.ImageProxy
 import androidx.camera.core.Preview
 import com.google.mediapipe.framework.image.BitmapImageBuilder
-import com.google.mediapipe.tasks.core.BaseOptions
-import com.google.mediapipe.tasks.core.Delegate
-import com.google.mediapipe.tasks.vision.core.RunningMode
 import com.google.mediapipe.tasks.vision.facelandmarker.FaceLandmarker
 import com.google.mediapipe.tasks.vision.facelandmarker.FaceLandmarkerResult
 import io.github.kmpfacelink.api.FaceTracker
@@ -29,7 +26,6 @@ import io.github.kmpfacelink.util.Calibrator
 import io.github.kmpfacelink.util.FrameThrottler
 import io.github.kmpfacelink.util.GazeEstimator
 import io.github.kmpfacelink.util.PowerModeManager
-import io.github.kmpfacelink.util.TransformUtils
 import io.github.kmpfacelink.util.createSmoother
 import io.github.kmpfacelink.util.withLock
 import kotlinx.coroutines.Dispatchers
@@ -45,10 +41,9 @@ import java.util.concurrent.atomic.AtomicReference
 import kotlin.concurrent.atomics.ExperimentalAtomicApi
 
 // Lifecycle (start/stop/release/switchCamera), config (resetCalibration/updateSmoothing),
-// camera pipeline (startCamera/processFrame/processSharedFrame), and result mapping
+// camera pipeline (startCamera/processFrame/processSharedFrame), and result assembly
 // (onFaceLandmarkerResult/processPrimaryPipeline/buildTrackedFaces) form a cohesive unit.
-// Extracting these would split tightly coupled camera+MediaPipe state across classes.
-@Suppress("TooManyFunctions")
+// Raw result extraction is delegated to FaceLandmarkerResultMapper.
 @OptIn(ExperimentalAtomicApi::class)
 internal class MediaPipeFaceTracker(
     private val platformContext: PlatformContext,
@@ -120,7 +115,7 @@ internal class MediaPipeFaceTracker(
         }
 
         try {
-            initFaceLandmarker()
+            faceLandmarker = FaceLandmarkerFactory.create(platformContext, config, ::onFaceLandmarkerResult)
             startCamera()
             pipelineLock.withLock { transitionToTracking() }
         } catch (e: kotlinx.coroutines.CancellationException) {
@@ -207,41 +202,6 @@ internal class MediaPipeFaceTracker(
         if (wasTracking) stop()
         currentCameraFacing = facing
         if (wasTracking) start()
-    }
-
-    private fun initFaceLandmarker() {
-        // GPU delegate can fail with RuntimeException on devices lacking OpenGL ES 3.1+
-        // or when the GPU driver rejects the model. Fall back to CPU in that case.
-        faceLandmarker = try {
-            createLandmarker(Delegate.GPU)
-        } catch (@Suppress("TooGenericExceptionCaught") e: RuntimeException) {
-            Log.w(TAG, "GPU delegate unavailable, falling back to CPU", e)
-            createLandmarker(Delegate.CPU)
-        }
-    }
-
-    private fun createLandmarker(delegate: Delegate): FaceLandmarker {
-        val baseOptions = BaseOptions.builder()
-            .setModelAssetPath(config.modelAssetPath)
-            .setDelegate(delegate)
-            .build()
-
-        val options = FaceLandmarker.FaceLandmarkerOptions.builder()
-            .setBaseOptions(baseOptions)
-            .setRunningMode(RunningMode.LIVE_STREAM)
-            .setNumFaces(config.maxFaces)
-            .setMinFaceDetectionConfidence(config.minDetectionConfidence)
-            .setMinTrackingConfidence(config.minTrackingConfidence)
-            .setMinFacePresenceConfidence(config.minPresenceConfidence)
-            .setOutputFaceBlendshapes(true)
-            .setOutputFacialTransformationMatrixes(true)
-            .setResultListener(::onFaceLandmarkerResult)
-            .setErrorListener { error ->
-                Log.e(TAG, "FaceLandmarker error: ${error.message}", error)
-            }
-            .build()
-
-        return FaceLandmarker.createFromOptions(platformContext.context, options)
     }
 
     private suspend fun startCamera() {
@@ -355,10 +315,10 @@ internal class MediaPipeFaceTracker(
             return
         }
 
-        val primaryLandmarks = extractLandmarks(result, faceIndex = 0)
-        val primaryBlendShapes = extractBlendShapes(result, faceIndex = 0)
+        val primaryLandmarks = FaceLandmarkerResultMapper.extractLandmarks(result, faceIndex = 0)
+        val primaryBlendShapes = FaceLandmarkerResultMapper.extractBlendShapes(result, faceIndex = 0)
         val processedPrimary = processPrimaryPipeline(primaryBlendShapes, primaryLandmarks, timestampMs) ?: return
-        val primaryHeadTransform = extractHeadTransform(result, faceIndex = 0)
+        val primaryHeadTransform = FaceLandmarkerResultMapper.extractHeadTransform(result, faceIndex = 0)
 
         val faces = buildTrackedFaces(result, processedPrimary, primaryLandmarks, primaryHeadTransform, timestampMs)
 
@@ -387,15 +347,6 @@ internal class MediaPipeFaceTracker(
         }
     }
 
-    /** Whether the blend shape enhancer should be disabled. */
-    private fun shouldDisableEnhancer(): Boolean {
-        return if (powerModeManager != null) {
-            powerModeManager.shouldDisableEnhancer()
-        } else {
-            frameThrottler.shouldDisableEnhancer(thermalMonitor.thermalState.value)
-        }
-    }
-
     /** Runs enhance -> calibrate -> smooth on the primary face. Returns null if tracker is released. */
     private fun processPrimaryPipeline(
         blendShapes: BlendShapeData,
@@ -406,7 +357,12 @@ internal class MediaPipeFaceTracker(
         return pipelineLock.withLock {
             if (isReleased()) return null
 
-            if (!shouldDisableEnhancer()) {
+            val enhancerDisabled = if (powerModeManager != null) {
+                powerModeManager.shouldDisableEnhancer()
+            } else {
+                frameThrottler.shouldDisableEnhancer(thermalMonitor.thermalState.value)
+            }
+            if (!enhancerDisabled) {
                 enhancer?.let { result = it.enhance(result, landmarks) }
             }
 
@@ -444,10 +400,10 @@ internal class MediaPipeFaceTracker(
                     landmarks = primaryLandmarks,
                 )
             } else {
-                val landmarks = extractLandmarks(result, index)
-                val headTransform = extractHeadTransform(result, index)
+                val landmarks = FaceLandmarkerResultMapper.extractLandmarks(result, index)
+                val headTransform = FaceLandmarkerResultMapper.extractHeadTransform(result, index)
                 // Secondary faces: apply only smoothing (no per-face calibration/enhancement state)
-                var blendShapes = extractBlendShapes(result, index)
+                var blendShapes = FaceLandmarkerResultMapper.extractBlendShapes(result, index)
                 pipelineLock.withLock {
                     smoother?.let {
                         // Defensive copy: smoother returns a reusable scratch map.
@@ -467,34 +423,5 @@ internal class MediaPipeFaceTracker(
 
     companion object {
         private const val TAG = "MediaPipeFaceTracker"
-
-        private fun extractLandmarks(result: FaceLandmarkerResult, faceIndex: Int): List<FaceLandmark> {
-            val allLandmarks = result.faceLandmarks()
-            if (faceIndex >= allLandmarks.size) return emptyList()
-            return allLandmarks[faceIndex].map { landmark ->
-                FaceLandmark(
-                    x = landmark.x(),
-                    y = landmark.y(),
-                    z = landmark.z(),
-                    visibility = landmark.visibility().orElse(0f),
-                    presence = landmark.presence().orElse(0f),
-                )
-            }
-        }
-
-        private fun extractBlendShapes(result: FaceLandmarkerResult, faceIndex: Int): BlendShapeData {
-            val categories = result.faceBlendshapes().get()[faceIndex].map { category ->
-                category.categoryName() to category.score()
-            }
-            return BlendShapeMapper.mapFromMediaPipe(categories)
-        }
-
-        private fun extractHeadTransform(result: FaceLandmarkerResult, faceIndex: Int): HeadTransform {
-            if (!result.facialTransformationMatrixes().isPresent) return HeadTransform()
-            val matrices = result.facialTransformationMatrixes().get()
-            if (faceIndex >= matrices.size) return HeadTransform()
-            // MediaPipe returns flat column-major float array (16 elements)
-            return TransformUtils.fromMatrix(matrices[faceIndex])
-        }
     }
 }

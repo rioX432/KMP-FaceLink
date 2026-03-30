@@ -16,16 +16,10 @@ import io.github.kmpfacelink.model.TrackedHand
 import io.github.kmpfacelink.util.FrameThrottler
 import io.github.kmpfacelink.util.GestureClassifier
 import io.github.kmpfacelink.util.HandLandmarkSmoother
-import io.github.kmpfacelink.util.PlatformLock
-import io.github.kmpfacelink.util.ThermalMonitor
 import io.github.kmpfacelink.util.createHandSmoother
 import io.github.kmpfacelink.util.withLock
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asSharedFlow
-import kotlinx.coroutines.flow.asStateFlow
 import platform.AVFoundation.AVCaptureConnection
 import platform.AVFoundation.AVCaptureDevice
 import platform.AVFoundation.AVCaptureDeviceInput
@@ -59,27 +53,19 @@ import kotlin.concurrent.atomics.ExperimentalAtomicApi
 internal class VisionHandTracker(
     private val config: HandTrackerConfig,
     private val sharedVisionSession: SharedVisionCaptureSession? = null,
-) : HandTracker {
+) : BaseTracker<HandTrackingData>(
+    thermalMonitor = IosThermalMonitor(),
+    frameThrottler = FrameThrottler(config.thermalPolicy),
+),
+    HandTracker {
 
-    private val _trackingData = MutableSharedFlow<HandTrackingData>(
-        replay = 1,
-        extraBufferCapacity = 1,
-    )
-    override val trackingData: Flow<HandTrackingData> = _trackingData.asSharedFlow()
+    override val trackingData: Flow<HandTrackingData> = super.trackingData
+    override val state: StateFlow<TrackingState> = super.state
+    override val errorMessage: StateFlow<String?> = super.errorMessage
 
-    private val _state = MutableStateFlow(TrackingState.IDLE)
-    override val state: StateFlow<TrackingState> = _state.asStateFlow()
-
-    private val _errorMessage = MutableStateFlow<String?>(null)
-    override val errorMessage: StateFlow<String?> = _errorMessage.asStateFlow()
-
-    private val pipelineLock = PlatformLock()
-    private val released = AtomicInt(0)
     private val processing = AtomicInt(0)
 
     private var smoother: HandLandmarkSmoother? = config.smoothingConfig.createHandSmoother()
-    private val thermalMonitor: ThermalMonitor = IosThermalMonitor()
-    private val frameThrottler = FrameThrottler(config.thermalPolicy)
 
     private var currentCameraFacing: CameraFacing = config.cameraFacing
     private val handPoseRequest = VNDetectHumanHandPoseRequest().apply {
@@ -101,9 +87,7 @@ internal class VisionHandTracker(
 
     override suspend fun start() {
         pipelineLock.withLock {
-            check(released.load() == 0) { "Cannot start a released tracker" }
-            if (_state.value == TrackingState.TRACKING || _state.value == TrackingState.STARTING) return
-            _state.value = TrackingState.STARTING
+            if (!guardStart()) return
         }
 
         try {
@@ -117,14 +101,9 @@ internal class VisionHandTracker(
                 }
                 captureSession?.startRunning()
             }
-            pipelineLock.withLock {
-                if (released.load() == 0) {
-                    _state.value = TrackingState.TRACKING
-                }
-            }
+            pipelineLock.withLock { transitionToTracking() }
         } catch (e: Exception) {
-            _errorMessage.value = e.message ?: e.toString()
-            _state.value = TrackingState.ERROR
+            setError(e.message ?: e.toString())
             throw e
         }
     }
@@ -132,7 +111,7 @@ internal class VisionHandTracker(
     override suspend fun stop() {
         pipelineLock.withLock {
             if (sharedVisionSession == null) captureSession?.stopRunning()
-            _state.value = TrackingState.STOPPED
+            mutableState.value = TrackingState.STOPPED
         }
     }
 
@@ -144,30 +123,28 @@ internal class VisionHandTracker(
                 captureSession = null
             }
             thermalMonitor.release()
-            _state.value = TrackingState.RELEASED
+            mutableState.value = TrackingState.RELEASED
         }
     }
 
     override fun updateSmoothing(config: SmoothingConfig) {
         pipelineLock.withLock {
-            check(released.load() == 0) { "Cannot update smoothing on a released tracker" }
+            checkNotReleased("update smoothing")
             smoother = config.createHandSmoother()
         }
     }
 
     override fun resetSmoothing() {
         pipelineLock.withLock {
-            check(released.load() == 0) { "Cannot reset smoothing on a released tracker" }
+            checkNotReleased("reset smoothing")
             smoother?.reset()
         }
     }
 
     override suspend fun switchCamera(facing: CameraFacing) {
-        pipelineLock.withLock {
-            check(released.load() == 0) { "Cannot switch camera on a released tracker" }
-        }
+        pipelineLock.withLock { checkNotReleased("switch camera") }
         if (currentCameraFacing == facing) return
-        val wasTracking = _state.value == TrackingState.TRACKING
+        val wasTracking = mutableState.value == TrackingState.TRACKING
         if (wasTracking) {
             if (sharedVisionSession == null) {
                 captureSession?.stopRunning()
@@ -247,7 +224,7 @@ internal class VisionHandTracker(
 
     @Suppress("ReturnCount")
     private fun processVideoFrame(sampleBuffer: CMSampleBufferRef?) {
-        if (sampleBuffer == null || _state.value != TrackingState.TRACKING) return
+        if (sampleBuffer == null || mutableState.value != TrackingState.TRACKING) return
 
         // Skip frame if previous one is still being processed
         if (!processing.compareAndSet(expectedValue = 0, newValue = 1)) return
@@ -270,12 +247,12 @@ internal class VisionHandTracker(
 
             // Apply smoothing (protected by lock)
             val processedHands = pipelineLock.withLock {
-                if (released.load() != 0) return
+                if (isReleased()) return
                 smoother?.let { hands = it.smooth(hands, timestampMs) }
                 hands
             }
 
-            _trackingData.tryEmit(
+            mutableTrackingData.tryEmit(
                 HandTrackingData(
                     hands = processedHands,
                     sourceImageWidth = imageWidth,
@@ -298,7 +275,7 @@ internal class VisionHandTracker(
         try {
             sequenceHandler.performRequests(listOf(handPoseRequest), onCVPixelBuffer = pixelBuffer, error = null)
         } catch (_: Exception) {
-            _trackingData.tryEmit(HandTrackingData.notTracking(timestampMs))
+            mutableTrackingData.tryEmit(HandTrackingData.notTracking(timestampMs))
             return null
         }
 
@@ -306,7 +283,7 @@ internal class VisionHandTracker(
         val observations = handPoseRequest.results as? List<VNHumanHandPoseObservation>
 
         if (observations.isNullOrEmpty()) {
-            _trackingData.tryEmit(HandTrackingData.notTracking(timestampMs))
+            mutableTrackingData.tryEmit(HandTrackingData.notTracking(timestampMs))
             return null
         }
 

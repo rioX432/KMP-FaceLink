@@ -14,16 +14,10 @@ import io.github.kmpfacelink.model.SmoothingConfig
 import io.github.kmpfacelink.model.TrackedBody
 import io.github.kmpfacelink.util.BodyLandmarkSmoother
 import io.github.kmpfacelink.util.FrameThrottler
-import io.github.kmpfacelink.util.PlatformLock
-import io.github.kmpfacelink.util.ThermalMonitor
 import io.github.kmpfacelink.util.createBodySmoother
 import io.github.kmpfacelink.util.withLock
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asSharedFlow
-import kotlinx.coroutines.flow.asStateFlow
 import platform.AVFoundation.AVCaptureConnection
 import platform.AVFoundation.AVCaptureDevice
 import platform.AVFoundation.AVCaptureDeviceInput
@@ -57,27 +51,19 @@ import kotlin.concurrent.atomics.ExperimentalAtomicApi
 internal class VisionBodyTracker(
     private val config: BodyTrackerConfig,
     private val sharedVisionSession: SharedVisionCaptureSession? = null,
-) : BodyTracker {
+) : BaseTracker<BodyTrackingData>(
+    thermalMonitor = IosThermalMonitor(),
+    frameThrottler = FrameThrottler(config.thermalPolicy),
+),
+    BodyTracker {
 
-    private val _trackingData = MutableSharedFlow<BodyTrackingData>(
-        replay = 1,
-        extraBufferCapacity = 1,
-    )
-    override val trackingData: Flow<BodyTrackingData> = _trackingData.asSharedFlow()
+    override val trackingData: Flow<BodyTrackingData> = super.trackingData
+    override val state: StateFlow<TrackingState> = super.state
+    override val errorMessage: StateFlow<String?> = super.errorMessage
 
-    private val _state = MutableStateFlow(TrackingState.IDLE)
-    override val state: StateFlow<TrackingState> = _state.asStateFlow()
-
-    private val _errorMessage = MutableStateFlow<String?>(null)
-    override val errorMessage: StateFlow<String?> = _errorMessage.asStateFlow()
-
-    private val pipelineLock = PlatformLock()
-    private val released = AtomicInt(0)
     private val processing = AtomicInt(0)
 
     private var smoother: BodyLandmarkSmoother? = config.smoothingConfig.createBodySmoother()
-    private val thermalMonitor: ThermalMonitor = IosThermalMonitor()
-    private val frameThrottler = FrameThrottler(config.thermalPolicy)
 
     private var currentCameraFacing: CameraFacing = config.cameraFacing
     private val bodyPoseRequest = VNDetectHumanBodyPoseRequest()
@@ -94,9 +80,7 @@ internal class VisionBodyTracker(
 
     override suspend fun start() {
         pipelineLock.withLock {
-            check(released.load() == 0) { "Cannot start a released tracker" }
-            if (_state.value == TrackingState.TRACKING || _state.value == TrackingState.STARTING) return
-            _state.value = TrackingState.STARTING
+            if (!guardStart()) return
         }
 
         try {
@@ -110,14 +94,9 @@ internal class VisionBodyTracker(
                 }
                 captureSession?.startRunning()
             }
-            pipelineLock.withLock {
-                if (released.load() == 0) {
-                    _state.value = TrackingState.TRACKING
-                }
-            }
+            pipelineLock.withLock { transitionToTracking() }
         } catch (e: Exception) {
-            _errorMessage.value = e.message ?: e.toString()
-            _state.value = TrackingState.ERROR
+            setError(e.message ?: e.toString())
             throw e
         }
     }
@@ -125,7 +104,7 @@ internal class VisionBodyTracker(
     override suspend fun stop() {
         pipelineLock.withLock {
             if (sharedVisionSession == null) captureSession?.stopRunning()
-            _state.value = TrackingState.STOPPED
+            mutableState.value = TrackingState.STOPPED
         }
     }
 
@@ -137,30 +116,28 @@ internal class VisionBodyTracker(
                 captureSession = null
             }
             thermalMonitor.release()
-            _state.value = TrackingState.RELEASED
+            mutableState.value = TrackingState.RELEASED
         }
     }
 
     override fun updateSmoothing(config: SmoothingConfig) {
         pipelineLock.withLock {
-            check(released.load() == 0) { "Cannot update smoothing on a released tracker" }
+            checkNotReleased("update smoothing")
             smoother = config.createBodySmoother()
         }
     }
 
     override fun resetSmoothing() {
         pipelineLock.withLock {
-            check(released.load() == 0) { "Cannot reset smoothing on a released tracker" }
+            checkNotReleased("reset smoothing")
             smoother?.reset()
         }
     }
 
     override suspend fun switchCamera(facing: CameraFacing) {
-        pipelineLock.withLock {
-            check(released.load() == 0) { "Cannot switch camera on a released tracker" }
-        }
+        pipelineLock.withLock { checkNotReleased("switch camera") }
         if (currentCameraFacing == facing) return
-        val wasTracking = _state.value == TrackingState.TRACKING
+        val wasTracking = mutableState.value == TrackingState.TRACKING
         if (wasTracking) {
             if (sharedVisionSession == null) {
                 captureSession?.stopRunning()
@@ -240,7 +217,7 @@ internal class VisionBodyTracker(
 
     @Suppress("ReturnCount")
     private fun processVideoFrame(sampleBuffer: CMSampleBufferRef?) {
-        if (sampleBuffer == null || _state.value != TrackingState.TRACKING) return
+        if (sampleBuffer == null || mutableState.value != TrackingState.TRACKING) return
 
         // Skip frame if previous one is still being processed
         if (!processing.compareAndSet(expectedValue = 0, newValue = 1)) return
@@ -265,12 +242,12 @@ internal class VisionBodyTracker(
 
             // Apply smoothing (protected by lock)
             val processedBodies = pipelineLock.withLock {
-                if (released.load() != 0) return
+                if (isReleased()) return
                 smoother?.let { bodies = it.smooth(bodies, timestampMs) }
                 bodies
             }
 
-            _trackingData.tryEmit(
+            mutableTrackingData.tryEmit(
                 BodyTrackingData(
                     bodies = processedBodies,
                     sourceImageWidth = imageWidth,
@@ -296,7 +273,7 @@ internal class VisionBodyTracker(
                 error = null,
             )
         } catch (_: Exception) {
-            _trackingData.tryEmit(BodyTrackingData.notTracking(timestampMs))
+            mutableTrackingData.tryEmit(BodyTrackingData.notTracking(timestampMs))
             return null
         }
 
@@ -304,7 +281,7 @@ internal class VisionBodyTracker(
         val observations = bodyPoseRequest.results as? List<VNHumanBodyPoseObservation>
 
         if (observations.isNullOrEmpty()) {
-            _trackingData.tryEmit(BodyTrackingData.notTracking(timestampMs))
+            mutableTrackingData.tryEmit(BodyTrackingData.notTracking(timestampMs))
             return null
         }
 

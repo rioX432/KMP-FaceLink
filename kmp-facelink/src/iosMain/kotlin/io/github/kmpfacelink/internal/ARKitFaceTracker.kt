@@ -17,9 +17,7 @@ import io.github.kmpfacelink.util.BlendShapeSmoother
 import io.github.kmpfacelink.util.Calibrator
 import io.github.kmpfacelink.util.FrameThrottler
 import io.github.kmpfacelink.util.GazeEstimator
-import io.github.kmpfacelink.util.PlatformLock
 import io.github.kmpfacelink.util.PowerModeManager
-import io.github.kmpfacelink.util.ThermalMonitor
 import io.github.kmpfacelink.util.TransformUtils
 import io.github.kmpfacelink.util.createSmoother
 import io.github.kmpfacelink.util.withLock
@@ -30,11 +28,7 @@ import kotlinx.cinterop.ptr
 import kotlinx.cinterop.reinterpret
 import kotlinx.cinterop.useContents
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asSharedFlow
-import kotlinx.coroutines.flow.asStateFlow
 import platform.ARKit.ARFaceAnchor
 import platform.ARKit.ARFaceTrackingConfiguration
 import platform.ARKit.ARSession
@@ -42,28 +36,20 @@ import platform.ARKit.ARSessionDelegateProtocol
 import platform.Foundation.NSError
 import platform.Foundation.NSNumber
 import platform.darwin.NSObject
-import kotlin.concurrent.atomics.AtomicInt
 import kotlin.concurrent.atomics.ExperimentalAtomicApi
 
 @OptIn(ExperimentalAtomicApi::class)
 internal class ARKitFaceTracker(
     private val config: FaceTrackerConfig,
-) : FaceTracker {
+) : BaseTracker<FaceTrackingData>(
+    thermalMonitor = IosThermalMonitor(),
+    frameThrottler = FrameThrottler(config.thermalPolicy),
+),
+    FaceTracker {
 
-    private val _trackingData = MutableSharedFlow<FaceTrackingData>(
-        replay = 1,
-        extraBufferCapacity = 1,
-    )
-    override val trackingData: Flow<FaceTrackingData> = _trackingData.asSharedFlow()
-
-    private val _state = MutableStateFlow(TrackingState.IDLE)
-    override val state: StateFlow<TrackingState> = _state.asStateFlow()
-
-    private val _errorMessage = MutableStateFlow<String?>(null)
-    override val errorMessage: StateFlow<String?> = _errorMessage.asStateFlow()
-
-    private val pipelineLock = PlatformLock()
-    private val released = AtomicInt(0)
+    override val trackingData: Flow<FaceTrackingData> = super.trackingData
+    override val state: StateFlow<TrackingState> = super.state
+    override val errorMessage: StateFlow<String?> = super.errorMessage
 
     private var smoother: BlendShapeSmoother? = config.smoothingConfig.createSmoother()
     private val calibrator = Calibrator(
@@ -71,9 +57,7 @@ internal class ARKitFaceTracker(
         decayRate = config.calibrationConfig.rangeDecayRate,
     )
 
-    private val thermalMonitor: ThermalMonitor = IosThermalMonitor()
     private val batteryMonitor = IosBatteryMonitor()
-    private val frameThrottler = FrameThrottler(config.thermalPolicy)
     private val powerModeManager: PowerModeManager? = config.powerMode?.let { mode ->
         PowerModeManager(
             powerMode = mode,
@@ -102,14 +86,11 @@ internal class ARKitFaceTracker(
 
     override suspend fun start() {
         pipelineLock.withLock {
-            check(released.load() == 0) { "Cannot start a released tracker" }
-            if (_state.value == TrackingState.TRACKING || _state.value == TrackingState.STARTING) return
-            _state.value = TrackingState.STARTING
+            if (!guardStart()) return
         }
 
         if (!ARFaceTrackingConfiguration.isSupported) {
-            _errorMessage.value = "ARFaceTracking is not supported on this device"
-            _state.value = TrackingState.ERROR
+            setError("ARFaceTracking is not supported on this device")
             throw UnsupportedOperationException("ARFaceTracking is not supported on this device")
         }
 
@@ -124,17 +105,13 @@ internal class ARKitFaceTracker(
         }
         session.runWithConfiguration(configuration)
 
-        pipelineLock.withLock {
-            if (released.load() == 0) {
-                _state.value = TrackingState.TRACKING
-            }
-        }
+        pipelineLock.withLock { transitionToTracking() }
     }
 
     override suspend fun stop() {
         pipelineLock.withLock {
             arSession?.pause()
-            _state.value = TrackingState.STOPPED
+            mutableState.value = TrackingState.STOPPED
         }
     }
 
@@ -147,13 +124,13 @@ internal class ARKitFaceTracker(
             thermalMonitor.release()
             batteryMonitor.release()
             powerModeManager?.release()
-            _state.value = TrackingState.RELEASED
+            mutableState.value = TrackingState.RELEASED
         }
     }
 
     override fun resetCalibration() {
         pipelineLock.withLock {
-            check(released.load() == 0) { "Cannot reset calibration on a released tracker" }
+            checkNotReleased("reset calibration")
             calibrator.reset()
             smoother?.reset()
         }
@@ -161,15 +138,13 @@ internal class ARKitFaceTracker(
 
     override fun updateSmoothing(config: SmoothingConfig) {
         pipelineLock.withLock {
-            check(released.load() == 0) { "Cannot update smoothing on a released tracker" }
+            checkNotReleased("update smoothing")
             smoother = config.createSmoother()
         }
     }
 
     override suspend fun switchCamera(facing: CameraFacing) {
-        pipelineLock.withLock {
-            check(released.load() == 0) { "Cannot switch camera on a released tracker" }
-        }
+        pipelineLock.withLock { checkNotReleased("switch camera") }
         if (facing == CameraFacing.BACK) {
             throw UnsupportedOperationException(
                 "ARKit face tracking requires the front-facing TrueDepth camera",
@@ -201,9 +176,9 @@ internal class ARKitFaceTracker(
         val rawBlendShapes = faceAnchor.blendShapes as? Map<String, NSNumber> ?: emptyMap()
         var blendShapes: BlendShapeData = mapARKitBlendShapes(rawBlendShapes)
 
-        // Pipeline: calibrate → smooth (protected by lock)
+        // Pipeline: calibrate -> smooth (protected by lock)
         val processedBlendShapes = pipelineLock.withLock {
-            if (released.load() != 0) return
+            if (isReleased()) return
 
             // Apply calibration
             if (config.calibrationConfig.enabled) {
@@ -247,7 +222,7 @@ internal class ARKitFaceTracker(
             thermalState = thermalMonitor.thermalState.value,
         )
 
-        _trackingData.tryEmit(data)
+        mutableTrackingData.tryEmit(data)
     }
 
     private fun mapARKitBlendShapes(rawBlendShapes: Map<String, NSNumber>): BlendShapeData {
@@ -296,7 +271,7 @@ internal class ARKitFaceTracker(
         override fun session(session: ARSession, didRemoveAnchors: List<*>) {
             for (anchor in didRemoveAnchors) {
                 if (anchor is ARFaceAnchor) {
-                    _trackingData.tryEmit(FaceTrackingData.notTracking(currentTimeMillis()))
+                    mutableTrackingData.tryEmit(FaceTrackingData.notTracking(currentTimeMillis()))
                     break
                 }
             }
@@ -304,8 +279,7 @@ internal class ARKitFaceTracker(
 
         @ObjCSignatureOverride
         override fun session(session: ARSession, didFailWithError: NSError) {
-            _errorMessage.value = didFailWithError.localizedDescription
-            _state.value = TrackingState.ERROR
+            setError(didFailWithError.localizedDescription)
         }
     }
 }

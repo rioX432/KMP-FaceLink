@@ -12,6 +12,7 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -19,21 +20,35 @@ import kotlinx.coroutines.sync.withLock
 /**
  * WebSocket client for the VTube Studio Plugin API.
  *
- * Manages the WebSocket connection, authentication flow, and parameter injection.
- * The client must be [connect]ed and [authenticate]d before sending parameter data.
+ * Manages the WebSocket connection, authentication flow, parameter injection,
+ * and post-processing control. The client must be [connect]ed and [authenticate]d
+ * before sending parameter data or controlling post-processing effects.
  *
- * Usage:
+ * ## Authentication Flow
+ *
+ * 1. Call [connect] to establish the WebSocket connection.
+ * 2. Call [authenticate] (or [authenticateWithRetry] for robustness).
+ *    - If [VtsConfig.authToken] is set, it authenticates with the saved token.
+ *    - Otherwise, VTS shows a permission popup to the user.
+ * 3. Save the returned token for future sessions.
+ * 4. Call [injectParameters], [setPostProcessingValues], etc.
+ *
+ * ## Example
+ *
  * ```kotlin
  * val client = VtsClient(VtsConfig(pluginName = "MyPlugin", pluginDeveloper = "Me"))
  * client.connect(scope)
- * val token = client.authenticate()  // Shows approval popup in VTS
+ * val token = client.authenticateWithRetry()
  * // Save token for next session, then inject parameters:
  * client.injectParameters(parameterValues, faceFound = true)
+ * // Control post-processing:
+ * client.setPostProcessingValues(listOf(PostProcessingValue("Bloom_Strength", "0.5")))
  * client.disconnect()
  * ```
  *
  * @param config VTS connection configuration
  * @param httpClient Optional Ktor HttpClient (must have WebSockets plugin installed)
+ * @see VtsSender for a high-level sender that handles the full lifecycle
  */
 public class VtsClient(
     private val config: VtsConfig = VtsConfig(),
@@ -101,11 +116,8 @@ public class VtsClient(
      * @throws VtsAuthException if authentication is denied
      * @throws VtsApiException if VTS returns an API error
      */
-    public suspend fun authenticate(): String {
-        val token = config.authToken ?: requestNewToken()
-        authenticateWithToken(token)
-        return token
-    }
+    public suspend fun authenticate(): String =
+        requestAndValidateAuth(config.authToken)
 
     /**
      * Injects parameter values into VTube Studio.
@@ -166,31 +178,134 @@ public class VtsClient(
         sendAndReceive(request)
     }
 
-    private suspend fun requestNewToken(): String {
-        val request = VtsMessageBuilder.buildAuthTokenRequest(
-            pluginName = config.pluginName,
-            pluginDeveloper = config.pluginDeveloper,
-            pluginIcon = config.pluginIcon,
+    /**
+     * Authenticates with retry logic for transient failures.
+     *
+     * Attempts authentication up to [maxRetries] times with exponential backoff.
+     * Useful when VTS may not be ready immediately after launch.
+     * [VtsAuthException] (user denied) is never retried.
+     *
+     * @param maxRetries Maximum number of retry attempts (default 3)
+     * @param initialDelayMs Initial delay between retries in milliseconds (default 1000)
+     * @return The authentication token
+     * @throws VtsAuthException if authentication is denied by the user
+     * @throws VtsApiException if all retries are exhausted
+     */
+    public suspend fun authenticateWithRetry(
+        maxRetries: Int = DEFAULT_MAX_RETRIES,
+        initialDelayMs: Long = DEFAULT_RETRY_DELAY_MS,
+    ): String {
+        var lastException: Exception? = null
+        var delayMs = initialDelayMs
+        repeat(maxRetries + 1) { attempt ->
+            try {
+                return authenticate()
+            } catch (e: VtsAuthException) {
+                throw e // User denied — do not retry
+            } catch (e: VtsApiException) {
+                lastException = e
+                if (attempt < maxRetries) {
+                    delay(delayMs)
+                    delayMs *= BACKOFF_MULTIPLIER
+                }
+            }
+        }
+        throw lastException ?: VtsApiException(0, "Authentication failed after retries")
+    }
+
+    /**
+     * Retrieves the current post-processing state and available effects.
+     *
+     * Returns information about whether post-processing is active,
+     * the current preset, and all available effects with their configurations.
+     *
+     * @param effectIdFilter Optional list of effect IDs to filter (empty = all effects)
+     * @return Current post-processing state
+     * @throws VtsApiException if VTS returns an API error
+     */
+    public suspend fun getPostProcessingEffects(
+        effectIdFilter: List<String> = emptyList(),
+    ): PostProcessingState {
+        val request = VtsMessageBuilder.buildPostProcessingListRequest(
+            fillPresets = false,
+            fillEffects = true,
+            effectIdFilter = effectIdFilter,
             requestId = nextRequestId(),
         )
         val response = sendAndReceive(request)
-        val data = requireNotNull(response.data) { "Token response missing data" }
-        return VtsResponseParser.parseAuthTokenResponse(data).authenticationToken
+        val data = requireNotNull(response.data) { "PostProcessingList response missing data" }
+        val parsed = VtsResponseParser.parsePostProcessingListResponse(data)
+        return mapPostProcessingState(parsed)
     }
 
-    private suspend fun authenticateWithToken(token: String) {
-        val request = VtsMessageBuilder.buildAuthRequest(
+    /**
+     * Sets post-processing effect values in VTube Studio.
+     *
+     * Allows controlling visual effects like bloom, color grading, vignette,
+     * chromatic aberration, and more. Effect config IDs are case-insensitive
+     * and underscores/hyphens are ignored.
+     *
+     * Example:
+     * ```kotlin
+     * client.setPostProcessingValues(
+     *     values = listOf(
+     *         PostProcessingValue("Backlight_Strength", "0.8"),
+     *         PostProcessingValue("ColorGrading_Saturation", "1.2"),
+     *     ),
+     *     fadeTime = 0.5,
+     * )
+     * ```
+     *
+     * @param values List of effect values to set
+     * @param postProcessingOn Whether to enable post-processing (default true)
+     * @param fadeTime Transition time in seconds (default 0.0 for instant)
+     * @param setAllOtherToDefault Reset unspecified values to defaults (default false)
+     * @throws VtsApiException if VTS returns an API error
+     */
+    public suspend fun setPostProcessingValues(
+        values: List<PostProcessingValue>,
+        postProcessingOn: Boolean = true,
+        fadeTime: Double = 0.0,
+        setAllOtherToDefault: Boolean = false,
+    ) {
+        val internalValues = values.map { PostProcessingValueData(it.configId, it.configValue) }
+        val request = VtsMessageBuilder.buildPostProcessingUpdateRequest(
+            values = internalValues,
+            postProcessingOn = postProcessingOn,
+            fadeTime = fadeTime,
+            setAllOtherToDefault = setAllOtherToDefault,
+            requestId = nextRequestId(),
+        )
+        sendAndReceive(request)
+    }
+
+    private suspend fun requestAndValidateAuth(existingToken: String?): String {
+        val token = if (existingToken != null) {
+            existingToken
+        } else {
+            val request = VtsMessageBuilder.buildAuthTokenRequest(
+                pluginName = config.pluginName,
+                pluginDeveloper = config.pluginDeveloper,
+                pluginIcon = config.pluginIcon,
+                requestId = nextRequestId(),
+            )
+            val response = sendAndReceive(request)
+            val data = requireNotNull(response.data) { "Token response missing data" }
+            VtsResponseParser.parseAuthTokenResponse(data).authenticationToken
+        }
+        val authRequest = VtsMessageBuilder.buildAuthRequest(
             pluginName = config.pluginName,
             pluginDeveloper = config.pluginDeveloper,
             authToken = token,
             requestId = nextRequestId(),
         )
-        val response = sendAndReceive(request)
-        val data = requireNotNull(response.data) { "Auth response missing data" }
-        val result = VtsResponseParser.parseAuthResponse(data)
+        val authResponse = sendAndReceive(authRequest)
+        val authData = requireNotNull(authResponse.data) { "Auth response missing data" }
+        val result = VtsResponseParser.parseAuthResponse(authData)
         if (!result.authenticated) {
             throw VtsAuthException(result.reason)
         }
+        return token
     }
 
     private suspend fun sendAndReceive(request: String): VtsEnvelope {
@@ -242,3 +357,34 @@ public class VtsClient(
         return "kmpfl-$requestCounter"
     }
 }
+
+private const val DEFAULT_MAX_RETRIES = 3
+private const val DEFAULT_RETRY_DELAY_MS = 1000L
+private const val BACKOFF_MULTIPLIER = 2L
+
+internal fun mapPostProcessingState(
+    data: PostProcessingListResponseData,
+): PostProcessingState = PostProcessingState(
+    isSupported = data.postProcessingSupported,
+    isActive = data.postProcessingActive,
+    activePreset = data.activePreset,
+    effects = data.postProcessingEffects.map { effect ->
+        PostProcessingEffect(
+            id = effect.internalID,
+            enumId = effect.enumID,
+            explanation = effect.explanation,
+            isActive = effect.isActive,
+            configEntries = effect.configEntries.map { entry ->
+                PostProcessingConfigEntry(
+                    id = entry.internalID,
+                    explanation = entry.explanation,
+                    type = entry.type,
+                    currentValue = entry.currentValue,
+                    minValue = entry.minValue,
+                    maxValue = entry.maxValue,
+                    defaultValue = entry.defaultValue,
+                )
+            },
+        )
+    },
+)

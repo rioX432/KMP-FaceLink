@@ -158,6 +158,105 @@ class VtsClientIntegrationTest {
     }
 
     @Test
+    fun getPostProcessingEffects() = runTest {
+        val serverJob = SupervisorJob()
+        val serverScope = CoroutineScope(serverJob)
+        val server = MockVtsServer(port = testPort + 5)
+        server.start(serverScope)
+        delay(500L)
+
+        val httpClient = createHttpClient()
+        val config = VtsConfig(
+            host = "127.0.0.1",
+            port = testPort + 5,
+            pluginName = "TestPlugin",
+            pluginDeveloper = "TestDev",
+        )
+        val client = VtsClient(config, httpClient)
+
+        try {
+            client.connect(this)
+            client.authenticate()
+            val state = client.getPostProcessingEffects()
+            assertTrue(state.isSupported)
+            assertTrue(state.isActive)
+            assertEquals("Default", state.activePreset)
+        } finally {
+            client.disconnect()
+            server.stop()
+            httpClient.close()
+            serverJob.cancel()
+        }
+    }
+
+    @Test
+    fun setPostProcessingValues() = runTest {
+        val serverJob = SupervisorJob()
+        val serverScope = CoroutineScope(serverJob)
+        val server = MockVtsServer(port = testPort + 6)
+        server.start(serverScope)
+        delay(500L)
+
+        val httpClient = createHttpClient()
+        val config = VtsConfig(
+            host = "127.0.0.1",
+            port = testPort + 6,
+            pluginName = "TestPlugin",
+            pluginDeveloper = "TestDev",
+        )
+        val client = VtsClient(config, httpClient)
+
+        try {
+            client.connect(this)
+            client.authenticate()
+            client.setPostProcessingValues(
+                values = listOf(
+                    PostProcessingValue("Backlight_Strength", "0.8"),
+                    PostProcessingValue("ColorGrading_Saturation", "1.2"),
+                ),
+                fadeTime = 0.5,
+            )
+            // If no exception, the request was accepted
+            assertTrue(true)
+        } finally {
+            client.disconnect()
+            server.stop()
+            httpClient.close()
+            serverJob.cancel()
+        }
+    }
+
+    @Test
+    fun authenticateWithRetrySucceedsOnFirstAttempt() = runTest {
+        val serverJob = SupervisorJob()
+        val serverScope = CoroutineScope(serverJob)
+        val server = MockVtsServer(port = testPort + 7)
+        server.start(serverScope)
+        delay(500L)
+
+        val httpClient = createHttpClient()
+        val config = VtsConfig(
+            host = "127.0.0.1",
+            port = testPort + 7,
+            pluginName = "TestPlugin",
+            pluginDeveloper = "TestDev",
+        )
+        val client = VtsClient(config, httpClient)
+
+        try {
+            client.connect(this)
+            val token = client.authenticateWithRetry(maxRetries = 2, initialDelayMs = 100L)
+            assertNotNull(token)
+            assertEquals("mock-token-12345", token)
+        } finally {
+            client.disconnect()
+            server.stop()
+            httpClient.close()
+            serverJob.cancel()
+        }
+    }
+
+    @Test
     fun disconnectWithoutConnectClosesOwnedHttpClient() = runTest {
         // VtsClient created without an explicit HttpClient — it owns the internal one.
         // Calling disconnect() without a prior connect() must not throw and must

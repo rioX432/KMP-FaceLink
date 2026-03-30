@@ -77,6 +77,8 @@ internal class MockVtsServer(
             "AuthenticationRequest" -> handleAuthRequest(envelope)
             "InjectParameterDataRequest" -> handleInjectRequest(envelope)
             "ParameterCreationRequest" -> handleCreateParam(envelope)
+            "PostProcessingListRequest" -> handlePostProcessingList(envelope)
+            "SetPostProcessingEffectValues" -> handlePostProcessingUpdate(envelope)
             else -> null
         }
     }
@@ -139,6 +141,17 @@ internal class MockVtsServer(
         )
         return json.encodeToString(response)
     }
+
+    private fun handlePostProcessingList(envelope: VtsEnvelope): String =
+        buildResponse(envelope, "PostProcessingListResponse") {
+            put("postProcessingSupported", true)
+            put("postProcessingActive", true)
+            put("presetCount", 1)
+            put("activePreset", "Default")
+        }
+
+    private fun handlePostProcessingUpdate(envelope: VtsEnvelope): String =
+        buildResponse(envelope, "SetPostProcessingEffectValuesResponse") {}
 
     private fun buildErrorResponse(
         request: VtsEnvelope,

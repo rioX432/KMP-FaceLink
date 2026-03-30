@@ -15,19 +15,39 @@ import kotlinx.coroutines.launch
  *
  * Listens for VMC Protocol messages over UDP and emits parsed [VmcReceivedData]
  * as a Kotlin [Flow]. This allows consuming tracking data from external VMC senders
- * such as VSeeFace, VMagicMirror, or other VMC-compatible software.
+ * such as VSeeFace, VMagicMirror, or a mobile device running [VmcSender].
  *
- * Usage:
+ * Supports both individual OSC messages and OSC bundles. Parsed data includes:
+ * - Blend shape values (all 52 ARKit shapes)
+ * - Head bone position and rotation (VRM 1.0 "Head" bone)
+ * - Sender status (avatar loaded state)
+ * - Sender timestamp for synchronization
+ *
+ * ## Desktop Receiver Example
+ *
+ * Receive face tracking data from a phone running KMP-FaceLink:
+ *
  * ```kotlin
  * val scope = CoroutineScope(Dispatchers.Default + SupervisorJob())
  * val receiver = VmcReceiver(port = 39539)
  * receiver.start(scope)
  * receiver.receivedData.collect { data ->
- *     // Use data.blendShapes, data.headPosition, etc.
+ *     if (data.isLoaded) {
+ *         // Apply blend shapes to avatar
+ *         for ((shape, value) in data.blendShapes) {
+ *             avatar.setBlendShape(shape.arKitName, value)
+ *         }
+ *         // Apply head rotation (quaternion xyzw)
+ *         data.headRotation?.let { q ->
+ *             avatar.setHeadRotation(q[0], q[1], q[2], q[3])
+ *         }
+ *     }
  * }
  * ```
  *
  * @param port UDP port to listen on. Default is [VmcConfig.DEFAULT_MARIONETTE_PORT].
+ * @see VmcSender for the sending (Performer) side
+ * @see VmcReceivedData for the parsed data structure
  */
 public class VmcReceiver(
     private val port: Int = VmcConfig.DEFAULT_MARIONETTE_PORT,

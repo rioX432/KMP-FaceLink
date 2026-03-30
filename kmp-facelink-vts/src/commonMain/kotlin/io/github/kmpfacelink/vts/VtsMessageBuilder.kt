@@ -73,6 +73,39 @@ internal object VtsMessageBuilder {
         requestId: String = "",
     ): String = buildRequest("ParameterCreationRequest", requestId, encodeData(data))
 
+    /** Builds a PostProcessingListRequest message. */
+    fun buildPostProcessingListRequest(
+        fillPresets: Boolean = false,
+        fillEffects: Boolean = true,
+        effectIdFilter: List<String> = emptyList(),
+        requestId: String = "",
+    ): String {
+        val data = PostProcessingListRequestData(
+            fillPostProcessingPresetsArray = fillPresets,
+            fillPostProcessingEffectsArray = fillEffects,
+            effectIDFilter = effectIdFilter,
+        )
+        return buildRequest("PostProcessingListRequest", requestId, encodeData(data))
+    }
+
+    /** Builds a SetPostProcessingEffectValues request message. */
+    fun buildPostProcessingUpdateRequest(
+        values: List<PostProcessingValueData>,
+        postProcessingOn: Boolean = true,
+        fadeTime: Double = 0.0,
+        setAllOtherToDefault: Boolean = false,
+        requestId: String = "",
+    ): String {
+        val data = PostProcessingUpdateRequestData(
+            postProcessingOn = postProcessingOn,
+            setPostProcessingValues = true,
+            postProcessingFadeTime = fadeTime,
+            setAllOtherValuesToDefault = setAllOtherToDefault,
+            postProcessingValues = values,
+        )
+        return buildRequest("SetPostProcessingEffectValues", requestId, encodeData(data))
+    }
+
     private fun buildRequest(
         messageType: String,
         requestId: String,

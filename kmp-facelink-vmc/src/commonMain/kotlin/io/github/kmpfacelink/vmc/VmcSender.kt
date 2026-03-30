@@ -19,19 +19,48 @@ import kotlinx.coroutines.launch
  * Converts KMP-FaceLink's [BlendShapeData] to `/VMC/Ext/Blend/Val` messages
  * and [HeadTransform] to `/VMC/Ext/Bone/Pos` messages.
  *
- * Usage:
+ * Head rotation uses the [VmcBoneMapping.HEAD] bone name following the VRM 1.0
+ * humanoid specification. Euler angles are converted to Unity-compatible quaternions
+ * (Y*X*Z rotation order).
+ *
+ * ## Phone-as-Tracker Example
+ *
+ * Use a mobile device as a wireless face tracker for desktop applications
+ * like VSeeFace or VMagicMirror:
+ *
  * ```kotlin
+ * // On the mobile device (Android/iOS)
+ * val faceTracker = FaceTracker(context)
+ * val sender = VmcSender(
+ *     VmcConfig(
+ *         host = "192.168.1.100",  // Desktop PC IP address
+ *         port = 39539,             // VMC Marionette port
+ *     ),
+ * )
+ *
  * val scope = CoroutineScope(Dispatchers.Default + SupervisorJob())
- * val sender = VmcSender(VmcConfig(host = "192.168.1.100"))
+ * faceTracker.start()
  * sender.start(faceTracker.trackingData, scope)
- * // ... later
+ *
+ * // When done:
  * sender.stop()
+ * faceTracker.stop()
+ * scope.cancel()
  * ```
  *
- * Tracking data is produced by [io.github.kmpfacelink.api.FaceTracker] in the core module.
- * UDP transport is provided by [io.github.kmpfacelink.networking.UdpSocket].
+ * ## VRM 1.0 Expression Parameters
+ *
+ * When using pre-mapped VRM expression parameters (e.g., from [VrmParameterMapper]):
+ *
+ * ```kotlin
+ * val mapper = VrmParameterMapper(VrmConfig(version = VrmVersion.V1_0))
+ * val expressionFlow = faceTracker.trackingData.map { mapper.map(it) }
+ * sender.startWithExpressions(expressionFlow, scope)
+ * ```
  *
  * @param config VMC connection configuration
+ * @see VmcReceiver for the receiving (Marionette) side
+ * @see VmcConfig for connection settings
  */
 public class VmcSender(
     private val config: VmcConfig = VmcConfig(),

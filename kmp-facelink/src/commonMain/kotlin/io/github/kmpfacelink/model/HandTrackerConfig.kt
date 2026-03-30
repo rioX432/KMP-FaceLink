@@ -18,6 +18,10 @@ package io.github.kmpfacelink.model
  *           **Ignored when [powerMode] is set.**
  * @property powerMode Power management profile. When non-null, overrides [thermalPolicy].
  *           See [FaceTrackerConfig.powerMode] for details.
+ * @property analysisWidth Width of the camera analysis stream in pixels. Android only.
+ *           Lower values improve performance at the cost of accuracy. Defaults to 640.
+ * @property analysisHeight Height of the camera analysis stream in pixels. Android only.
+ *           Lower values improve performance at the cost of accuracy. Defaults to 480.
  */
 public data class HandTrackerConfig(
     val smoothingConfig: SmoothingConfig = SmoothingConfig.Ema(),
@@ -29,6 +33,8 @@ public data class HandTrackerConfig(
     val minPresenceConfidence: Float = DEFAULT_CONFIDENCE,
     val thermalPolicy: ThermalPolicy = ThermalPolicy.Disabled,
     val powerMode: PowerMode? = null,
+    val analysisWidth: Int = DEFAULT_ANALYSIS_WIDTH,
+    val analysisHeight: Int = DEFAULT_ANALYSIS_HEIGHT,
 ) {
     init {
         require(maxHands in 1..2) { "maxHands must be 1 or 2, was $maxHands" }
@@ -41,10 +47,18 @@ public data class HandTrackerConfig(
         require(minPresenceConfidence in 0f..1f) {
             "minPresenceConfidence must be in 0.0..1.0, was $minPresenceConfidence"
         }
+        require(analysisWidth > 0) { "analysisWidth must be positive, was $analysisWidth" }
+        require(analysisHeight > 0) { "analysisHeight must be positive, was $analysisHeight" }
     }
 
     public companion object {
         /** Default MediaPipe confidence threshold. */
         public const val DEFAULT_CONFIDENCE: Float = 0.5f
+
+        /** Default camera analysis stream width in pixels. */
+        public const val DEFAULT_ANALYSIS_WIDTH: Int = 640
+
+        /** Default camera analysis stream height in pixels. */
+        public const val DEFAULT_ANALYSIS_HEIGHT: Int = 480
     }
 }

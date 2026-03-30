@@ -79,24 +79,20 @@ internal class CameraXManager(
         }
 
     companion object {
-        private const val ANALYSIS_WIDTH = 640
-        private const val ANALYSIS_HEIGHT = 480
-
-        private val analysisResolutionSelector = ResolutionSelector.Builder()
-            .setAspectRatioStrategy(AspectRatioStrategy.RATIO_4_3_FALLBACK_AUTO_STRATEGY)
-            .setResolutionStrategy(
-                ResolutionStrategy(
-                    Size(ANALYSIS_WIDTH, ANALYSIS_HEIGHT),
-                    ResolutionStrategy.FALLBACK_RULE_CLOSEST_HIGHER_THEN_LOWER,
-                ),
-            )
-            .build()
-
         private val previewResolutionSelector = ResolutionSelector.Builder()
             .setAspectRatioStrategy(AspectRatioStrategy.RATIO_4_3_FALLBACK_AUTO_STRATEGY)
             .build()
 
-        fun buildAnalysisResolutionSelector(): ResolutionSelector = analysisResolutionSelector
+        fun buildAnalysisResolutionSelector(width: Int, height: Int): ResolutionSelector =
+            ResolutionSelector.Builder()
+                .setAspectRatioStrategy(AspectRatioStrategy.RATIO_4_3_FALLBACK_AUTO_STRATEGY)
+                .setResolutionStrategy(
+                    ResolutionStrategy(
+                        Size(width, height),
+                        ResolutionStrategy.FALLBACK_RULE_CLOSEST_HIGHER_THEN_LOWER,
+                    ),
+                )
+                .build()
 
         fun buildPreviewResolutionSelector(): ResolutionSelector = previewResolutionSelector
     }

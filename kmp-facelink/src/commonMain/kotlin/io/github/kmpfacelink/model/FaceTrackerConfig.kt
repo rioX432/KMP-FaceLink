@@ -58,6 +58,10 @@ public data class CalibrationConfig(
  *           Defaults to 0.15 (15%).
  * @property enableIdleDetection Whether to reduce frame rate when the face is stationary.
  *           Only effective when [powerMode] is set. Defaults to true.
+ * @property analysisWidth Width of the camera analysis stream in pixels. Android only.
+ *           Lower values improve performance at the cost of accuracy. Defaults to 640.
+ * @property analysisHeight Height of the camera analysis stream in pixels. Android only.
+ *           Lower values improve performance at the cost of accuracy. Defaults to 480.
  */
 public data class FaceTrackerConfig(
     val smoothingConfig: SmoothingConfig = SmoothingConfig.Ema(),
@@ -75,6 +79,8 @@ public data class FaceTrackerConfig(
     val powerMode: PowerMode? = null,
     val lowBatteryThreshold: Float = DEFAULT_LOW_BATTERY_THRESHOLD,
     val enableIdleDetection: Boolean = true,
+    val analysisWidth: Int = DEFAULT_ANALYSIS_WIDTH,
+    val analysisHeight: Int = DEFAULT_ANALYSIS_HEIGHT,
 ) {
     init {
         require(maxFaces in 1..MAX_FACES) {
@@ -92,6 +98,8 @@ public data class FaceTrackerConfig(
         require(lowBatteryThreshold in 0f..1f) {
             "lowBatteryThreshold must be in 0.0..1.0, was $lowBatteryThreshold"
         }
+        require(analysisWidth > 0) { "analysisWidth must be positive, was $analysisWidth" }
+        require(analysisHeight > 0) { "analysisHeight must be positive, was $analysisHeight" }
     }
 
     public companion object {
@@ -103,6 +111,12 @@ public data class FaceTrackerConfig(
 
         /** Default battery level at which power mode auto-downgrades (15%). */
         public const val DEFAULT_LOW_BATTERY_THRESHOLD: Float = 0.15f
+
+        /** Default camera analysis stream width in pixels. */
+        public const val DEFAULT_ANALYSIS_WIDTH: Int = 640
+
+        /** Default camera analysis stream height in pixels. */
+        public const val DEFAULT_ANALYSIS_HEIGHT: Int = 480
     }
 }
 

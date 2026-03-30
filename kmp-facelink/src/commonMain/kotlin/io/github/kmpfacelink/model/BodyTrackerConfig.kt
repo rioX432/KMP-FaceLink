@@ -21,6 +21,10 @@ package io.github.kmpfacelink.model
  *           requires iOS 17+). Provides z-depth in meters relative to the root joint.
  *           Ignored on Android (MediaPipe always provides 3D landmarks).
  *           Defaults to false for backward compatibility.
+ * @property analysisWidth Width of the camera analysis stream in pixels. Android only.
+ *           Lower values improve performance at the cost of accuracy. Defaults to 640.
+ * @property analysisHeight Height of the camera analysis stream in pixels. Android only.
+ *           Lower values improve performance at the cost of accuracy. Defaults to 480.
  */
 public data class BodyTrackerConfig(
     val smoothingConfig: SmoothingConfig = SmoothingConfig.Ema(),
@@ -32,6 +36,8 @@ public data class BodyTrackerConfig(
     val thermalPolicy: ThermalPolicy = ThermalPolicy.Disabled,
     val powerMode: PowerMode? = null,
     val enable3D: Boolean = false,
+    val analysisWidth: Int = DEFAULT_ANALYSIS_WIDTH,
+    val analysisHeight: Int = DEFAULT_ANALYSIS_HEIGHT,
 ) {
     init {
         require(maxBodies in 1..MAX_BODIES) { "maxBodies must be 1-$MAX_BODIES, was $maxBodies" }
@@ -44,11 +50,19 @@ public data class BodyTrackerConfig(
         require(minPresenceConfidence in 0f..1f) {
             "minPresenceConfidence must be in 0.0..1.0, was $minPresenceConfidence"
         }
+        require(analysisWidth > 0) { "analysisWidth must be positive, was $analysisWidth" }
+        require(analysisHeight > 0) { "analysisHeight must be positive, was $analysisHeight" }
     }
 
     public companion object {
         /** Default MediaPipe confidence threshold. */
         public const val DEFAULT_CONFIDENCE: Float = 0.5f
+
+        /** Default camera analysis stream width in pixels. */
+        public const val DEFAULT_ANALYSIS_WIDTH: Int = 640
+
+        /** Default camera analysis stream height in pixels. */
+        public const val DEFAULT_ANALYSIS_HEIGHT: Int = 480
 
         private const val MAX_BODIES = 3
     }

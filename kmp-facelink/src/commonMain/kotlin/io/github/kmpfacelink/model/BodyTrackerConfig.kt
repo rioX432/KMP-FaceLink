@@ -24,6 +24,10 @@ package io.github.kmpfacelink.model
  *           requires iOS 17+). Provides z-depth in meters relative to the root joint.
  *           Ignored on Android (MediaPipe always provides 3D landmarks).
  *           Defaults to false for backward compatibility.
+ * @property body3DConfig Configuration for 2D-to-3D pose lifting. When enabled, applies a
+ *           [io.github.kmpfacelink.util.PoseLiftingStrategy] to estimate z-depth from 2D landmarks.
+ *           Useful on Android to enhance MediaPipe's relative z values with perspective-based estimates.
+ *           Defaults to disabled.
  * @property analysisWidth Width of the camera analysis stream in pixels. Android only.
  *           Lower values improve performance at the cost of accuracy. Defaults to 640.
  * @property analysisHeight Height of the camera analysis stream in pixels. Android only.
@@ -40,6 +44,7 @@ public data class BodyTrackerConfig(
     val powerMode: PowerMode? = null,
     val inferenceDelegate: InferenceDelegate = InferenceDelegate.AUTO,
     val enable3D: Boolean = false,
+    val body3DConfig: Body3DConfig = Body3DConfig(),
     val analysisWidth: Int = DEFAULT_ANALYSIS_WIDTH,
     val analysisHeight: Int = DEFAULT_ANALYSIS_HEIGHT,
 ) {

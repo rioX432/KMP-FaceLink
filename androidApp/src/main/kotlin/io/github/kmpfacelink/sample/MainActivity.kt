@@ -39,13 +39,15 @@ import io.github.kmpfacelink.model.HandTrackingData
 import io.github.kmpfacelink.model.HolisticTrackerConfig
 import io.github.kmpfacelink.model.HolisticTrackingData
 import io.github.kmpfacelink.model.SmoothingConfig
+import io.github.kmpfacelink.sample.ui.HomeScreen
 import io.github.kmpfacelink.sample.ui.SampleColors
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
+import io.github.kmpfacelink.sample.ui.TrackingMode as SharedTrackingMode
 
 internal enum class TrackingMode {
-    FACE, HAND, HOLISTIC, ACTIONS, VOICE
+    HOME, FACE, HAND, HOLISTIC, ACTIONS, VOICE
 }
 
 @Suppress("TooManyFunctions")
@@ -84,7 +86,7 @@ class MainActivity : ComponentActivity() {
     internal val faceTrackingDataState = MutableStateFlow<FaceTrackingData?>(null)
     private val handTrackingDataState = MutableStateFlow<HandTrackingData?>(null)
     private val holisticTrackingDataState = MutableStateFlow<HolisticTrackingData?>(null)
-    internal val trackingModeState = MutableStateFlow(TrackingMode.FACE)
+    internal val trackingModeState = MutableStateFlow(TrackingMode.HOME)
     internal val errorState = MutableStateFlow<String?>(null)
 
     internal var faceCollectorJob: Job? = null
@@ -124,6 +126,9 @@ class MainActivity : ComponentActivity() {
         onStopClick: () -> Unit,
     ) {
         when (mode) {
+            TrackingMode.HOME -> HomeScreen(
+                onModeChange = { sharedMode -> onModeChange(sharedMode.toLocal()) },
+            )
             TrackingMode.FACE -> FaceTrackingScreen(
                 faceTracker = faceTracker,
                 trackingDataState = faceTrackingDataState,
@@ -176,6 +181,7 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun isCurrentlyTracking(mode: TrackingMode): Boolean = when (mode) {
+        TrackingMode.HOME -> false
         TrackingMode.FACE, TrackingMode.ACTIONS,
         TrackingMode.VOICE,
         -> faceTracker.state.value == TrackingState.TRACKING
@@ -186,6 +192,7 @@ class MainActivity : ComponentActivity() {
     private suspend fun stopCurrentTracker(mode: TrackingMode) {
         try {
             when (mode) {
+                TrackingMode.HOME -> { /* no tracker to stop */ }
                 TrackingMode.FACE -> {
                     faceCollectorJob?.cancel()
                     faceTracker.stop()
@@ -236,6 +243,7 @@ class MainActivity : ComponentActivity() {
 
     private suspend fun startTrackingForMode(mode: TrackingMode) {
         when (mode) {
+            TrackingMode.HOME -> { /* no tracking on home screen */ }
             TrackingMode.FACE -> startFaceTracking()
             TrackingMode.HAND -> startHandTracking()
             TrackingMode.HOLISTIC -> startHolisticTracking()
@@ -292,6 +300,15 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+private fun SharedTrackingMode.toLocal(): TrackingMode = when (this) {
+    SharedTrackingMode.HOME -> TrackingMode.HOME
+    SharedTrackingMode.FACE -> TrackingMode.FACE
+    SharedTrackingMode.HAND -> TrackingMode.HAND
+    SharedTrackingMode.HOLISTIC -> TrackingMode.HOLISTIC
+    SharedTrackingMode.ACTIONS -> TrackingMode.ACTIONS
+    SharedTrackingMode.VOICE -> TrackingMode.VOICE
+}
+
 @Composable
 internal fun ModeToggle(
     currentMode: TrackingMode,
@@ -306,7 +323,7 @@ internal fun ModeToggle(
             .horizontalScroll(scrollState)
             .padding(horizontal = 12.dp, vertical = 4.dp),
     ) {
-        TrackingMode.entries.forEach { mode ->
+        TrackingMode.entries.filter { it != TrackingMode.HOME }.forEach { mode ->
             FilterChip(
                 selected = currentMode == mode,
                 onClick = { onModeChange(mode) },

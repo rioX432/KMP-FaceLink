@@ -28,6 +28,7 @@ internal fun FaceTrackingScreen(
 }
 
 private fun SharedTrackingMode.toLocal(): TrackingMode = when (this) {
+    SharedTrackingMode.HOME -> TrackingMode.HOME
     SharedTrackingMode.FACE -> TrackingMode.FACE
     SharedTrackingMode.HAND -> TrackingMode.HAND
     SharedTrackingMode.HOLISTIC -> TrackingMode.HOLISTIC

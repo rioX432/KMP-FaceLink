@@ -24,6 +24,8 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import kotlin.concurrent.atomics.AtomicInt
+import kotlin.concurrent.atomics.ExperimentalAtomicApi
 import kotlin.time.Duration.Companion.milliseconds
 
 /**
@@ -46,12 +48,14 @@ import kotlin.time.Duration.Companion.milliseconds
  *
  * @param config Server configuration
  */
+@OptIn(ExperimentalAtomicApi::class)
 public class StreamServer(
     private val config: StreamConfig = StreamConfig(),
 ) {
     private val json = Json { encodeDefaults = false }
     private val mutex = Mutex()
     private val sessions = mutableListOf<ClientSession>()
+    private val _clientCount = AtomicInt(0)
     private var serverJob: Job? = null
 
     private val _connectionCount = MutableSharedFlow<Int>(
@@ -63,7 +67,7 @@ public class StreamServer(
     public val connectionCount: SharedFlow<Int> = _connectionCount.asSharedFlow()
 
     /** Current number of connected clients. */
-    public val clientCount: Int get() = sessions.size
+    public val clientCount: Int get() = _clientCount.load()
 
     /** Whether the server is currently running. */
     public val isRunning: Boolean get() = serverJob?.isActive == true
@@ -88,6 +92,7 @@ public class StreamServer(
         serverJob?.cancel()
         serverJob = null
         sessions.clear()
+        _clientCount.store(0)
     }
 
     /**
@@ -129,13 +134,21 @@ public class StreamServer(
     }
 
     private suspend fun addSession(session: ClientSession) {
-        mutex.withLock { sessions.add(session) }
-        _connectionCount.emit(sessions.size)
+        val count = mutex.withLock {
+            sessions.add(session)
+            sessions.size
+        }
+        _clientCount.store(count)
+        _connectionCount.emit(count)
     }
 
     private suspend fun removeSession(session: ClientSession) {
-        mutex.withLock { sessions.remove(session) }
-        _connectionCount.emit(sessions.size)
+        val count = mutex.withLock {
+            sessions.remove(session)
+            sessions.size
+        }
+        _clientCount.store(count)
+        _connectionCount.emit(count)
     }
 
     private suspend fun sendToSession(session: ClientSession, frame: StreamFrame) {

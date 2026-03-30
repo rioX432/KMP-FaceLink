@@ -1,0 +1,114 @@
+name: Device Tests (Firebase Test Lab)
+
+on:
+  pull_request:
+    branches: [ master ]
+    paths:
+      - 'androidApp/**'
+      - 'kmp-facelink/**'
+      - 'gradle/**'
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-test-apks:
+    name: Build APKs
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-java@v5
+        with:
+          distribution: zulu
+          java-version: 17
+
+      - uses: gradle/actions/setup-gradle@v5
+
+      - name: Build app and test APKs
+        run: ./gradlew :androidApp:assembleDebug :androidApp:assembleDebugAndroidTest
+
+      - name: Upload app APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-apk
+          path: androidApp/build/outputs/apk/debug/androidApp-debug.apk
+          retention-days: 1
+
+      - name: Upload test APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-apk
+          path: androidApp/build/outputs/apk/androidTest/debug/androidApp-debug-androidTest.apk
+          retention-days: 1
+
+  firebase-test-lab:
+    name: Firebase Test Lab (${{ matrix.device-name }})
+    needs: build-test-apks
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - device-name: Pixel 7
+            model: cheetah
+            api-level: 33
+          - device-name: Pixel 8
+            model: shiba
+            api-level: 34
+          - device-name: Samsung Galaxy S23
+            model: dm1q
+            api-level: 33
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Download app APK
+        uses: actions/download-artifact@v4
+        with:
+          name: app-apk
+          path: apks/
+
+      - name: Download test APK
+        uses: actions/download-artifact@v4
+        with:
+          name: test-apk
+          path: apks/
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+
+      - name: Set up gcloud CLI
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Run tests on Firebase Test Lab
+        run: |
+          gcloud firebase test android run \
+            --type instrumentation \
+            --app apks/androidApp-debug.apk \
+            --test apks/androidApp-debug-androidTest.apk \
+            --device model=${{ matrix.model }},version=${{ matrix.api-level }},locale=en,orientation=portrait \
+            --timeout 5m \
+            --results-dir firebase-results-${{ matrix.model }} \
+            --results-bucket ${{ secrets.FIREBASE_RESULTS_BUCKET || 'kmp-facelink-test-results' }} \
+            --no-auto-google-login \
+            --num-flaky-test-attempts 1
+
+      - name: Download test results
+        if: always()
+        run: |
+          mkdir -p test-results
+          gsutil -m cp -r "gs://${BUCKET:-kmp-facelink-test-results}/firebase-results-${{ matrix.model }}/**" test-results/ || true
+        env:
+          BUCKET: ${{ secrets.FIREBASE_RESULTS_BUCKET }}
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-${{ matrix.model }}
+          path: test-results/
+          retention-days: 14

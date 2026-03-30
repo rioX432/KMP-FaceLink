@@ -1,7 +1,6 @@
 package io.github.kmpfacelink.internal
 
 import android.os.SystemClock
-import android.util.Log
 import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.ImageProxy
 import androidx.camera.core.Preview
@@ -19,6 +18,7 @@ import io.github.kmpfacelink.model.HandTrackerConfig
 import io.github.kmpfacelink.model.HandTrackingData
 import io.github.kmpfacelink.model.SmoothingConfig
 import io.github.kmpfacelink.model.TrackedHand
+import io.github.kmpfacelink.util.FaceLinkLogger
 import io.github.kmpfacelink.util.FrameThrottler
 import io.github.kmpfacelink.util.GestureClassifier
 import io.github.kmpfacelink.util.HandLandmarkSmoother
@@ -85,7 +85,7 @@ internal class MediaPipeHandTracker(
         } catch (e: Exception) {
             // MediaPipe model loading and CameraX binding can throw various RuntimeException
             // subclasses; catch broadly to set error state before rethrowing
-            Log.e(TAG, "Failed to start hand tracking", e)
+            FaceLinkLogger.e(TAG, "Failed to start hand tracking", e)
             setError(e.message ?: e.toString())
             throw e
         }
@@ -142,7 +142,7 @@ internal class MediaPipeHandTracker(
         handLandmarker = try {
             createLandmarker(Delegate.GPU)
         } catch (@Suppress("TooGenericExceptionCaught") e: RuntimeException) {
-            Log.w(TAG, "GPU delegate unavailable, falling back to CPU", e)
+            FaceLinkLogger.w(TAG, "GPU delegate unavailable, falling back to CPU", e)
             createLandmarker(Delegate.CPU)
         }
     }
@@ -162,7 +162,7 @@ internal class MediaPipeHandTracker(
             .setMinHandPresenceConfidence(config.minPresenceConfidence)
             .setResultListener(::onHandLandmarkerResult)
             .setErrorListener { error ->
-                Log.e(TAG, "HandLandmarker error: ${error.message}", error)
+                FaceLinkLogger.e(TAG, "HandLandmarker error: ${error.message}", error)
             }
             .build()
 
@@ -214,7 +214,7 @@ internal class MediaPipeHandTracker(
         } catch (e: Exception) {
             // MediaPipe may throw IllegalArgumentException (non-monotonic timestamp) or
             // MediaPipeException on internal errors; must not crash the frame processing loop
-            Log.w(TAG, "detectAsync failed", e)
+            FaceLinkLogger.w(TAG, "detectAsync failed", e)
             sharedCameraSession?.returnInFlightBitmap(timestampMs)
         }
     }
@@ -252,7 +252,7 @@ internal class MediaPipeHandTracker(
         } catch (e: Exception) {
             // MediaPipe may throw IllegalArgumentException (non-monotonic timestamp) or
             // MediaPipeException on internal errors; must not crash the frame processing loop
-            Log.w(TAG, "detectAsync failed", e)
+            FaceLinkLogger.w(TAG, "detectAsync failed", e)
             if (inFlightBitmap.compareAndSet(bitmap, null)) {
                 imageConverter.returnBitmap(bitmap)
             }

@@ -1,6 +1,5 @@
 package io.github.kmpfacelink.internal
 
-import android.util.Log
 import androidx.camera.core.Preview
 import io.github.kmpfacelink.api.HolisticTracker
 import io.github.kmpfacelink.api.PlatformContext
@@ -13,6 +12,7 @@ import io.github.kmpfacelink.model.HolisticTrackerConfig
 import io.github.kmpfacelink.model.HolisticTrackingData
 import io.github.kmpfacelink.model.SmoothingConfig
 import io.github.kmpfacelink.model.TrackingModality
+import io.github.kmpfacelink.util.FaceLinkLogger
 import io.github.kmpfacelink.util.PlatformLock
 import io.github.kmpfacelink.util.withLock
 import kotlinx.coroutines.flow.Flow
@@ -122,7 +122,7 @@ internal class CompositeHolisticTracker(
         } catch (e: Exception) {
             // Sub-tracker start() can throw various exceptions from MediaPipe/CameraX
             // initialization; catch broadly to set error state before rethrowing
-            Log.e(TAG, "Failed to start holistic tracking", e)
+            FaceLinkLogger.e(TAG, "Failed to start holistic tracking", e)
             _errorMessage.value = e.message ?: e.toString()
             _state.value = TrackingState.ERROR
             throw e

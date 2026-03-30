@@ -13,6 +13,7 @@ import io.github.kmpfacelink.model.CameraFacing
 import io.github.kmpfacelink.model.SmoothingConfig
 import io.github.kmpfacelink.model.TrackedBody
 import io.github.kmpfacelink.util.BodyLandmarkSmoother
+import io.github.kmpfacelink.util.FaceLinkLogger
 import io.github.kmpfacelink.util.FrameThrottler
 import io.github.kmpfacelink.util.PlatformLock
 import io.github.kmpfacelink.util.ThermalMonitor
@@ -229,7 +230,7 @@ internal class VisionBodyTracker3D(
             device.lockForConfiguration(null)
             true
         } catch (e: Exception) {
-            println("[FaceLinkDebug] VisionBodyTracker3D: failed to lock device for frame rate config — $e")
+            FaceLinkLogger.w(TAG, "failed to lock device for frame rate config — $e")
             false
         }
         if (!locked) return
@@ -320,6 +321,7 @@ internal class VisionBodyTracker3D(
     }
 
     private companion object {
+        private const val TAG = "VisionBodyTracker3D"
         private const val TARGET_FPS = 15
     }
 }

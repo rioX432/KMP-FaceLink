@@ -1,6 +1,5 @@
 package io.github.kmpfacelink.internal
 
-import android.util.Log
 import com.google.mediapipe.tasks.core.BaseOptions
 import com.google.mediapipe.tasks.core.Delegate
 import com.google.mediapipe.tasks.vision.core.RunningMode
@@ -8,6 +7,7 @@ import com.google.mediapipe.tasks.vision.facelandmarker.FaceLandmarker
 import com.google.mediapipe.tasks.vision.facelandmarker.FaceLandmarkerResult
 import io.github.kmpfacelink.api.PlatformContext
 import io.github.kmpfacelink.model.FaceTrackerConfig
+import io.github.kmpfacelink.util.FaceLinkLogger
 
 private const val TAG = "FaceLandmarkerFactory"
 
@@ -36,7 +36,7 @@ internal object FaceLandmarkerFactory {
         return try {
             createWithDelegate(platformContext, config, resultListener, Delegate.GPU)
         } catch (@Suppress("TooGenericExceptionCaught") e: RuntimeException) {
-            Log.w(TAG, "GPU delegate unavailable, falling back to CPU", e)
+            FaceLinkLogger.w(TAG, "GPU delegate unavailable, falling back to CPU", e)
             createWithDelegate(platformContext, config, resultListener, Delegate.CPU)
         }
     }
@@ -63,7 +63,7 @@ internal object FaceLandmarkerFactory {
             .setOutputFacialTransformationMatrixes(true)
             .setResultListener(resultListener)
             .setErrorListener { error ->
-                Log.e(TAG, "FaceLandmarker error: ${error.message}", error)
+                FaceLinkLogger.e(TAG, "FaceLandmarker error: ${error.message}", error)
             }
             .build()
 

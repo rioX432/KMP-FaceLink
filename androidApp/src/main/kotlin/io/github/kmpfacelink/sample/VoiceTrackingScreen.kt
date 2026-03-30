@@ -40,6 +40,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
@@ -205,7 +206,13 @@ internal fun VoiceTrackingScreen(
             // Transcription
             if (transcription.isNotEmpty()) {
                 Text("Transcription", color = SampleColors.TextPrimary, fontSize = 13.sp, fontWeight = FontWeight.Bold)
-                Text(transcription, color = SampleColors.TextSecondary, fontSize = 12.sp)
+                Text(
+                    text = transcription,
+                    color = SampleColors.TextSecondary,
+                    fontSize = 12.sp,
+                    maxLines = 5,
+                    overflow = TextOverflow.Ellipsis,
+                )
             }
 
             // Lip sync bars

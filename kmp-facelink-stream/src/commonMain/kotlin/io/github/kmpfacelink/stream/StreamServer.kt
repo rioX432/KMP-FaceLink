@@ -165,11 +165,12 @@ public class StreamServer(
             }
         } catch (e: CancellationException) {
             throw e
-        } catch (_: Exception) {
+        } catch (e: Exception) {
+            println("[StreamServer] Client send failed (${e::class.simpleName}): ${e.message}")
             try {
                 session.wsSession.close()
-            } catch (_: Exception) {
-                // Already closed
+            } catch (closeEx: Exception) {
+                println("[StreamServer] Session already closed (${closeEx::class.simpleName}): ${closeEx.message}")
             }
             removeSession(session)
         }

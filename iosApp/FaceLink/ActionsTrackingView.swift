@@ -82,6 +82,8 @@ struct EmotionBarsView: View {
                     Text(emotion)
                         .font(.system(.caption2, design: .monospaced))
                         .foregroundStyle(isDominant ? .green : .secondary)
+                        .lineLimit(1)
+                        .truncationMode(.tail)
                         .frame(width: 80, alignment: .leading)
                     GeometryReader { geo in
                         ZStack(alignment: .leading) {

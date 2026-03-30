@@ -34,6 +34,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -262,10 +264,15 @@ private fun EmotionBars(result: EmotionResult?) {
     Emotion.entries.forEach { emotion ->
         val score = scores[emotion] ?: 0f
         val isDominant = result?.emotion == emotion
+        val dominantLabel = if (isDominant) ", dominant emotion" else ""
+        val scorePercent = (score.coerceIn(0f, 1f) * 100).toInt()
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(16.dp),
+                .height(16.dp)
+                .semantics {
+                    contentDescription = "${emotion.name} emotion: $scorePercent%$dominantLabel"
+                },
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(
@@ -300,12 +307,14 @@ private fun TriggerLeds(activeTriggers: List<String>) {
     ) {
         TRIGGER_NAMES.forEach { name ->
             val isActive = name in activeTriggers
+            val stateLabel = if (isActive) "active" else "inactive"
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Box(
                     modifier = Modifier
                         .size(12.dp)
                         .clip(CircleShape)
-                        .background(if (isActive) SampleColors.StatusActive else SampleColors.StatusInactive),
+                        .background(if (isActive) SampleColors.StatusActive else SampleColors.StatusInactive)
+                        .semantics { contentDescription = "$name trigger: $stateLabel" },
                 )
                 Text(
                     text = name,

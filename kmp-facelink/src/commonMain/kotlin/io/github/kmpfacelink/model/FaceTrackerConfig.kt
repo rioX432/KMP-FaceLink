@@ -58,6 +58,9 @@ public data class CalibrationConfig(
  *           Defaults to 0.15 (15%).
  * @property enableIdleDetection Whether to reduce frame rate when the face is stationary.
  *           Only effective when [powerMode] is set. Defaults to true.
+ * @property inferenceDelegate Preferred hardware accelerator for ML model inference.
+ *           Android (MediaPipe) only — has no effect on iOS (ARKit).
+ *           Defaults to [InferenceDelegate.AUTO] (GPU with CPU fallback).
  * @property analysisWidth Width of the camera analysis stream in pixels. Android only.
  *           Lower values improve performance at the cost of accuracy. Defaults to 640.
  * @property analysisHeight Height of the camera analysis stream in pixels. Android only.
@@ -79,6 +82,7 @@ public data class FaceTrackerConfig(
     val powerMode: PowerMode? = null,
     val lowBatteryThreshold: Float = DEFAULT_LOW_BATTERY_THRESHOLD,
     val enableIdleDetection: Boolean = true,
+    val inferenceDelegate: InferenceDelegate = InferenceDelegate.AUTO,
     val analysisWidth: Int = DEFAULT_ANALYSIS_WIDTH,
     val analysisHeight: Int = DEFAULT_ANALYSIS_HEIGHT,
 ) {

@@ -43,6 +43,7 @@ internal class CompositeHolisticTracker(
             config.faceConfig.copy(
                 cameraFacing = config.cameraFacing,
                 thermalPolicy = config.thermalPolicy,
+                inferenceDelegate = config.inferenceDelegate,
             ),
             sharedCameraSession = sharedCamera,
         )
@@ -56,6 +57,7 @@ internal class CompositeHolisticTracker(
             config.handConfig.copy(
                 cameraFacing = config.cameraFacing,
                 thermalPolicy = config.thermalPolicy,
+                inferenceDelegate = config.inferenceDelegate,
             ),
             sharedCameraSession = sharedCamera,
         )
@@ -69,6 +71,7 @@ internal class CompositeHolisticTracker(
             config.bodyConfig.copy(
                 cameraFacing = config.cameraFacing,
                 thermalPolicy = config.thermalPolicy,
+                inferenceDelegate = config.inferenceDelegate,
             ),
             sharedCameraSession = sharedCamera,
         )

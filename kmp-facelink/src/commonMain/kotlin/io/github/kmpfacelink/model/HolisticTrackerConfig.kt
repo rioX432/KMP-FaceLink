@@ -18,6 +18,9 @@ package io.github.kmpfacelink.model
  *           **Ignored when [powerMode] is set.**
  * @property powerMode Power management profile for all sub-trackers. When non-null,
  *           overrides both [thermalPolicy] and per-tracker power mode settings.
+ * @property inferenceDelegate Preferred hardware accelerator for ML model inference.
+ *           Overrides per-tracker inference delegate settings.
+ *           Android (MediaPipe) only. Defaults to [InferenceDelegate.AUTO].
  * @property analysisWidth Width of the shared camera analysis stream in pixels. Android only.
  *           Overrides per-tracker analysis width settings for the shared session.
  *           Lower values improve performance at the cost of accuracy. Defaults to 640.
@@ -35,6 +38,7 @@ public data class HolisticTrackerConfig(
     val cameraFacing: CameraFacing = CameraFacing.FRONT,
     val thermalPolicy: ThermalPolicy = ThermalPolicy.Disabled,
     val powerMode: PowerMode? = null,
+    val inferenceDelegate: InferenceDelegate = InferenceDelegate.AUTO,
     val analysisWidth: Int = DEFAULT_ANALYSIS_WIDTH,
     val analysisHeight: Int = DEFAULT_ANALYSIS_HEIGHT,
 ) {

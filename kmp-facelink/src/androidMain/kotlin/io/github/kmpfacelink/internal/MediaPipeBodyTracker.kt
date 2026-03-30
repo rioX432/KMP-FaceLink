@@ -136,13 +136,8 @@ internal class MediaPipeBodyTracker(
     }
 
     private fun initPoseLandmarker() {
-        // GPU delegate can fail with RuntimeException on devices lacking OpenGL ES 3.1+
-        // or when the GPU driver rejects the model. Fall back to CPU in that case.
-        poseLandmarker = try {
-            createLandmarker(Delegate.GPU)
-        } catch (@Suppress("TooGenericExceptionCaught") e: RuntimeException) {
-            FaceLinkLogger.w(TAG, "GPU delegate unavailable, falling back to CPU", e)
-            createLandmarker(Delegate.CPU)
+        poseLandmarker = DelegateResolver.createWithFallback(config.inferenceDelegate) { delegate ->
+            createLandmarker(delegate)
         }
     }
 

@@ -35,6 +35,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -52,31 +53,93 @@ import io.github.kmpfacelink.voice.VoicePipelineState
 import io.github.kmpfacelink.voice.audio.createAudioPlayer
 import io.github.kmpfacelink.voice.audio.createAudioRecorder
 import io.github.kmpfacelink.voice.tts.TtsConfig
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 
 private enum class TtsProvider { VOICEVOX, OPENAI, ELEVENLABS }
 
-@Suppress("LongMethod")
+/**
+ * Holds pipeline state, coroutine jobs, and business logic for VoiceTrackingScreen.
+ */
+private class VoiceTrackingStateHolder(private val scope: CoroutineScope) {
+    var pipeline: VoicePipeline? = null
+    var speakJob: Job? = null
+    var stateJob: Job? = null
+    var lipSyncJob: Job? = null
+
+    fun startSpeaking(
+        config: TtsConfig,
+        speakText: String,
+        lipSyncShapes: SnapshotStateMap<BlendShape, Float>,
+        onStateChange: (VoicePipelineState) -> Unit,
+    ) {
+        pipeline?.release()
+        val newPipeline = VoicePipeline(
+            config = VoicePipelineConfig(ttsConfig = config),
+            audioRecorder = createAudioRecorder(),
+            audioPlayer = createAudioPlayer(),
+        )
+        pipeline = newPipeline
+        stateJob?.cancel()
+        stateJob = scope.launch { newPipeline.state.collect { onStateChange(it) } }
+        lipSyncJob?.cancel()
+        lipSyncJob = scope.launch {
+            newPipeline.lipSyncOutput.collect { shapes ->
+                lipSyncShapes.clear()
+                lipSyncShapes.putAll(shapes)
+            }
+        }
+        speakJob?.cancel()
+        speakJob = scope.launch {
+            @Suppress("TooGenericExceptionCaught") // UI error handler: voice pipeline
+            // can fail with IOException (network TTS), RuntimeException (ASR), etc.
+            try {
+                newPipeline.speak(speakText).collect { }
+            } catch (e: Exception) {
+                onStateChange(VoicePipelineState.Error(e.message ?: "Speak failed"))
+            }
+        }
+    }
+
+    fun toggleMic(
+        pipelineState: VoicePipelineState,
+        onTranscription: (String) -> Unit,
+    ) {
+        val p = pipeline ?: return
+        if (pipelineState == VoicePipelineState.Listening) {
+            scope.launch {
+                val result = p.stopListening()
+                onTranscription(result?.text ?: "(no result)")
+            }
+        } else {
+            scope.launch { p.startListening() }
+        }
+    }
+
+    fun release() {
+        speakJob?.cancel()
+        stateJob?.cancel()
+        lipSyncJob?.cancel()
+        pipeline?.release()
+    }
+}
+
 @Composable
 internal fun VoiceTrackingScreen(
     onModeChange: (TrackingMode) -> Unit,
 ) {
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
+    val holder = remember { VoiceTrackingStateHolder(scope) }
 
     var selectedProvider by remember { mutableStateOf(TtsProvider.VOICEVOX) }
     var apiKey by remember { mutableStateOf("") }
     var voiceId by remember { mutableStateOf("alloy") }
     var voicevoxHost by remember { mutableStateOf("localhost") }
     var speakText by remember { mutableStateOf("Hello, I am FaceLink!") }
-
-    var pipeline by remember { mutableStateOf<VoicePipeline?>(null) }
     var pipelineState by remember { mutableStateOf<VoicePipelineState>(VoicePipelineState.Idle) }
     val lipSyncShapes = remember { mutableStateMapOf<BlendShape, Float>() }
-    var speakJob by remember { mutableStateOf<Job?>(null) }
-    var stateJob by remember { mutableStateOf<Job?>(null) }
-    var lipSyncJob by remember { mutableStateOf<Job?>(null) }
     var transcription by remember { mutableStateOf("") }
     var hasMicPermission by remember {
         mutableStateOf(
@@ -84,20 +147,61 @@ internal fun VoiceTrackingScreen(
                 == PackageManager.PERMISSION_GRANTED,
         )
     }
-
     val micPermissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission(),
     ) { granted -> hasMicPermission = granted }
 
-    DisposableEffect(Unit) {
-        onDispose {
-            speakJob?.cancel()
-            stateJob?.cancel()
-            lipSyncJob?.cancel()
-            pipeline?.release()
-        }
-    }
+    DisposableEffect(Unit) { onDispose { holder.release() } }
 
+    VoiceTrackingContent(
+        selectedProvider = selectedProvider,
+        apiKey = apiKey,
+        voiceId = voiceId,
+        voicevoxHost = voicevoxHost,
+        speakText = speakText,
+        pipelineState = pipelineState,
+        lipSyncShapes = lipSyncShapes,
+        transcription = transcription,
+        onModeChange = onModeChange,
+        onProviderChange = { selectedProvider = it },
+        onApiKeyChange = { apiKey = it },
+        onVoiceIdChange = { voiceId = it },
+        onHostChange = { voicevoxHost = it },
+        onSpeakTextChange = { speakText = it },
+        onSpeak = {
+            val config = buildTtsConfig(selectedProvider, apiKey, voiceId, voicevoxHost)
+            holder.startSpeaking(config, speakText, lipSyncShapes) { pipelineState = it }
+        },
+        onMicClick = {
+            if (!hasMicPermission) {
+                micPermissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
+            } else {
+                holder.toggleMic(pipelineState) { transcription = it }
+            }
+        },
+    )
+}
+
+@Suppress("LongParameterList", "LongMethod")
+@Composable
+private fun VoiceTrackingContent(
+    selectedProvider: TtsProvider,
+    apiKey: String,
+    voiceId: String,
+    voicevoxHost: String,
+    speakText: String,
+    pipelineState: VoicePipelineState,
+    lipSyncShapes: Map<BlendShape, Float>,
+    transcription: String,
+    onModeChange: (TrackingMode) -> Unit,
+    onProviderChange: (TtsProvider) -> Unit,
+    onApiKeyChange: (String) -> Unit,
+    onVoiceIdChange: (String) -> Unit,
+    onHostChange: (String) -> Unit,
+    onSpeakTextChange: (String) -> Unit,
+    onSpeak: () -> Unit,
+    onMicClick: () -> Unit,
+) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -107,115 +211,33 @@ internal fun VoiceTrackingScreen(
         VoiceTopBar(onModeChange)
 
         Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            // Provider selection
             Text("TTS Provider", color = SampleColors.TextPrimary, fontSize = 13.sp, fontWeight = FontWeight.Bold)
-            ProviderChips(selectedProvider) { selectedProvider = it }
+            ProviderChips(selectedProvider, onProviderChange)
 
-            // Provider config
             ProviderConfigForm(
                 provider = selectedProvider,
                 apiKey = apiKey,
                 voiceId = voiceId,
                 voicevoxHost = voicevoxHost,
-                onApiKeyChange = { apiKey = it },
-                onVoiceIdChange = { voiceId = it },
-                onHostChange = { voicevoxHost = it },
+                onApiKeyChange = onApiKeyChange,
+                onVoiceIdChange = onVoiceIdChange,
+                onHostChange = onHostChange,
             )
 
-            // Speak controls
             Text("Speak", color = SampleColors.TextPrimary, fontSize = 13.sp, fontWeight = FontWeight.Bold)
             OutlinedTextField(
                 value = speakText,
-                onValueChange = { speakText = it },
+                onValueChange = onSpeakTextChange,
                 label = { Text("Text to speak") },
                 colors = voiceTextFieldColors(),
                 modifier = Modifier.fillMaxWidth(),
                 maxLines = 3,
             )
 
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Button(
-                    onClick = {
-                        val config = buildTtsConfig(selectedProvider, apiKey, voiceId, voicevoxHost)
-                        pipeline?.release()
-                        val newPipeline = VoicePipeline(
-                            config = VoicePipelineConfig(ttsConfig = config),
-                            audioRecorder = createAudioRecorder(),
-                            audioPlayer = createAudioPlayer(),
-                        )
-                        pipeline = newPipeline
-                        stateJob?.cancel()
-                        stateJob = scope.launch { newPipeline.state.collect { pipelineState = it } }
-                        lipSyncJob?.cancel()
-                        lipSyncJob = scope.launch {
-                            newPipeline.lipSyncOutput.collect { shapes ->
-                                lipSyncShapes.clear()
-                                lipSyncShapes.putAll(shapes)
-                            }
-                        }
-                        speakJob?.cancel()
-                        speakJob = scope.launch {
-                            @Suppress("TooGenericExceptionCaught") // UI error handler: voice pipeline
-                            // can fail with IOException (network TTS), RuntimeException (ASR), etc.
-                            try {
-                                newPipeline.speak(speakText).collect { }
-                            } catch (e: Exception) {
-                                pipelineState = VoicePipelineState.Error(
-                                    e.message ?: "Speak failed",
-                                )
-                            }
-                        }
-                    },
-                    colors = ButtonDefaults.buttonColors(containerColor = SampleColors.Primary),
-                ) { Text("Speak") }
-
-                // Microphone button
-                Button(
-                    onClick = {
-                        if (!hasMicPermission) {
-                            micPermissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
-                            return@Button
-                        }
-                        val p = pipeline ?: return@Button
-                        if (pipelineState == VoicePipelineState.Listening) {
-                            scope.launch {
-                                val result = p.stopListening()
-                                transcription = result?.text ?: "(no result)"
-                            }
-                        } else {
-                            scope.launch { p.startListening() }
-                        }
-                    },
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = if (pipelineState == VoicePipelineState.Listening) {
-                            SampleColors.ErrorRed
-                        } else {
-                            SampleColors.Primary
-                        },
-                    ),
-                ) {
-                    Text(
-                        if (pipelineState == VoicePipelineState.Listening) "Stop Mic" else "Listen",
-                    )
-                }
-            }
-
-            // Pipeline state
+            SpeakControls(pipelineState, onSpeak, onMicClick)
             PipelineStateBadge(pipelineState)
+            TranscriptionSection(transcription)
 
-            // Transcription
-            if (transcription.isNotEmpty()) {
-                Text("Transcription", color = SampleColors.TextPrimary, fontSize = 13.sp, fontWeight = FontWeight.Bold)
-                Text(
-                    text = transcription,
-                    color = SampleColors.TextSecondary,
-                    fontSize = 12.sp,
-                    maxLines = 5,
-                    overflow = TextOverflow.Ellipsis,
-                )
-            }
-
-            // Lip sync bars
             Text("Lip Sync", color = SampleColors.TextPrimary, fontSize = 13.sp, fontWeight = FontWeight.Bold)
             LipSyncBars(lipSyncShapes)
         }
@@ -224,6 +246,52 @@ internal fun VoiceTrackingScreen(
             modifier = Modifier
                 .windowInsetsPadding(WindowInsets.navigationBars)
                 .height(16.dp),
+        )
+    }
+}
+
+@Composable
+private fun SpeakControls(
+    pipelineState: VoicePipelineState,
+    onSpeak: () -> Unit,
+    onMicClick: () -> Unit,
+) {
+    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        Button(
+            onClick = onSpeak,
+            colors = ButtonDefaults.buttonColors(containerColor = SampleColors.Primary),
+        ) { Text("Speak") }
+
+        Button(
+            onClick = onMicClick,
+            colors = ButtonDefaults.buttonColors(
+                containerColor = if (pipelineState == VoicePipelineState.Listening) {
+                    SampleColors.ErrorRed
+                } else {
+                    SampleColors.Primary
+                },
+            ),
+        ) {
+            Text(if (pipelineState == VoicePipelineState.Listening) "Stop Mic" else "Listen")
+        }
+    }
+}
+
+@Composable
+private fun TranscriptionSection(transcription: String) {
+    if (transcription.isNotEmpty()) {
+        Text(
+            "Transcription",
+            color = SampleColors.TextPrimary,
+            fontSize = 13.sp,
+            fontWeight = FontWeight.Bold,
+        )
+        Text(
+            text = transcription,
+            color = SampleColors.TextSecondary,
+            fontSize = 12.sp,
+            maxLines = 5,
+            overflow = TextOverflow.Ellipsis,
         )
     }
 }

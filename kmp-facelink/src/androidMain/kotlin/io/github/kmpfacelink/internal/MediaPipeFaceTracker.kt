@@ -28,27 +28,20 @@ import io.github.kmpfacelink.util.BlendShapeSmoother
 import io.github.kmpfacelink.util.Calibrator
 import io.github.kmpfacelink.util.FrameThrottler
 import io.github.kmpfacelink.util.GazeEstimator
-import io.github.kmpfacelink.util.PlatformLock
 import io.github.kmpfacelink.util.PowerModeManager
-import io.github.kmpfacelink.util.ThermalMonitor
 import io.github.kmpfacelink.util.TransformUtils
 import io.github.kmpfacelink.util.createSmoother
 import io.github.kmpfacelink.util.withLock
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asSharedFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.withContext
 import java.util.concurrent.ExecutionException
 import java.util.concurrent.Executors
 import java.util.concurrent.RejectedExecutionException
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicReference
-import kotlin.concurrent.atomics.AtomicInt
 import kotlin.concurrent.atomics.ExperimentalAtomicApi
 
 // Lifecycle (start/stop/release/switchCamera), config (resetCalibration/updateSmoothing),
@@ -61,22 +54,16 @@ internal class MediaPipeFaceTracker(
     private val platformContext: PlatformContext,
     private val config: FaceTrackerConfig,
     private val sharedCameraSession: SharedCameraSession? = null,
-) : FaceTracker, PreviewableFaceTracker {
+) : BaseTracker<FaceTrackingData>(
+    thermalMonitor = AndroidThermalMonitor(platformContext.context),
+    frameThrottler = FrameThrottler(config.thermalPolicy),
+),
+    FaceTracker,
+    PreviewableFaceTracker {
 
-    private val _trackingData = MutableSharedFlow<FaceTrackingData>(
-        replay = 1,
-        extraBufferCapacity = 1,
-    )
-    override val trackingData: Flow<FaceTrackingData> = _trackingData.asSharedFlow()
-
-    private val _state = MutableStateFlow(TrackingState.IDLE)
-    override val state: StateFlow<TrackingState> = _state.asStateFlow()
-
-    private val _errorMessage = MutableStateFlow<String?>(null)
-    override val errorMessage: StateFlow<String?> = _errorMessage.asStateFlow()
-
-    private val pipelineLock = PlatformLock()
-    private val released = AtomicInt(0)
+    override val trackingData: Flow<FaceTrackingData> = super.trackingData
+    override val state: StateFlow<TrackingState> = super.state
+    override val errorMessage: StateFlow<String?> = super.errorMessage
 
     private var smoother: BlendShapeSmoother? = config.smoothingConfig.createSmoother()
     private val enhancer: BlendShapeEnhancer? = BlendShapeEnhancer.create(config.enhancerConfig)
@@ -84,9 +71,7 @@ internal class MediaPipeFaceTracker(
         warmupFrames = config.calibrationConfig.warmupFrames,
         decayRate = config.calibrationConfig.rangeDecayRate,
     )
-    private val thermalMonitor: ThermalMonitor = AndroidThermalMonitor(platformContext.context)
     private val batteryMonitor = AndroidBatteryMonitor(platformContext.context)
-    private val frameThrottler = FrameThrottler(config.thermalPolicy)
     private val powerModeManager: PowerModeManager? = config.powerMode?.let { mode ->
         PowerModeManager(
             powerMode = mode,
@@ -131,27 +116,20 @@ internal class MediaPipeFaceTracker(
         }
 
         pipelineLock.withLock {
-            check(released.load() == 0) { "Cannot start a released tracker" }
-            if (_state.value == TrackingState.TRACKING || _state.value == TrackingState.STARTING) return
-            _state.value = TrackingState.STARTING
+            if (!guardStart()) return
         }
 
         try {
             initFaceLandmarker()
             startCamera()
-            pipelineLock.withLock {
-                if (released.load() == 0) {
-                    _state.value = TrackingState.TRACKING
-                }
-            }
+            pipelineLock.withLock { transitionToTracking() }
         } catch (e: kotlinx.coroutines.CancellationException) {
             throw e
         } catch (e: Exception) {
             // MediaPipe model loading and CameraX binding can throw various RuntimeException
             // subclasses; catch broadly to set error state before rethrowing
             Log.e(TAG, "Failed to start face tracking", e)
-            _errorMessage.value = e.message ?: e.toString()
-            _state.value = TrackingState.ERROR
+            setError(e.message ?: e.toString())
             throw e
         }
     }
@@ -159,7 +137,7 @@ internal class MediaPipeFaceTracker(
     override suspend fun stop() {
         var landmarkerToClose: FaceLandmarker? = null
         pipelineLock.withLock {
-            _state.value = TrackingState.STOPPED
+            mutableState.value = TrackingState.STOPPED
             landmarkerToClose = faceLandmarker
             faceLandmarker = null
             cameraManager?.unbindAll()
@@ -189,7 +167,7 @@ internal class MediaPipeFaceTracker(
         var landmarkerToClose: FaceLandmarker? = null
         pipelineLock.withLock {
             released.store(1)
-            _state.value = TrackingState.RELEASED
+            mutableState.value = TrackingState.RELEASED
             landmarkerToClose = faceLandmarker
             faceLandmarker = null
             cameraManager?.unbindAll()
@@ -209,7 +187,7 @@ internal class MediaPipeFaceTracker(
 
     override fun resetCalibration() {
         pipelineLock.withLock {
-            check(released.load() == 0) { "Cannot reset calibration on a released tracker" }
+            checkNotReleased("reset calibration")
             calibrator.reset()
             smoother?.reset()
         }
@@ -217,17 +195,15 @@ internal class MediaPipeFaceTracker(
 
     override fun updateSmoothing(config: SmoothingConfig) {
         pipelineLock.withLock {
-            check(released.load() == 0) { "Cannot update smoothing on a released tracker" }
+            checkNotReleased("update smoothing")
             smoother = config.createSmoother()
         }
     }
 
     override suspend fun switchCamera(facing: CameraFacing) {
-        pipelineLock.withLock {
-            check(released.load() == 0) { "Cannot switch camera on a released tracker" }
-        }
+        pipelineLock.withLock { checkNotReleased("switch camera") }
         if (currentCameraFacing == facing) return
-        val wasTracking = _state.value == TrackingState.TRACKING
+        val wasTracking = mutableState.value == TrackingState.TRACKING
         if (wasTracking) stop()
         currentCameraFacing = facing
         if (wasTracking) start()
@@ -292,7 +268,7 @@ internal class MediaPipeFaceTracker(
     @Suppress("UNUSED_PARAMETER") // SharedFrameHandler signature
     private fun processSharedFrame(bitmap: android.graphics.Bitmap, width: Int, height: Int, timestampMs: Long) {
         val landmarker = faceLandmarker
-        if (landmarker == null || _state.value != TrackingState.TRACKING) {
+        if (landmarker == null || mutableState.value != TrackingState.TRACKING) {
             sharedCameraSession?.returnInFlightBitmap(timestampMs)
             return
         }
@@ -319,7 +295,7 @@ internal class MediaPipeFaceTracker(
 
     private fun processFrame(imageProxy: ImageProxy) {
         val landmarker = faceLandmarker
-        if (landmarker == null || _state.value != TrackingState.TRACKING) {
+        if (landmarker == null || mutableState.value != TrackingState.TRACKING) {
             imageProxy.close()
             return
         }
@@ -375,7 +351,7 @@ internal class MediaPipeFaceTracker(
         val timestampMs = result.timestampMs()
 
         if (!result.faceBlendshapes().isPresent || result.faceBlendshapes().get().isEmpty()) {
-            _trackingData.tryEmit(FaceTrackingData.notTracking(timestampMs))
+            mutableTrackingData.tryEmit(FaceTrackingData.notTracking(timestampMs))
             return
         }
 
@@ -399,7 +375,7 @@ internal class MediaPipeFaceTracker(
             thermalState = thermalMonitor.thermalState.value,
         )
 
-        _trackingData.tryEmit(data)
+        mutableTrackingData.tryEmit(data)
     }
 
     /** Whether a frame at the given timestamp should be processed. */
@@ -420,7 +396,7 @@ internal class MediaPipeFaceTracker(
         }
     }
 
-    /** Runs enhance → calibrate → smooth on the primary face. Returns null if tracker is released. */
+    /** Runs enhance -> calibrate -> smooth on the primary face. Returns null if tracker is released. */
     private fun processPrimaryPipeline(
         blendShapes: BlendShapeData,
         landmarks: List<FaceLandmark>,
@@ -428,7 +404,7 @@ internal class MediaPipeFaceTracker(
     ): BlendShapeData? {
         var result = blendShapes
         return pipelineLock.withLock {
-            if (released.load() != 0) return null
+            if (isReleased()) return null
 
             if (!shouldDisableEnhancer()) {
                 enhancer?.let { result = it.enhance(result, landmarks) }

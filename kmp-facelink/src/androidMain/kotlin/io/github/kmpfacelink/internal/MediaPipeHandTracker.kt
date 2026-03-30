@@ -22,19 +22,12 @@ import io.github.kmpfacelink.model.TrackedHand
 import io.github.kmpfacelink.util.FrameThrottler
 import io.github.kmpfacelink.util.GestureClassifier
 import io.github.kmpfacelink.util.HandLandmarkSmoother
-import io.github.kmpfacelink.util.PlatformLock
-import io.github.kmpfacelink.util.ThermalMonitor
 import io.github.kmpfacelink.util.createHandSmoother
 import io.github.kmpfacelink.util.withLock
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asSharedFlow
-import kotlinx.coroutines.flow.asStateFlow
 import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicReference
-import kotlin.concurrent.atomics.AtomicInt
 import kotlin.concurrent.atomics.ExperimentalAtomicApi
 
 @OptIn(ExperimentalAtomicApi::class)
@@ -42,26 +35,18 @@ internal class MediaPipeHandTracker(
     private val platformContext: PlatformContext,
     private val config: HandTrackerConfig,
     private val sharedCameraSession: SharedCameraSession? = null,
-) : HandTracker, PreviewableHandTracker {
+) : BaseTracker<HandTrackingData>(
+    thermalMonitor = AndroidThermalMonitor(platformContext.context),
+    frameThrottler = FrameThrottler(config.thermalPolicy),
+),
+    HandTracker,
+    PreviewableHandTracker {
 
-    private val _trackingData = MutableSharedFlow<HandTrackingData>(
-        replay = 1,
-        extraBufferCapacity = 1,
-    )
-    override val trackingData: Flow<HandTrackingData> = _trackingData.asSharedFlow()
-
-    private val _state = MutableStateFlow(TrackingState.IDLE)
-    override val state: StateFlow<TrackingState> = _state.asStateFlow()
-
-    private val _errorMessage = MutableStateFlow<String?>(null)
-    override val errorMessage: StateFlow<String?> = _errorMessage.asStateFlow()
-
-    private val pipelineLock = PlatformLock()
-    private val released = AtomicInt(0)
+    override val trackingData: Flow<HandTrackingData> = super.trackingData
+    override val state: StateFlow<TrackingState> = super.state
+    override val errorMessage: StateFlow<String?> = super.errorMessage
 
     private var smoother: HandLandmarkSmoother? = config.smoothingConfig.createHandSmoother()
-    private val thermalMonitor: ThermalMonitor = AndroidThermalMonitor(platformContext.context)
-    private val frameThrottler = FrameThrottler(config.thermalPolicy)
 
     @Volatile
     internal var currentCameraFacing: CameraFacing = config.cameraFacing
@@ -88,27 +73,20 @@ internal class MediaPipeHandTracker(
 
     override suspend fun start() {
         pipelineLock.withLock {
-            check(released.load() == 0) { "Cannot start a released tracker" }
-            if (_state.value == TrackingState.TRACKING || _state.value == TrackingState.STARTING) return
-            _state.value = TrackingState.STARTING
+            if (!guardStart()) return
         }
 
         try {
             initHandLandmarker()
             startCamera()
-            pipelineLock.withLock {
-                if (released.load() == 0) {
-                    _state.value = TrackingState.TRACKING
-                }
-            }
+            pipelineLock.withLock { transitionToTracking() }
         } catch (e: kotlinx.coroutines.CancellationException) {
             throw e
         } catch (e: Exception) {
             // MediaPipe model loading and CameraX binding can throw various RuntimeException
             // subclasses; catch broadly to set error state before rethrowing
             Log.e(TAG, "Failed to start hand tracking", e)
-            _errorMessage.value = e.message ?: e.toString()
-            _state.value = TrackingState.ERROR
+            setError(e.message ?: e.toString())
             throw e
         }
     }
@@ -118,7 +96,7 @@ internal class MediaPipeHandTracker(
             cameraManager?.unbindAll()
             handLandmarker?.close()
             handLandmarker = null
-            _state.value = TrackingState.STOPPED
+            mutableState.value = TrackingState.STOPPED
         }
     }
 
@@ -131,30 +109,28 @@ internal class MediaPipeHandTracker(
             imageConverter.release()
             thermalMonitor.release()
             analysisExecutor.shutdown()
-            _state.value = TrackingState.RELEASED
+            mutableState.value = TrackingState.RELEASED
         }
     }
 
     override fun updateSmoothing(config: SmoothingConfig) {
         pipelineLock.withLock {
-            check(released.load() == 0) { "Cannot update smoothing on a released tracker" }
+            checkNotReleased("update smoothing")
             smoother = config.createHandSmoother()
         }
     }
 
     override fun resetSmoothing() {
         pipelineLock.withLock {
-            check(released.load() == 0) { "Cannot reset smoothing on a released tracker" }
+            checkNotReleased("reset smoothing")
             smoother?.reset()
         }
     }
 
     override suspend fun switchCamera(facing: CameraFacing) {
-        pipelineLock.withLock {
-            check(released.load() == 0) { "Cannot switch camera on a released tracker" }
-        }
+        pipelineLock.withLock { checkNotReleased("switch camera") }
         if (currentCameraFacing == facing) return
-        val wasTracking = _state.value == TrackingState.TRACKING
+        val wasTracking = mutableState.value == TrackingState.TRACKING
         if (wasTracking) stop()
         currentCameraFacing = facing
         if (wasTracking) start()
@@ -217,7 +193,7 @@ internal class MediaPipeHandTracker(
     @Suppress("UNUSED_PARAMETER") // SharedFrameHandler signature
     private fun processSharedFrame(bitmap: android.graphics.Bitmap, width: Int, height: Int, timestampMs: Long) {
         val landmarker = handLandmarker
-        if (landmarker == null || _state.value != TrackingState.TRACKING) {
+        if (landmarker == null || mutableState.value != TrackingState.TRACKING) {
             sharedCameraSession?.returnInFlightBitmap(timestampMs)
             return
         }
@@ -245,7 +221,7 @@ internal class MediaPipeHandTracker(
 
     private fun processFrame(imageProxy: ImageProxy) {
         val landmarker = handLandmarker
-        if (landmarker == null || _state.value != TrackingState.TRACKING) {
+        if (landmarker == null || mutableState.value != TrackingState.TRACKING) {
             imageProxy.close()
             return
         }
@@ -298,7 +274,7 @@ internal class MediaPipeHandTracker(
         val timestampMs = result.timestampMs()
 
         if (result.landmarks().isEmpty()) {
-            _trackingData.tryEmit(HandTrackingData.notTracking(timestampMs))
+            mutableTrackingData.tryEmit(HandTrackingData.notTracking(timestampMs))
             return
         }
 
@@ -336,7 +312,7 @@ internal class MediaPipeHandTracker(
 
         // Apply smoothing (protected by lock)
         val processedHands = pipelineLock.withLock {
-            if (released.load() != 0) return
+            if (isReleased()) return
             smoother?.let { hands = it.smooth(hands, timestampMs).toMutableList() }
             hands.toList()
         }
@@ -350,7 +326,7 @@ internal class MediaPipeHandTracker(
             thermalState = thermalMonitor.thermalState.value,
         )
 
-        _trackingData.tryEmit(data)
+        mutableTrackingData.tryEmit(data)
     }
 
     companion object {

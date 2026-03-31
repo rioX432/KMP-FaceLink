@@ -1,3 +1,4 @@
+import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 import org.jetbrains.kotlin.gradle.plugin.mpp.apple.XCFramework
 
 plugins {
@@ -12,6 +13,11 @@ dokka {
 
 kotlin {
     explicitApi()
+
+    @OptIn(ExperimentalWasmDsl::class)
+    wasmJs {
+        browser()
+    }
 
     androidLibrary {
         namespace = "io.github.kmpfacelink.avatar"

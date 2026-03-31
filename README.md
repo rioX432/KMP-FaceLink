@@ -3,7 +3,7 @@
 [![CI](https://github.com/rioX432/KMP-FaceLink/actions/workflows/ci.yml/badge.svg)](https://github.com/rioX432/KMP-FaceLink/actions/workflows/ci.yml)
 [![Maven Central](https://img.shields.io/maven-central/v/io.github.rioX432/kmp-facelink)](https://central.sonatype.com/namespace/io.github.rioX432)
 [![Kotlin](https://img.shields.io/badge/Kotlin-2.2.0-7F52FF.svg?logo=kotlin)](https://kotlinlang.org)
-[![Platforms](https://img.shields.io/badge/Platforms-Android%20%7C%20iOS%20%7C%20JVM-blue)](https://kotlinlang.org/docs/multiplatform.html)
+[![Platforms](https://img.shields.io/badge/Platforms-Android%20%7C%20iOS%20%7C%20JVM%20%7C%20Wasm-blue)](https://kotlinlang.org/docs/multiplatform.html)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![API Docs](https://img.shields.io/badge/API%20Docs-Dokka-blue)](https://rioX432.github.io/KMP-FaceLink/)
 
@@ -13,9 +13,9 @@ Unified face, hand & body tracking SDK for Kotlin Multiplatform — one API, bot
 
 | Module | Purpose | Stability |
 |---|---|---|
-| `kmp-facelink` | Core face, hand & body tracking API (Android, iOS, JVM) | **Stable** |
-| `kmp-facelink-avatar` | BlendShape → Live2D / VRM parameter mapping | **Stable** |
-| `kmp-facelink-actions` | Gesture/expression triggers, emotion classification, recording | **Stable** |
+| `kmp-facelink` | Core face, hand & body tracking API (Android, iOS, JVM, Wasm) | **Stable** |
+| `kmp-facelink-avatar` | BlendShape → Live2D / VRM parameter mapping (+ Wasm) | **Stable** |
+| `kmp-facelink-actions` | Gesture/expression triggers, emotion classification, recording (+ Wasm) | **Stable** |
 | `kmp-facelink-voice` | TTS, ASR, multilingual lip sync | **Mostly stable** |
 | `kmp-facelink-llm` | LLM streaming API (cloud + on-device) with hybrid routing | **Experimental** |
 | `kmp-facelink-pipeline` | AI avatar pipeline: Voice → LLM → TTS → LipSync → Expression | **Experimental** |
@@ -46,6 +46,12 @@ Unified face, hand & body tracking SDK for Kotlin Multiplatform — one API, bot
 - NSCameraUsageDescription in Info.plist
 - TrueDepth front camera (face tracking)
 - ARKit capability in entitlements
+
+### Wasm/JS (Experimental)
+- Supported modules: `kmp-facelink`, `kmp-facelink-avatar`, `kmp-facelink-actions`
+- Kotlin/Wasm target (`wasmJs`) — requires a browser with [WebAssembly GC](https://developer.mozilla.org/en-US/docs/WebAssembly/GC) support (Chrome 119+, Firefox 120+)
+- Tracking APIs return no-op stubs; avatar mapping and action triggers are fully functional
+- See [docs/research/kotlin-wasm-web-target.md](docs/research/kotlin-wasm-web-target.md) for roadmap
 
 ## Documentation
 

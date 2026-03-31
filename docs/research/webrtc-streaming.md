@@ -426,6 +426,41 @@ The existing VMC (`kmp-facelink-vmc`) and iFacialMocap (`kmp-facelink-ifm`) modu
 
 ---
 
+## 10. Implementation Status (Phase 1a — Transport Abstraction)
+
+**Issue:** #370
+**Date:** 2026-03-31
+
+The transport abstraction layer and signaling types have been implemented in `kmp-facelink-stream` `commonMain` under the `io.github.kmpfacelink.stream.webrtc` package.
+
+### Implemented Components
+
+| Component | File | Description |
+|---|---|---|
+| `DataChannelTransport` | `webrtc/DataChannelTransport.kt` | Interface: `connect()`, `send(ByteArray)`, `incoming: Flow<ByteArray>`, `disconnect()` |
+| `WebSocketTransport` | `webrtc/WebSocketTransport.kt` | Ktor WebSocket client wrapped in `DataChannelTransport` interface |
+| `SignalingMessage` | `webrtc/SignalingMessage.kt` | Sealed class: `Offer`, `Answer`, `IceCandidate`, `IceGatheringComplete`, `Error` |
+| `WebRtcSignalingClient` | `webrtc/WebRtcSignalingClient.kt` | WebSocket-based signaling client for SDP/ICE exchange |
+| `WebRtcTransportConfig` | `webrtc/WebRtcTransportConfig.kt` | Config: signaling URL, ICE servers, `DataChannelConfig` (ordered/maxRetransmits/maxPacketLifeTimeMs) |
+| `DataChannelMessage` | `webrtc/DataChannelMessage.kt` | Binary envelope (14-byte header) wrapping `BinaryFrameCodec` payloads with sequence number + send timestamp |
+
+### What This Enables
+
+- Higher-level code can use `DataChannelTransport` without knowing the underlying protocol
+- `WebSocketTransport` serves as both a production transport and a reference implementation
+- `SignalingMessage` types and `WebRtcSignalingClient` are ready for use once platform-specific `RTCPeerConnection` wrappers exist
+- `DataChannelMessage` adds sequence numbers for dropped-frame detection on unreliable channels
+
+### Remaining Work (Phase 1b+)
+
+1. **Android `actual`**: Wrap `org.webrtc:google-webrtc` `PeerConnection`/`DataChannel` behind `DataChannelTransport`
+2. **iOS `actual`**: Wrap `GoogleWebRTC` ObjC API via Swift/SKIE bridge
+3. **Signaling endpoint**: Add `/signaling` to `StreamServer` for server-side SDP/ICE
+4. **`StreamSender` integration**: Accept `DataChannelTransport` as an alternative to `StreamServer`
+5. **Latency benchmarking**: Round-trip measurement comparing WebSocket vs WebRTC
+
+---
+
 ## References
 
 - [WebRTC Data Channels (MDN)](https://developer.mozilla.org/en-US/docs/Web/API/RTCDataChannel)

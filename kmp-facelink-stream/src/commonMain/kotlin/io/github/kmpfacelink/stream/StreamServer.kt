@@ -2,6 +2,7 @@ package io.github.kmpfacelink.stream
 
 import io.ktor.server.application.install
 import io.ktor.server.cio.CIO
+import io.ktor.server.engine.EmbeddedServer
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.routing.routing
 import io.ktor.server.websocket.DefaultWebSocketServerSession
@@ -59,6 +60,7 @@ public class StreamServer(
     private val sessions = mutableListOf<ClientSession>()
     private val _clientCount = AtomicInt(0)
     private var serverJob: Job? = null
+    private var engine: EmbeddedServer<*, *>? = null
 
     private val _connectionCount = MutableSharedFlow<Int>(
         replay = 1,
@@ -91,6 +93,8 @@ public class StreamServer(
      * Stops the WebSocket server and disconnects all clients.
      */
     public fun stop() {
+        engine?.stop()
+        engine = null
         serverJob?.cancel()
         serverJob = null
         sessions.clear()
@@ -110,7 +114,7 @@ public class StreamServer(
     }
 
     private suspend fun runServer() {
-        embeddedServer(CIO, port = config.port, host = config.host) {
+        val server = embeddedServer(CIO, port = config.port, host = config.host) {
             install(WebSockets) {
                 pingPeriod = config.pingIntervalMs.milliseconds
                 timeout = config.timeoutMs.milliseconds
@@ -120,7 +124,9 @@ public class StreamServer(
                     handleClientSession(this)
                 }
             }
-        }.start(wait = true)
+        }
+        engine = server
+        server.start(wait = true)
     }
 
     private suspend fun handleClientSession(wsSession: DefaultWebSocketServerSession) {

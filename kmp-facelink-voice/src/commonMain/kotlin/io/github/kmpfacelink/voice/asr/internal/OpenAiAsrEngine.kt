@@ -19,6 +19,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 
@@ -47,27 +49,22 @@ internal class OpenAiAsrEngine(private val config: AsrConfig.OpenAiWhisper) : As
     }
 
     @Volatile private var released = false
+    private val releaseMutex = Mutex()
 
     private val json = Json { ignoreUnknownKeys = true }
 
-    override suspend fun transcribe(audio: AudioData): TranscriptionResult {
+    override suspend fun transcribe(audio: AudioData): TranscriptionResult =
+        releaseMutex.withLock {
+            check(!released) { "Cannot transcribe: engine has been released" }
+            performTranscription(audio)
+        }
+
+    private suspend fun performTranscription(audio: AudioData): TranscriptionResult {
         _state.value = AsrState.Processing
         return try {
             val response = client.submitFormWithBinaryData(
                 url = "${config.baseUrl}/audio/transcriptions",
-                formData = formData {
-                    append(
-                        "file",
-                        audio.bytes,
-                        Headers.build {
-                            append(HttpHeaders.ContentDisposition, "filename=\"audio.wav\"")
-                            append(HttpHeaders.ContentType, "audio/wav")
-                        },
-                    )
-                    append("model", config.model)
-                    append("response_format", "verbose_json")
-                    config.language?.let { append("language", it) }
-                },
+                formData = buildFormData(audio),
             ) {
                 header("Authorization", "Bearer ${config.apiKey}")
             }
@@ -89,6 +86,20 @@ internal class OpenAiAsrEngine(private val config: AsrConfig.OpenAiWhisper) : As
         }
     }
 
+    private fun buildFormData(audio: AudioData) = formData {
+        append(
+            "file",
+            audio.bytes,
+            Headers.build {
+                append(HttpHeaders.ContentDisposition, "filename=\"audio.wav\"")
+                append(HttpHeaders.ContentType, "audio/wav")
+            },
+        )
+        append("model", config.model)
+        append("response_format", "verbose_json")
+        config.language?.let { append("language", it) }
+    }
+
     override suspend fun startListening() {
         _state.value = AsrState.Listening
     }
@@ -100,7 +111,15 @@ internal class OpenAiAsrEngine(private val config: AsrConfig.OpenAiWhisper) : As
     override fun release() {
         if (released) return
         released = true
-        client.close()
+        if (releaseMutex.tryLock()) {
+            try {
+                client.close()
+            } finally {
+                releaseMutex.unlock()
+            }
+        }
+        // If the mutex is held by transcribe(), the client will remain open until that
+        // call completes. Subsequent transcribe() calls will see the released flag and fail.
     }
 
     @Serializable

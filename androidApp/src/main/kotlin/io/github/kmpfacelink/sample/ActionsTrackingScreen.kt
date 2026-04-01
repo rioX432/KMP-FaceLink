@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
@@ -339,13 +340,17 @@ private fun TriggerLeds(activeTriggers: List<String>) {
         TRIGGER_NAMES.forEach { name ->
             val isActive = name in activeTriggers
             val stateLabel = if (isActive) "active" else "inactive"
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier
+                    .sizeIn(minWidth = 48.dp, minHeight = 48.dp)
+                    .semantics { contentDescription = "$name trigger: $stateLabel" },
+            ) {
                 Box(
                     modifier = Modifier
                         .size(12.dp)
                         .clip(CircleShape)
-                        .background(if (isActive) SampleColors.StatusActive else SampleColors.StatusInactive)
-                        .semantics { contentDescription = "$name trigger: $stateLabel" },
+                        .background(if (isActive) SampleColors.StatusActive else SampleColors.StatusInactive),
                 )
                 Text(
                     text = name,

@@ -16,6 +16,8 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlin.concurrent.atomics.AtomicInt
+import kotlin.concurrent.atomics.ExperimentalAtomicApi
 
 /**
  * WebSocket client for the VTube Studio Plugin API.
@@ -50,6 +52,7 @@ import kotlinx.coroutines.sync.withLock
  * @param httpClient Optional Ktor HttpClient (must have WebSockets plugin installed)
  * @see VtsSender for a high-level sender that handles the full lifecycle
  */
+@OptIn(ExperimentalAtomicApi::class)
 public class VtsClient(
     private val config: VtsConfig = VtsConfig(),
     httpClient: HttpClient? = null,
@@ -62,7 +65,7 @@ public class VtsClient(
     private var connectionJob: Job? = null
     private val sendChannel = Channel<String>(Channel.BUFFERED)
     private val pendingRequests = mutableMapOf<String, CompletableDeferred<VtsEnvelope>>()
-    private var requestCounter = 0
+    private val requestCounter = AtomicInt(0)
 
     /** Whether the client is currently connected to VTS. */
     public val isConnected: Boolean get() = session != null
@@ -353,8 +356,8 @@ public class VtsClient(
     }
 
     private fun nextRequestId(): String {
-        requestCounter++
-        return "kmpfl-$requestCounter"
+        val id = requestCounter.addAndFetch(1)
+        return "kmpfl-$id"
     }
 }
 

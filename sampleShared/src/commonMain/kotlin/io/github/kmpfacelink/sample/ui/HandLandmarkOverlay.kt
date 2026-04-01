@@ -1,10 +1,15 @@
 package io.github.kmpfacelink.sample.ui
 
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import io.github.kmpfacelink.model.HandJoint
 import io.github.kmpfacelink.model.HandLandmarkPoint
 
@@ -26,11 +31,20 @@ public fun HandLandmarkOverlay(
     sourceImageHeight: Int,
     modifier: Modifier = Modifier,
 ) {
+    if (sourceImageWidth <= 0 || sourceImageHeight <= 0) {
+        Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            Text(
+                text = "Waiting for camera…",
+                color = SampleColors.TextTertiary,
+                fontSize = 13.sp,
+            )
+        }
+        return
+    }
+
     Canvas(modifier = modifier) {
         val viewW = size.width
         val viewH = size.height
-
-        if (sourceImageWidth <= 0 || sourceImageHeight <= 0) return@Canvas
 
         val imageAspect = sourceImageWidth.toFloat() / sourceImageHeight
         val viewAspect = viewW / viewH

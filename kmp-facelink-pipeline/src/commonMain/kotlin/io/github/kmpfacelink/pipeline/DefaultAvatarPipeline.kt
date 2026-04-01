@@ -7,6 +7,7 @@ import io.github.kmpfacelink.pipeline.expression.ExpressionBlender
 import io.github.kmpfacelink.pipeline.expression.TextSentimentAnalyzer
 import io.github.kmpfacelink.pipeline.internal.StreamingCoordinator
 import io.github.kmpfacelink.pipeline.internal.TextOnlyProcessor
+import io.github.kmpfacelink.util.FaceLinkLogger
 import io.github.kmpfacelink.voice.asr.AsrEngine
 import io.github.kmpfacelink.voice.lipsync.LipSyncEngine
 import io.github.kmpfacelink.voice.tts.TtsEngine
@@ -24,6 +25,7 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
+private const val TAG = "DefaultAvatarPipeline"
 private const val OUTPUT_BUFFER_CAPACITY = 64
 
 /**
@@ -111,9 +113,9 @@ public class DefaultAvatarPipeline(
         currentJob?.cancel()
         currentJob = null
         scope.cancel()
-        runCatching { llmClient.release() }
-        runCatching { ttsEngine?.release() }
-        runCatching { asrEngine?.release() }
+        runCatching { llmClient.release() }.onFailure { FaceLinkLogger.w(TAG, "Failed to release LlmClient", it) }
+        runCatching { ttsEngine?.release() }.onFailure { FaceLinkLogger.w(TAG, "Failed to release TtsEngine", it) }
+        runCatching { asrEngine?.release() }.onFailure { FaceLinkLogger.w(TAG, "Failed to release AsrEngine", it) }
     }
 
     private fun cancelCurrentJob() {

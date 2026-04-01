@@ -1,6 +1,7 @@
 package io.github.kmpfacelink.voice
 
 import io.github.kmpfacelink.model.BlendShape
+import io.github.kmpfacelink.util.FaceLinkLogger
 import io.github.kmpfacelink.voice.asr.AsrEngine
 import io.github.kmpfacelink.voice.asr.TranscriptionResult
 import io.github.kmpfacelink.voice.asr.internal.AsrEngineFactory
@@ -23,6 +24,8 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+
+private const val TAG = "VoicePipeline"
 
 /**
  * Voice pipeline orchestrator.
@@ -174,11 +177,15 @@ public class VoicePipeline(
      */
     public fun release() {
         scope.cancel()
-        runCatching { tts.release() }
-        runCatching { lipSync.release() }
-        runCatching { asr?.release() }
-        runCatching { audioRecorder?.release() }
-        runCatching { audioPlayer?.release() }
+        runCatching { tts.release() }.onFailure { FaceLinkLogger.w(TAG, "Failed to release TtsEngine", it) }
+        runCatching { lipSync.release() }.onFailure { FaceLinkLogger.w(TAG, "Failed to release LipSyncEngine", it) }
+        runCatching { asr?.release() }.onFailure { FaceLinkLogger.w(TAG, "Failed to release AsrEngine", it) }
+        runCatching { audioRecorder?.release() }.onFailure {
+            FaceLinkLogger.w(TAG, "Failed to release AudioRecorder", it)
+        }
+        runCatching { audioPlayer?.release() }.onFailure {
+            FaceLinkLogger.w(TAG, "Failed to release AudioPlayer", it)
+        }
     }
 
     /** Alias for [release] — allows use in try-with-resources / [use] blocks. */

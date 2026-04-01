@@ -69,6 +69,7 @@ private struct FeatureCard: View {
                 Text(icon)
                     .font(.title)
                     .frame(width: 40, height: 40)
+                    .accessibilityLabel(title)
 
                 VStack(alignment: .leading, spacing: 2) {
                     Text(title)

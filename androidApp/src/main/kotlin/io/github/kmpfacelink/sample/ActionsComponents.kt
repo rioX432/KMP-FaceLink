@@ -91,7 +91,8 @@ internal fun TriggerLeds(activeTriggers: List<String>) {
                     modifier = Modifier
                         .size(12.dp)
                         .clip(CircleShape)
-                        .background(if (isActive) SampleColors.StatusActive else SampleColors.StatusInactive),
+                        .background(if (isActive) SampleColors.StatusActive else SampleColors.StatusInactive)
+                        .semantics { contentDescription = "Emotion: $name" },
                 )
                 Text(
                     text = name,

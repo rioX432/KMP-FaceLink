@@ -145,18 +145,18 @@ public class StreamServer(
     private suspend fun addSession(session: ClientSession) {
         val count = mutex.withLock {
             sessions.add(session)
+            _clientCount.store(sessions.size)
             sessions.size
         }
-        _clientCount.store(count)
         _connectionCount.emit(count)
     }
 
     private suspend fun removeSession(session: ClientSession) {
         val count = mutex.withLock {
             sessions.remove(session)
+            _clientCount.store(sessions.size)
             sessions.size
         }
-        _clientCount.store(count)
         _connectionCount.emit(count)
     }
 

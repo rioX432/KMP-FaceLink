@@ -1,11 +1,8 @@
 package io.github.kmpfacelink.internal
 
 import android.content.pm.PackageManager
-import android.os.SystemClock
-import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.ImageProxy
 import androidx.camera.core.Preview
-import com.google.mediapipe.framework.image.BitmapImageBuilder
 import com.google.mediapipe.tasks.vision.facelandmarker.FaceLandmarker
 import com.google.mediapipe.tasks.vision.facelandmarker.FaceLandmarkerResult
 import io.github.kmpfacelink.api.FaceTracker
@@ -37,7 +34,6 @@ import java.util.concurrent.ExecutionException
 import java.util.concurrent.Executors
 import java.util.concurrent.RejectedExecutionException
 import java.util.concurrent.TimeUnit
-import java.util.concurrent.atomic.AtomicReference
 import kotlin.concurrent.atomics.ExperimentalAtomicApi
 
 // Lifecycle (start/stop/release/switchCamera), config (resetCalibration/updateSmoothing),
@@ -79,6 +75,13 @@ internal class MediaPipeFaceTracker(
     private val analysisExecutor = Executors.newSingleThreadExecutor()
     private val imageConverter = ImageProxyConverter()
     private val cameraManager = if (sharedCameraSession == null) CameraXManager(platformContext) else null
+    private val cameraPipeline = CameraPipelineHelper(
+        tag = TAG,
+        sharedCameraSession = sharedCameraSession,
+        cameraManager = cameraManager,
+        imageConverter = imageConverter,
+        analysisExecutor = analysisExecutor,
+    )
 
     @Volatile
     internal var currentCameraFacing: CameraFacing = config.cameraFacing
@@ -87,15 +90,6 @@ internal class MediaPipeFaceTracker(
 
     private var faceLandmarker: FaceLandmarker? = null
     private var previewSurfaceProvider: Preview.SurfaceProvider? = null
-
-    /** Bitmap currently being processed by MediaPipe (independent camera path only). */
-    private val inFlightBitmap = AtomicReference<android.graphics.Bitmap?>(null)
-
-    @Volatile
-    private var lastImageWidth: Int = 0
-
-    @Volatile
-    private var lastImageHeight: Int = 0
 
     override fun setSurfaceProvider(surfaceProvider: Preview.SurfaceProvider?) {
         previewSurfaceProvider = surfaceProvider
@@ -205,96 +199,48 @@ internal class MediaPipeFaceTracker(
     }
 
     private suspend fun startCamera() {
-        if (sharedCameraSession != null) {
-            sharedCameraSession.addFrameHandler(::processSharedFrame)
-        } else {
-            val imageAnalysis = ImageAnalysis.Builder()
-                .setResolutionSelector(
-                    CameraXManager.buildAnalysisResolutionSelector(config.analysisWidth, config.analysisHeight),
-                )
-                .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
-                .setOutputImageFormat(ImageAnalysis.OUTPUT_IMAGE_FORMAT_RGBA_8888)
-                .build()
-                .also { it.setAnalyzer(analysisExecutor, ::processFrame) }
-
-            cameraManager!!.startCamera(
+        cameraPipeline.startCamera(
+            config = CameraStartConfig(
                 cameraFacing = currentCameraFacing,
-                imageAnalysis = imageAnalysis,
+                analysisWidth = config.analysisWidth,
+                analysisHeight = config.analysisHeight,
                 surfaceProvider = previewSurfaceProvider,
-            )
-        }
+            ),
+            onSharedFrame = ::processSharedFrame,
+            onImageProxy = ::processFrame,
+        )
     }
 
     @Suppress("UNUSED_PARAMETER") // SharedFrameHandler signature
     private fun processSharedFrame(bitmap: android.graphics.Bitmap, width: Int, height: Int, timestampMs: Long) {
         val landmarker = faceLandmarker
-        if (landmarker == null || mutableState.value != TrackingState.TRACKING) {
-            sharedCameraSession?.returnInFlightBitmap(timestampMs)
-            return
-        }
-
-        // Frame throttling: use PowerModeManager when available, else legacy FrameThrottler
-        if (!shouldProcessFrame(timestampMs)) {
-            sharedCameraSession?.returnInFlightBitmap(timestampMs)
-            return
-        }
-
-        lastImageWidth = width
-        lastImageHeight = height
-
-        val mpImage = BitmapImageBuilder(bitmap).build()
-        try {
-            landmarker.detectAsync(mpImage, timestampMs)
-        } catch (e: Exception) {
-            // MediaPipe may throw IllegalArgumentException (non-monotonic timestamp) or
-            // MediaPipeException on internal errors; must not crash the frame processing loop
-            FaceLinkLogger.w(TAG, "detectAsync failed", e)
-            sharedCameraSession?.returnInFlightBitmap(timestampMs)
-        }
+        val callbacks = DetectionCallbacks(
+            isLandmarkerReady = landmarker != null,
+            shouldProcess = ::shouldProcessFrame,
+            detectAsync = { mpImage, ts -> landmarker!!.detectAsync(mpImage, ts) },
+        )
+        cameraPipeline.processSharedFrame(
+            bitmap = bitmap,
+            width = width,
+            height = height,
+            timestampMs = timestampMs,
+            context = SharedFrameContext(mutableState.value, callbacks),
+        )
     }
 
     private fun processFrame(imageProxy: ImageProxy) {
         val landmarker = faceLandmarker
-        if (landmarker == null || mutableState.value != TrackingState.TRACKING) {
-            imageProxy.close()
-            return
-        }
-
-        // Frame throttling: use PowerModeManager when available, else legacy FrameThrottler
-        if (!shouldProcessFrame(SystemClock.elapsedRealtime())) {
-            imageProxy.close()
-            return
-        }
-
-        val bitmap = imageConverter.convert(imageProxy, mirrorHorizontally = isFrontCamera)
-        if (bitmap == null) {
-            imageProxy.close()
-            return
-        }
-
-        // Store rotated image dimensions for landmark coordinate mapping
-        lastImageWidth = bitmap.width
-        lastImageHeight = bitmap.height
-
-        val mpImage = BitmapImageBuilder(bitmap).build()
-        val timestampMs = SystemClock.elapsedRealtime()
-
-        // Track the bitmap — it will be returned in the result callback
-        inFlightBitmap.set(bitmap)
-
-        try {
-            landmarker.detectAsync(mpImage, timestampMs)
-        } catch (e: Exception) {
-            // MediaPipe may throw IllegalArgumentException (non-monotonic timestamp) or
-            // MediaPipeException on internal errors; must not crash the frame processing loop
-            FaceLinkLogger.w(TAG, "detectAsync failed", e)
-            // No result callback will fire — return bitmap now if we still own it
-            if (inFlightBitmap.compareAndSet(bitmap, null)) {
-                imageConverter.returnBitmap(bitmap)
-            }
-        }
-
-        imageProxy.close()
+        val callbacks = DetectionCallbacks(
+            isLandmarkerReady = landmarker != null,
+            shouldProcess = ::shouldProcessFrame,
+            detectAsync = { mpImage, ts -> landmarker!!.detectAsync(mpImage, ts) },
+        )
+        cameraPipeline.processFrame(
+            imageProxy = imageProxy,
+            trackingState = mutableState.value,
+            isFrontCamera = isFrontCamera,
+            callbacks = callbacks,
+        )
     }
 
     private fun onFaceLandmarkerResult(
@@ -302,11 +248,7 @@ internal class MediaPipeFaceTracker(
         @Suppress("UNUSED_PARAMETER") input: com.google.mediapipe.framework.image.MPImage,
     ) {
         // Return the bitmap now that MediaPipe is done processing
-        if (sharedCameraSession != null) {
-            sharedCameraSession.returnInFlightBitmap(result.timestampMs())
-        } else {
-            inFlightBitmap.getAndSet(null)?.let { imageConverter.returnBitmap(it) }
-        }
+        cameraPipeline.returnBitmapAfterResult(result.timestampMs())
 
         val timestampMs = result.timestampMs()
 
@@ -327,8 +269,8 @@ internal class MediaPipeFaceTracker(
             headTransform = primaryHeadTransform,
             gazeData = GazeEstimator.estimate(processedPrimary),
             landmarks = primaryLandmarks,
-            sourceImageWidth = lastImageWidth,
-            sourceImageHeight = lastImageHeight,
+            sourceImageWidth = cameraPipeline.lastImageWidth,
+            sourceImageHeight = cameraPipeline.lastImageHeight,
             timestampMs = timestampMs,
             isTracking = true,
             faces = faces,

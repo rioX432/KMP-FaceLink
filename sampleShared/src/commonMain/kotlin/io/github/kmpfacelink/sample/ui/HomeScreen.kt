@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -26,11 +27,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 private val CARD_CORNER_RADIUS = 12.dp
+private val CARD_MIN_WIDTH = 240.dp
+private val CARD_PADDING = 16.dp
 private val ICON_SIZE = 40.dp
+private val ICON_TEXT_SPACING = 16.dp
+private val TEXT_CHEVRON_SPACING = 12.dp
 
 /**
  * Home/landing screen showing feature cards for each tracking mode.
@@ -104,11 +110,12 @@ private fun FeatureCard(
 ) {
     Row(
         modifier = Modifier
+            .widthIn(min = CARD_MIN_WIDTH)
             .fillMaxWidth()
             .clip(RoundedCornerShape(CARD_CORNER_RADIUS))
             .background(SampleColors.Surface)
             .clickable(onClick = onClick)
-            .padding(16.dp),
+            .padding(CARD_PADDING),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(
@@ -116,13 +123,15 @@ private fun FeatureCard(
             fontSize = 28.sp,
             modifier = Modifier.size(ICON_SIZE),
         )
-        Spacer(modifier = Modifier.width(12.dp))
+        Spacer(modifier = Modifier.width(ICON_TEXT_SPACING))
         Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = card.title,
                 color = SampleColors.TextPrimary,
                 fontSize = 16.sp,
                 fontWeight = FontWeight.SemiBold,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
             )
             Spacer(modifier = Modifier.height(2.dp))
             Text(
@@ -130,8 +139,10 @@ private fun FeatureCard(
                 color = SampleColors.TextTertiary,
                 fontSize = 12.sp,
                 maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
             )
         }
+        Spacer(modifier = Modifier.width(TEXT_CHEVRON_SPACING))
         Text(
             text = ">",
             color = SampleColors.TextTertiary,

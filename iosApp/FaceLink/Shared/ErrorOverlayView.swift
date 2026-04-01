@@ -20,6 +20,8 @@ struct ErrorOverlayView: View {
                 .padding(.horizontal, 16)
                 .padding(.vertical, 6)
                 .background(.white, in: Capsule())
+                .accessibilityLabel("Retry tracking")
+                .accessibilityHint("Tap to retry the failed operation")
             }
         }
         .padding(12)

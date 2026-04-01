@@ -275,3 +275,61 @@ project(":kmp-facelink-vts") {
         }
     }
 }
+
+// Module dependency graph validation
+// Allowed dependencies per module, based on the architecture spec in AGENTS.md
+tasks.register("validateModuleDependencies") {
+    group = "verification"
+    description = "Validate module dependency graph against architecture rules"
+
+    doLast {
+        val core = ":kmp-facelink"
+        val networking = ":kmp-facelink-networking"
+
+        // Allowed project dependencies for each library module
+        val allowedDependencies = mapOf(
+            ":kmp-facelink" to emptySet(),
+            ":kmp-facelink-avatar" to setOf(core),
+            ":kmp-facelink-actions" to setOf(core),
+            ":kmp-facelink-voice" to setOf(core),
+            ":kmp-facelink-llm" to setOf(core),
+            ":kmp-facelink-pipeline" to setOf(
+                core,
+                ":kmp-facelink-voice",
+                ":kmp-facelink-llm",
+                ":kmp-facelink-actions",
+                ":kmp-facelink-avatar",
+            ),
+            ":kmp-facelink-networking" to emptySet(),
+            ":kmp-facelink-vmc" to setOf(core, networking),
+            ":kmp-facelink-ifm" to setOf(core, networking),
+            ":kmp-facelink-stream" to setOf(core),
+            ":kmp-facelink-vts" to setOf(core),
+        )
+
+        val violations = mutableListOf<String>()
+
+        allowedDependencies.forEach { (modulePath, allowed) ->
+            val moduleProject = project(modulePath)
+            val actualDeps = moduleProject.configurations
+                .filter { it.name.contains("MainApi") || it.name.contains("MainImplementation") }
+                .flatMap { config ->
+                    config.dependencies.filterIsInstance<ProjectDependency>().map { ":${it.name}" }
+                }
+                .toSet()
+
+            val disallowed = actualDeps - allowed
+            if (disallowed.isNotEmpty()) {
+                violations.add("$modulePath has disallowed dependencies: $disallowed (allowed: $allowed)")
+            }
+        }
+
+        if (violations.isNotEmpty()) {
+            throw GradleException(
+                "Module dependency violations found:\n${violations.joinToString("\n") { "  - $it" }}"
+            )
+        }
+
+        logger.lifecycle("Module dependency validation passed. All ${allowedDependencies.size} modules comply.")
+    }
+}

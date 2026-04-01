@@ -38,6 +38,7 @@ private const val PERCENT_MULTIPLIER = 100
 public fun BlendShapeBars(
     trackingData: FaceTrackingData?,
     modifier: Modifier = Modifier,
+    errorMessage: String? = null,
 ) {
     val scrollState = rememberScrollState()
     val textMeasurer = rememberTextMeasurer()
@@ -56,7 +57,14 @@ public fun BlendShapeBars(
             .padding(horizontal = 8.dp, vertical = 4.dp)
             .verticalScroll(scrollState),
     ) {
-        if (entries.isEmpty()) {
+        if (errorMessage != null) {
+            Text(
+                text = errorMessage,
+                color = SampleColors.ErrorRed,
+                fontSize = 12.sp,
+                modifier = Modifier.padding(8.dp),
+            )
+        } else if (entries.isEmpty()) {
             Text(
                 text = "Tap Start to begin face tracking",
                 color = SampleColors.TextTertiary,

@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBars
@@ -187,17 +186,24 @@ private fun ActionsBottomPanel(
             .padding(8.dp)
             .verticalScroll(rememberScrollState()),
     ) {
-        Text("Emotions", color = SampleColors.TextPrimary, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+        SectionHeader("Emotions")
         EmotionBars(emotionResult)
 
-        Spacer(modifier = Modifier.height(8.dp))
-
-        Text("Triggers", color = SampleColors.TextPrimary, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+        SectionHeader("Triggers")
         TriggerLeds(activeTriggers)
 
-        Spacer(modifier = Modifier.height(8.dp))
-
-        Text("Recording", color = SampleColors.TextPrimary, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+        SectionHeader("Recording")
         RecordingControls(isRecording, session, onRecordToggle)
     }
+}
+
+@Composable
+private fun SectionHeader(title: String) {
+    Text(
+        text = title,
+        color = SampleColors.TextPrimary,
+        fontSize = 13.sp,
+        fontWeight = FontWeight.Bold,
+        modifier = Modifier.padding(top = 8.dp, bottom = 4.dp),
+    )
 }

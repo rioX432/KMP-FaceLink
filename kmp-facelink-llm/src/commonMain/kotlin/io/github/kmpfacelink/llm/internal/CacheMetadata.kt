@@ -1,5 +1,6 @@
 package io.github.kmpfacelink.llm.internal
 
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.encodeToString
@@ -12,8 +13,20 @@ private const val METADATA_FILE_NAME = "cache_metadata.json"
  */
 @Serializable
 internal data class CacheMetadata(
-    val entries: MutableMap<String, CacheEntry> = mutableMapOf(),
+    @SerialName("entries")
+    private val mutableEntries: MutableMap<String, CacheEntry> = mutableMapOf(),
 ) {
+    /** Read-only view of cached model entries. */
+    internal val entries: Map<String, CacheEntry> get() = mutableEntries
+
+    /** Adds or updates an entry for the given [key]. */
+    internal fun put(key: String, entry: CacheEntry) {
+        mutableEntries[key] = entry
+    }
+
+    /** Removes the entry for the given [key]. Returns `true` if the key was present. */
+    internal fun remove(key: String): Boolean = mutableEntries.remove(key) != null
+
     @Serializable
     internal data class CacheEntry(
         val modelId: String,
@@ -47,18 +60,21 @@ internal class CacheMetadataStore(private val cacheDir: String) {
 
     internal fun recordUsage(modelId: String, fileName: String, sizeBytes: Long) {
         val metadata = load()
-        metadata.entries[modelId] = CacheMetadata.CacheEntry(
-            modelId = modelId,
-            fileName = fileName,
-            sizeBytes = sizeBytes,
-            lastUsedTimestamp = currentTimeMillis(),
+        metadata.put(
+            modelId,
+            CacheMetadata.CacheEntry(
+                modelId = modelId,
+                fileName = fileName,
+                sizeBytes = sizeBytes,
+                lastUsedTimestamp = currentTimeMillis(),
+            ),
         )
         save(metadata)
     }
 
     internal fun remove(modelId: String) {
         val metadata = load()
-        metadata.entries.remove(modelId)
+        metadata.remove(modelId)
         save(metadata)
     }
 

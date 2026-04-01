@@ -1,8 +1,6 @@
 package io.github.kmpfacelink.avatar
 
 import io.github.kmpfacelink.model.BlendShape
-import io.github.kmpfacelink.model.FaceTrackingData
-import io.github.kmpfacelink.model.HeadTransform
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -10,15 +8,6 @@ import kotlin.test.assertTrue
 class PerfectSyncMappingsTest {
 
     private val mapper = Live2DParameterMapper(PerfectSyncMappings.config())
-
-    private fun trackingData(
-        blendShapes: Map<BlendShape, Float> = emptyMap(),
-    ) = FaceTrackingData(
-        blendShapes = blendShapes,
-        headTransform = HeadTransform(),
-        timestampMs = 0L,
-        isTracking = true,
-    )
 
     @Test
     fun configProduces71Parameters() {
@@ -80,7 +69,7 @@ class PerfectSyncMappingsTest {
     }
 
     companion object {
-        private const val TOLERANCE = 0.001f
+        private const val TOLERANCE = STRICT_TOLERANCE
         private const val STANDARD_PARAM_COUNT = 19
         private const val PERFECT_SYNC_PARAM_COUNT = 52
         private const val TOTAL_PARAM_COUNT = STANDARD_PARAM_COUNT + PERFECT_SYNC_PARAM_COUNT

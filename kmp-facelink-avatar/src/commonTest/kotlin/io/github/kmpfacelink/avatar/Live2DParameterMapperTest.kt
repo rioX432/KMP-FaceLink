@@ -1,7 +1,6 @@
 package io.github.kmpfacelink.avatar
 
 import io.github.kmpfacelink.model.BlendShape
-import io.github.kmpfacelink.model.FaceTrackingData
 import io.github.kmpfacelink.model.HeadTransform
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -11,24 +10,9 @@ class Live2DParameterMapperTest {
 
     private val mapper = Live2DParameterMapper()
 
-    private fun trackingData(
-        blendShapes: Map<BlendShape, Float> = emptyMap(),
-        headTransform: HeadTransform = HeadTransform(),
-    ) = FaceTrackingData(
-        blendShapes = blendShapes,
-        headTransform = headTransform,
-        timestampMs = 0L,
-        isTracking = true,
-    )
-
     @Test
     fun notTrackingReturnsEmptyMap() {
-        val data = FaceTrackingData(
-            blendShapes = emptyMap(),
-            headTransform = HeadTransform(),
-            timestampMs = 0L,
-            isTracking = false,
-        )
+        val data = trackingData(isTracking = false)
         val result = mapper.map(data)
         assertTrue(result.isEmpty())
     }
@@ -129,6 +113,6 @@ class Live2DParameterMapperTest {
     }
 
     companion object {
-        private const val TOLERANCE = 0.001f
+        private const val TOLERANCE = STRICT_TOLERANCE
     }
 }

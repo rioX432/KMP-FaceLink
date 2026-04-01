@@ -5,6 +5,7 @@ import io.github.kmpfacelink.llm.LlmClient
 import io.github.kmpfacelink.llm.LlmState
 import io.github.kmpfacelink.llm.RoutingStrategy
 import io.github.kmpfacelink.model.ThermalState
+import io.github.kmpfacelink.util.FaceLinkLogger
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.flow.Flow
@@ -128,7 +129,8 @@ internal class HybridLlmClient(
                 onDeviceClient.chat(history).collect { emit(it) }
             }
             recordLatency(currentTimeMillis() - startMs)
-        } catch (@Suppress("SwallowedException") e: TimeoutCancellationException) {
+        } catch (e: TimeoutCancellationException) {
+            FaceLinkLogger.d(TAG, "on-device chat timed out, falling back to cloud — $e")
             recordLatency(currentTimeMillis() - startMs)
             recordCost()
             cloudClient.chat(history).collect { emit(it) }
@@ -152,7 +154,8 @@ internal class HybridLlmClient(
             val result = withTimeout(latencyTimeout) { onDeviceClient.chatOnce(history) }
             recordLatency(currentTimeMillis() - startMs)
             result
-        } catch (@Suppress("SwallowedException") e: TimeoutCancellationException) {
+        } catch (e: TimeoutCancellationException) {
+            FaceLinkLogger.d(TAG, "on-device chatOnce timed out, falling back to cloud — $e")
             recordLatency(currentTimeMillis() - startMs)
             recordCost()
             cloudClient.chatOnce(history)
@@ -182,6 +185,10 @@ internal class HybridLlmClient(
 
     private fun errorState(cause: Throwable): LlmState =
         LlmState.Error(cause.message ?: "Hybrid request failed")
+
+    private companion object {
+        private const val TAG = "HybridLlmClient"
+    }
 }
 
 /**

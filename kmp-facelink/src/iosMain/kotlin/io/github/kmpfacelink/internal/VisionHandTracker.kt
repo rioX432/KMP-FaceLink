@@ -207,7 +207,6 @@ internal class VisionHandTracker(
     }
 
     private fun configureCameraFrameRate(device: AVCaptureDevice) {
-        @Suppress("SwallowedException")
         val locked = try {
             device.lockForConfiguration(null)
             true

@@ -177,32 +177,40 @@ internal class VisionBodyTracker3D(
         }
     }
 
-    @Suppress("LongMethod")
     private fun setupCaptureSession() {
         val session = AVCaptureSession()
         // 3D pose needs higher resolution than 2D for depth estimation
         session.sessionPreset = AVCaptureSessionPreset640x480
 
-        val position = when (currentCameraFacing) {
+        val device = findCameraDevice(currentCameraFacing)
+        configureCameraFrameRate(device)
+        addCameraInput(session, device)
+        addVideoOutput(session)
+
+        captureSession = session
+    }
+
+    private fun findCameraDevice(facing: CameraFacing): AVCaptureDevice {
+        val position = when (facing) {
             CameraFacing.FRONT -> AVCaptureDevicePositionFront
             CameraFacing.BACK -> AVCaptureDevicePositionBack
         }
-
-        val device = AVCaptureDevice.devicesWithMediaType(AVMediaTypeVideo)
+        return AVCaptureDevice.devicesWithMediaType(AVMediaTypeVideo)
             .filterIsInstance<AVCaptureDevice>()
             .firstOrNull { it.position == position }
             ?: AVCaptureDevice.defaultDeviceWithMediaType(AVMediaTypeVideo)
             ?: throw UnsupportedOperationException("No camera available")
+    }
 
-        configureCameraFrameRate(device)
-
+    private fun addCameraInput(session: AVCaptureSession, device: AVCaptureDevice) {
         val input = AVCaptureDeviceInput.deviceInputWithDevice(device, null)
             ?: throw UnsupportedOperationException("Cannot create camera input")
-
         if (session.canAddInput(input)) {
             session.addInput(input)
         }
+    }
 
+    private fun addVideoOutput(session: AVCaptureSession) {
         val videoOutput = AVCaptureVideoDataOutput()
         videoOutput.videoSettings = mapOf<Any?, Any>(
             kCVPixelBufferPixelFormatTypeKey to NSNumber(
@@ -220,8 +228,6 @@ internal class VisionBodyTracker3D(
         if (connection != null && connection.isVideoOrientationSupported()) {
             connection.videoOrientation = AVCaptureVideoOrientationPortrait
         }
-
-        captureSession = session
     }
 
     private fun configureCameraFrameRate(device: AVCaptureDevice) {
@@ -240,46 +246,49 @@ internal class VisionBodyTracker3D(
         device.unlockForConfiguration()
     }
 
-    @Suppress("ReturnCount")
     private fun processVideoFrame(sampleBuffer: CMSampleBufferRef?) {
         if (sampleBuffer == null || _state.value != TrackingState.TRACKING) return
         if (!processing.compareAndSet(expectedValue = 0, newValue = 1)) return
 
         try {
-            val pixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) ?: return
-            val timestampMs = currentTimeMillis()
-
-            val currentThermalState = thermalMonitor.thermalState.value
-            if (!frameThrottler.shouldProcess(timestampMs, currentThermalState)) return
-
-            val imageWidth = CVPixelBufferGetWidth(pixelBuffer).toInt()
-            val imageHeight = CVPixelBufferGetHeight(pixelBuffer).toInt()
-
-            val observations = detectBodies3D(pixelBuffer, timestampMs) ?: return
-
-            var bodies = observations.map { observation ->
-                TrackedBody(landmarks = VisionBodyLandmarkMapper3D.mapLandmarks(observation))
-            }
-
-            val processedBodies = pipelineLock.withLock {
-                if (released.load() != 0) return
-                smoother?.let { bodies = it.smooth(bodies, timestampMs) }
-                bodies
-            }
-
-            _trackingData.tryEmit(
-                BodyTrackingData(
-                    bodies = processedBodies,
-                    sourceImageWidth = imageWidth,
-                    sourceImageHeight = imageHeight,
-                    timestampMs = timestampMs,
-                    isTracking = true,
-                    thermalState = currentThermalState,
-                ),
-            )
+            processFrameUnsafe(sampleBuffer)
         } finally {
             processing.store(0)
         }
+    }
+
+    private fun processFrameUnsafe(sampleBuffer: CMSampleBufferRef) {
+        val pixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) ?: return
+        val timestampMs = currentTimeMillis()
+
+        val currentThermalState = thermalMonitor.thermalState.value
+        if (!frameThrottler.shouldProcess(timestampMs, currentThermalState)) return
+
+        val imageWidth = CVPixelBufferGetWidth(pixelBuffer).toInt()
+        val imageHeight = CVPixelBufferGetHeight(pixelBuffer).toInt()
+
+        val observations = detectBodies3D(pixelBuffer, timestampMs) ?: return
+
+        var bodies = observations.map { observation ->
+            TrackedBody(landmarks = VisionBodyLandmarkMapper3D.mapLandmarks(observation))
+        }
+
+        val processedBodies = pipelineLock.withLock {
+            if (released.load() != 0) return
+            smoother?.let { bodies = it.smooth(bodies, timestampMs) }
+            bodies
+        }
+
+        _trackingData.tryEmit(
+            BodyTrackingData(
+                bodies = processedBodies,
+                sourceImageWidth = imageWidth,
+                sourceImageHeight = imageHeight,
+                timestampMs = timestampMs,
+                isTracking = true,
+                thermalState = currentThermalState,
+            ),
+        )
     }
 
     private fun detectBodies3D(

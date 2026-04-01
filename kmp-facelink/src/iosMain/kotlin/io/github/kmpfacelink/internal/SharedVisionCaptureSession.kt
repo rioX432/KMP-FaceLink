@@ -52,7 +52,6 @@ internal class SharedVisionCaptureSession(
         handlersLock.withLock { frameHandlers.add(handler) }
     }
 
-    @Suppress("LongMethod")
     fun start() {
         if (captureSession != null) {
             captureSession?.startRunning()
@@ -62,43 +61,10 @@ internal class SharedVisionCaptureSession(
         val session = AVCaptureSession()
         session.sessionPreset = AVCaptureSessionPreset352x288
 
-        val position = when (currentCameraFacing) {
-            CameraFacing.FRONT -> AVCaptureDevicePositionFront
-            CameraFacing.BACK -> AVCaptureDevicePositionBack
-        }
-
-        val device = AVCaptureDevice.devicesWithMediaType(AVMediaTypeVideo)
-            .filterIsInstance<AVCaptureDevice>()
-            .firstOrNull { it.position == position }
-            ?: AVCaptureDevice.defaultDeviceWithMediaType(AVMediaTypeVideo)
-            ?: throw UnsupportedOperationException("No camera available")
-
+        val device = findCameraDevice(currentCameraFacing)
         configureCameraFrameRate(device)
-
-        val input = AVCaptureDeviceInput.deviceInputWithDevice(device, null)
-            ?: throw UnsupportedOperationException("Cannot create camera input")
-
-        if (session.canAddInput(input)) {
-            session.addInput(input)
-        }
-
-        val videoOutput = AVCaptureVideoDataOutput()
-        videoOutput.videoSettings = mapOf<Any?, Any>(
-            kCVPixelBufferPixelFormatTypeKey to NSNumber(
-                unsignedInt = kCVPixelFormatType_420YpCbCr8BiPlanarFullRange,
-            ),
-        )
-        videoOutput.setSampleBufferDelegate(videoOutputDelegate, videoQueue)
-        videoOutput.alwaysDiscardsLateVideoFrames = true
-
-        if (session.canAddOutput(videoOutput)) {
-            session.addOutput(videoOutput)
-        }
-
-        val connection = videoOutput.connectionWithMediaType(AVMediaTypeVideo)
-        if (connection != null && connection.isVideoOrientationSupported()) {
-            connection.videoOrientation = AVCaptureVideoOrientationPortrait
-        }
+        addCameraInput(session, device)
+        addVideoOutput(session)
 
         captureSession = session
         session.startRunning()
@@ -120,6 +86,46 @@ internal class SharedVisionCaptureSession(
         stop()
         captureSession = null
         handlersLock.withLock { frameHandlers.clear() }
+    }
+
+    private fun findCameraDevice(facing: CameraFacing): AVCaptureDevice {
+        val position = when (facing) {
+            CameraFacing.FRONT -> AVCaptureDevicePositionFront
+            CameraFacing.BACK -> AVCaptureDevicePositionBack
+        }
+        return AVCaptureDevice.devicesWithMediaType(AVMediaTypeVideo)
+            .filterIsInstance<AVCaptureDevice>()
+            .firstOrNull { it.position == position }
+            ?: AVCaptureDevice.defaultDeviceWithMediaType(AVMediaTypeVideo)
+            ?: throw UnsupportedOperationException("No camera available")
+    }
+
+    private fun addCameraInput(session: AVCaptureSession, device: AVCaptureDevice) {
+        val input = AVCaptureDeviceInput.deviceInputWithDevice(device, null)
+            ?: throw UnsupportedOperationException("Cannot create camera input")
+        if (session.canAddInput(input)) {
+            session.addInput(input)
+        }
+    }
+
+    private fun addVideoOutput(session: AVCaptureSession) {
+        val videoOutput = AVCaptureVideoDataOutput()
+        videoOutput.videoSettings = mapOf<Any?, Any>(
+            kCVPixelBufferPixelFormatTypeKey to NSNumber(
+                unsignedInt = kCVPixelFormatType_420YpCbCr8BiPlanarFullRange,
+            ),
+        )
+        videoOutput.setSampleBufferDelegate(videoOutputDelegate, videoQueue)
+        videoOutput.alwaysDiscardsLateVideoFrames = true
+
+        if (session.canAddOutput(videoOutput)) {
+            session.addOutput(videoOutput)
+        }
+
+        val connection = videoOutput.connectionWithMediaType(AVMediaTypeVideo)
+        if (connection != null && connection.isVideoOrientationSupported()) {
+            connection.videoOrientation = AVCaptureVideoOrientationPortrait
+        }
     }
 
     private fun configureCameraFrameRate(device: AVCaptureDevice) {

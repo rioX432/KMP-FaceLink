@@ -159,7 +159,6 @@ internal class VisionHandTracker(
         }
     }
 
-    @Suppress("LongMethod")
     private fun setupCaptureSession() {
         val session = AVCaptureSession()
         session.sessionPreset = AVCaptureSessionPreset352x288
@@ -168,23 +167,25 @@ internal class VisionHandTracker(
             CameraFacing.FRONT -> AVCaptureDevicePositionFront
             CameraFacing.BACK -> AVCaptureDevicePositionBack
         }
-
         val device = AVCaptureDevice.devicesWithMediaType(AVMediaTypeVideo)
             .filterIsInstance<AVCaptureDevice>()
             .firstOrNull { it.position == position }
             ?: AVCaptureDevice.defaultDeviceWithMediaType(AVMediaTypeVideo)
             ?: throw UnsupportedOperationException("No camera available")
 
-        // Limit frame rate to 15 fps to keep Vision processing responsive
         configureCameraFrameRate(device)
 
         val input = AVCaptureDeviceInput.deviceInputWithDevice(device, null)
             ?: throw UnsupportedOperationException("Cannot create camera input")
-
         if (session.canAddInput(input)) {
             session.addInput(input)
         }
 
+        addVideoOutput(session)
+        captureSession = session
+    }
+
+    private fun addVideoOutput(session: AVCaptureSession) {
         val videoOutput = AVCaptureVideoDataOutput()
         // Force YUV pixel format for optimal Vision framework processing
         videoOutput.videoSettings = mapOf<Any?, Any>(
@@ -202,8 +203,6 @@ internal class VisionHandTracker(
         if (connection != null && connection.isVideoOrientationSupported()) {
             connection.videoOrientation = AVCaptureVideoOrientationPortrait
         }
-
-        captureSession = session
     }
 
     private fun configureCameraFrameRate(device: AVCaptureDevice) {
@@ -222,7 +221,6 @@ internal class VisionHandTracker(
         device.unlockForConfiguration()
     }
 
-    @Suppress("ReturnCount")
     private fun processVideoFrame(sampleBuffer: CMSampleBufferRef?) {
         if (sampleBuffer == null || mutableState.value != TrackingState.TRACKING) return
 
@@ -230,41 +228,45 @@ internal class VisionHandTracker(
         if (!processing.compareAndSet(expectedValue = 0, newValue = 1)) return
 
         try {
-            val pixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) ?: return
-            val timestampMs = currentTimeMillis()
-
-            // Thermal throttling: skip frame if needed
-            val currentThermalState = thermalMonitor.thermalState.value
-            if (!frameThrottler.shouldProcess(timestampMs, currentThermalState)) return
-
-            // Get source image dimensions from pixel buffer
-            val imageWidth = CVPixelBufferGetWidth(pixelBuffer).toInt()
-            val imageHeight = CVPixelBufferGetHeight(pixelBuffer).toInt()
-
-            val observations = detectHands(pixelBuffer, timestampMs) ?: return
-
-            var hands = observations.map { observation -> mapObservation(observation) }
-
-            // Apply smoothing (protected by lock)
-            val processedHands = pipelineLock.withLock {
-                if (isReleased()) return
-                smoother?.let { hands = it.smooth(hands, timestampMs) }
-                hands
-            }
-
-            mutableTrackingData.tryEmit(
-                HandTrackingData(
-                    hands = processedHands,
-                    sourceImageWidth = imageWidth,
-                    sourceImageHeight = imageHeight,
-                    timestampMs = timestampMs,
-                    isTracking = true,
-                    thermalState = currentThermalState,
-                ),
-            )
+            processFrameUnsafe(sampleBuffer)
         } finally {
             processing.store(0)
         }
+    }
+
+    private fun processFrameUnsafe(sampleBuffer: CMSampleBufferRef) {
+        val pixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) ?: return
+        val timestampMs = currentTimeMillis()
+
+        // Thermal throttling: skip frame if needed
+        val currentThermalState = thermalMonitor.thermalState.value
+        if (!frameThrottler.shouldProcess(timestampMs, currentThermalState)) return
+
+        // Get source image dimensions from pixel buffer
+        val imageWidth = CVPixelBufferGetWidth(pixelBuffer).toInt()
+        val imageHeight = CVPixelBufferGetHeight(pixelBuffer).toInt()
+
+        val observations = detectHands(pixelBuffer, timestampMs) ?: return
+
+        var hands = observations.map { observation -> mapObservation(observation) }
+
+        // Apply smoothing (protected by lock)
+        val processedHands = pipelineLock.withLock {
+            if (isReleased()) return
+            smoother?.let { hands = it.smooth(hands, timestampMs) }
+            hands
+        }
+
+        mutableTrackingData.tryEmit(
+            HandTrackingData(
+                hands = processedHands,
+                sourceImageWidth = imageWidth,
+                sourceImageHeight = imageHeight,
+                timestampMs = timestampMs,
+                isTracking = true,
+                thermalState = currentThermalState,
+            ),
+        )
     }
 
     private fun detectHands(

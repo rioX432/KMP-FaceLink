@@ -364,30 +364,3 @@ public class VtsClient(
 private const val DEFAULT_MAX_RETRIES = 3
 private const val DEFAULT_RETRY_DELAY_MS = 1000L
 private const val BACKOFF_MULTIPLIER = 2L
-
-internal fun mapPostProcessingState(
-    data: PostProcessingListResponseData,
-): PostProcessingState = PostProcessingState(
-    isSupported = data.postProcessingSupported,
-    isActive = data.postProcessingActive,
-    activePreset = data.activePreset,
-    effects = data.postProcessingEffects.map { effect ->
-        PostProcessingEffect(
-            id = effect.internalID,
-            enumId = effect.enumID,
-            explanation = effect.explanation,
-            isActive = effect.isActive,
-            configEntries = effect.configEntries.map { entry ->
-                PostProcessingConfigEntry(
-                    id = entry.internalID,
-                    explanation = entry.explanation,
-                    type = entry.type,
-                    currentValue = entry.currentValue,
-                    minValue = entry.minValue,
-                    maxValue = entry.maxValue,
-                    defaultValue = entry.defaultValue,
-                )
-            },
-        )
-    },
-)

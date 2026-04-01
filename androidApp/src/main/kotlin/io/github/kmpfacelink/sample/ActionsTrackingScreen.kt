@@ -2,7 +2,6 @@ package io.github.kmpfacelink.sample
 
 import androidx.camera.view.PreviewView
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -13,15 +12,11 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -34,102 +29,18 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
-import io.github.kmpfacelink.actions.ActionBinding
-import io.github.kmpfacelink.actions.ActionEvent
-import io.github.kmpfacelink.actions.ActionSystem
-import io.github.kmpfacelink.actions.emotion.Emotion
-import io.github.kmpfacelink.actions.emotion.EmotionClassifier
 import io.github.kmpfacelink.actions.emotion.EmotionResult
-import io.github.kmpfacelink.actions.record.TrackingRecorder
 import io.github.kmpfacelink.actions.record.TrackingSession
-import io.github.kmpfacelink.actions.smileTrigger
-import io.github.kmpfacelink.actions.surprisedTrigger
-import io.github.kmpfacelink.actions.tongueOutTrigger
-import io.github.kmpfacelink.actions.winkLeftTrigger
-import io.github.kmpfacelink.actions.winkRightTrigger
 import io.github.kmpfacelink.api.FaceTracker
 import io.github.kmpfacelink.api.TrackingState
 import io.github.kmpfacelink.internal.PreviewableFaceTracker
 import io.github.kmpfacelink.sample.ui.FpsOverlay
 import io.github.kmpfacelink.sample.ui.SampleColors
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
-
-private val TRIGGER_NAMES = listOf("smile", "winkL", "winkR", "tongueOut", "surprised")
-
-/**
- * Holds action system, emotion classifier, recorder, and coroutine jobs for ActionsTrackingScreen.
- */
-private class ActionsTrackingStateHolder(private val scope: CoroutineScope) {
-    val actionSystem = ActionSystem()
-    val classifier = EmotionClassifier()
-    val recorder = TrackingRecorder()
-    var actionsJob: Job? = null
-    var eventsJob: Job? = null
-
-    fun startTracking(
-        faceTracker: FaceTracker,
-        activeTriggers: MutableList<String>,
-        onEmotionResult: (EmotionResult?) -> Unit,
-    ) {
-        eventsJob = scope.launch {
-            actionSystem.events.collect { event ->
-                handleActionEvent(event, activeTriggers)
-            }
-        }
-        actionsJob = scope.launch {
-            faceTracker.trackingData.collect { data ->
-                onEmotionResult(classifier.classify(data))
-                actionSystem.processFace(data)
-                if (recorder.isRecording) recorder.record(data)
-            }
-        }
-    }
-
-    fun stopTracking() {
-        actionsJob?.cancel()
-        eventsJob?.cancel()
-    }
-
-    suspend fun toggleRecording(
-        isRecording: Boolean,
-        onRecordingChange: (Boolean) -> Unit,
-        onSessionChange: (TrackingSession?) -> Unit,
-    ) {
-        if (isRecording) {
-            onSessionChange(recorder.stop())
-            onRecordingChange(false)
-        } else {
-            recorder.start()
-            onRecordingChange(true)
-            onSessionChange(null)
-        }
-    }
-
-    suspend fun registerTriggers() {
-        actionSystem.register(ActionBinding("smile", smileTrigger()))
-        actionSystem.register(ActionBinding("winkL", winkLeftTrigger()))
-        actionSystem.register(ActionBinding("winkR", winkRightTrigger()))
-        actionSystem.register(ActionBinding("tongueOut", tongueOutTrigger()))
-        actionSystem.register(ActionBinding("surprised", surprisedTrigger()))
-    }
-
-    fun release() {
-        actionsJob?.cancel()
-        eventsJob?.cancel()
-        actionSystem.release()
-    }
-}
 
 @Composable
 internal fun ActionsTrackingScreen(
@@ -288,120 +199,5 @@ private fun ActionsBottomPanel(
 
         Text("Recording", color = SampleColors.TextPrimary, fontSize = 13.sp, fontWeight = FontWeight.Bold)
         RecordingControls(isRecording, session, onRecordToggle)
-    }
-}
-
-@Composable
-private fun EmotionBars(result: EmotionResult?) {
-    val scores = result?.scores ?: Emotion.entries.associateWith { 0f }
-    Emotion.entries.forEach { emotion ->
-        val score = scores[emotion] ?: 0f
-        val isDominant = result?.emotion == emotion
-        val dominantLabel = if (isDominant) ", dominant emotion" else ""
-        val scorePercent = (score.coerceIn(0f, 1f) * 100).toInt()
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(16.dp)
-                .semantics {
-                    contentDescription = "${emotion.name} emotion: $scorePercent%$dominantLabel"
-                },
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Text(
-                text = emotion.name,
-                color = if (isDominant) SampleColors.BarLow else SampleColors.TextTertiary,
-                fontSize = 10.sp,
-                fontFamily = FontFamily.Monospace,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.weight(0.3f),
-            )
-            Box(
-                modifier = Modifier
-                    .weight(0.7f)
-                    .height(8.dp)
-                    .background(SampleColors.ChipDefault),
-            ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth(score.coerceIn(0f, 1f))
-                        .height(8.dp)
-                        .background(if (isDominant) SampleColors.BarLow else SampleColors.BarMedium),
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun TriggerLeds(activeTriggers: List<String>) {
-    Row(
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
-        modifier = Modifier.padding(vertical = 4.dp),
-    ) {
-        TRIGGER_NAMES.forEach { name ->
-            val isActive = name in activeTriggers
-            val stateLabel = if (isActive) "active" else "inactive"
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier
-                    .sizeIn(minWidth = 48.dp, minHeight = 48.dp)
-                    .semantics { contentDescription = "$name trigger: $stateLabel" },
-            ) {
-                Box(
-                    modifier = Modifier
-                        .size(12.dp)
-                        .clip(CircleShape)
-                        .background(if (isActive) SampleColors.StatusActive else SampleColors.StatusInactive),
-                )
-                Text(
-                    text = name,
-                    color = SampleColors.TextTertiary,
-                    fontSize = 9.sp,
-                    fontFamily = FontFamily.Monospace,
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun RecordingControls(
-    isRecording: Boolean,
-    session: TrackingSession?,
-    onRecordToggle: () -> Unit,
-) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        modifier = Modifier.padding(vertical = 4.dp),
-    ) {
-        Button(
-            onClick = onRecordToggle,
-            colors = ButtonDefaults.buttonColors(
-                containerColor = if (isRecording) SampleColors.ErrorRed else SampleColors.Primary,
-            ),
-        ) {
-            Text(if (isRecording) "Stop Rec" else "Record")
-        }
-        session?.let { s ->
-            Text(
-                text = "${s.frameCount} frames, ${s.durationMs}ms, %.1f fps".format(s.averageFps),
-                color = SampleColors.TextSecondary,
-                fontSize = 11.sp,
-                fontFamily = FontFamily.Monospace,
-            )
-        }
-    }
-}
-
-private fun handleActionEvent(event: ActionEvent, activeTriggers: MutableList<String>) {
-    when (event) {
-        is ActionEvent.Started -> {
-            if (event.actionId !in activeTriggers) activeTriggers.add(event.actionId)
-        }
-        is ActionEvent.Released -> activeTriggers.remove(event.actionId)
-        is ActionEvent.Held -> { /* Keep active */ }
     }
 }

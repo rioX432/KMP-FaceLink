@@ -117,6 +117,7 @@ struct TriggerLedsView: View {
                         .foregroundStyle(.secondary)
                 }
                 .frame(minWidth: 44, minHeight: 44)
+                .contentShape(Rectangle())
                 .accessibilityLabel(Text("\(name): \(activeTriggers.contains(name) ? "active" : "inactive")"))
             }
         }

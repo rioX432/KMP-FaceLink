@@ -22,10 +22,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.FilterChip
-import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -35,7 +32,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -47,83 +43,7 @@ import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import io.github.kmpfacelink.model.BlendShape
 import io.github.kmpfacelink.sample.ui.SampleColors
-import io.github.kmpfacelink.voice.VoicePipeline
-import io.github.kmpfacelink.voice.VoicePipelineConfig
 import io.github.kmpfacelink.voice.VoicePipelineState
-import io.github.kmpfacelink.voice.audio.createAudioPlayer
-import io.github.kmpfacelink.voice.audio.createAudioRecorder
-import io.github.kmpfacelink.voice.tts.TtsConfig
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.launch
-
-private enum class TtsProvider { VOICEVOX, OPENAI, ELEVENLABS }
-
-/**
- * Holds pipeline state, coroutine jobs, and business logic for VoiceTrackingScreen.
- */
-private class VoiceTrackingStateHolder(private val scope: CoroutineScope) {
-    var pipeline: VoicePipeline? = null
-    var speakJob: Job? = null
-    var stateJob: Job? = null
-    var lipSyncJob: Job? = null
-
-    fun startSpeaking(
-        config: TtsConfig,
-        speakText: String,
-        lipSyncShapes: SnapshotStateMap<BlendShape, Float>,
-        onStateChange: (VoicePipelineState) -> Unit,
-    ) {
-        pipeline?.release()
-        val newPipeline = VoicePipeline(
-            config = VoicePipelineConfig(ttsConfig = config),
-            audioRecorder = createAudioRecorder(),
-            audioPlayer = createAudioPlayer(),
-        )
-        pipeline = newPipeline
-        stateJob?.cancel()
-        stateJob = scope.launch { newPipeline.state.collect { onStateChange(it) } }
-        lipSyncJob?.cancel()
-        lipSyncJob = scope.launch {
-            newPipeline.lipSyncOutput.collect { shapes ->
-                lipSyncShapes.clear()
-                lipSyncShapes.putAll(shapes)
-            }
-        }
-        speakJob?.cancel()
-        speakJob = scope.launch {
-            @Suppress("TooGenericExceptionCaught") // UI error handler: voice pipeline
-            // can fail with IOException (network TTS), RuntimeException (ASR), etc.
-            try {
-                newPipeline.speak(speakText).collect { }
-            } catch (e: Exception) {
-                onStateChange(VoicePipelineState.Error(e.message ?: "Speak failed"))
-            }
-        }
-    }
-
-    fun toggleMic(
-        pipelineState: VoicePipelineState,
-        onTranscription: (String) -> Unit,
-    ) {
-        val p = pipeline ?: return
-        if (pipelineState == VoicePipelineState.Listening) {
-            scope.launch {
-                val result = p.stopListening()
-                onTranscription(result?.text ?: "(no result)")
-            }
-        } else {
-            scope.launch { p.startListening() }
-        }
-    }
-
-    fun release() {
-        speakJob?.cancel()
-        stateJob?.cancel()
-        lipSyncJob?.cancel()
-        pipeline?.release()
-    }
-}
 
 @Composable
 internal fun VoiceTrackingScreen(
@@ -311,87 +231,6 @@ private fun VoiceTopBar(onModeChange: (TrackingMode) -> Unit) {
 }
 
 @Composable
-private fun ProviderChips(selected: TtsProvider, onSelect: (TtsProvider) -> Unit) {
-    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        TtsProvider.entries.forEach { provider ->
-            FilterChip(
-                selected = selected == provider,
-                onClick = { onSelect(provider) },
-                label = { Text(provider.name, fontSize = 11.sp) },
-                colors = FilterChipDefaults.filterChipColors(
-                    containerColor = SampleColors.ChipDefault,
-                    labelColor = SampleColors.TextPrimary,
-                    selectedContainerColor = SampleColors.PrimaryDim,
-                    selectedLabelColor = SampleColors.TextPrimary,
-                ),
-            )
-        }
-    }
-}
-
-@Suppress("LongParameterList")
-@Composable
-private fun ProviderConfigForm(
-    provider: TtsProvider,
-    apiKey: String,
-    voiceId: String,
-    voicevoxHost: String,
-    onApiKeyChange: (String) -> Unit,
-    onVoiceIdChange: (String) -> Unit,
-    onHostChange: (String) -> Unit,
-) {
-    val tfColors = voiceTextFieldColors()
-    when (provider) {
-        TtsProvider.VOICEVOX -> {
-            OutlinedTextField(
-                value = voicevoxHost,
-                onValueChange = onHostChange,
-                label = { Text("Host") },
-                colors = tfColors,
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true,
-            )
-        }
-        TtsProvider.OPENAI -> {
-            OutlinedTextField(
-                value = apiKey,
-                onValueChange = onApiKeyChange,
-                label = { Text("API Key") },
-                colors = tfColors,
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true,
-            )
-            OutlinedTextField(
-                value = voiceId,
-                onValueChange = onVoiceIdChange,
-                label = { Text("Voice") },
-                colors = tfColors,
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true,
-            )
-        }
-        TtsProvider.ELEVENLABS -> {
-            OutlinedTextField(
-                value = apiKey,
-                onValueChange = onApiKeyChange,
-                label = { Text("API Key") },
-                colors = tfColors,
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true,
-            )
-            OutlinedTextField(
-                value = voiceId,
-                onValueChange = onVoiceIdChange,
-                label = { Text("Voice ID") },
-                colors = tfColors,
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true,
-            )
-        }
-    }
-}
-
-@Composable
 private fun PipelineStateBadge(state: VoicePipelineState) {
     val (text, color) = when (state) {
         is VoicePipelineState.Idle -> "Idle" to SampleColors.StatusInactive
@@ -445,23 +284,4 @@ private fun LipSyncBars(shapes: Map<BlendShape, Float>) {
             }
         }
     }
-}
-
-@Composable
-private fun voiceTextFieldColors() = OutlinedTextFieldDefaults.colors(
-    focusedTextColor = SampleColors.TextPrimary,
-    unfocusedTextColor = SampleColors.TextSecondary,
-    focusedLabelColor = SampleColors.Primary,
-    unfocusedLabelColor = SampleColors.TextTertiary,
-)
-
-private fun buildTtsConfig(
-    provider: TtsProvider,
-    apiKey: String,
-    voiceId: String,
-    voicevoxHost: String,
-): TtsConfig = when (provider) {
-    TtsProvider.VOICEVOX -> TtsConfig.Voicevox(host = voicevoxHost)
-    TtsProvider.OPENAI -> TtsConfig.OpenAiTts(apiKey = apiKey, voice = voiceId)
-    TtsProvider.ELEVENLABS -> TtsConfig.ElevenLabs(apiKey = apiKey, voiceId = voiceId)
 }

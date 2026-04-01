@@ -63,12 +63,15 @@ private struct FeatureCard: View {
     let description: String
     let action: () -> Void
 
+    /// Icon frame size that scales with Dynamic Type.
+    @ScaledMetric(relativeTo: .title) private var iconSize: CGFloat = 40
+
     var body: some View {
         Button(action: action) {
             HStack(spacing: 12) {
                 Text(icon)
                     .font(.title)
-                    .frame(width: 40, height: 40)
+                    .frame(width: iconSize, height: iconSize)
                     .accessibilityLabel(title)
 
                 VStack(alignment: .leading, spacing: 2) {

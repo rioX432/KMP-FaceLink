@@ -30,6 +30,8 @@ struct HandTrackingView: View {
                     if viewModel.isTracking {
                         Text(viewModel.gestureText)
                             .font(.system(.title2, design: .monospaced))
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.5)
                             .foregroundStyle(.white)
                             .padding(.horizontal, 16)
                             .padding(.vertical, 10)

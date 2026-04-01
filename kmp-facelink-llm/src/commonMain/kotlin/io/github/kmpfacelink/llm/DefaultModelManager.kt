@@ -1,6 +1,7 @@
 package io.github.kmpfacelink.llm
 
 import io.github.kmpfacelink.llm.internal.CacheMetadataStore
+import io.github.kmpfacelink.llm.internal.DownloadRequest
 import io.github.kmpfacelink.llm.internal.FileSystem
 import io.github.kmpfacelink.llm.internal.executeDownload
 import io.github.kmpfacelink.llm.internal.sha256Hex
@@ -33,7 +34,8 @@ public class DefaultModelManager(
         val partialPath = "$filePath.part"
         val existingSize = partialFileSize(partialPath)
 
-        executeDownload(httpClient, modelInfo, filePath, existingSize, this)
+        val request = DownloadRequest(modelInfo, filePath, existingSize)
+        executeDownload(httpClient, request, this)
         verifyAndRecord(modelInfo, filePath)
     }
 

@@ -15,71 +15,83 @@ import kotlinx.coroutines.flow.FlowCollector
 private const val DOWNLOAD_BUFFER_SIZE = 8192
 
 /**
+ * Groups the parameters needed to initiate a model download.
+ */
+internal data class DownloadRequest(
+    val modelInfo: ModelInfo,
+    val filePath: String,
+    val existingSize: Long,
+)
+
+/**
+ * Groups the state needed to track and report download progress.
+ */
+private data class WriteProgress(
+    val initialBytes: Long,
+    val totalBytes: Long,
+    val collector: FlowCollector<DownloadProgress>,
+)
+
+/**
  * Executes the HTTP download with optional resume support via Range header.
  *
  * Downloads to a `.part` file first, then renames to the final path on success.
  *
  * @return true if the download completed, false if it was already complete
  */
-@Suppress("LongParameterList")
 internal suspend fun executeDownload(
     httpClient: HttpClient,
-    modelInfo: ModelInfo,
-    filePath: String,
-    existingSize: Long,
+    request: DownloadRequest,
     collector: FlowCollector<DownloadProgress>,
 ): Boolean {
-    val partialPath = "$filePath.part"
+    val partialPath = "${request.filePath}.part"
 
-    httpClient.prepareGet(modelInfo.downloadUrl) {
-        if (existingSize > 0L) {
-            header(HttpHeaders.Range, "bytes=$existingSize-")
+    httpClient.prepareGet(request.modelInfo.downloadUrl) {
+        if (request.existingSize > 0L) {
+            header(HttpHeaders.Range, "bytes=${request.existingSize}-")
         }
     }.execute { response ->
         if (!response.status.isSuccess()) {
             error("Download failed with status ${response.status.value}")
         }
 
-        val contentLength = response.contentLength() ?: modelInfo.sizeBytes
-        val totalBytes = contentLength + existingSize
-        var bytesDownloaded = existingSize
+        val contentLength = response.contentLength() ?: request.modelInfo.sizeBytes
+        val totalBytes = contentLength + request.existingSize
 
         val channel = response.bodyAsChannel()
         val buffer = ByteArray(DOWNLOAD_BUFFER_SIZE)
-        val sink = PlatformFileSink(partialPath, append = existingSize > 0L)
+        val sink = PlatformFileSink(partialPath, append = request.existingSize > 0L)
 
         try {
-            writeDownloadedBytes(channel, buffer, sink, bytesDownloaded, totalBytes, collector)
+            val progress = WriteProgress(request.existingSize, totalBytes, collector)
+            writeDownloadedBytes(channel, buffer, sink, progress)
         } finally {
             sink.close()
         }
     }
 
     // Rename .part to final file
-    FileSystem.rename(partialPath, filePath)
+    FileSystem.rename(partialPath, request.filePath)
     return true
 }
 
-@Suppress("LongParameterList")
 private suspend fun writeDownloadedBytes(
     channel: io.ktor.utils.io.ByteReadChannel,
     buffer: ByteArray,
     sink: PlatformFileSink,
-    initialBytes: Long,
-    totalBytes: Long,
-    collector: FlowCollector<DownloadProgress>,
+    progress: WriteProgress,
 ) {
-    var bytesDownloaded = initialBytes
+    var bytesDownloaded = progress.initialBytes
     while (!channel.isClosedForRead) {
         val bytesRead = channel.readAvailable(buffer)
         if (bytesRead <= 0) continue
         sink.write(buffer, 0, bytesRead)
         bytesDownloaded += bytesRead
-        val progress = if (totalBytes > 0L) {
-            (bytesDownloaded.toFloat() / totalBytes.toFloat()).coerceIn(0f, 1f)
+        val ratio = if (progress.totalBytes > 0L) {
+            (bytesDownloaded.toFloat() / progress.totalBytes.toFloat()).coerceIn(0f, 1f)
         } else {
             0f
         }
-        collector.emit(DownloadProgress(bytesDownloaded, totalBytes, progress))
+        progress.collector.emit(DownloadProgress(bytesDownloaded, progress.totalBytes, ratio))
     }
 }

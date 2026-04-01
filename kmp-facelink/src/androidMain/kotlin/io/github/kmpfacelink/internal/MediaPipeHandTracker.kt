@@ -26,6 +26,11 @@ import kotlinx.coroutines.flow.StateFlow
 import java.util.concurrent.Executors
 import kotlin.concurrent.atomics.ExperimentalAtomicApi
 
+/**
+ * Hand tracker implementation using MediaPipe tasks-vision SDK (v0.10.32).
+ * Version pinned for documentation parity with [VisionHandTracker.HAND_POSE_REVISION] on iOS.
+ * Update when upgrading the mediapipe dependency in libs.versions.toml.
+ */
 @OptIn(ExperimentalAtomicApi::class)
 internal class MediaPipeHandTracker(
     private val platformContext: PlatformContext,
@@ -268,13 +273,5 @@ internal class MediaPipeHandTracker(
     companion object {
         private const val TAG = "MediaPipeHandTracker"
         private const val MODEL_ASSET_PATH = "models/hand_landmarker.task"
-
-        /**
-         * MediaPipe tasks-vision SDK version used by this tracker.
-         * Pinned for documentation parity with [VisionHandTracker.HAND_POSE_REVISION] on iOS.
-         * Update this constant when upgrading the mediapipe dependency in libs.versions.toml.
-         */
-        @Suppress("UnusedPrivateProperty") // version-documentation constant, not used at runtime
-        private const val MEDIAPIPE_HAND_MODEL_VERSION = "0.10.32"
     }
 }

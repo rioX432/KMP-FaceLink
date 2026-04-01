@@ -425,6 +425,8 @@ private fun LipSyncBars(shapes: Map<BlendShape, Float>) {
                     color = SampleColors.TextTertiary,
                     fontSize = 9.sp,
                     fontFamily = FontFamily.Monospace,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.weight(0.4f),
                 )
                 Box(

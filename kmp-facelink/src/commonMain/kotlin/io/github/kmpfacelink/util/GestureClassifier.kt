@@ -72,41 +72,45 @@ internal object GestureClassifier {
         return tipToWrist / mcpToWrist > FINGER_EXTENSION_THRESHOLD
     }
 
-    @Suppress("CyclomaticComplexMethod")
     private fun matchGesture(
         fingers: FingerState,
         landmarks: Map<HandJoint, HandLandmarkPoint>,
     ): Pair<HandGesture, Float> {
-        val allCurled = !fingers.thumb && !fingers.index && !fingers.middle && !fingers.ring && !fingers.pinky
-        val allExtended = fingers.thumb && fingers.index && fingers.middle && fingers.ring && fingers.pinky
-        val pinching = isPinching(landmarks)
-
-        return when {
-            allCurled -> HandGesture.CLOSED_FIST to HIGH_CONFIDENCE
-            // Pinch/OK checked before OPEN_PALM: thumb-index proximity takes priority
-            pinching && fingers.middle && fingers.ring && fingers.pinky ->
-                HandGesture.OK_SIGN to HIGH_CONFIDENCE
-            pinching && !fingers.middle && !fingers.ring && !fingers.pinky ->
-                HandGesture.PINCH to HIGH_CONFIDENCE
-            allExtended -> HandGesture.OPEN_PALM to HIGH_CONFIDENCE
-            // Rock/metal: index + pinky only
-            !fingers.thumb && fingers.index && !fingers.middle && !fingers.ring && fingers.pinky ->
-                HandGesture.ROCK to HIGH_CONFIDENCE
-            fingers.thumb && fingers.index && !fingers.middle && !fingers.ring && fingers.pinky ->
-                HandGesture.I_LOVE_YOU to HIGH_CONFIDENCE
-            !fingers.thumb && fingers.index && fingers.middle && !fingers.ring && !fingers.pinky ->
-                HandGesture.VICTORY to HIGH_CONFIDENCE
-            // Finger counting: 3, 4 (1 and 2 are handled by POINTING_UP and VICTORY aliases)
-            !fingers.thumb && fingers.index && fingers.middle && fingers.ring && !fingers.pinky ->
-                HandGesture.FINGER_COUNT_THREE to HIGH_CONFIDENCE
-            !fingers.thumb && fingers.index && fingers.middle && fingers.ring && fingers.pinky ->
-                HandGesture.FINGER_COUNT_FOUR to HIGH_CONFIDENCE
-            fingers.index && !fingers.middle && !fingers.ring && !fingers.pinky ->
-                classifyPointingUp(fingers)
-            fingers.thumb && !fingers.index && !fingers.middle && !fingers.ring && !fingers.pinky ->
-                classifyThumb(landmarks)
-            else -> HandGesture.NONE to 0f
+        // Pinch/OK checked before pattern table: thumb-index proximity takes priority
+        if (isPinching(landmarks)) {
+            matchPinchGestures(fingers)?.let { return it }
         }
+
+        // Encode finger state as a 5-bit key (thumb=16, index=8, middle=4, ring=2, pinky=1)
+        val key = fingers.toBitKey()
+        GESTURE_PATTERN_TABLE[key]?.let { return it to HIGH_CONFIDENCE }
+
+        // Patterns that need special handling (thumb-agnostic or landmark-based)
+        return matchSpecialPatterns(fingers, landmarks)
+    }
+
+    private fun matchPinchGestures(fingers: FingerState): Pair<HandGesture, Float>? =
+        when (fingers.toBitKey() and NON_THUMB_INDEX_MASK) {
+            // middle + ring + pinky extended → OK_SIGN
+            MIDDLE_RING_PINKY_BITS -> HandGesture.OK_SIGN to HIGH_CONFIDENCE
+            // middle + ring + pinky curled → PINCH
+            0 -> HandGesture.PINCH to HIGH_CONFIDENCE
+            else -> null
+        }
+
+    private fun matchSpecialPatterns(
+        fingers: FingerState,
+        landmarks: Map<HandJoint, HandLandmarkPoint>,
+    ): Pair<HandGesture, Float> {
+        val key = fingers.toBitKey()
+        // Index only (thumb agnostic): key is INDEX_BIT or THUMB_BIT|INDEX_BIT
+        val isIndexOnly = (key and NON_THUMB_INDEX_MASK) == 0 && fingers.index
+        if (isIndexOnly) return classifyPointingUp(fingers)
+
+        // Thumb only → THUMB_UP or THUMB_DOWN
+        if (key == THUMB_BIT) return classifyThumb(landmarks)
+
+        return HandGesture.NONE to 0f
     }
 
     private fun isPinching(landmarks: Map<HandJoint, HandLandmarkPoint>): Boolean {
@@ -148,11 +152,53 @@ internal object GestureClassifier {
         return sqrt(dx * dx + dy * dy + dz * dz)
     }
 
+    // Bit positions: thumb=16, index=8, middle=4, ring=2, pinky=1
+    private const val THUMB_BIT = 16
+    private const val INDEX_BIT = 8
+    private const val MIDDLE_BIT = 4
+    private const val RING_BIT = 2
+    private const val PINKY_BIT = 1
+
+    /** Mask for middle + ring + pinky bits (used in pinch sub-classification). */
+    private const val NON_THUMB_INDEX_MASK = MIDDLE_BIT or RING_BIT or PINKY_BIT
+    private const val MIDDLE_RING_PINKY_BITS = MIDDLE_BIT or RING_BIT or PINKY_BIT
+
+    /**
+     * Lookup table mapping exact 5-bit finger patterns to gestures.
+     * Patterns that require landmark-based or thumb-agnostic logic are handled separately.
+     */
+    private val GESTURE_PATTERN_TABLE: Map<Int, HandGesture> = mapOf(
+        // All curled → CLOSED_FIST
+        0 to HandGesture.CLOSED_FIST,
+        // All extended → OPEN_PALM
+        (THUMB_BIT or INDEX_BIT or MIDDLE_BIT or RING_BIT or PINKY_BIT) to HandGesture.OPEN_PALM,
+        // Rock/metal: index + pinky only
+        (INDEX_BIT or PINKY_BIT) to HandGesture.ROCK,
+        // I love you: thumb + index + pinky
+        (THUMB_BIT or INDEX_BIT or PINKY_BIT) to HandGesture.I_LOVE_YOU,
+        // Victory: index + middle
+        (INDEX_BIT or MIDDLE_BIT) to HandGesture.VICTORY,
+        // Finger count 3: index + middle + ring
+        (INDEX_BIT or MIDDLE_BIT or RING_BIT) to HandGesture.FINGER_COUNT_THREE,
+        // Finger count 4: index + middle + ring + pinky
+        (INDEX_BIT or MIDDLE_BIT or RING_BIT or PINKY_BIT) to HandGesture.FINGER_COUNT_FOUR,
+    )
+
     private data class FingerState(
         val thumb: Boolean,
         val index: Boolean,
         val middle: Boolean,
         val ring: Boolean,
         val pinky: Boolean,
-    )
+    ) {
+        fun toBitKey(): Int {
+            var key = 0
+            if (thumb) key = key or THUMB_BIT
+            if (index) key = key or INDEX_BIT
+            if (middle) key = key or MIDDLE_BIT
+            if (ring) key = key or RING_BIT
+            if (pinky) key = key or PINKY_BIT
+            return key
+        }
+    }
 }

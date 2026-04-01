@@ -152,32 +152,39 @@ internal class VisionBodyTracker(
         }
     }
 
-    @Suppress("LongMethod")
     private fun setupCaptureSession() {
         val session = AVCaptureSession()
         session.sessionPreset = AVCaptureSessionPreset352x288
 
-        val position = when (currentCameraFacing) {
+        val device = findCameraDevice(currentCameraFacing)
+        configureCameraFrameRate(device)
+        addCameraInput(session, device)
+        addVideoOutput(session)
+
+        captureSession = session
+    }
+
+    private fun findCameraDevice(facing: CameraFacing): AVCaptureDevice {
+        val position = when (facing) {
             CameraFacing.FRONT -> AVCaptureDevicePositionFront
             CameraFacing.BACK -> AVCaptureDevicePositionBack
         }
-
-        val device = AVCaptureDevice.devicesWithMediaType(AVMediaTypeVideo)
+        return AVCaptureDevice.devicesWithMediaType(AVMediaTypeVideo)
             .filterIsInstance<AVCaptureDevice>()
             .firstOrNull { it.position == position }
             ?: AVCaptureDevice.defaultDeviceWithMediaType(AVMediaTypeVideo)
             ?: throw UnsupportedOperationException("No camera available")
+    }
 
-        // Limit frame rate to 15 fps to keep Vision processing responsive
-        configureCameraFrameRate(device)
-
+    private fun addCameraInput(session: AVCaptureSession, device: AVCaptureDevice) {
         val input = AVCaptureDeviceInput.deviceInputWithDevice(device, null)
             ?: throw UnsupportedOperationException("Cannot create camera input")
-
         if (session.canAddInput(input)) {
             session.addInput(input)
         }
+    }
 
+    private fun addVideoOutput(session: AVCaptureSession) {
         val videoOutput = AVCaptureVideoDataOutput()
         // Force YUV pixel format for optimal Vision framework processing
         videoOutput.videoSettings = mapOf<Any?, Any>(
@@ -195,8 +202,6 @@ internal class VisionBodyTracker(
         if (connection != null && connection.isVideoOrientationSupported()) {
             connection.videoOrientation = AVCaptureVideoOrientationPortrait
         }
-
-        captureSession = session
     }
 
     private fun configureCameraFrameRate(device: AVCaptureDevice) {
@@ -215,7 +220,6 @@ internal class VisionBodyTracker(
         device.unlockForConfiguration()
     }
 
-    @Suppress("ReturnCount")
     private fun processVideoFrame(sampleBuffer: CMSampleBufferRef?) {
         if (sampleBuffer == null || mutableState.value != TrackingState.TRACKING) return
 
@@ -223,43 +227,47 @@ internal class VisionBodyTracker(
         if (!processing.compareAndSet(expectedValue = 0, newValue = 1)) return
 
         try {
-            val pixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) ?: return
-            val timestampMs = currentTimeMillis()
-
-            // Thermal throttling: skip frame if needed
-            val currentThermalState = thermalMonitor.thermalState.value
-            if (!frameThrottler.shouldProcess(timestampMs, currentThermalState)) return
-
-            // Get source image dimensions from pixel buffer
-            val imageWidth = CVPixelBufferGetWidth(pixelBuffer).toInt()
-            val imageHeight = CVPixelBufferGetHeight(pixelBuffer).toInt()
-
-            val observations = detectBodies(pixelBuffer, timestampMs) ?: return
-
-            var bodies = observations.map { observation ->
-                TrackedBody(landmarks = VisionBodyLandmarkMapper.mapLandmarks(observation))
-            }
-
-            // Apply smoothing (protected by lock)
-            val processedBodies = pipelineLock.withLock {
-                if (isReleased()) return
-                smoother?.let { bodies = it.smooth(bodies, timestampMs) }
-                bodies
-            }
-
-            mutableTrackingData.tryEmit(
-                BodyTrackingData(
-                    bodies = processedBodies,
-                    sourceImageWidth = imageWidth,
-                    sourceImageHeight = imageHeight,
-                    timestampMs = timestampMs,
-                    isTracking = true,
-                    thermalState = currentThermalState,
-                ),
-            )
+            processFrameUnsafe(sampleBuffer)
         } finally {
             processing.store(0)
         }
+    }
+
+    private fun processFrameUnsafe(sampleBuffer: CMSampleBufferRef) {
+        val pixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) ?: return
+        val timestampMs = currentTimeMillis()
+
+        // Thermal throttling: skip frame if needed
+        val currentThermalState = thermalMonitor.thermalState.value
+        if (!frameThrottler.shouldProcess(timestampMs, currentThermalState)) return
+
+        // Get source image dimensions from pixel buffer
+        val imageWidth = CVPixelBufferGetWidth(pixelBuffer).toInt()
+        val imageHeight = CVPixelBufferGetHeight(pixelBuffer).toInt()
+
+        val observations = detectBodies(pixelBuffer, timestampMs) ?: return
+
+        var bodies = observations.map { observation ->
+            TrackedBody(landmarks = VisionBodyLandmarkMapper.mapLandmarks(observation))
+        }
+
+        // Apply smoothing (protected by lock)
+        val processedBodies = pipelineLock.withLock {
+            if (isReleased()) return
+            smoother?.let { bodies = it.smooth(bodies, timestampMs) }
+            bodies
+        }
+
+        mutableTrackingData.tryEmit(
+            BodyTrackingData(
+                bodies = processedBodies,
+                sourceImageWidth = imageWidth,
+                sourceImageHeight = imageHeight,
+                timestampMs = timestampMs,
+                isTracking = true,
+                thermalState = currentThermalState,
+            ),
+        )
     }
 
     private fun detectBodies(

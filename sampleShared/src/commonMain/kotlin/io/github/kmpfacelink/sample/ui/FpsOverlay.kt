@@ -47,13 +47,19 @@ fun FpsOverlay(
                 val deltaMs = newest - oldest
                 if (deltaMs > 0) {
                     fps = (filled - 1) * MILLIS_PER_SECOND / deltaMs
+                } else {
+                    // Reset when timestamps are non-monotonic or identical
+                    fps = 0f
                 }
             }
         }
     }
 
+    // Show dash when no valid FPS has been computed yet
+    val fpsText = if (fps > 0f) "${fps.roundToInt()} FPS" else "— FPS"
+
     Text(
-        text = "${fps.roundToInt()} FPS",
+        text = fpsText,
         color = SampleColors.TextSecondary,
         fontSize = 10.sp,
         fontFamily = FontFamily.Monospace,

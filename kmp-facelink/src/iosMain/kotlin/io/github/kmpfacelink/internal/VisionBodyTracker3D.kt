@@ -225,7 +225,6 @@ internal class VisionBodyTracker3D(
     }
 
     private fun configureCameraFrameRate(device: AVCaptureDevice) {
-        @Suppress("SwallowedException")
         val locked = try {
             device.lockForConfiguration(null)
             true

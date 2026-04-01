@@ -2,7 +2,6 @@ package io.github.kmpfacelink.avatar
 
 import io.github.kmpfacelink.model.BlendShape
 import io.github.kmpfacelink.model.FaceTrackingData
-import io.github.kmpfacelink.model.HeadTransform
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.test.runTest
@@ -14,12 +13,11 @@ class FlowExtensionsTest {
 
     private val mapper = Live2DParameterMapper()
 
-    private fun frame(isTracking: Boolean, jawOpen: Float = 0f) = FaceTrackingData(
-        blendShapes = mapOf(BlendShape.JAW_OPEN to jawOpen),
-        headTransform = HeadTransform(),
-        timestampMs = 0L,
-        isTracking = isTracking,
-    )
+    private fun frame(isTracking: Boolean, jawOpen: Float = 0f) =
+        trackingData(
+            blendShapes = mapOf(BlendShape.JAW_OPEN to jawOpen),
+            isTracking = isTracking,
+        )
 
     @Test
     fun trackingFramesAreMapped() = runTest {
@@ -48,6 +46,6 @@ class FlowExtensionsTest {
     }
 
     companion object {
-        private const val TOLERANCE = 0.001f
+        private const val TOLERANCE = STRICT_TOLERANCE
     }
 }

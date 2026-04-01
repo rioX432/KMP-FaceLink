@@ -2,23 +2,12 @@ package io.github.kmpfacelink.avatar
 
 import io.github.kmpfacelink.model.BlendShape
 import io.github.kmpfacelink.model.FaceTrackingData
-import io.github.kmpfacelink.model.HeadTransform
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 class UnifiedExpressionsMapperTest {
-
-    private fun trackingData(
-        blendShapes: Map<BlendShape, Float> = emptyMap(),
-        headTransform: HeadTransform = HeadTransform(),
-    ) = FaceTrackingData(
-        blendShapes = blendShapes,
-        headTransform = headTransform,
-        timestampMs = 0L,
-        isTracking = true,
-    )
 
     // --- Not tracking ---
 
@@ -356,6 +345,6 @@ class UnifiedExpressionsMapperTest {
     }
 
     companion object {
-        private const val TOLERANCE = 0.01f
+        private const val TOLERANCE = DEFAULT_TOLERANCE
     }
 }

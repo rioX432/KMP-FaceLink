@@ -9,16 +9,6 @@ import kotlin.test.assertTrue
 
 class VrmParameterMapperTest {
 
-    private fun trackingData(
-        blendShapes: Map<BlendShape, Float> = emptyMap(),
-        headTransform: HeadTransform = HeadTransform(),
-    ) = FaceTrackingData(
-        blendShapes = blendShapes,
-        headTransform = headTransform,
-        timestampMs = 0L,
-        isTracking = true,
-    )
-
     // --- Not tracking ---
 
     @Test
@@ -321,6 +311,6 @@ class VrmParameterMapperTest {
     }
 
     companion object {
-        private const val TOLERANCE = 0.01f
+        private const val TOLERANCE = DEFAULT_TOLERANCE
     }
 }

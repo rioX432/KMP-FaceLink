@@ -1,8 +1,6 @@
 package io.github.kmpfacelink.avatar
 
 import io.github.kmpfacelink.model.BlendShape
-import io.github.kmpfacelink.model.FaceTrackingData
-import io.github.kmpfacelink.model.HeadTransform
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -18,16 +16,6 @@ import kotlin.test.assertTrue
 class Vrm10MappingTest {
 
     private val mapper = VrmParameterMapper(VrmConfig(version = VrmVersion.V1_0))
-
-    private fun trackingData(
-        blendShapes: Map<BlendShape, Float> = emptyMap(),
-        headTransform: HeadTransform = HeadTransform(),
-    ) = FaceTrackingData(
-        blendShapes = blendShapes,
-        headTransform = headTransform,
-        timestampMs = 0L,
-        isTracking = true,
-    )
 
     // --- All VRM 1.0 expression keys are present ---
 
@@ -220,6 +208,6 @@ class Vrm10MappingTest {
     }
 
     companion object {
-        private const val TOLERANCE = 0.01f
+        private const val TOLERANCE = DEFAULT_TOLERANCE
     }
 }

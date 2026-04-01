@@ -1,22 +1,12 @@
 package io.github.kmpfacelink.avatar
 
 import io.github.kmpfacelink.model.BlendShape
-import io.github.kmpfacelink.model.FaceTrackingData
 import io.github.kmpfacelink.model.HeadTransform
 import io.github.kmpfacelink.model.valueOf
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
 class ParameterMappingTest {
-
-    private fun trackingData(
-        blendShapes: Map<BlendShape, Float> = emptyMap(),
-    ) = FaceTrackingData(
-        blendShapes = blendShapes,
-        headTransform = HeadTransform(),
-        timestampMs = 0L,
-        isTracking = true,
-    )
 
     @Test
     fun directPassesThrough() {
@@ -71,17 +61,12 @@ class ParameterMappingTest {
         val mapping = ParameterMapping.Custom { data ->
             data.headTransform.yaw * 2f
         }
-        val data = FaceTrackingData(
-            blendShapes = emptyMap(),
-            headTransform = HeadTransform(yaw = 10f),
-            timestampMs = 0L,
-            isTracking = true,
-        )
+        val data = trackingData(headTransform = HeadTransform(yaw = 10f))
         val result = mapping.compute(data)
         assertEquals(20f, result, TOLERANCE)
     }
 
     companion object {
-        private const val TOLERANCE = 0.001f
+        private const val TOLERANCE = STRICT_TOLERANCE
     }
 }

@@ -7,8 +7,8 @@ package io.github.kmpfacelink.util
  * - iOS: delegates to [platform.Foundation.NSLog]
  * - JVM: delegates to [java.util.logging.Logger]
  */
-internal expect object FaceLinkLogger {
-    fun w(tag: String, message: String, throwable: Throwable? = null)
-    fun e(tag: String, message: String, throwable: Throwable? = null)
-    fun d(tag: String, message: String)
+public expect object FaceLinkLogger {
+    public fun w(tag: String, message: String, throwable: Throwable? = null)
+    public fun e(tag: String, message: String, throwable: Throwable? = null)
+    public fun d(tag: String, message: String)
 }

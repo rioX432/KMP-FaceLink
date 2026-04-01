@@ -1,5 +1,6 @@
 package io.github.kmpfacelink.stream.webrtc
 
+import io.github.kmpfacelink.util.FaceLinkLogger
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.websocket.WebSockets
 import io.ktor.client.plugins.websocket.webSocket
@@ -102,7 +103,7 @@ public class WebSocketTransport(
         } catch (@Suppress("TooGenericExceptionCaught") e: Exception) {
             mutex.withLock { session = null }
             _connectionState.emit(false)
-            println("[WebSocketTransport] Connection failed (${e::class.simpleName}): ${e.message}")
+            FaceLinkLogger.w(TAG, "Connection failed (${e::class.simpleName}): ${e.message}")
         }
     }
 
@@ -120,6 +121,7 @@ public class WebSocketTransport(
     }
 
     private companion object {
+        private const val TAG = "WebSocketTransport"
         const val INCOMING_BUFFER_CAPACITY = 64
     }
 }

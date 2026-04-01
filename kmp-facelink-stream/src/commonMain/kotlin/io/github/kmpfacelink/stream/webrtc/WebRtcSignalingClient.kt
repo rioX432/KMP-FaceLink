@@ -1,5 +1,6 @@
 package io.github.kmpfacelink.stream.webrtc
 
+import io.github.kmpfacelink.util.FaceLinkLogger
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.websocket.WebSockets
 import io.ktor.client.plugins.websocket.webSocket
@@ -120,7 +121,7 @@ public class WebRtcSignalingClient(
             throw e
         } catch (@Suppress("TooGenericExceptionCaught") e: Exception) {
             mutex.withLock { session = null }
-            println("[WebRtcSignaling] Connection failed (${e::class.simpleName}): ${e.message}")
+            FaceLinkLogger.w(TAG, "Connection failed (${e::class.simpleName}): ${e.message}")
         }
     }
 
@@ -140,11 +141,12 @@ public class WebRtcSignalingClient(
         } catch (e: CancellationException) {
             throw e
         } catch (@Suppress("TooGenericExceptionCaught") e: Exception) {
-            println("[WebRtcSignaling] Failed to parse message (${e::class.simpleName}): ${e.message}")
+            FaceLinkLogger.w(TAG, "Failed to parse message (${e::class.simpleName}): ${e.message}")
         }
     }
 
     private companion object {
+        private const val TAG = "WebRtcSignalingClient"
         const val MESSAGE_BUFFER_CAPACITY = 32
     }
 }

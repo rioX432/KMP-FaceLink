@@ -1,5 +1,6 @@
 package io.github.kmpfacelink.stream
 
+import io.github.kmpfacelink.util.FaceLinkLogger
 import io.ktor.server.application.install
 import io.ktor.server.cio.CIO
 import io.ktor.server.engine.EmbeddedServer
@@ -174,14 +175,18 @@ public class StreamServer(
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {
-            println("[StreamServer] Client send failed (${e::class.simpleName}): ${e.message}")
+            FaceLinkLogger.w(TAG, "Client send failed (${e::class.simpleName}): ${e.message}")
             try {
                 session.wsSession.close()
             } catch (closeEx: Exception) {
-                println("[StreamServer] Session already closed (${closeEx::class.simpleName}): ${closeEx.message}")
+                FaceLinkLogger.d(TAG, "Session already closed (${closeEx::class.simpleName}): ${closeEx.message}")
             }
             removeSession(session)
         }
+    }
+
+    private companion object {
+        private const val TAG = "StreamServer"
     }
 }
 

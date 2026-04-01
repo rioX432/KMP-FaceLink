@@ -2,8 +2,8 @@ package io.github.kmpfacelink.util
 
 import platform.Foundation.NSLog
 
-internal actual object FaceLinkLogger {
-    actual fun w(tag: String, message: String, throwable: Throwable?) {
+public actual object FaceLinkLogger {
+    public actual fun w(tag: String, message: String, throwable: Throwable?) {
         if (throwable != null) {
             NSLog("[W] %@: %@ — %@", tag, message, throwable.toString())
         } else {
@@ -11,7 +11,7 @@ internal actual object FaceLinkLogger {
         }
     }
 
-    actual fun e(tag: String, message: String, throwable: Throwable?) {
+    public actual fun e(tag: String, message: String, throwable: Throwable?) {
         if (throwable != null) {
             NSLog("[E] %@: %@ — %@", tag, message, throwable.toString())
         } else {
@@ -19,7 +19,7 @@ internal actual object FaceLinkLogger {
         }
     }
 
-    actual fun d(tag: String, message: String) {
+    public actual fun d(tag: String, message: String) {
         NSLog("[D] %@: %@", tag, message)
     }
 }

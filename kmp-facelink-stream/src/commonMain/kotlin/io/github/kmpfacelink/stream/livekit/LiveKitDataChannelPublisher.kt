@@ -1,6 +1,7 @@
 package io.github.kmpfacelink.stream.livekit
 
 import io.github.kmpfacelink.stream.StreamFrame
+import io.github.kmpfacelink.util.FaceLinkLogger
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.websocket.WebSockets
 import io.ktor.client.plugins.websocket.webSocket
@@ -92,7 +93,7 @@ public class LiveKitDataChannelPublisher(
         } catch (e: CancellationException) {
             throw e
         } catch (@Suppress("TooGenericExceptionCaught") e: Exception) {
-            println("[LiveKitPublisher] Connection failed (${e::class.simpleName}): ${e.message}")
+            FaceLinkLogger.w(TAG, "Connection failed (${e::class.simpleName}): ${e.message}")
             mutex.withLock { session = null }
             attemptReconnect()
         }
@@ -106,9 +107,7 @@ public class LiveKitDataChannelPublisher(
     }
 
     private suspend fun handleSendFailure(error: Exception) {
-        println(
-            "[LiveKitPublisher] Send failed (${error::class.simpleName}): ${error.message}",
-        )
+        FaceLinkLogger.w(TAG, "Send failed (${error::class.simpleName}): ${error.message}")
         mutex.withLock { session = null }
     }
 
@@ -120,6 +119,10 @@ public class LiveKitDataChannelPublisher(
      * the JWT token itself, but we include them as query params for
      * compatibility with proxy/bridge endpoints.
      */
+    private companion object {
+        private const val TAG = "LiveKitDataChannelPublisher"
+    }
+
     internal fun buildWebSocketUrl(): String {
         val base = config.serverUrl.trimEnd('/')
         return "$base/rtc?room=${config.roomName}" +

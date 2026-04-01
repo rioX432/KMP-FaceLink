@@ -25,7 +25,7 @@ class CalibratorTest {
 
         // Still in warmup — raw value must be returned unchanged
         val result = calibrator.calibrate(mapOf(BlendShape.JAW_OPEN to 0.3f))
-        assertApprox(0.3f, result[BlendShape.JAW_OPEN]!!)
+        assertApprox(0.3f, result.getValue(BlendShape.JAW_OPEN))
     }
 
     @Test
@@ -39,7 +39,7 @@ class CalibratorTest {
 
         // Frame 3 — normalization active; value=0.5 → normalized ≈ 0.5
         val result = calibrator.calibrate(mapOf(BlendShape.JAW_OPEN to 0.5f))
-        assertApprox(0.5f, result[BlendShape.JAW_OPEN]!!)
+        assertApprox(0.5f, result.getValue(BlendShape.JAW_OPEN))
     }
 
     @Test
@@ -55,7 +55,7 @@ class CalibratorTest {
 
         // After reset, warmup restarts — first frame must be passed through unchanged
         val result = calibrator.calibrate(mapOf(BlendShape.JAW_OPEN to 0.7f))
-        assertApprox(0.7f, result[BlendShape.JAW_OPEN]!!)
+        assertApprox(0.7f, result.getValue(BlendShape.JAW_OPEN))
     }
 
     // ---- EMA range decay tests ----
@@ -76,7 +76,7 @@ class CalibratorTest {
 
         // After decay, normalizing 0.5 against a shrunk [~0, ~0.7] range should give > 0.5
         val result = calibrator.calibrate(mapOf(BlendShape.JAW_OPEN to 0.5f))
-        val actual = result[BlendShape.JAW_OPEN]!!
+        val actual = result.getValue(BlendShape.JAW_OPEN)
         assertTrue(actual > 0.5f, "Expected > 0.5 after range decay, was $actual")
     }
 
@@ -95,7 +95,7 @@ class CalibratorTest {
 
         // Range must remain [0, 1]; 0.5 should still normalize to ~0.5
         val result = calibrator.calibrate(mapOf(BlendShape.JAW_OPEN to 0.5f))
-        assertApprox(0.5f, result[BlendShape.JAW_OPEN]!!)
+        assertApprox(0.5f, result.getValue(BlendShape.JAW_OPEN))
     }
 
     // ---- Original behavioural tests (adjusted for warmup=0 to bypass warmup phase) ----
@@ -106,7 +106,7 @@ class CalibratorTest {
         val input = mapOf(BlendShape.JAW_OPEN to 0.5f)
         val result = calibrator.calibrate(input)
         // During warmup, raw value is returned unchanged
-        assertApprox(0.5f, result[BlendShape.JAW_OPEN]!!)
+        assertApprox(0.5f, result.getValue(BlendShape.JAW_OPEN))
     }
 
     @Test
@@ -119,7 +119,7 @@ class CalibratorTest {
 
         // Frame 2: value = 0.8 → range expands instantly (decayRate=1.0); normalized ≈ 1.0
         val result = calibrator.calibrate(mapOf(BlendShape.JAW_OPEN to 0.8f))
-        assertApprox(1.0f, result[BlendShape.JAW_OPEN]!!)
+        assertApprox(1.0f, result.getValue(BlendShape.JAW_OPEN))
     }
 
     @Test
@@ -132,7 +132,7 @@ class CalibratorTest {
 
         // value=0.5, min=0.0, max=1.0 → normalized ≈ 0.5
         val result = calibrator.calibrate(mapOf(BlendShape.JAW_OPEN to 0.5f))
-        assertApprox(0.5f, result[BlendShape.JAW_OPEN]!!)
+        assertApprox(0.5f, result.getValue(BlendShape.JAW_OPEN))
     }
 
     @Test
@@ -145,7 +145,7 @@ class CalibratorTest {
 
         // After reset with warmupFrames=0, first call: min=max=value, range<EPSILON → pass-through
         val result = calibrator.calibrate(mapOf(BlendShape.JAW_OPEN to 0.7f))
-        assertApprox(0.7f, result[BlendShape.JAW_OPEN]!!)
+        assertApprox(0.7f, result.getValue(BlendShape.JAW_OPEN))
     }
 
     // ---- Neutral expression auto-detection tests ----
@@ -168,7 +168,7 @@ class CalibratorTest {
 
         // After neutral detection: same resting value should now map to ~0
         val result = calibrator.calibrate(mapOf(BlendShape.JAW_OPEN to neutralValue))
-        val calibrated = result[BlendShape.JAW_OPEN]!!
+        val calibrated = result.getValue(BlendShape.JAW_OPEN)
         assertTrue(calibrated < 0.05f, "Expected ~0 after neutral subtraction, was $calibrated")
     }
 
@@ -190,7 +190,7 @@ class CalibratorTest {
 
         // Without neutral baseline, a mid-range value should NOT be near 0
         val result = calibrator.calibrate(mapOf(BlendShape.JAW_OPEN to 0.5f))
-        val calibrated = result[BlendShape.JAW_OPEN]!!
+        val calibrated = result.getValue(BlendShape.JAW_OPEN)
         assertTrue(calibrated > 0.2f, "Expected no neutral subtraction with unstable input, was $calibrated")
     }
 
@@ -212,7 +212,7 @@ class CalibratorTest {
 
         // Deliberate expression at 0.6: (0.6 - 0.2) / 0.8 = 0.5
         val result = calibrator.calibrate(mapOf(BlendShape.JAW_OPEN to 0.6f))
-        assertApprox(0.5f, result[BlendShape.JAW_OPEN]!!)
+        assertApprox(0.5f, result.getValue(BlendShape.JAW_OPEN))
     }
 
     @Test
@@ -233,7 +233,7 @@ class CalibratorTest {
         // Full jaw open (1.0) after neutral detected at 0.05
         // (1.0 - 0.05) / 1.0 ≈ 0.95
         val result = calibrator.calibrate(mapOf(BlendShape.JAW_OPEN to 1.0f))
-        val calibrated = result[BlendShape.JAW_OPEN]!!
+        val calibrated = result.getValue(BlendShape.JAW_OPEN)
         assertTrue(calibrated > 0.85f, "Expected high value for deliberate expression, was $calibrated")
     }
 
@@ -251,7 +251,7 @@ class CalibratorTest {
 
         // Neutral is active — resting value maps near 0
         val beforeReset = calibrator.calibrate(mapOf(BlendShape.JAW_OPEN to 0.1f))
-        assertTrue(beforeReset[BlendShape.JAW_OPEN]!! < 0.05f, "Neutral should be active before reset")
+        assertTrue(beforeReset.getValue(BlendShape.JAW_OPEN) < 0.05f, "Neutral should be active before reset")
 
         calibrator.reset()
 
@@ -265,6 +265,6 @@ class CalibratorTest {
 
         // 0.1 without baseline: (0.1 - 0) / 1.0 = 0.1, not near 0
         val afterReset = calibrator.calibrate(mapOf(BlendShape.JAW_OPEN to 0.1f))
-        assertTrue(afterReset[BlendShape.JAW_OPEN]!! > 0.05f, "Neutral baseline should be cleared after reset")
+        assertTrue(afterReset.getValue(BlendShape.JAW_OPEN) > 0.05f, "Neutral baseline should be cleared after reset")
     }
 }

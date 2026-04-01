@@ -37,7 +37,7 @@ class HandTrackerConfigTest {
             HandTrackerConfig(maxHands = 0)
             fail("Expected IllegalArgumentException")
         } catch (e: IllegalArgumentException) {
-            assertTrue(e.message!!.contains("maxHands"))
+            assertTrue(checkNotNull(e.message).contains("maxHands"))
         }
     }
 
@@ -47,7 +47,7 @@ class HandTrackerConfigTest {
             HandTrackerConfig(maxHands = 3)
             fail("Expected IllegalArgumentException")
         } catch (e: IllegalArgumentException) {
-            assertTrue(e.message!!.contains("maxHands"))
+            assertTrue(checkNotNull(e.message).contains("maxHands"))
         }
     }
 

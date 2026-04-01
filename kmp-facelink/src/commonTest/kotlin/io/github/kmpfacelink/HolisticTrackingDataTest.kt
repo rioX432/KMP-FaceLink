@@ -145,7 +145,7 @@ class HolisticTrackerConfigTest {
             e
         }
         assertTrue(exception != null, "Expected IllegalArgumentException")
-        assertTrue(exception.message!!.contains("At least one"))
+        assertTrue(checkNotNull(exception.message).contains("At least one"))
     }
 
     @Test

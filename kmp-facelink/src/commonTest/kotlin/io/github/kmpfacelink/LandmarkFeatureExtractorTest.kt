@@ -51,8 +51,8 @@ class LandmarkFeatureExtractorTest {
         val landmarks1 = createSpreadLandmarks(offsetX = 0.1f, offsetY = 0.1f)
         val landmarks2 = createSpreadLandmarks(offsetX = 0.5f, offsetY = 0.7f)
 
-        val features1 = LandmarkFeatureExtractor.extract(landmarks1)!!
-        val features2 = LandmarkFeatureExtractor.extract(landmarks2)!!
+        val features1 = checkNotNull(LandmarkFeatureExtractor.extract(landmarks1))
+        val features2 = checkNotNull(LandmarkFeatureExtractor.extract(landmarks2))
 
         for (i in features1.indices) {
             assertTrue(
@@ -72,8 +72,8 @@ class LandmarkFeatureExtractorTest {
             HandLandmarkPoint(joint, joint.index * 0.02f, joint.index * 0.03f, 0f)
         }
 
-        val features1 = LandmarkFeatureExtractor.extract(landmarks1)!!
-        val features2 = LandmarkFeatureExtractor.extract(landmarks2)!!
+        val features1 = checkNotNull(LandmarkFeatureExtractor.extract(landmarks1))
+        val features2 = checkNotNull(LandmarkFeatureExtractor.extract(landmarks2))
 
         for (i in features1.indices) {
             assertTrue(
@@ -86,7 +86,7 @@ class LandmarkFeatureExtractorTest {
     @Test
     fun wristFeatureIsZero() {
         val landmarks = createSpreadLandmarks()
-        val features = LandmarkFeatureExtractor.extract(landmarks)!!
+        val features = checkNotNull(LandmarkFeatureExtractor.extract(landmarks))
         // Wrist is at index 0, so first 3 values should be 0
         assertEquals(0f, features[0])
         assertEquals(0f, features[1])
@@ -101,7 +101,7 @@ class LandmarkFeatureExtractorTest {
     @Test
     fun computeMeanOfSingleSample() {
         val sample = FloatArray(LandmarkFeatureExtractor.FEATURE_DIMENSION) { it.toFloat() }
-        val mean = LandmarkFeatureExtractor.computeMean(listOf(sample))!!
+        val mean = checkNotNull(LandmarkFeatureExtractor.computeMean(listOf(sample)))
         for (i in sample.indices) {
             assertEquals(sample[i], mean[i])
         }
@@ -111,7 +111,7 @@ class LandmarkFeatureExtractorTest {
     fun computeMeanAveragesCorrectly() {
         val sample1 = FloatArray(LandmarkFeatureExtractor.FEATURE_DIMENSION) { 2f }
         val sample2 = FloatArray(LandmarkFeatureExtractor.FEATURE_DIMENSION) { 4f }
-        val mean = LandmarkFeatureExtractor.computeMean(listOf(sample1, sample2))!!
+        val mean = checkNotNull(LandmarkFeatureExtractor.computeMean(listOf(sample1, sample2)))
         for (value in mean) {
             assertTrue(abs(value - 3f) < TOLERANCE)
         }
@@ -120,7 +120,7 @@ class LandmarkFeatureExtractorTest {
     @Test
     fun allLandmarksAtSamePointProducesZeroVector() {
         val landmarks = createLandmarksAtOrigin()
-        val features = LandmarkFeatureExtractor.extract(landmarks)!!
+        val features = checkNotNull(LandmarkFeatureExtractor.extract(landmarks))
         for (value in features) {
             assertEquals(0f, value)
         }

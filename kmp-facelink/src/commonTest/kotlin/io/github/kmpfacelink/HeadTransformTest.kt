@@ -44,7 +44,7 @@ class HeadTransformTest {
     fun transformMatrixIsStoredCorrectly() {
         val matrix = FloatArray(16) { it.toFloat() }
         val h = HeadTransform(transformMatrix = matrix)
-        val stored = h.transformMatrix!!
+        val stored = checkNotNull(h.transformMatrix)
         assertEquals(16, stored.size)
         for (i in 0 until 16) {
             assertEquals(i.toFloat(), stored[i])

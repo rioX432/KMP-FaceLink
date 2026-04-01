@@ -17,7 +17,7 @@ class OneEuroFilterTest {
         val filter = OneEuroFilter()
         val input = mapOf(BlendShape.JAW_OPEN to 0.6f)
         val result = filter.smooth(input, 0L)
-        assertApprox(0.6f, result[BlendShape.JAW_OPEN]!!, epsilon = 0.001f)
+        assertApprox(0.6f, result.getValue(BlendShape.JAW_OPEN), epsilon = 0.001f)
     }
 
     @Test
@@ -31,7 +31,7 @@ class OneEuroFilterTest {
             result = filter.smooth(mapOf(BlendShape.JAW_OPEN to value), i * 33L)
         }
         // Should converge to the constant value
-        assertApprox(value, result[BlendShape.JAW_OPEN]!!, epsilon = 0.01f)
+        assertApprox(value, result.getValue(BlendShape.JAW_OPEN), epsilon = 0.01f)
     }
 
     @Test
@@ -52,8 +52,8 @@ class OneEuroFilterTest {
         val resultHigh = highBeta.smooth(jump, 33L)
 
         // High beta should track the jump faster (closer to 1.0)
-        val lowVal = resultLow[BlendShape.JAW_OPEN]!!
-        val highVal = resultHigh[BlendShape.JAW_OPEN]!!
+        val lowVal = resultLow.getValue(BlendShape.JAW_OPEN)
+        val highVal = resultHigh.getValue(BlendShape.JAW_OPEN)
         assertTrue(
             highVal > lowVal,
             "High beta ($highVal) should be closer to 1.0 than low beta ($lowVal)",
@@ -73,7 +73,7 @@ class OneEuroFilterTest {
 
         // After reset, first call should return input as-is
         val result = filter.smooth(mapOf(BlendShape.JAW_OPEN to 0.5f), 100L)
-        assertApprox(0.5f, result[BlendShape.JAW_OPEN]!!, epsilon = 0.001f)
+        assertApprox(0.5f, result.getValue(BlendShape.JAW_OPEN), epsilon = 0.001f)
     }
 
     @Test
@@ -85,7 +85,7 @@ class OneEuroFilterTest {
 
         // Same timestamp — should pass through as-is (avoids division by zero)
         val result = filter.smooth(mapOf(BlendShape.JAW_OPEN to 0.9f), 100L)
-        assertApprox(0.9f, result[BlendShape.JAW_OPEN]!!, epsilon = 0.001f)
+        assertApprox(0.9f, result.getValue(BlendShape.JAW_OPEN), epsilon = 0.001f)
     }
 
     @Test
@@ -105,8 +105,8 @@ class OneEuroFilterTest {
         val rNoPred = noPred.smooth(mapOf(BlendShape.JAW_OPEN to 0.6f), 66L)
 
         // With prediction, the output should be ahead of (greater than) the non-predicted output
-        val predVal = rPred[BlendShape.JAW_OPEN]!!
-        val noPredVal = rNoPred[BlendShape.JAW_OPEN]!!
+        val predVal = rPred.getValue(BlendShape.JAW_OPEN)
+        val noPredVal = rNoPred.getValue(BlendShape.JAW_OPEN)
         assertTrue(
             predVal > noPredVal,
             "Predicted ($predVal) should be ahead of non-predicted ($noPredVal)",
@@ -124,7 +124,7 @@ class OneEuroFilterTest {
         val r1 = withPrediction.smooth(mapOf(BlendShape.JAW_OPEN to 0.5f), 33L)
         val r2 = noPrediction.smooth(mapOf(BlendShape.JAW_OPEN to 0.5f), 33L)
 
-        assertApprox(r1[BlendShape.JAW_OPEN]!!, r2[BlendShape.JAW_OPEN]!!, epsilon = 0.001f)
+        assertApprox(r1.getValue(BlendShape.JAW_OPEN), r2.getValue(BlendShape.JAW_OPEN), epsilon = 0.001f)
     }
 
     @Test
@@ -136,7 +136,7 @@ class OneEuroFilterTest {
 
         // Even with large prediction, should be clamped to 1.0
         assertTrue(
-            result[BlendShape.JAW_OPEN]!! <= 1.0f,
+            result.getValue(BlendShape.JAW_OPEN) <= 1.0f,
             "Predicted value should be clamped to 1.0",
         )
     }
@@ -158,8 +158,8 @@ class OneEuroFilterTest {
         val result = filter.smooth(frame1, 33L)
 
         // Both should be smoothed but in opposite directions
-        val jaw = result[BlendShape.JAW_OPEN]!!
-        val eye = result[BlendShape.EYE_BLINK_LEFT]!!
+        val jaw = result.getValue(BlendShape.JAW_OPEN)
+        val eye = result.getValue(BlendShape.EYE_BLINK_LEFT)
         assertTrue(jaw < 1.0f, "JAW_OPEN should be smoothed below 1.0: $jaw")
         assertTrue(eye > 0.0f, "EYE_BLINK_LEFT should be smoothed above 0.0: $eye")
     }

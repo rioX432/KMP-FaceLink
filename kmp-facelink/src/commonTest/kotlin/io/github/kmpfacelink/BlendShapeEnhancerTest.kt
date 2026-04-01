@@ -71,7 +71,7 @@ class BlendShapeEnhancerTest {
 
     @Test
     fun enhance_tooFewLandmarks_returnsOriginal() {
-        val enhancer = BlendShapeEnhancer.create(BlendShapeEnhancerConfig.Default())!!
+        val enhancer = checkNotNull(BlendShapeEnhancer.create(BlendShapeEnhancerConfig.Default()))
         val bs = zeroBlendShapes()
         val result = enhancer.enhance(bs, emptyList())
         // Should return input unchanged
@@ -80,7 +80,7 @@ class BlendShapeEnhancerTest {
 
     @Test
     fun enhance_nearZeroShapes_usesGeometric() {
-        val enhancer = BlendShapeEnhancer.create(BlendShapeEnhancerConfig.Default())!!
+        val enhancer = checkNotNull(BlendShapeEnhancer.create(BlendShapeEnhancerConfig.Default()))
         val bs = zeroBlendShapes()
         // Landmarks with wide open eyes
         val lm = neutralFaceLandmarks().toMutableList()
@@ -101,9 +101,11 @@ class BlendShapeEnhancerTest {
 
     @Test
     fun enhance_lowAccuracyShapes_blendsWeighted() {
-        val enhancer = BlendShapeEnhancer.create(
-            BlendShapeEnhancerConfig.Default(geometricBlendWeight = 0.7f),
-        )!!
+        val enhancer = checkNotNull(
+            BlendShapeEnhancer.create(
+                BlendShapeEnhancerConfig.Default(geometricBlendWeight = 0.7f),
+            ),
+        )
         val bs = zeroBlendShapes().toMutableMap()
         bs[BlendShape.JAW_LEFT] = 0.5f
 
@@ -118,12 +120,14 @@ class BlendShapeEnhancerTest {
 
     @Test
     fun enhance_deadZone_snapsToZero() {
-        val enhancer = BlendShapeEnhancer.create(
-            BlendShapeEnhancerConfig.Default(
-                sensitivityOverrides = emptyMap(),
-                deadZoneOverrides = mapOf(BlendShape.CHEEK_PUFF to 0.5f),
+        val enhancer = checkNotNull(
+            BlendShapeEnhancer.create(
+                BlendShapeEnhancerConfig.Default(
+                    sensitivityOverrides = emptyMap(),
+                    deadZoneOverrides = mapOf(BlendShape.CHEEK_PUFF to 0.5f),
+                ),
             ),
-        )!!
+        )
         val bs = zeroBlendShapes().toMutableMap()
         // Set ML value below dead zone
         bs[BlendShape.CHEEK_PUFF] = 0.1f
@@ -136,12 +140,14 @@ class BlendShapeEnhancerTest {
 
     @Test
     fun enhance_sensitivityAmplifies() {
-        val enhancer = BlendShapeEnhancer.create(
-            BlendShapeEnhancerConfig.Default(
-                sensitivityOverrides = mapOf(BlendShape.JAW_FORWARD to 5.0f),
-                deadZoneOverrides = emptyMap(),
+        val enhancer = checkNotNull(
+            BlendShapeEnhancer.create(
+                BlendShapeEnhancerConfig.Default(
+                    sensitivityOverrides = mapOf(BlendShape.JAW_FORWARD to 5.0f),
+                    deadZoneOverrides = emptyMap(),
+                ),
             ),
-        )!!
+        )
         val bs = zeroBlendShapes().toMutableMap()
         bs[BlendShape.JAW_FORWARD] = 0.1f
 
@@ -153,7 +159,7 @@ class BlendShapeEnhancerTest {
 
     @Test
     fun enhance_allValuesInRange() {
-        val enhancer = BlendShapeEnhancer.create(BlendShapeEnhancerConfig.Default())!!
+        val enhancer = checkNotNull(BlendShapeEnhancer.create(BlendShapeEnhancerConfig.Default()))
         val bs = BlendShape.entries.associateWith { 0.5f }
         val result = enhancer.enhance(bs, neutralFaceLandmarks())
         for ((shape, value) in result) {
@@ -166,7 +172,7 @@ class BlendShapeEnhancerTest {
 
     @Test
     fun enhance_cheekSquint_nearZero_usesGeometricSolver() {
-        val enhancer = BlendShapeEnhancer.create(BlendShapeEnhancerConfig.Default())!!
+        val enhancer = checkNotNull(BlendShapeEnhancer.create(BlendShapeEnhancerConfig.Default()))
         val bs = zeroBlendShapes()
         // Compress the left under-eye region: move infraorbital (280) up toward eyelid (374, 380)
         val lm = neutralFaceLandmarks().toMutableList()
@@ -183,9 +189,11 @@ class BlendShapeEnhancerTest {
 
     @Test
     fun enhance_browDown_lowAccuracy_blendsWeighted() {
-        val enhancer = BlendShapeEnhancer.create(
-            BlendShapeEnhancerConfig.Default(geometricBlendWeight = 0.7f),
-        )!!
+        val enhancer = checkNotNull(
+            BlendShapeEnhancer.create(
+                BlendShapeEnhancerConfig.Default(geometricBlendWeight = 0.7f),
+            ),
+        )
         val bs = zeroBlendShapes().toMutableMap()
         bs[BlendShape.BROW_DOWN_LEFT] = 0.4f
 

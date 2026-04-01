@@ -95,7 +95,7 @@ class FaceTrackerConfigTest {
             FaceTrackerConfig(maxFaces = 0)
             fail("Expected IllegalArgumentException for maxFaces = 0")
         } catch (e: IllegalArgumentException) {
-            assertTrue(e.message!!.contains("maxFaces"))
+            assertTrue(checkNotNull(e.message).contains("maxFaces"))
         }
     }
 
@@ -105,7 +105,7 @@ class FaceTrackerConfigTest {
             FaceTrackerConfig(maxFaces = FaceTrackerConfig.MAX_FACES + 1)
             fail("Expected IllegalArgumentException for maxFaces > MAX_FACES")
         } catch (e: IllegalArgumentException) {
-            assertTrue(e.message!!.contains("maxFaces"))
+            assertTrue(checkNotNull(e.message).contains("maxFaces"))
         }
     }
 
@@ -138,7 +138,7 @@ class FaceTrackerConfigTest {
             FaceTrackerConfig(lowBatteryThreshold = -0.1f)
             fail("Expected IllegalArgumentException")
         } catch (e: IllegalArgumentException) {
-            assertTrue(e.message!!.contains("lowBatteryThreshold"))
+            assertTrue(checkNotNull(e.message).contains("lowBatteryThreshold"))
         }
     }
 
@@ -148,7 +148,7 @@ class FaceTrackerConfigTest {
             FaceTrackerConfig(lowBatteryThreshold = 1.1f)
             fail("Expected IllegalArgumentException")
         } catch (e: IllegalArgumentException) {
-            assertTrue(e.message!!.contains("lowBatteryThreshold"))
+            assertTrue(checkNotNull(e.message).contains("lowBatteryThreshold"))
         }
     }
 
@@ -191,7 +191,7 @@ class SmoothingConfigTest {
             SmoothingConfig.Ema(alpha = -0.1f)
             fail("Expected IllegalArgumentException")
         } catch (e: IllegalArgumentException) {
-            assertTrue(e.message!!.contains("alpha"))
+            assertTrue(checkNotNull(e.message).contains("alpha"))
         }
     }
 
@@ -201,7 +201,7 @@ class SmoothingConfigTest {
             SmoothingConfig.Ema(alpha = 1.1f)
             fail("Expected IllegalArgumentException")
         } catch (e: IllegalArgumentException) {
-            assertTrue(e.message!!.contains("alpha"))
+            assertTrue(checkNotNull(e.message).contains("alpha"))
         }
     }
 
@@ -220,7 +220,7 @@ class SmoothingConfigTest {
             SmoothingConfig.OneEuro(minCutoff = 0f)
             fail("Expected IllegalArgumentException")
         } catch (e: IllegalArgumentException) {
-            assertTrue(e.message!!.contains("minCutoff"))
+            assertTrue(checkNotNull(e.message).contains("minCutoff"))
         }
     }
 
@@ -230,7 +230,7 @@ class SmoothingConfigTest {
             SmoothingConfig.OneEuro(beta = -0.1f)
             fail("Expected IllegalArgumentException")
         } catch (e: IllegalArgumentException) {
-            assertTrue(e.message!!.contains("beta"))
+            assertTrue(checkNotNull(e.message).contains("beta"))
         }
     }
 
@@ -240,7 +240,7 @@ class SmoothingConfigTest {
             SmoothingConfig.OneEuro(predictionMs = -1f)
             fail("Expected IllegalArgumentException")
         } catch (e: IllegalArgumentException) {
-            assertTrue(e.message!!.contains("predictionMs"))
+            assertTrue(checkNotNull(e.message).contains("predictionMs"))
         }
     }
 

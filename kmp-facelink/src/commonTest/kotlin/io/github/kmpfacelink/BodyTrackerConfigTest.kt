@@ -43,7 +43,7 @@ class BodyTrackerConfigTest {
             BodyTrackerConfig(maxBodies = 0)
             fail("Expected IllegalArgumentException")
         } catch (e: IllegalArgumentException) {
-            assertTrue(e.message!!.contains("maxBodies"))
+            assertTrue(checkNotNull(e.message).contains("maxBodies"))
         }
     }
 
@@ -53,7 +53,7 @@ class BodyTrackerConfigTest {
             BodyTrackerConfig(maxBodies = 4)
             fail("Expected IllegalArgumentException")
         } catch (e: IllegalArgumentException) {
-            assertTrue(e.message!!.contains("maxBodies"))
+            assertTrue(checkNotNull(e.message).contains("maxBodies"))
         }
     }
 

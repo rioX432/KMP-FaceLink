@@ -65,7 +65,7 @@ class FaceTrackingDataTest {
         assertEquals(0.5f, data.blendShapes.valueOf(BlendShape.JAW_OPEN))
         assertEquals(5f, data.headTransform.pitch)
         assertNotNull(data.gazeData)
-        assertEquals(2f, data.gazeData!!.leftEyeYaw)
+        assertEquals(2f, checkNotNull(data.gazeData).leftEyeYaw)
         assertEquals(1280, data.sourceImageWidth)
         assertEquals(720, data.sourceImageHeight)
         assertEquals(999L, data.timestampMs)

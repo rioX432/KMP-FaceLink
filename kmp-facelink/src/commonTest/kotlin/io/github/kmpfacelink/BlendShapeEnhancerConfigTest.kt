@@ -75,7 +75,7 @@ class BlendShapeEnhancerConfigTest {
             BlendShapeEnhancerConfig.Default(geometricBlendWeight = 1.1f)
             fail("Expected IllegalArgumentException")
         } catch (e: IllegalArgumentException) {
-            assertTrue(e.message!!.contains("geometricBlendWeight"))
+            assertTrue(checkNotNull(e.message).contains("geometricBlendWeight"))
         }
     }
 
@@ -85,7 +85,7 @@ class BlendShapeEnhancerConfigTest {
             BlendShapeEnhancerConfig.Default(geometricBlendWeight = -0.1f)
             fail("Expected IllegalArgumentException")
         } catch (e: IllegalArgumentException) {
-            assertTrue(e.message!!.contains("geometricBlendWeight"))
+            assertTrue(checkNotNull(e.message).contains("geometricBlendWeight"))
         }
     }
 

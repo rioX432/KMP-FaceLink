@@ -46,7 +46,7 @@ class ThermalPolicyTest {
             ThermalPolicy.Adaptive(fairTargetFps = 0)
             fail("Expected IllegalArgumentException")
         } catch (e: IllegalArgumentException) {
-            assertTrue(e.message!!.contains("fairTargetFps"))
+            assertTrue(checkNotNull(e.message).contains("fairTargetFps"))
         }
     }
 
@@ -56,7 +56,7 @@ class ThermalPolicyTest {
             ThermalPolicy.Adaptive(seriousTargetFps = -1)
             fail("Expected IllegalArgumentException")
         } catch (e: IllegalArgumentException) {
-            assertTrue(e.message!!.contains("seriousTargetFps"))
+            assertTrue(checkNotNull(e.message).contains("seriousTargetFps"))
         }
     }
 
@@ -66,7 +66,7 @@ class ThermalPolicyTest {
             ThermalPolicy.Adaptive(criticalTargetFps = 0)
             fail("Expected IllegalArgumentException")
         } catch (e: IllegalArgumentException) {
-            assertTrue(e.message!!.contains("criticalTargetFps"))
+            assertTrue(checkNotNull(e.message).contains("criticalTargetFps"))
         }
     }
 }

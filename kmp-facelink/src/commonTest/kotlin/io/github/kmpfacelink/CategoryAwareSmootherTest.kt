@@ -24,9 +24,9 @@ class CategoryAwareSmootherTest {
             BlendShape.MOUTH_SMILE_LEFT to 0.8f,
         )
         val result = smoother.smooth(input, 0L)
-        assertApprox(0.6f, result[BlendShape.JAW_OPEN]!!, epsilon = 0.001f)
-        assertApprox(0.4f, result[BlendShape.EYE_BLINK_LEFT]!!, epsilon = 0.001f)
-        assertApprox(0.8f, result[BlendShape.MOUTH_SMILE_LEFT]!!, epsilon = 0.001f)
+        assertApprox(0.6f, result.getValue(BlendShape.JAW_OPEN), epsilon = 0.001f)
+        assertApprox(0.4f, result.getValue(BlendShape.EYE_BLINK_LEFT), epsilon = 0.001f)
+        assertApprox(0.8f, result.getValue(BlendShape.MOUTH_SMILE_LEFT), epsilon = 0.001f)
     }
 
     @Test
@@ -52,8 +52,8 @@ class CategoryAwareSmootherTest {
         val mouthResult = mouthOnlySmoother.smooth(jump, 33L)
         val browResult = browOnlySmoother.smooth(jump, 33L)
 
-        val mouthVal = mouthResult[BlendShape.MOUTH_SMILE_LEFT]!!
-        val browVal = browResult[BlendShape.BROW_DOWN_LEFT]!!
+        val mouthVal = mouthResult.getValue(BlendShape.MOUTH_SMILE_LEFT)
+        val browVal = browResult.getValue(BlendShape.BROW_DOWN_LEFT)
 
         // Mouth (higher minCutoff = less smoothing) should be closer to 1.0 than brow
         assertTrue(
@@ -80,8 +80,8 @@ class CategoryAwareSmootherTest {
         )
         val result = smoother.smooth(jump, 33L)
 
-        val jawVal = result[BlendShape.JAW_OPEN]!!
-        val cheekVal = result[BlendShape.CHEEK_PUFF]!!
+        val jawVal = result.getValue(BlendShape.JAW_OPEN)
+        val cheekVal = result.getValue(BlendShape.CHEEK_PUFF)
 
         // Jaw minCutoff=1.5 > Cheek minCutoff=0.8 => jaw tracks faster
         assertTrue(
@@ -133,8 +133,8 @@ class CategoryAwareSmootherTest {
             mapOf(BlendShape.JAW_OPEN to 0.5f, BlendShape.EYE_BLINK_LEFT to 0.5f),
             100L,
         )
-        assertApprox(0.5f, result[BlendShape.JAW_OPEN]!!, epsilon = 0.001f)
-        assertApprox(0.5f, result[BlendShape.EYE_BLINK_LEFT]!!, epsilon = 0.001f)
+        assertApprox(0.5f, result.getValue(BlendShape.JAW_OPEN), epsilon = 0.001f)
+        assertApprox(0.5f, result.getValue(BlendShape.EYE_BLINK_LEFT), epsilon = 0.001f)
     }
 
     @Test
@@ -145,7 +145,7 @@ class CategoryAwareSmootherTest {
 
         // Same timestamp — should pass through as-is (avoids division by zero)
         val result = smoother.smooth(mapOf(BlendShape.JAW_OPEN to 0.9f), 100L)
-        assertApprox(0.9f, result[BlendShape.JAW_OPEN]!!, epsilon = 0.001f)
+        assertApprox(0.9f, result.getValue(BlendShape.JAW_OPEN), epsilon = 0.001f)
     }
 
     @Test
@@ -169,8 +169,8 @@ class CategoryAwareSmootherTest {
         )
         val result = smoother.smooth(jump, 33L)
 
-        val mouthVal = result[BlendShape.MOUTH_SMILE_LEFT]!!
-        val eyeVal = result[BlendShape.EYE_BLINK_LEFT]!!
+        val mouthVal = result.getValue(BlendShape.MOUTH_SMILE_LEFT)
+        val eyeVal = result.getValue(BlendShape.EYE_BLINK_LEFT)
 
         // Eye (higher minCutoff) should respond faster than mouth (lower minCutoff)
         assertTrue(
@@ -192,7 +192,7 @@ class CategoryAwareSmootherTest {
         smoother.smooth(initial, 0L)
 
         val result = smoother.smooth(mapOf(BlendShape.TONGUE_OUT to 1.0f), 33L)
-        val tongueVal = result[BlendShape.TONGUE_OUT]!!
+        val tongueVal = result.getValue(BlendShape.TONGUE_OUT)
 
         // Should behave like mouth (high minCutoff = fast), not OTHER (low minCutoff = slow)
         assertTrue(tongueVal > 0.5f, "TONGUE_OUT ($tongueVal) should use mouth config (fast tracking)")

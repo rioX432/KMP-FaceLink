@@ -55,10 +55,10 @@ class TransformUtilsTest {
             0f, 0f, 0f, 1f,
         )
         val transform = TransformUtils.fromMatrix(matrix)
-        assertEquals(16, transform.transformMatrix!!.size)
+        assertEquals(16, checkNotNull(transform.transformMatrix).size)
         // Verify it's a copy
         matrix[12] = 999f
-        assertApprox(0f, transform.transformMatrix!![12])
+        assertApprox(0f, checkNotNull(transform.transformMatrix)[12])
     }
 
     @Test

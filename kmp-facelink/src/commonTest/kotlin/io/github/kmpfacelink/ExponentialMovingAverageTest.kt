@@ -17,7 +17,7 @@ class ExponentialMovingAverageTest {
         val ema = ExponentialMovingAverage(alpha = 0.5f)
         val input = mapOf(BlendShape.JAW_OPEN to 0.8f)
         val result = ema.smooth(input)
-        assertApprox(0.8f, result[BlendShape.JAW_OPEN]!!)
+        assertApprox(0.8f, result.getValue(BlendShape.JAW_OPEN))
     }
 
     @Test
@@ -30,7 +30,7 @@ class ExponentialMovingAverageTest {
         val result = ema.smooth(second)
 
         // smoothed = 0.5 * 0.0 + 0.5 * 1.0 = 0.5
-        assertApprox(0.5f, result[BlendShape.JAW_OPEN]!!)
+        assertApprox(0.5f, result.getValue(BlendShape.JAW_OPEN))
     }
 
     @Test
@@ -43,7 +43,7 @@ class ExponentialMovingAverageTest {
         val result = ema.smooth(second)
 
         // smoothed = 0.9 * 0.0 + 0.1 * 1.0 = 0.1
-        assertApprox(0.1f, result[BlendShape.JAW_OPEN]!!)
+        assertApprox(0.1f, result.getValue(BlendShape.JAW_OPEN))
     }
 
     @Test
@@ -56,7 +56,7 @@ class ExponentialMovingAverageTest {
         val result = ema.smooth(second)
 
         // smoothed = 0.1 * 0.0 + 0.9 * 1.0 = 0.9
-        assertApprox(0.9f, result[BlendShape.JAW_OPEN]!!)
+        assertApprox(0.9f, result.getValue(BlendShape.JAW_OPEN))
     }
 
     @Test
@@ -66,6 +66,6 @@ class ExponentialMovingAverageTest {
         ema.reset()
 
         val result = ema.smooth(mapOf(BlendShape.JAW_OPEN to 0.3f))
-        assertApprox(0.3f, result[BlendShape.JAW_OPEN]!!)
+        assertApprox(0.3f, result.getValue(BlendShape.JAW_OPEN))
     }
 }

@@ -13,10 +13,12 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.channels.ClosedReceiveChannelException
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlinx.io.IOException
 import kotlin.concurrent.atomics.AtomicInt
 import kotlin.concurrent.atomics.ExperimentalAtomicApi
 
@@ -363,8 +365,10 @@ public class VtsClient(
             }
         } catch (e: CancellationException) {
             throw e
-        } catch (_: Exception) {
-            // Connection closed
+        } catch (_: ClosedReceiveChannelException) {
+            // WebSocket channel closed normally
+        } catch (_: IOException) {
+            // Network-level connection failure
         } finally {
             mutex.withLock { session = null }
         }

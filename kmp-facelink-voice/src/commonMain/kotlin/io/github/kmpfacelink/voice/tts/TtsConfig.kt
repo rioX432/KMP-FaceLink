@@ -1,6 +1,6 @@
 package io.github.kmpfacelink.voice.tts
 
-private const val DEFAULT_VOICEVOX_PORT = 50021
+import io.github.kmpfacelink.voice.ApiEndpoints
 
 /**
  * Configuration for TTS engines.
@@ -19,7 +19,7 @@ public sealed class TtsConfig {
      */
     public data class OpenAiTts(
         val apiKey: String,
-        val baseUrl: String = "https://api.openai.com/v1",
+        val baseUrl: String = ApiEndpoints.OPENAI_V1,
         val voice: String = "alloy",
         val model: String = "tts-1",
         val speed: Float = 1.0f,
@@ -39,7 +39,7 @@ public sealed class TtsConfig {
      */
     public data class ElevenLabs(
         val apiKey: String,
-        val baseUrl: String = "https://api.elevenlabs.io/v1",
+        val baseUrl: String = ApiEndpoints.ELEVENLABS_V1,
         val voiceId: String,
         val modelId: String = "eleven_multilingual_v2",
         val stability: Float = 0.5f,
@@ -58,7 +58,7 @@ public sealed class TtsConfig {
      */
     public data class Voicevox(
         val host: String = "localhost",
-        val port: Int = DEFAULT_VOICEVOX_PORT,
+        val port: Int = ApiEndpoints.DEFAULT_VOICEVOX_PORT,
         val speakerId: Int = 0,
     ) : TtsConfig()
 }

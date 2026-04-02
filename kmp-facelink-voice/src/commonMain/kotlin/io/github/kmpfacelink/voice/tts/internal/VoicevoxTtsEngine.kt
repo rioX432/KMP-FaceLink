@@ -8,8 +8,8 @@ import io.github.kmpfacelink.voice.tts.TtsConfig
 import io.github.kmpfacelink.voice.tts.TtsEngine
 import io.github.kmpfacelink.voice.tts.TtsResult
 import io.github.kmpfacelink.voice.tts.TtsState
+import io.github.kmpfacelink.voice.withEngineStateTransition
 import io.ktor.client.HttpClient
-import io.ktor.client.plugins.ResponseException
 import io.ktor.client.request.parameter
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
@@ -17,14 +17,11 @@ import io.ktor.client.statement.bodyAsBytes
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
 import io.ktor.http.contentType
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.io.IOException
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
 
 private const val WAV_HEADER_SIZE = 44
@@ -52,21 +49,13 @@ internal class VoicevoxTtsEngine(private val config: TtsConfig.Voicevox) : TtsEn
 
     private val json = Json { ignoreUnknownKeys = true }
 
-    override suspend fun synthesize(text: String): TtsResult {
-        _state.value = TtsState.Synthesizing
-        return try {
-            val result = executeSynthesisRequest(text)
-            _state.value = TtsState.Idle
-            result
-        } catch (e: CancellationException) {
-            throw e
-        } catch (e: ResponseException) {
-            failWithError(e)
-        } catch (e: IOException) {
-            failWithError(e)
-        } catch (e: SerializationException) {
-            failWithError(e)
-        }
+    override suspend fun synthesize(text: String): TtsResult = withEngineStateTransition(
+        state = _state,
+        processingState = TtsState.Synthesizing,
+        idleState = TtsState.Idle,
+        errorState = { TtsState.Error(it) },
+    ) {
+        executeSynthesisRequest(text)
     }
 
     private suspend fun executeSynthesisRequest(text: String): TtsResult {
@@ -108,11 +97,6 @@ internal class VoicevoxTtsEngine(private val config: TtsConfig.Voicevox) : TtsEn
             phonemeEvents = phonemeEvents,
             durationMs = durationMs,
         )
-    }
-
-    private fun failWithError(e: Exception): Nothing {
-        _state.value = TtsState.Error(e.message ?: "VOICEVOX TTS failed")
-        throw e
     }
 
     override fun release() {

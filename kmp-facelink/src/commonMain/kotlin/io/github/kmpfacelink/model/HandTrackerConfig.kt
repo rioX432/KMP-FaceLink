@@ -25,6 +25,10 @@ package io.github.kmpfacelink.model
  *           Lower values improve performance at the cost of accuracy. Defaults to 640.
  * @property analysisHeight Height of the camera analysis stream in pixels. Android only.
  *           Lower values improve performance at the cost of accuracy. Defaults to 480.
+ * @property handPoseRevision iOS Vision framework hand pose model revision to use.
+ *           Defaults to [HandPoseRevision.AUTO], which selects the best revision for the
+ *           current iOS version (revision 2 on iOS 26+, revision 1 on older versions).
+ *           Has no effect on Android.
  */
 public data class HandTrackerConfig(
     val smoothingConfig: SmoothingConfig = SmoothingConfig.Ema(),
@@ -39,6 +43,7 @@ public data class HandTrackerConfig(
     val inferenceDelegate: InferenceDelegate = InferenceDelegate.AUTO,
     val analysisWidth: Int = DEFAULT_ANALYSIS_WIDTH,
     val analysisHeight: Int = DEFAULT_ANALYSIS_HEIGHT,
+    val handPoseRevision: HandPoseRevision = HandPoseRevision.AUTO,
 ) {
     init {
         require(maxHands in 1..2) { "maxHands must be 1 or 2, was $maxHands" }

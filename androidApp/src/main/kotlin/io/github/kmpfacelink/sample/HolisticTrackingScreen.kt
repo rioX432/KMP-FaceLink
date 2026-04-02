@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material3.Button
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -98,7 +99,7 @@ internal fun HolisticTrackingScreen(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(Color.Black.copy(alpha = 0.7f))
+                    .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.7f))
                     .windowInsetsPadding(WindowInsets.statusBars)
                     .padding(horizontal = 12.dp, vertical = 8.dp),
             ) {
@@ -108,7 +109,7 @@ internal fun HolisticTrackingScreen(
                 ) {
                     Text(
                         "Holistic",
-                        color = Color.White,
+                        color = MaterialTheme.colorScheme.onSurface,
                         fontSize = 14.sp,
                         modifier = Modifier.semantics { contentDescription = "Holistic tracking mode" },
                     )
@@ -123,7 +124,7 @@ internal fun HolisticTrackingScreen(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(Color.Black.copy(alpha = 0.7f))
+                    .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.7f))
                     .windowInsetsPadding(WindowInsets.navigationBars)
                     .padding(12.dp),
             ) {

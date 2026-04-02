@@ -55,6 +55,13 @@ kotlin {
             implementation(libs.androidx.lifecycle.runtime)
         }
 
+        jvmMain.dependencies {
+            implementation(libs.onnxruntime)
+            implementation(libs.javacv)
+            implementation(libs.openblas)
+            implementation(libs.opencv)
+        }
+
         commonTest.dependencies {
             implementation(libs.kotlin.test)
             implementation(libs.kotlinx.coroutines.test)

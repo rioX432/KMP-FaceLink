@@ -86,13 +86,13 @@ public class ActionSystem {
      */
     public suspend fun processFace(data: FaceTrackingData): List<ActionEvent> {
         if (released.load() != 0) return emptyList()
-        val pendingEvents = mutex.withLock {
-            if (released.load() != 0) return emptyList()
+        return mutex.withLock {
+            if (released.load() != 0) return@withLock emptyList()
             latestFace = data
-            processAllBindings(TrackingSnapshot(latestFace, latestHand), data.timestampMs)
+            val pendingEvents = processAllBindings(TrackingSnapshot(latestFace, latestHand), data.timestampMs)
+            pendingEvents.forEach { _events.trySend(it) }
+            pendingEvents
         }
-        pendingEvents.forEach { _events.trySend(it) }
-        return pendingEvents
     }
 
     /**
@@ -102,13 +102,13 @@ public class ActionSystem {
      */
     public suspend fun processHand(data: HandTrackingData): List<ActionEvent> {
         if (released.load() != 0) return emptyList()
-        val pendingEvents = mutex.withLock {
-            if (released.load() != 0) return emptyList()
+        return mutex.withLock {
+            if (released.load() != 0) return@withLock emptyList()
             latestHand = data
-            processAllBindings(TrackingSnapshot(latestFace, latestHand), data.timestampMs)
+            val pendingEvents = processAllBindings(TrackingSnapshot(latestFace, latestHand), data.timestampMs)
+            pendingEvents.forEach { _events.trySend(it) }
+            pendingEvents
         }
-        pendingEvents.forEach { _events.trySend(it) }
-        return pendingEvents
     }
 
     private fun processAllBindings(

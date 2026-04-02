@@ -24,6 +24,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 
 private const val TAG = "DefaultAvatarPipeline"
 private const val OUTPUT_BUFFER_CAPACITY = 64
@@ -55,6 +57,7 @@ public class DefaultAvatarPipeline(
     private val _output = MutableSharedFlow<AvatarPipelineOutput>(extraBufferCapacity = OUTPUT_BUFFER_CAPACITY)
 
     private val conversationHistory = ConversationHistory(persona = config.persona)
+    private val jobMutex = Mutex()
     private var currentJob: Job? = null
 
     override val state: StateFlow<AvatarPipelineState> = _state.asStateFlow()
@@ -65,62 +68,63 @@ public class DefaultAvatarPipeline(
     }
 
     override suspend fun stop() {
-        currentJob?.cancel()
-        currentJob = null
+        jobMutex.withLock {
+            currentJob?.cancel()
+            currentJob = null
+        }
         _state.value = AvatarPipelineState.Idle
     }
 
     override suspend fun listen() {
         val asr = asrEngine ?: error("ASR not configured")
-        cancelCurrentJob()
-        _state.value = AvatarPipelineState.Listening
-
-        currentJob = scope.launch {
-            try {
-                collectAsrAndProcess(asr)
-            } catch (e: kotlinx.coroutines.CancellationException) {
-                throw e
-            } catch (e: Exception) {
-                // Catch all non-cancellation exceptions for graceful error reporting
-                _state.value = AvatarPipelineState.Error(
-                    message = "ASR failed: ${e.message}",
-                    cause = e,
-                )
+        jobMutex.withLock {
+            currentJob?.cancel()
+            _state.value = AvatarPipelineState.Listening
+            currentJob = scope.launch {
+                try {
+                    collectAsrAndProcess(asr)
+                } catch (e: kotlinx.coroutines.CancellationException) {
+                    throw e
+                } catch (e: Exception) {
+                    // Catch all non-cancellation exceptions for graceful error reporting
+                    _state.value = AvatarPipelineState.Error(
+                        message = "ASR failed: ${e.message}",
+                        cause = e,
+                    )
+                }
             }
         }
     }
 
     override suspend fun processText(text: String) {
-        cancelCurrentJob()
-        _state.value = AvatarPipelineState.Processing
-
-        currentJob = scope.launch {
-            try {
-                executeTextProcessing(text)
-            } catch (e: kotlinx.coroutines.CancellationException) {
-                throw e
-            } catch (e: Exception) {
-                // Catch all non-cancellation exceptions for graceful error reporting
-                _state.value = AvatarPipelineState.Error(
-                    message = "LLM failed: ${e.message}",
-                    cause = e,
-                )
+        jobMutex.withLock {
+            currentJob?.cancel()
+            _state.value = AvatarPipelineState.Processing
+            currentJob = scope.launch {
+                try {
+                    executeTextProcessing(text)
+                } catch (e: kotlinx.coroutines.CancellationException) {
+                    throw e
+                } catch (e: Exception) {
+                    // Catch all non-cancellation exceptions for graceful error reporting
+                    _state.value = AvatarPipelineState.Error(
+                        message = "LLM failed: ${e.message}",
+                        cause = e,
+                    )
+                }
             }
         }
     }
 
     override fun release() {
-        currentJob?.cancel()
-        currentJob = null
+        // Cancel the scope first — this cancels currentJob and prevents new launches.
+        // No mutex needed here because scope.cancel() is thread-safe and makes
+        // subsequent scope.launch() throw, so no new jobs can be created.
         scope.cancel()
+        currentJob = null
         runCatching { llmClient.release() }.onFailure { FaceLinkLogger.w(TAG, "Failed to release LlmClient", it) }
         runCatching { ttsEngine?.release() }.onFailure { FaceLinkLogger.w(TAG, "Failed to release TtsEngine", it) }
         runCatching { asrEngine?.release() }.onFailure { FaceLinkLogger.w(TAG, "Failed to release AsrEngine", it) }
-    }
-
-    private fun cancelCurrentJob() {
-        currentJob?.cancel()
-        currentJob = null
     }
 
     private suspend fun collectAsrAndProcess(asr: AsrEngine) {

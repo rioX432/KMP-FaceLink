@@ -1,5 +1,7 @@
 package io.github.kmpfacelink.voice.asr
 
+import io.github.kmpfacelink.voice.ApiEndpoints
+
 private const val DEFAULT_WHISPER_THREADS = 4
 
 /**
@@ -16,7 +18,7 @@ public sealed class AsrConfig {
      */
     public data class OpenAiWhisper(
         val apiKey: String,
-        val baseUrl: String = "https://api.openai.com/v1",
+        val baseUrl: String = ApiEndpoints.OPENAI_V1,
         val model: String = "whisper-1",
         val language: String? = null,
     ) : AsrConfig()

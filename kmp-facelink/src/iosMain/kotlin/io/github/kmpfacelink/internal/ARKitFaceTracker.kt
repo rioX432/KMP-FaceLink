@@ -13,9 +13,12 @@ import io.github.kmpfacelink.model.HeadTransform
 import io.github.kmpfacelink.model.SmoothingConfig
 import io.github.kmpfacelink.model.TrackedFace
 import io.github.kmpfacelink.model.filterByActive
+import io.github.kmpfacelink.util.BlendShapeInterpolator
 import io.github.kmpfacelink.util.BlendShapeMapPool
 import io.github.kmpfacelink.util.BlendShapeSmoother
 import io.github.kmpfacelink.util.Calibrator
+import io.github.kmpfacelink.util.ConfidenceFrameStrategy
+import io.github.kmpfacelink.util.FrameDecision
 import io.github.kmpfacelink.util.FrameThrottler
 import io.github.kmpfacelink.util.GazeEstimator
 import io.github.kmpfacelink.util.PowerModeManager
@@ -68,6 +71,10 @@ internal class ARKitFaceTracker(
             enableIdleDetection = config.enableIdleDetection,
         )
     }
+
+    private val frameSkipStrategy = ConfidenceFrameStrategy(config.frameSkipConfig)
+    private val interpolator = BlendShapeInterpolator()
+    private var lastConfidence: Float = 0f
 
     // Pre-allocated scratch map for mapARKitBlendShapes — reused each frame.
     // Callers that store the result must copy via HashMap(result).
@@ -170,40 +177,41 @@ internal class ARKitFaceTracker(
         // Frame throttling: use PowerModeManager when available, else legacy FrameThrottler
         if (!shouldProcessFrame(timestampMs)) return
 
-        // ARKit's blendShapes property is typed as [ARBlendShapeLocation: NSNumber] in Swift,
-        // but Kotlin/Native cinterop exposes it as Map<Any?, *>. The safe cast (as?) handles
-        // any unexpected type by falling back to emptyMap().
+        // Confidence-guided skip: emit interpolated data for stable frames
+        val decision = frameSkipStrategy.evaluate(lastConfidence)
+        if (decision == FrameDecision.SKIP) {
+            emitInterpolatedFrame(timestampMs)
+            return
+        }
+
+        // Full processing path
+        val faceConfidence = if (faceAnchor.isTracked) 1.0f else 0.0f
+        processFullFrame(faceAnchor, timestampMs, faceConfidence)
+    }
+
+    private fun processFullFrame(faceAnchor: ARFaceAnchor, timestampMs: Long, faceConfidence: Float) {
         @Suppress("UNCHECKED_CAST")
         val rawBlendShapes = faceAnchor.blendShapes as? Map<String, NSNumber> ?: emptyMap()
         var blendShapes: BlendShapeData = mapARKitBlendShapes(rawBlendShapes)
 
-        // Pipeline: calibrate -> smooth (protected by lock)
         val processedBlendShapes = pipelineLock.withLock {
             if (isReleased()) return
 
-            // Apply calibration
             if (config.calibrationConfig.enabled) {
                 blendShapes = calibrator.calibrate(blendShapes)
             }
-
-            // Apply smoothing
             smoother?.let { blendShapes = it.smooth(blendShapes, timestampMs) }
-
-            // Notify power mode manager for idle detection
             powerModeManager?.onFrameProcessed(blendShapes, timestampMs)
-
-            // Defensive copy: pipeline stages return reusable scratch maps.
-            // The result is stored in FaceTrackingData (held by the SharedFlow replay buffer),
-            // so we must snapshot it before the next frame overwrites the scratch map.
             HashMap(blendShapes).filterByActive(config.activeBlendShapes)
         }
 
-        // Extract head transform from simd_float4x4
         val headTransform = extractTransform(faceAnchor)
-
         val gazeData = GazeEstimator.estimate(processedBlendShapes)
 
-        val faceConfidence = if (faceAnchor.isTracked) 1.0f else 0.0f
+        // Update interpolator and strategy with processed data
+        lastConfidence = faceConfidence
+        interpolator.onFrameProcessed(processedBlendShapes, headTransform, timestampMs)
+        frameSkipStrategy.onFrameProcessed(processedBlendShapes, faceConfidence)
 
         val trackedFace = TrackedFace(
             faceIndex = 0,
@@ -223,6 +231,31 @@ internal class ARKitFaceTracker(
             thermalState = thermalMonitor.thermalState.value,
         )
 
+        mutableTrackingData.tryEmit(data)
+    }
+
+    private fun emitInterpolatedFrame(timestampMs: Long) {
+        val blendShapes = interpolator.interpolateBlendShapes(timestampMs) ?: return
+        val headTransform = interpolator.interpolateTransform(timestampMs) ?: return
+        val filtered = blendShapes.filterByActive(config.activeBlendShapes)
+
+        val data = FaceTrackingData(
+            blendShapes = filtered,
+            headTransform = headTransform,
+            gazeData = GazeEstimator.estimate(filtered),
+            timestampMs = timestampMs,
+            isTracking = true,
+            faces = listOf(
+                TrackedFace(
+                    faceIndex = 0,
+                    blendShapes = filtered,
+                    headTransform = headTransform,
+                    gazeData = GazeEstimator.estimate(filtered),
+                    confidence = lastConfidence,
+                ),
+            ),
+            thermalState = thermalMonitor.thermalState.value,
+        )
         mutableTrackingData.tryEmit(data)
     }
 

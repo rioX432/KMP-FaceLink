@@ -65,6 +65,11 @@ public data class CalibrationConfig(
  *           Lower values improve performance at the cost of accuracy. Defaults to 640.
  * @property analysisHeight Height of the camera analysis stream in pixels. Android only.
  *           Lower values improve performance at the cost of accuracy. Defaults to 480.
+ * @property frameSkipConfig Configuration for confidence-guided frame skipping.
+ *           When enabled, the tracker evaluates per-frame confidence and movement delta to
+ *           decide whether full detection is needed or lightweight interpolation can be used.
+ *           Skipped frames emit interpolated data instead of being dropped, maintaining smooth
+ *           output while reducing compute. See [FrameSkipConfig].
  * @property activeBlendShapes Subset of [BlendShape] values to include in tracking output.
  *           Only the specified blend shapes are emitted in [io.github.kmpfacelink.model.FaceTrackingData];
  *           unselected shapes are excluded from the map, reducing serialization and network cost
@@ -90,6 +95,7 @@ public data class FaceTrackerConfig(
     val inferenceDelegate: InferenceDelegate = InferenceDelegate.AUTO,
     val analysisWidth: Int = DEFAULT_ANALYSIS_WIDTH,
     val analysisHeight: Int = DEFAULT_ANALYSIS_HEIGHT,
+    val frameSkipConfig: FrameSkipConfig = FrameSkipConfig(),
     val activeBlendShapes: Set<BlendShape> = ALL_BLEND_SHAPES,
 ) {
     init {

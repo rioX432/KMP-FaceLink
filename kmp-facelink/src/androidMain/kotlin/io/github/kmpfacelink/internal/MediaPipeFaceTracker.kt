@@ -18,9 +18,12 @@ import io.github.kmpfacelink.model.SmoothingConfig
 import io.github.kmpfacelink.model.TrackedFace
 import io.github.kmpfacelink.model.filterByActive
 import io.github.kmpfacelink.util.BlendShapeEnhancer
+import io.github.kmpfacelink.util.BlendShapeInterpolator
 import io.github.kmpfacelink.util.BlendShapeSmoother
 import io.github.kmpfacelink.util.Calibrator
+import io.github.kmpfacelink.util.ConfidenceFrameStrategy
 import io.github.kmpfacelink.util.FaceLinkLogger
+import io.github.kmpfacelink.util.FrameDecision
 import io.github.kmpfacelink.util.FrameThrottler
 import io.github.kmpfacelink.util.GazeEstimator
 import io.github.kmpfacelink.util.PowerModeManager
@@ -38,9 +41,11 @@ import java.util.concurrent.TimeUnit
 import kotlin.concurrent.atomics.ExperimentalAtomicApi
 
 // Lifecycle (start/stop/release/switchCamera), config (resetCalibration/updateSmoothing),
-// camera pipeline (startCamera/processFrame/processSharedFrame), and result assembly
-// (onFaceLandmarkerResult/processPrimaryPipeline/buildTrackedFaces) form a cohesive unit.
+// camera pipeline (startCamera/processFrame/processSharedFrame), result assembly
+// (onFaceLandmarkerResult/processPrimaryPipeline/buildTrackedFaces), and frame skip
+// interpolation (emitInterpolatedFrame) form a cohesive unit.
 // Raw result extraction is delegated to FaceLandmarkerResultMapper.
+@Suppress("TooManyFunctions")
 @OptIn(ExperimentalAtomicApi::class)
 internal class MediaPipeFaceTracker(
     private val platformContext: PlatformContext,
@@ -73,6 +78,9 @@ internal class MediaPipeFaceTracker(
             enableIdleDetection = config.enableIdleDetection,
         )
     }
+    private val frameSkipStrategy = ConfidenceFrameStrategy(config.frameSkipConfig)
+    private val interpolator = BlendShapeInterpolator()
+    private var lastConfidence: Float = 0f
     private val analysisExecutor = Executors.newSingleThreadExecutor()
     private val imageConverter = ImageProxyConverter()
     private val cameraManager = if (sharedCameraSession == null) CameraXManager(platformContext) else null
@@ -265,6 +273,12 @@ internal class MediaPipeFaceTracker(
 
         val faces = buildTrackedFaces(result, processedPrimary, primaryLandmarks, primaryHeadTransform, timestampMs)
 
+        // Update interpolator and confidence strategy with processed data
+        val primaryConfidence = faces.firstOrNull()?.confidence ?: 1.0f
+        lastConfidence = primaryConfidence
+        interpolator.onFrameProcessed(processedPrimary, primaryHeadTransform, timestampMs)
+        frameSkipStrategy.onFrameProcessed(processedPrimary, primaryConfidence)
+
         val data = FaceTrackingData(
             blendShapes = processedPrimary,
             headTransform = primaryHeadTransform,
@@ -283,11 +297,47 @@ internal class MediaPipeFaceTracker(
 
     /** Whether a frame at the given timestamp should be processed. */
     private fun shouldProcessFrame(timestampMs: Long): Boolean {
-        return if (powerModeManager != null) {
+        val throttleAllowed = if (powerModeManager != null) {
             powerModeManager.shouldProcess(timestampMs)
         } else {
             frameThrottler.shouldProcess(timestampMs, thermalMonitor.thermalState.value)
         }
+        if (!throttleAllowed) return false
+
+        // Confidence-guided skip: if conditions are stable, emit interpolated data
+        val decision = frameSkipStrategy.evaluate(lastConfidence)
+        if (decision == FrameDecision.SKIP) {
+            emitInterpolatedFrame(timestampMs)
+            return false
+        }
+        return true
+    }
+
+    private fun emitInterpolatedFrame(timestampMs: Long) {
+        val blendShapes = interpolator.interpolateBlendShapes(timestampMs) ?: return
+        val headTransform = interpolator.interpolateTransform(timestampMs) ?: return
+        val filtered = blendShapes.filterByActive(config.activeBlendShapes)
+
+        val data = FaceTrackingData(
+            blendShapes = filtered,
+            headTransform = headTransform,
+            gazeData = GazeEstimator.estimate(filtered),
+            sourceImageWidth = cameraPipeline.lastImageWidth,
+            sourceImageHeight = cameraPipeline.lastImageHeight,
+            timestampMs = timestampMs,
+            isTracking = true,
+            faces = listOf(
+                TrackedFace(
+                    faceIndex = 0,
+                    blendShapes = filtered,
+                    headTransform = headTransform,
+                    gazeData = GazeEstimator.estimate(filtered),
+                    confidence = lastConfidence,
+                ),
+            ),
+            thermalState = thermalMonitor.thermalState.value,
+        )
+        mutableTrackingData.tryEmit(data)
     }
 
     /** Runs enhance -> calibrate -> smooth on the primary face. Returns null if tracker is released. */

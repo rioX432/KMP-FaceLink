@@ -107,6 +107,8 @@ struct EmotionBarsView: View {
 struct TriggerLedsView: View {
     let activeTriggers: Set<String>
 
+    @ScaledMetric(relativeTo: .caption2) private var ledSize: CGFloat = 16
+
     private let triggerNames = ["smile", "winkL", "winkR", "tongueOut", "surprised"]
 
     var body: some View {
@@ -115,7 +117,7 @@ struct TriggerLedsView: View {
                 VStack(spacing: 4) {
                     Circle()
                         .fill(activeTriggers.contains(name) ? .green : .gray)
-                        .frame(width: 16, height: 16)
+                        .frame(width: ledSize, height: ledSize)
                     Text(name)
                         .font(.system(.caption2, design: .monospaced))
                         .foregroundStyle(.secondary)

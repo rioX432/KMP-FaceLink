@@ -2,6 +2,7 @@ package io.github.kmpfacelink.sample.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -12,9 +13,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import kotlin.math.roundToInt
 import kotlinx.coroutines.delay
+import kotlin.math.roundToInt
 
 private const val FPS_DISPLAY_COUNT = 30
 private const val FPS_UPDATE_INTERVAL_MS = 500L
@@ -61,8 +61,7 @@ fun FpsOverlay(
     Text(
         text = fpsText,
         color = SampleColors.TextSecondary,
-        fontSize = 10.sp,
-        fontFamily = FontFamily.Monospace,
+        style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Monospace),
         modifier = modifier
             .background(SampleColors.Overlay)
             .padding(horizontal = 6.dp, vertical = 2.dp),

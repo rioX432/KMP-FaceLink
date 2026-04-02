@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -16,13 +17,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import io.github.kmpfacelink.model.BlendShape
 import io.github.kmpfacelink.model.FaceTrackingData
 
@@ -63,14 +62,14 @@ public fun BlendShapeBars(
             Text(
                 text = errorMessage,
                 color = SampleColors.ErrorRed,
-                fontSize = 12.sp,
+                style = MaterialTheme.typography.labelMedium,
                 modifier = Modifier.padding(8.dp),
             )
         } else if (entries.isEmpty()) {
             Text(
                 text = "Tap Start to begin face tracking",
                 color = SampleColors.TextTertiary,
-                fontSize = 12.sp,
+                style = MaterialTheme.typography.labelMedium,
                 modifier = Modifier.padding(8.dp),
             )
         } else {
@@ -87,6 +86,11 @@ private fun BlendShapeBarRow(
     value: Float,
     textMeasurer: androidx.compose.ui.text.TextMeasurer,
 ) {
+    val barLabelStyle = MaterialTheme.typography.labelSmall.copy(
+        color = SampleColors.TextPrimary,
+        fontFamily = FontFamily.Monospace,
+    )
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -96,8 +100,7 @@ private fun BlendShapeBarRow(
         Text(
             text = shape.arKitName,
             color = SampleColors.TextSecondary,
-            fontSize = 10.sp,
-            fontFamily = FontFamily.Monospace,
+            style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Monospace),
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
             modifier = Modifier.weight(LABEL_WEIGHT),
@@ -134,11 +137,7 @@ private fun BlendShapeBarRow(
             val label = "${(value * PERCENT_MULTIPLIER).toInt()}%"
             val textResult = textMeasurer.measure(
                 text = label,
-                style = TextStyle(
-                    color = SampleColors.TextPrimary,
-                    fontSize = 8.sp,
-                    fontFamily = FontFamily.Monospace,
-                ),
+                style = barLabelStyle,
             )
             drawText(
                 textLayoutResult = textResult,

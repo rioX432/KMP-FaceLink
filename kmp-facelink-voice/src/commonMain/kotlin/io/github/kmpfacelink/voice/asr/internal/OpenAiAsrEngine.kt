@@ -7,12 +7,14 @@ import io.github.kmpfacelink.voice.asr.TranscriptionResult
 import io.github.kmpfacelink.voice.audio.AudioData
 import io.github.kmpfacelink.voice.tts.internal.platformHttpEngine
 import io.ktor.client.HttpClient
+import io.ktor.client.plugins.ResponseException
 import io.ktor.client.request.forms.formData
 import io.ktor.client.request.forms.submitFormWithBinaryData
 import io.ktor.client.request.header
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.Headers
 import io.ktor.http.HttpHeaders
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -21,7 +23,9 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlinx.io.IOException
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
 
 /**
@@ -31,10 +35,9 @@ import kotlinx.serialization.json.Json
  *
  * **Exception contract for [transcribe]:**
  * - `io.ktor.client.plugins.ResponseException` — HTTP error returned by the API (4xx/5xx).
+ * - `kotlinx.io.IOException` — network-level I/O failure.
  * - `kotlinx.serialization.SerializationException` — response body could not be parsed.
  * - `kotlinx.coroutines.CancellationException` — the coroutine was cancelled; always re-thrown.
- * The catch clause intentionally keeps a generic `Exception` catch to avoid leaking internal
- * Ktor/serialization types into the public [AsrEngine] interface signature.
  */
 internal class OpenAiAsrEngine(private val config: AsrConfig.OpenAiWhisper) : AsrEngine {
 
@@ -62,28 +65,39 @@ internal class OpenAiAsrEngine(private val config: AsrConfig.OpenAiWhisper) : As
     private suspend fun performTranscription(audio: AudioData): TranscriptionResult {
         _state.value = AsrState.Processing
         return try {
-            val response = client.submitFormWithBinaryData(
-                url = "${config.baseUrl}/audio/transcriptions",
-                formData = buildFormData(audio),
-            ) {
-                header("Authorization", "Bearer ${config.apiKey}")
-            }
-
-            val responseText = response.bodyAsText()
-            val parsed = json.decodeFromString(WhisperResponse.serializer(), responseText)
-
-            val result = TranscriptionResult(
-                text = parsed.text,
-                isFinal = true,
-                language = parsed.language,
-            )
-
+            val result = executeTranscriptionRequest(audio)
             _state.value = AsrState.Idle
             result
-        } catch (e: Exception) {
-            _state.value = AsrState.Error(e.message ?: "Transcription failed")
+        } catch (e: CancellationException) {
             throw e
+        } catch (e: ResponseException) {
+            failWithError(e)
+        } catch (e: IOException) {
+            failWithError(e)
+        } catch (e: SerializationException) {
+            failWithError(e)
         }
+    }
+
+    private suspend fun executeTranscriptionRequest(audio: AudioData): TranscriptionResult {
+        val response = client.submitFormWithBinaryData(
+            url = "${config.baseUrl}/audio/transcriptions",
+            formData = buildFormData(audio),
+        ) {
+            header("Authorization", "Bearer ${config.apiKey}")
+        }
+        val responseText = response.bodyAsText()
+        val parsed = json.decodeFromString(WhisperResponse.serializer(), responseText)
+        return TranscriptionResult(
+            text = parsed.text,
+            isFinal = true,
+            language = parsed.language,
+        )
+    }
+
+    private fun failWithError(e: Exception): Nothing {
+        _state.value = AsrState.Error(e.message ?: "Transcription failed")
+        throw e
     }
 
     private fun buildFormData(audio: AudioData) = formData {

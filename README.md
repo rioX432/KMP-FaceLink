@@ -6,6 +6,7 @@
 [![Platforms](https://img.shields.io/badge/Platforms-Android%20%7C%20iOS%20%7C%20JVM%20%7C%20Wasm-blue)](https://kotlinlang.org/docs/multiplatform.html)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![API Docs](https://img.shields.io/badge/API%20Docs-Dokka-blue)](https://rioX432.github.io/KMP-FaceLink/)
+[![Coverage](https://img.shields.io/badge/Coverage-Report-brightgreen)](https://github.com/rioX432/KMP-FaceLink/actions/workflows/ci.yml)
 
 Unified face, hand & body tracking SDK for Kotlin Multiplatform — one API, both platforms.
 

@@ -116,6 +116,8 @@ struct TriggerLedsView: View {
                     Text(name)
                         .font(.system(.caption2, design: .monospaced))
                         .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                        .truncationMode(.tail)
                 }
                 .frame(minWidth: 44, minHeight: 44)
                 .contentShape(Rectangle())

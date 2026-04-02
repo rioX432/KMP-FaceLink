@@ -44,6 +44,8 @@ struct HolisticTrackingView: View {
                 // Summary info
                 Text(viewModel.summaryText)
                     .font(.system(.body, design: .monospaced))
+                    .lineLimit(1)
+                    .truncationMode(.tail)
                     .padding(.horizontal, 16)
                     .padding(.vertical, 10)
                     .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 12))

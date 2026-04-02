@@ -6,6 +6,7 @@ import io.github.kmpfacelink.llm.LlmClient
 import io.github.kmpfacelink.llm.LlmConfig
 import io.github.kmpfacelink.llm.LlmState
 import io.ktor.client.HttpClient
+import io.ktor.client.plugins.HttpResponseValidator
 import io.ktor.client.request.parameter
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
@@ -40,7 +41,15 @@ internal class GeminiLlmClient(private val config: LlmConfig.Gemini) : LlmClient
     private val chatMutex = Mutex()
 
     private val client = HttpClient(platformHttpEngine()) {
-        expectSuccess = false
+        expectSuccess = true
+        HttpResponseValidator {
+            validateResponse { response ->
+                if (!response.status.isSuccess()) {
+                    val body = response.bodyAsText()
+                    error("Gemini API error ${response.status.value}: $body")
+                }
+            }
+        }
     }
 
     private val json = Json { ignoreUnknownKeys = true }
@@ -54,11 +63,6 @@ internal class GeminiLlmClient(private val config: LlmConfig.Gemini) : LlmClient
                 parameter("alt", "sse")
                 contentType(ContentType.Application.Json)
                 setBody(buildRequestBody(history))
-            }
-
-            if (!response.status.isSuccess()) {
-                val body = response.bodyAsText()
-                error("Gemini API error ${response.status.value}: $body")
             }
 
             response.sseDataFlow().collect { data ->

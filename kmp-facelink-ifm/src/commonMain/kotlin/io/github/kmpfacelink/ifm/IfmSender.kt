@@ -1,5 +1,6 @@
 package io.github.kmpfacelink.ifm
 
+import io.github.kmpfacelink.api.Releasable
 import io.github.kmpfacelink.model.BlendShapeData
 import io.github.kmpfacelink.model.FaceTrackingData
 import io.github.kmpfacelink.model.GazeData
@@ -33,7 +34,7 @@ import kotlinx.coroutines.launch
  */
 public class IfmSender(
     private val config: IfmConfig = IfmConfig(),
-) {
+) : Releasable {
     private val socket = UdpSocket()
     private var collectJob: Job? = null
 
@@ -89,5 +90,15 @@ public class IfmSender(
         collectJob?.cancel()
         collectJob = null
         socket.close()
+    }
+
+    /**
+     * Releases all resources held by this sender.
+     *
+     * Stops any active collection and closes the UDP socket.
+     * Safe to call multiple times.
+     */
+    public override fun release() {
+        stop()
     }
 }

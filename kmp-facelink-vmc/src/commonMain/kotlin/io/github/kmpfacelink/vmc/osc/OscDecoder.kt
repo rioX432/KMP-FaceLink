@@ -55,16 +55,16 @@ internal object OscDecoder {
         // Type tag string starts with ','
         if (typeTags.isEmpty() || typeTags[0] != ',') return emptyList()
         val tags = typeTags.substring(1)
-        return tags.mapNotNull { tag ->
-            when (tag) {
-                'i' -> OscArgument.IntArg(reader.readInt())
-                'f' -> OscArgument.FloatArg(reader.readFloat())
-                's' -> OscArgument.StringArg(reader.readString())
-                else -> {
-                    skipUnsupportedTag(reader, tag)
-                    null
-                }
-            }
+        return tags.mapNotNull { tag -> decodeTag(reader, tag) }
+    }
+
+    private fun decodeTag(reader: OscByteReader, tag: Char): OscArgument? = when (tag) {
+        'i' -> OscArgument.IntArg(reader.readInt())
+        'f' -> OscArgument.FloatArg(reader.readFloat())
+        's' -> OscArgument.StringArg(reader.readString())
+        else -> {
+            skipUnsupportedTag(reader, tag)
+            null
         }
     }
 
@@ -83,16 +83,18 @@ internal object OscDecoder {
             // 4-byte types: char, RGBA color, MIDI message
             'c', 'r', 'm' -> reader.skip(FOUR_BYTE_TAG_SIZE)
             // Variable-length: blob (int32 size prefix + data, 4-byte aligned)
-            'b' -> {
-                val blobSize = reader.readInt()
-                val padded = blobSize + oscBlobPadding(blobSize)
-                reader.skip(padded)
-            }
+            'b' -> skipBlob(reader)
             // Zero-size types: True, False, Nil, Infinitum
             'T', 'F', 'N', 'I' -> { /* no data to skip */ }
             // Truly unknown tag — cannot determine size
             else -> { /* skip nothing; stream may become misaligned */ }
         }
+    }
+
+    private fun skipBlob(reader: OscByteReader) {
+        val blobSize = reader.readInt()
+        val padded = blobSize + oscBlobPadding(blobSize)
+        reader.skip(padded)
     }
 }
 

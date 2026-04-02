@@ -26,12 +26,9 @@ internal object VmcMessageParser {
         for (message in messages) {
             when (message.address) {
                 VmcAddress.BLEND_VAL -> parseBlendVal(message, blendShapes)
-                VmcAddress.BONE_POS -> {
-                    val result = parseBonePos(message)
-                    if (result != null) {
-                        headPosition = result.first
-                        headRotation = result.second
-                    }
+                VmcAddress.BONE_POS -> parseBonePos(message)?.let { (pos, rot) ->
+                    headPosition = pos
+                    headRotation = rot
                 }
                 VmcAddress.OK -> isLoaded = parseOkStatus(message)
                 VmcAddress.TIME -> senderTime = parseTime(message)

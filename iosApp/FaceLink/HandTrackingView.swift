@@ -28,14 +28,16 @@ struct HandTrackingView: View {
 
                     // Gesture display
                     if viewModel.isTracking {
+                        let isIdle = viewModel.gestureText == "No gesture"
                         Text(viewModel.gestureText)
                             .font(.system(.title2, design: .monospaced))
                             .lineLimit(1)
                             .minimumScaleFactor(0.5)
-                            .foregroundStyle(.white)
+                            .foregroundStyle(isIdle ? .secondary : .white)
                             .padding(.horizontal, 16)
                             .padding(.vertical, 10)
                             .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 12))
+                            .opacity(isIdle ? 0.6 : 1.0)
                             .padding(.horizontal, max(geometry.safeAreaInsets.leading, 16))
                     }
 

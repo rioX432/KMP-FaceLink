@@ -65,6 +65,11 @@ public data class CalibrationConfig(
  *           Lower values improve performance at the cost of accuracy. Defaults to 640.
  * @property analysisHeight Height of the camera analysis stream in pixels. Android only.
  *           Lower values improve performance at the cost of accuracy. Defaults to 480.
+ * @property activeBlendShapes Subset of [BlendShape] values to include in tracking output.
+ *           Only the specified blend shapes are emitted in [io.github.kmpfacelink.model.FaceTrackingData];
+ *           unselected shapes are excluded from the map, reducing serialization and network cost
+ *           for applications that only need a subset of the 52 ARKit parameters.
+ *           Defaults to all 52 blend shapes (no filtering).
  */
 public data class FaceTrackerConfig(
     val smoothingConfig: SmoothingConfig = SmoothingConfig.Ema(),
@@ -85,8 +90,12 @@ public data class FaceTrackerConfig(
     val inferenceDelegate: InferenceDelegate = InferenceDelegate.AUTO,
     val analysisWidth: Int = DEFAULT_ANALYSIS_WIDTH,
     val analysisHeight: Int = DEFAULT_ANALYSIS_HEIGHT,
+    val activeBlendShapes: Set<BlendShape> = ALL_BLEND_SHAPES,
 ) {
     init {
+        require(activeBlendShapes.isNotEmpty()) {
+            "activeBlendShapes must not be empty"
+        }
         require(maxFaces in 1..MAX_FACES) {
             "maxFaces must be in 1..$MAX_FACES, was $maxFaces"
         }

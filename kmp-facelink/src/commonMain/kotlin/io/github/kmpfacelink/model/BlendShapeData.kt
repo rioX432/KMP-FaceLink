@@ -19,3 +19,20 @@ public fun emptyBlendShapeData(): BlendShapeData = EMPTY_BLEND_SHAPE_DATA
  * Returns the value for the given blend shape, defaulting to 0.0 if absent.
  */
 public fun BlendShapeData.valueOf(shape: BlendShape): Float = getOrElse(shape) { 0f }
+
+/** All 52 blend shapes as an immutable set. */
+public val ALL_BLEND_SHAPES: Set<BlendShape> = BlendShape.entries.toSet()
+
+/**
+ * Returns a new [BlendShapeData] containing only the shapes present in [active].
+ *
+ * When [active] contains all blend shapes, returns `this` unchanged (no allocation).
+ */
+public fun BlendShapeData.filterByActive(active: Set<BlendShape>): BlendShapeData {
+    if (active.size == BlendShape.entries.size) return this
+    val result = HashMap<BlendShape, Float>(active.size)
+    for (shape in active) {
+        result[shape] = this[shape] ?: 0f
+    }
+    return result
+}

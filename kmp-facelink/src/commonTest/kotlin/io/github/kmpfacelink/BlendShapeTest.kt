@@ -1,12 +1,16 @@
 package io.github.kmpfacelink
 
+import io.github.kmpfacelink.model.ALL_BLEND_SHAPES
 import io.github.kmpfacelink.model.BlendShape
 import io.github.kmpfacelink.model.emptyBlendShapeData
+import io.github.kmpfacelink.model.filterByActive
 import io.github.kmpfacelink.model.valueOf
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
+import kotlin.test.assertSame
+import kotlin.test.assertTrue
 
 class BlendShapeTest {
 
@@ -70,5 +74,45 @@ class BlendShapeTest {
             assertNotNull(restored, "Failed to round-trip: $shape → $name")
             assertEquals(shape, restored)
         }
+    }
+
+    @Test
+    fun allBlendShapesContainsAll52() {
+        assertEquals(52, ALL_BLEND_SHAPES.size)
+        for (shape in BlendShape.entries) {
+            assertTrue(shape in ALL_BLEND_SHAPES)
+        }
+    }
+
+    @Test
+    fun filterByActiveReturnsIdentityWhenAllActive() {
+        val data = emptyBlendShapeData()
+        val result = data.filterByActive(ALL_BLEND_SHAPES)
+        assertSame(data, result)
+    }
+
+    @Test
+    fun filterByActiveReturnsSubsetOnly() {
+        val data = mapOf(
+            BlendShape.EYE_BLINK_LEFT to 0.5f,
+            BlendShape.JAW_OPEN to 0.8f,
+            BlendShape.MOUTH_SMILE_LEFT to 0.3f,
+        )
+        val active = setOf(BlendShape.EYE_BLINK_LEFT, BlendShape.JAW_OPEN)
+        val result = data.filterByActive(active)
+        assertEquals(2, result.size)
+        assertEquals(0.5f, result[BlendShape.EYE_BLINK_LEFT])
+        assertEquals(0.8f, result[BlendShape.JAW_OPEN])
+        assertNull(result[BlendShape.MOUTH_SMILE_LEFT])
+    }
+
+    @Test
+    fun filterByActiveDefaultsMissingToZero() {
+        val data = mapOf(BlendShape.EYE_BLINK_LEFT to 0.5f)
+        val active = setOf(BlendShape.EYE_BLINK_LEFT, BlendShape.JAW_OPEN)
+        val result = data.filterByActive(active)
+        assertEquals(2, result.size)
+        assertEquals(0.5f, result[BlendShape.EYE_BLINK_LEFT])
+        assertEquals(0f, result[BlendShape.JAW_OPEN])
     }
 }

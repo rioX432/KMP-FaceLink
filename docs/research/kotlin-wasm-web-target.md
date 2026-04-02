@@ -2,7 +2,7 @@
 
 ## Status
 
-**Experimental** — computation-only modules compile and work; tracking APIs are no-op stubs.
+**Experimental** — face tracking is implemented via MediaPipe JS interop; hand/body tracking are no-op stubs.
 
 ## Kotlin/Wasm Maturity (as of Kotlin 2.2.0)
 
@@ -19,7 +19,7 @@
 
 | Module | Status | Notes |
 |---|---|---|
-| `kmp-facelink` | Compiles | No-op tracker stubs; utility actuals (logger, lock, thread ID) |
+| `kmp-facelink` | Compiles | Face tracking via MediaPipe JS interop; hand/body are no-op stubs |
 | `kmp-facelink-avatar` | Compiles | Pure common code, no platform actuals needed |
 | `kmp-facelink-actions` | Compiles | Pure common code, no platform actuals needed |
 
@@ -29,7 +29,8 @@
 - `PlatformLock` — no-op (Wasm is single-threaded)
 - `currentThreadId()` — returns `1L` (single-threaded)
 - `FaceLinkLogger` — delegates to `console.warn`/`console.error`/`console.log`
-- Tracker factories — return `NoOp*Tracker` stubs that emit `TrackingState.ERROR`
+- `FaceTrackerFactory` — returns `MediaPipeWasmFaceTracker` (real tracking via MediaPipe JS)
+- Hand/body tracker factories — return `NoOp*Tracker` stubs that emit `TrackingState.ERROR`
 
 ## Modules NOT Yet Targetable
 
@@ -46,17 +47,17 @@
 
 ## Roadmap: Full Browser-Based Tracking
 
-### Phase 1: MediaPipe JS Interop (Next)
+### Phase 1: MediaPipe JS Interop (Done)
 
-Replace no-op tracker stubs with actual browser-based tracking using MediaPipe JS:
+Replaced no-op face tracker with `MediaPipeWasmFaceTracker`:
 
-1. Use `@JsModule` / `external` declarations to call MediaPipe JS from Kotlin/Wasm
-2. Access browser camera via `navigator.mediaDevices.getUserMedia()`
-3. Process video frames through MediaPipe Face Landmarker JS
-4. Convert JS landmarks to `FaceTrackingData` model
-5. Emit results through Kotlin Flow
+1. Uses `js()` inline functions as a thin bridge to MediaPipe Tasks Vision JS API
+2. Accesses browser camera via `navigator.mediaDevices.getUserMedia()`
+3. Processes video frames through `FaceLandmarker.detectForVideo()` on `requestAnimationFrame`
+4. Maps JS results to `FaceTrackingData` (blend shapes, landmarks, head transform) via `WasmResultMapper`
+5. Emits results through Kotlin Flow
 
-**Key challenge:** Kotlin/Wasm JS interop is limited — complex JS object graphs require careful `external` type definitions or a thin JS bridge layer.
+**Host page requirement:** Must set `globalThis.__faceLinkVision` to the loaded `@mediapipe/tasks-vision` module before starting the tracker.
 
 ### Phase 2: Hand & Body Tracking
 

@@ -1,6 +1,7 @@
 package io.github.kmpfacelink.util
 
 import io.github.kmpfacelink.model.BlendShapeData
+import io.github.kmpfacelink.model.FaceTrackerConfig
 import io.github.kmpfacelink.model.SmoothingConfig
 
 /**
@@ -21,12 +22,31 @@ internal interface BlendShapeSmoother {
 }
 
 /**
+ * Create a [BlendShapeSmoother] from this config's [SmoothingConfig],
+ * or null for [SmoothingConfig.None].
+ */
+internal fun FaceTrackerConfig.createSmoother(): BlendShapeSmoother? =
+    smoothingConfig.createFaceSmoother()
+
+/**
  * Create a [BlendShapeSmoother] from [SmoothingConfig], or null for [SmoothingConfig.None].
  */
-internal fun SmoothingConfig.createSmoother(): BlendShapeSmoother? = when (this) {
+internal fun SmoothingConfig.createFaceSmoother(): BlendShapeSmoother? = when (this) {
     is SmoothingConfig.None -> null
     is SmoothingConfig.Ema -> ExponentialMovingAverage(alpha)
     is SmoothingConfig.OneEuro -> OneEuroFilter(minCutoff, beta, dCutoff, predictionMs)
     is SmoothingConfig.CategoryAware -> CategoryAwareSmoother(this)
     is SmoothingConfig.NeuroPredictive -> NeuroPredictorSmoother(windowSize)
 }
+
+/**
+ * Create a [BlendShapeSmoother] from [SmoothingConfig], or null for [SmoothingConfig.None].
+ */
+@Deprecated(
+    message = "Use FaceTrackerConfig.createSmoother() for unified API",
+    replaceWith = ReplaceWith(
+        "this.createFaceSmoother()",
+        "io.github.kmpfacelink.util.createFaceSmoother",
+    ),
+)
+internal fun SmoothingConfig.createSmoother(): BlendShapeSmoother? = createFaceSmoother()

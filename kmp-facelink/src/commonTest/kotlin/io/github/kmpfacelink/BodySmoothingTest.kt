@@ -2,11 +2,12 @@ package io.github.kmpfacelink
 
 import io.github.kmpfacelink.model.BodyJoint
 import io.github.kmpfacelink.model.BodyLandmarkPoint
+import io.github.kmpfacelink.model.BodyTrackerConfig
 import io.github.kmpfacelink.model.SmoothingConfig
 import io.github.kmpfacelink.model.TrackedBody
 import io.github.kmpfacelink.util.BodyEmaFilter
 import io.github.kmpfacelink.util.BodyOneEuroFilter
-import io.github.kmpfacelink.util.createBodySmoother
+import io.github.kmpfacelink.util.createSmoother
 import kotlin.math.abs
 import kotlin.test.Test
 import kotlin.test.assertNotNull
@@ -123,21 +124,24 @@ class BodySmoothingTest {
     // ---- Factory ----
 
     @Test
-    fun createBodySmootherNone() {
-        val smoother = SmoothingConfig.None.createBodySmoother()
+    fun createSmootherNone() {
+        val config = BodyTrackerConfig(smoothingConfig = SmoothingConfig.None)
+        val smoother = config.createSmoother()
         assertNull(smoother)
     }
 
     @Test
-    fun createBodySmootherEma() {
-        val smoother = SmoothingConfig.Ema(alpha = 0.4f).createBodySmoother()
+    fun createSmootherEma() {
+        val config = BodyTrackerConfig(smoothingConfig = SmoothingConfig.Ema(alpha = 0.4f))
+        val smoother = config.createSmoother()
         assertNotNull(smoother)
         assertTrue(smoother is BodyEmaFilter)
     }
 
     @Test
-    fun createBodySmootherOneEuro() {
-        val smoother = SmoothingConfig.OneEuro().createBodySmoother()
+    fun createSmootherOneEuro() {
+        val config = BodyTrackerConfig(smoothingConfig = SmoothingConfig.OneEuro())
+        val smoother = config.createSmoother()
         assertNotNull(smoother)
         assertTrue(smoother is BodyOneEuroFilter)
     }

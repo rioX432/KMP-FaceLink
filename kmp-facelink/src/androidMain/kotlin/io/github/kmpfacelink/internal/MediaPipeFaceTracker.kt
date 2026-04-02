@@ -27,6 +27,7 @@ import io.github.kmpfacelink.util.FrameDecision
 import io.github.kmpfacelink.util.FrameThrottler
 import io.github.kmpfacelink.util.GazeEstimator
 import io.github.kmpfacelink.util.PowerModeManager
+import io.github.kmpfacelink.util.createFaceSmoother
 import io.github.kmpfacelink.util.createSmoother
 import io.github.kmpfacelink.util.withLock
 import kotlinx.coroutines.Dispatchers
@@ -62,7 +63,7 @@ internal class MediaPipeFaceTracker(
     override val state: StateFlow<TrackingState> = super.state
     override val errorMessage: StateFlow<String?> = super.errorMessage
 
-    private var smoother: BlendShapeSmoother? = config.smoothingConfig.createSmoother()
+    private var smoother: BlendShapeSmoother? = config.createSmoother()
     private val enhancer: BlendShapeEnhancer? = BlendShapeEnhancer.create(config.enhancerConfig)
     private val calibrator = Calibrator(
         warmupFrames = config.calibrationConfig.warmupFrames,
@@ -194,7 +195,7 @@ internal class MediaPipeFaceTracker(
     override fun updateSmoothing(config: SmoothingConfig) {
         pipelineLock.withLock {
             checkNotReleased("update smoothing")
-            smoother = config.createSmoother()
+            smoother = config.createFaceSmoother()
         }
     }
 

@@ -23,6 +23,7 @@ import io.github.kmpfacelink.util.FrameThrottler
 import io.github.kmpfacelink.util.GazeEstimator
 import io.github.kmpfacelink.util.PowerModeManager
 import io.github.kmpfacelink.util.TransformUtils
+import io.github.kmpfacelink.util.createFaceSmoother
 import io.github.kmpfacelink.util.createSmoother
 import io.github.kmpfacelink.util.withLock
 import kotlinx.cinterop.FloatVar
@@ -55,7 +56,7 @@ internal class ARKitFaceTracker(
     override val state: StateFlow<TrackingState> = super.state
     override val errorMessage: StateFlow<String?> = super.errorMessage
 
-    private var smoother: BlendShapeSmoother? = config.smoothingConfig.createSmoother()
+    private var smoother: BlendShapeSmoother? = config.createSmoother()
     private val calibrator = Calibrator(
         warmupFrames = config.calibrationConfig.warmupFrames,
         decayRate = config.calibrationConfig.rangeDecayRate,
@@ -147,7 +148,7 @@ internal class ARKitFaceTracker(
     override fun updateSmoothing(config: SmoothingConfig) {
         pipelineLock.withLock {
             checkNotReleased("update smoothing")
-            smoother = config.createSmoother()
+            smoother = config.createFaceSmoother()
         }
     }
 

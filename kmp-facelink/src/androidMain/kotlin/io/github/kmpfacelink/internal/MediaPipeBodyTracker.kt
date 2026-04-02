@@ -18,6 +18,7 @@ import io.github.kmpfacelink.util.BodyLandmarkSmoother
 import io.github.kmpfacelink.util.FaceLinkLogger
 import io.github.kmpfacelink.util.FrameThrottler
 import io.github.kmpfacelink.util.createBodySmoother
+import io.github.kmpfacelink.util.createSmoother
 import io.github.kmpfacelink.util.withLock
 import kotlin.concurrent.atomics.ExperimentalAtomicApi
 
@@ -40,7 +41,7 @@ internal class MediaPipeBodyTracker(
     BodyTracker,
     PreviewableBodyTracker {
 
-    private var smoother: BodyLandmarkSmoother? = config.smoothingConfig.createBodySmoother()
+    private var smoother: BodyLandmarkSmoother? = config.createSmoother()
     private var poseLandmarker: PoseLandmarker? = null
 
     override val tag: String = TAG
@@ -64,6 +65,7 @@ internal class MediaPipeBodyTracker(
     override fun updateSmoothing(config: SmoothingConfig) {
         pipelineLock.withLock {
             checkNotReleased("update smoothing")
+            @Suppress("DEPRECATION")
             smoother = config.createBodySmoother()
         }
     }

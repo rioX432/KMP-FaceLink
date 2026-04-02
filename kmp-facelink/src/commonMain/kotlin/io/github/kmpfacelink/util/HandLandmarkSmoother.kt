@@ -1,5 +1,6 @@
 package io.github.kmpfacelink.util
 
+import io.github.kmpfacelink.model.HandTrackerConfig
 import io.github.kmpfacelink.model.SmoothingConfig
 import io.github.kmpfacelink.model.TrackedHand
 
@@ -21,8 +22,19 @@ internal interface HandLandmarkSmoother {
 }
 
 /**
+ * Create a [HandLandmarkSmoother] from this config's [SmoothingConfig],
+ * or null for [SmoothingConfig.None].
+ */
+internal fun HandTrackerConfig.createSmoother(): HandLandmarkSmoother? =
+    smoothingConfig.createHandSmoother()
+
+/**
  * Create a [HandLandmarkSmoother] from [SmoothingConfig], or null for [SmoothingConfig.None].
  */
+@Deprecated(
+    message = "Use HandTrackerConfig.createSmoother() for unified API",
+    replaceWith = ReplaceWith("this.createSmoother()", "io.github.kmpfacelink.util.createSmoother"),
+)
 internal fun SmoothingConfig.createHandSmoother(): HandLandmarkSmoother? = when (this) {
     is SmoothingConfig.None -> null
     is SmoothingConfig.Ema -> HandEmaFilter(alpha)

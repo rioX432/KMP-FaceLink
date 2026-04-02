@@ -202,6 +202,38 @@ public sealed class SmoothingConfig {
         val jawConfig: OneEuro = OneEuro(minCutoff = 1.5f, beta = 0.007f),
         val otherConfig: OneEuro = OneEuro(),
     ) : SmoothingConfig()
+
+    /**
+     * N-euro Predictor neural smoothing filter.
+     *
+     * Uses a pruned N-BEATS architecture (2 blocks: trend + seasonality) to simultaneously
+     * reduce jitter and lag. Unlike traditional filters, this approach learns to minimize
+     * both without the inherent jitter-lag tradeoff.
+     *
+     * **Note**: Ships with placeholder (Xavier-initialized) weights. For production quality,
+     * train weights on blend shape time-series data.
+     * See docs/research/neuro-predictor-smoothing.md for details.
+     *
+     * @param windowSize Number of past frames in the lookback buffer. Total input to the
+     *        network is windowSize + 1 (including the current frame). Default: 8.
+     */
+    public data class NeuroPredictive(
+        val windowSize: Int = DEFAULT_NEURO_WINDOW_SIZE,
+    ) : SmoothingConfig() {
+        init {
+            require(windowSize >= MIN_NEURO_WINDOW_SIZE) {
+                "windowSize must be >= $MIN_NEURO_WINDOW_SIZE, was $windowSize"
+            }
+        }
+
+        public companion object {
+            /** Default lookback window size (8 past frames). */
+            public const val DEFAULT_NEURO_WINDOW_SIZE: Int = 8
+
+            /** Minimum lookback window size. */
+            public const val MIN_NEURO_WINDOW_SIZE: Int = 2
+        }
+    }
 }
 
 /**

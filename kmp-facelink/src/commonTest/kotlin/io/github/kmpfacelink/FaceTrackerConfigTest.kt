@@ -281,6 +281,37 @@ class SmoothingConfigTest {
         val b = SmoothingConfig.None
         assertTrue(a === b)
     }
+
+    @Test
+    fun neuroPredictiveDefaultWindowSize() {
+        val np = SmoothingConfig.NeuroPredictive()
+        assertEquals(SmoothingConfig.NeuroPredictive.DEFAULT_NEURO_WINDOW_SIZE, np.windowSize)
+    }
+
+    @Test
+    fun neuroPredictiveAcceptsCustomWindowSize() {
+        val np = SmoothingConfig.NeuroPredictive(windowSize = 12)
+        assertEquals(12, np.windowSize)
+    }
+
+    @Test
+    fun neuroPredictiveRejectsTooSmallWindowSize() {
+        try {
+            SmoothingConfig.NeuroPredictive(windowSize = 1)
+            fail("Expected IllegalArgumentException")
+        } catch (e: IllegalArgumentException) {
+            assertTrue(checkNotNull(e.message).contains("windowSize"))
+        }
+    }
+
+    @Test
+    fun neuroPredictiveConfigAssignedToTracker() {
+        val config = FaceTrackerConfig(
+            smoothingConfig = SmoothingConfig.NeuroPredictive(windowSize = 6),
+        )
+        val np = config.smoothingConfig as SmoothingConfig.NeuroPredictive
+        assertEquals(6, np.windowSize)
+    }
 }
 
 class CameraFacingTest {

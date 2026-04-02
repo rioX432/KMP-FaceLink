@@ -20,14 +20,14 @@ internal class ObjectPool<T>(
 ) {
     private val pool = ArrayDeque<T>(maxSize)
 
-    /** Thread ID recorded on first use; `-1L` means not yet set. */
-    private var ownerThreadId: Long = -1L
+    /** Thread ID recorded on first use; [UNINITIALIZED_THREAD_ID] means not yet set. */
+    private var ownerThreadId: Long = UNINITIALIZED_THREAD_ID
 
     /** Validates thread affinity when [debugChecksEnabled] is `true`. */
     private fun checkThread() {
         if (!debugChecksEnabled) return
         val current = currentThreadId()
-        if (ownerThreadId == -1L) {
+        if (ownerThreadId == UNINITIALIZED_THREAD_ID) {
             ownerThreadId = current
         } else {
             check(ownerThreadId == current) {
@@ -60,11 +60,15 @@ internal class ObjectPool<T>(
     }
 
     internal companion object {
+        /** Sentinel value indicating that no thread has used this pool yet. */
+        internal const val UNINITIALIZED_THREAD_ID: Long = -1L
+
         /**
          * Set to `true` to enable runtime thread-affinity assertions on all [ObjectPool] instances.
          *
          * Intended for debug builds only. Defaults to `false` to have no overhead in production.
          */
+        @Volatile
         internal var debugChecksEnabled: Boolean = false
     }
 }

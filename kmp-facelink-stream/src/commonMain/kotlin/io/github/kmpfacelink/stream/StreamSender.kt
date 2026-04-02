@@ -1,5 +1,6 @@
 package io.github.kmpfacelink.stream
 
+import io.github.kmpfacelink.api.Releasable
 import io.github.kmpfacelink.model.FaceTrackingData
 import io.github.kmpfacelink.model.HandTrackingData
 import kotlinx.coroutines.CoroutineScope
@@ -34,7 +35,7 @@ import kotlinx.coroutines.sync.withLock
 public class StreamSender(
     private val server: StreamServer,
     private val config: StreamConfig = StreamConfig(),
-) {
+) : Releasable {
     private val mutex = Mutex()
     private var faceJob: Job? = null
     private var handJob: Job? = null
@@ -79,6 +80,16 @@ public class StreamSender(
         broadcastJob = null
         latestFaceData = null
         latestHandData = null
+    }
+
+    /**
+     * Releases all resources held by this sender.
+     *
+     * Stops any active collection and broadcasting.
+     * Safe to call multiple times.
+     */
+    public override fun release() {
+        stop()
     }
 
     private suspend fun broadcastLoop() {

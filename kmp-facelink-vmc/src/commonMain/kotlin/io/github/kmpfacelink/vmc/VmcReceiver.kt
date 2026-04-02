@@ -1,5 +1,6 @@
 package io.github.kmpfacelink.vmc
 
+import io.github.kmpfacelink.api.Releasable
 import io.github.kmpfacelink.networking.UdpSocket
 import io.github.kmpfacelink.vmc.osc.OscDecoder
 import kotlinx.coroutines.CoroutineScope
@@ -51,7 +52,7 @@ import kotlinx.coroutines.launch
  */
 public class VmcReceiver(
     private val port: Int = VmcConfig.DEFAULT_MARIONETTE_PORT,
-) {
+) : Releasable {
     private val socket = UdpSocket()
     private var listenJob: Job? = null
     private val _receivedData = MutableSharedFlow<VmcReceivedData>(extraBufferCapacity = 1)
@@ -85,6 +86,16 @@ public class VmcReceiver(
         listenJob?.cancel()
         listenJob = null
         socket.close()
+    }
+
+    /**
+     * Releases all resources held by this receiver.
+     *
+     * Stops listening and closes the UDP socket.
+     * Safe to call multiple times.
+     */
+    public override fun release() {
+        stop()
     }
 
     private suspend fun CoroutineScope.receiveLoop() {

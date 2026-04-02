@@ -1,5 +1,6 @@
 package io.github.kmpfacelink.vmc
 
+import io.github.kmpfacelink.api.Releasable
 import io.github.kmpfacelink.model.BlendShapeData
 import io.github.kmpfacelink.model.FaceTrackingData
 import io.github.kmpfacelink.model.HeadTransform
@@ -64,7 +65,7 @@ import kotlinx.coroutines.launch
  */
 public class VmcSender(
     private val config: VmcConfig = VmcConfig(),
-) {
+) : Releasable {
     private val socket = UdpSocket()
     private var collectJob: Job? = null
     private var startTimeMs: Long = 0L
@@ -156,6 +157,16 @@ public class VmcSender(
         collectJob?.cancel()
         collectJob = null
         socket.close()
+    }
+
+    /**
+     * Releases all resources held by this sender.
+     *
+     * Stops any active collection and closes the UDP socket.
+     * Safe to call multiple times.
+     */
+    public override fun release() {
+        stop()
     }
 
     private fun buildExpressionFrameMessages(

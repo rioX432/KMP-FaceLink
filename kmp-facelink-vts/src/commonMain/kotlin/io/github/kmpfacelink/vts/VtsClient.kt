@@ -1,5 +1,6 @@
 package io.github.kmpfacelink.vts
 
+import io.github.kmpfacelink.api.Releasable
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.websocket.WebSockets
 import io.ktor.client.plugins.websocket.webSocket
@@ -52,13 +53,15 @@ import kotlin.concurrent.atomics.ExperimentalAtomicApi
  * @param httpClient Optional Ktor HttpClient (must have WebSockets plugin installed)
  * @see VtsSender for a high-level sender that handles the full lifecycle
  */
+@Suppress("TooManyFunctions")
 @OptIn(ExperimentalAtomicApi::class)
 public class VtsClient(
     private val config: VtsConfig = VtsConfig(),
     httpClient: HttpClient? = null,
-) {
+) : Releasable {
     private val client: HttpClient = httpClient ?: HttpClient { install(WebSockets) }
     private val ownsClient: Boolean = httpClient == null
+    private var released = false
 
     private val mutex = Mutex()
     private var session: WebSocketSession? = null
@@ -280,6 +283,27 @@ public class VtsClient(
             requestId = nextRequestId(),
         )
         sendAndReceive(request)
+    }
+
+    /**
+     * Releases all resources held by this client.
+     *
+     * Cancels any active connection and closes the HTTP client if it was
+     * created internally. Safe to call multiple times.
+     */
+    public override fun release() {
+        if (released) return
+        released = true
+        connectionJob?.cancel()
+        connectionJob = null
+        session = null
+        pendingRequests.values.forEach {
+            it.cancel(CancellationException("Released"))
+        }
+        pendingRequests.clear()
+        if (ownsClient) {
+            client.close()
+        }
     }
 
     private suspend fun requestAndValidateAuth(existingToken: String?): String {

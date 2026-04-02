@@ -148,7 +148,10 @@ public class StreamServer(
             _clientCount.store(sessions.size)
             sessions.size
         }
-        _connectionCount.emit(count)
+        // Use tryEmit to avoid suspension/cancellation that could leave
+        // the session list and emitted count in an inconsistent state.
+        // Always succeeds because the flow has replay=1 and DROP_OLDEST.
+        _connectionCount.tryEmit(count)
     }
 
     private suspend fun removeSession(session: ClientSession) {
@@ -157,7 +160,7 @@ public class StreamServer(
             _clientCount.store(sessions.size)
             sessions.size
         }
-        _connectionCount.emit(count)
+        _connectionCount.tryEmit(count)
     }
 
     private suspend fun sendToSession(session: ClientSession, frame: StreamFrame) {

@@ -9,7 +9,6 @@ import com.google.mediapipe.tasks.vision.poselandmarker.PoseLandmarker
 import com.google.mediapipe.tasks.vision.poselandmarker.PoseLandmarkerResult
 import io.github.kmpfacelink.api.BodyTracker
 import io.github.kmpfacelink.api.PlatformContext
-import io.github.kmpfacelink.api.TrackingState
 import io.github.kmpfacelink.model.BodyTrackerConfig
 import io.github.kmpfacelink.model.BodyTrackingData
 import io.github.kmpfacelink.model.CameraFacing
@@ -20,91 +19,46 @@ import io.github.kmpfacelink.util.FaceLinkLogger
 import io.github.kmpfacelink.util.FrameThrottler
 import io.github.kmpfacelink.util.createBodySmoother
 import io.github.kmpfacelink.util.withLock
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.StateFlow
-import java.util.concurrent.Executors
 import kotlin.concurrent.atomics.ExperimentalAtomicApi
 
 @OptIn(ExperimentalAtomicApi::class)
 internal class MediaPipeBodyTracker(
-    private val platformContext: PlatformContext,
+    platformContext: PlatformContext,
     private val config: BodyTrackerConfig,
-    private val sharedCameraSession: SharedCameraSession? = null,
-) : BaseTracker<BodyTrackingData>(
+    sharedCameraSession: SharedCameraSession? = null,
+) : BaseMediaPipeTracker<BodyTrackingData>(
+    params = MediaPipeTrackerParams(
+        platformContext = platformContext,
+        sharedCameraSession = sharedCameraSession,
+        analysisWidth = config.analysisWidth,
+        analysisHeight = config.analysisHeight,
+        initialCameraFacing = config.cameraFacing,
+    ),
     thermalMonitor = AndroidThermalMonitor(platformContext.context),
     frameThrottler = FrameThrottler(config.thermalPolicy),
 ),
     BodyTracker,
     PreviewableBodyTracker {
 
-    override val trackingData: Flow<BodyTrackingData> = super.trackingData
-    override val state: StateFlow<TrackingState> = super.state
-    override val errorMessage: StateFlow<String?> = super.errorMessage
-
     private var smoother: BodyLandmarkSmoother? = config.smoothingConfig.createBodySmoother()
-
-    @Volatile
-    internal var currentCameraFacing: CameraFacing = config.cameraFacing
-    private val isFrontCamera: Boolean
-        get() = currentCameraFacing == CameraFacing.FRONT
-    private val analysisExecutor = Executors.newSingleThreadExecutor()
-    private val imageConverter = ImageProxyConverter()
-    private val cameraManager = if (sharedCameraSession == null) CameraXManager(platformContext) else null
-    private val cameraPipeline = CameraPipelineHelper(
-        tag = TAG,
-        sharedCameraSession = sharedCameraSession,
-        cameraManager = cameraManager,
-        imageConverter = imageConverter,
-        analysisExecutor = analysisExecutor,
-    )
-
     private var poseLandmarker: PoseLandmarker? = null
-    private var previewSurfaceProvider: Preview.SurfaceProvider? = null
+
+    override val tag: String = TAG
 
     override fun setSurfaceProvider(surfaceProvider: Preview.SurfaceProvider?) {
-        previewSurfaceProvider = surfaceProvider
+        super.setSurfaceProvider(surfaceProvider)
     }
 
     override suspend fun start() {
-        pipelineLock.withLock {
-            if (!guardStart()) return
-        }
-
-        try {
-            initPoseLandmarker()
-            startCamera()
-            pipelineLock.withLock { transitionToTracking() }
-        } catch (e: kotlinx.coroutines.CancellationException) {
-            throw e
-        } catch (e: Exception) {
-            // MediaPipe model loading and CameraX binding can throw various RuntimeException
-            // subclasses; catch broadly to set error state before rethrowing
-            FaceLinkLogger.e(TAG, "Failed to start body tracking", e)
-            setError(e.message ?: e.toString())
-            throw e
-        }
+        performStart()
     }
 
     override suspend fun stop() {
-        pipelineLock.withLock {
-            cameraManager?.unbindAll()
-            poseLandmarker?.close()
-            poseLandmarker = null
-            mutableState.value = TrackingState.STOPPED
-        }
+        performStop()
     }
 
     override fun release() {
-        pipelineLock.withLock {
-            released.store(1)
-            cameraManager?.unbindAll()
-            poseLandmarker?.close()
-            poseLandmarker = null
-            imageConverter.release()
-            thermalMonitor.release()
-            analysisExecutor.shutdown()
-            mutableState.value = TrackingState.RELEASED
-        }
+        performRelease()
     }
 
     override fun updateSmoothing(config: SmoothingConfig) {
@@ -122,18 +76,41 @@ internal class MediaPipeBodyTracker(
     }
 
     override suspend fun switchCamera(facing: CameraFacing) {
-        pipelineLock.withLock { checkNotReleased("switch camera") }
-        if (currentCameraFacing == facing) return
-        val wasTracking = mutableState.value == TrackingState.TRACKING
-        if (wasTracking) stop()
-        currentCameraFacing = facing
-        if (wasTracking) start()
+        performSwitchCamera(facing)
     }
 
-    private fun initPoseLandmarker() {
+    override fun initLandmarker() {
         poseLandmarker = DelegateResolver.createWithFallback(config.inferenceDelegate) { delegate ->
             createLandmarker(delegate)
         }
+    }
+
+    override fun closeLandmarker() {
+        poseLandmarker?.close()
+        poseLandmarker = null
+    }
+
+    override fun buildDetectionCallbacks(): DetectionCallbacks {
+        val landmarker = poseLandmarker
+        return DetectionCallbacks(
+            isLandmarkerReady = landmarker != null,
+            shouldProcess = { ts -> frameThrottler.shouldProcess(ts, thermalMonitor.thermalState.value) },
+            detectAsync = { mpImage, ts -> landmarker!!.detectAsync(mpImage, ts) },
+        )
+    }
+
+    @Suppress("UNUSED_PARAMETER") // SharedFrameHandler signature
+    override fun onSharedFrameReceived(
+        bitmap: android.graphics.Bitmap,
+        width: Int,
+        height: Int,
+        timestampMs: Long,
+    ) {
+        delegateSharedFrame(bitmap, width, height, timestampMs)
+    }
+
+    override fun onImageProxyReceived(imageProxy: ImageProxy) {
+        delegateImageProxy(imageProxy)
     }
 
     private fun createLandmarker(delegate: Delegate): PoseLandmarker {
@@ -157,48 +134,6 @@ internal class MediaPipeBodyTracker(
 
         return PoseLandmarker.createFromOptions(platformContext.context, options)
     }
-
-    private suspend fun startCamera() {
-        cameraPipeline.startCamera(
-            config = CameraStartConfig(
-                cameraFacing = currentCameraFacing,
-                analysisWidth = config.analysisWidth,
-                analysisHeight = config.analysisHeight,
-                surfaceProvider = previewSurfaceProvider,
-            ),
-            onSharedFrame = ::processSharedFrame,
-            onImageProxy = ::processFrame,
-        )
-    }
-
-    @Suppress("UNUSED_PARAMETER") // SharedFrameHandler signature
-    private fun processSharedFrame(bitmap: android.graphics.Bitmap, width: Int, height: Int, timestampMs: Long) {
-        val landmarker = poseLandmarker
-        cameraPipeline.processSharedFrame(
-            bitmap = bitmap,
-            width = width,
-            height = height,
-            timestampMs = timestampMs,
-            context = SharedFrameContext(mutableState.value, buildDetectionCallbacks(landmarker)),
-        )
-    }
-
-    private fun processFrame(imageProxy: ImageProxy) {
-        val landmarker = poseLandmarker
-        cameraPipeline.processFrame(
-            imageProxy = imageProxy,
-            trackingState = mutableState.value,
-            isFrontCamera = isFrontCamera,
-            callbacks = buildDetectionCallbacks(landmarker),
-        )
-    }
-
-    private fun buildDetectionCallbacks(landmarker: PoseLandmarker?): DetectionCallbacks =
-        DetectionCallbacks(
-            isLandmarkerReady = landmarker != null,
-            shouldProcess = { ts -> frameThrottler.shouldProcess(ts, thermalMonitor.thermalState.value) },
-            detectAsync = { mpImage, ts -> landmarker!!.detectAsync(mpImage, ts) },
-        )
 
     private fun onPoseLandmarkerResult(
         result: PoseLandmarkerResult,

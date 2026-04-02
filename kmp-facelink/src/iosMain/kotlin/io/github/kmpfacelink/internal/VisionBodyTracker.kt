@@ -6,119 +6,53 @@
 package io.github.kmpfacelink.internal
 
 import io.github.kmpfacelink.api.BodyTracker
-import io.github.kmpfacelink.api.TrackingState
 import io.github.kmpfacelink.model.BodyTrackerConfig
 import io.github.kmpfacelink.model.BodyTrackingData
 import io.github.kmpfacelink.model.CameraFacing
 import io.github.kmpfacelink.model.SmoothingConfig
 import io.github.kmpfacelink.model.TrackedBody
 import io.github.kmpfacelink.util.BodyLandmarkSmoother
-import io.github.kmpfacelink.util.FaceLinkLogger
 import io.github.kmpfacelink.util.FrameThrottler
 import io.github.kmpfacelink.util.createBodySmoother
 import io.github.kmpfacelink.util.withLock
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.StateFlow
-import platform.AVFoundation.AVCaptureConnection
-import platform.AVFoundation.AVCaptureDevice
-import platform.AVFoundation.AVCaptureDeviceInput
-import platform.AVFoundation.AVCaptureDevicePositionBack
-import platform.AVFoundation.AVCaptureDevicePositionFront
-import platform.AVFoundation.AVCaptureOutput
-import platform.AVFoundation.AVCaptureSession
-import platform.AVFoundation.AVCaptureSessionPreset352x288
-import platform.AVFoundation.AVCaptureVideoDataOutput
-import platform.AVFoundation.AVCaptureVideoDataOutputSampleBufferDelegateProtocol
-import platform.AVFoundation.AVCaptureVideoOrientationPortrait
-import platform.AVFoundation.AVMediaTypeVideo
-import platform.AVFoundation.position
 import platform.CoreMedia.CMSampleBufferGetImageBuffer
 import platform.CoreMedia.CMSampleBufferRef
-import platform.CoreMedia.CMTimeMake
 import platform.CoreVideo.CVPixelBufferGetHeight
 import platform.CoreVideo.CVPixelBufferGetWidth
-import platform.CoreVideo.kCVPixelBufferPixelFormatTypeKey
-import platform.CoreVideo.kCVPixelFormatType_420YpCbCr8BiPlanarFullRange
-import platform.Foundation.NSNumber
 import platform.Vision.VNDetectHumanBodyPoseRequest
 import platform.Vision.VNHumanBodyPoseObservation
 import platform.Vision.VNSequenceRequestHandler
-import platform.darwin.NSObject
-import platform.darwin.dispatch_queue_create
-import kotlin.concurrent.atomics.AtomicInt
 import kotlin.concurrent.atomics.ExperimentalAtomicApi
 
 @OptIn(ExperimentalAtomicApi::class)
 internal class VisionBodyTracker(
     private val config: BodyTrackerConfig,
-    private val sharedVisionSession: SharedVisionCaptureSession? = null,
-) : BaseTracker<BodyTrackingData>(
+    sharedVisionSession: SharedVisionCaptureSession? = null,
+) : BaseVisionTracker<BodyTrackingData>(
+    sharedVisionSession = sharedVisionSession,
     thermalMonitor = IosThermalMonitor(),
     frameThrottler = FrameThrottler(config.thermalPolicy),
+    initialCameraFacing = config.cameraFacing,
 ),
     BodyTracker {
 
-    override val trackingData: Flow<BodyTrackingData> = super.trackingData
-    override val state: StateFlow<TrackingState> = super.state
-    override val errorMessage: StateFlow<String?> = super.errorMessage
-
-    private val processing = AtomicInt(0)
-
     private var smoother: BodyLandmarkSmoother? = config.smoothingConfig.createBodySmoother()
-
-    private var currentCameraFacing: CameraFacing = config.cameraFacing
     private val bodyPoseRequest = VNDetectHumanBodyPoseRequest()
     private val sequenceHandler = VNSequenceRequestHandler()
 
-    /**
-     * The underlying AVCaptureSession, exposed for camera preview in the iOS sample app.
-     * Only available after [start] has been called.
-     */
-    var captureSession: AVCaptureSession? = null
-        private set
-    private val videoOutputDelegate = VideoOutputDelegate()
-    private val videoQueue = dispatch_queue_create("io.github.kmpfacelink.body.video", null)
+    override val tag: String = TAG
+    override val videoQueueLabel: String = "io.github.kmpfacelink.body.video"
 
     override suspend fun start() {
-        pipelineLock.withLock {
-            if (!guardStart()) return
-        }
-
-        try {
-            if (sharedVisionSession != null) {
-                // Register frame handler with the shared session (camera managed externally)
-                sharedVisionSession.addFrameHandler(::processVideoFrame)
-            } else {
-                // Reuse existing capture session on restart, or create a new one
-                if (captureSession == null) {
-                    setupCaptureSession()
-                }
-                captureSession?.startRunning()
-            }
-            pipelineLock.withLock { transitionToTracking() }
-        } catch (e: Exception) {
-            setError(e.message ?: e.toString())
-            throw e
-        }
+        performStart()
     }
 
     override suspend fun stop() {
-        pipelineLock.withLock {
-            if (sharedVisionSession == null) captureSession?.stopRunning()
-            mutableState.value = TrackingState.STOPPED
-        }
+        performStop()
     }
 
     override fun release() {
-        pipelineLock.withLock {
-            released.store(1)
-            if (sharedVisionSession == null) {
-                captureSession?.stopRunning()
-                captureSession = null
-            }
-            thermalMonitor.release()
-            mutableState.value = TrackingState.RELEASED
-        }
+        performRelease()
     }
 
     override fun updateSmoothing(config: SmoothingConfig) {
@@ -136,104 +70,10 @@ internal class VisionBodyTracker(
     }
 
     override suspend fun switchCamera(facing: CameraFacing) {
-        pipelineLock.withLock { checkNotReleased("switch camera") }
-        if (currentCameraFacing == facing) return
-        val wasTracking = mutableState.value == TrackingState.TRACKING
-        if (wasTracking) {
-            if (sharedVisionSession == null) {
-                captureSession?.stopRunning()
-                captureSession = null
-            }
-        }
-        currentCameraFacing = facing
-        if (wasTracking && sharedVisionSession == null) {
-            setupCaptureSession()
-            captureSession?.startRunning()
-        }
+        performSwitchCamera(facing)
     }
 
-    private fun setupCaptureSession() {
-        val session = AVCaptureSession()
-        session.sessionPreset = AVCaptureSessionPreset352x288
-
-        val device = findCameraDevice(currentCameraFacing)
-        configureCameraFrameRate(device)
-        addCameraInput(session, device)
-        addVideoOutput(session)
-
-        captureSession = session
-    }
-
-    private fun findCameraDevice(facing: CameraFacing): AVCaptureDevice {
-        val position = when (facing) {
-            CameraFacing.FRONT -> AVCaptureDevicePositionFront
-            CameraFacing.BACK -> AVCaptureDevicePositionBack
-        }
-        return AVCaptureDevice.devicesWithMediaType(AVMediaTypeVideo)
-            .filterIsInstance<AVCaptureDevice>()
-            .firstOrNull { it.position == position }
-            ?: AVCaptureDevice.defaultDeviceWithMediaType(AVMediaTypeVideo)
-            ?: throw UnsupportedOperationException("No camera available")
-    }
-
-    private fun addCameraInput(session: AVCaptureSession, device: AVCaptureDevice) {
-        val input = AVCaptureDeviceInput.deviceInputWithDevice(device, null)
-            ?: throw UnsupportedOperationException("Cannot create camera input")
-        if (session.canAddInput(input)) {
-            session.addInput(input)
-        }
-    }
-
-    private fun addVideoOutput(session: AVCaptureSession) {
-        val videoOutput = AVCaptureVideoDataOutput()
-        // Force YUV pixel format for optimal Vision framework processing
-        videoOutput.videoSettings = mapOf<Any?, Any>(
-            kCVPixelBufferPixelFormatTypeKey to NSNumber(unsignedInt = kCVPixelFormatType_420YpCbCr8BiPlanarFullRange),
-        )
-        videoOutput.setSampleBufferDelegate(videoOutputDelegate, videoQueue)
-        videoOutput.alwaysDiscardsLateVideoFrames = true
-
-        if (session.canAddOutput(videoOutput)) {
-            session.addOutput(videoOutput)
-        }
-
-        // Set video orientation to portrait for correct coordinate mapping
-        val connection = videoOutput.connectionWithMediaType(AVMediaTypeVideo)
-        if (connection != null && connection.isVideoOrientationSupported()) {
-            connection.videoOrientation = AVCaptureVideoOrientationPortrait
-        }
-    }
-
-    private fun configureCameraFrameRate(device: AVCaptureDevice) {
-        val locked = try {
-            device.lockForConfiguration(null)
-            true
-        } catch (e: Exception) {
-            FaceLinkLogger.w(TAG, "failed to lock device for frame rate configuration — $e")
-            false
-        }
-        if (!locked) return
-
-        val frameDuration = CMTimeMake(value = 1, timescale = TARGET_FPS)
-        device.setActiveVideoMinFrameDuration(frameDuration)
-        device.setActiveVideoMaxFrameDuration(frameDuration)
-        device.unlockForConfiguration()
-    }
-
-    private fun processVideoFrame(sampleBuffer: CMSampleBufferRef?) {
-        if (sampleBuffer == null || mutableState.value != TrackingState.TRACKING) return
-
-        // Skip frame if previous one is still being processed
-        if (!processing.compareAndSet(expectedValue = 0, newValue = 1)) return
-
-        try {
-            processFrameUnsafe(sampleBuffer)
-        } finally {
-            processing.store(0)
-        }
-    }
-
-    private fun processFrameUnsafe(sampleBuffer: CMSampleBufferRef) {
+    override fun processFrameUnsafe(sampleBuffer: CMSampleBufferRef) {
         val pixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) ?: return
         val timestampMs = currentTimeMillis()
 
@@ -297,20 +137,7 @@ internal class VisionBodyTracker(
         return observations.take(config.maxBodies)
     }
 
-    private inner class VideoOutputDelegate :
-        NSObject(),
-        AVCaptureVideoDataOutputSampleBufferDelegateProtocol {
-        override fun captureOutput(
-            output: AVCaptureOutput,
-            didOutputSampleBuffer: CMSampleBufferRef?,
-            fromConnection: AVCaptureConnection,
-        ) {
-            processVideoFrame(didOutputSampleBuffer)
-        }
-    }
-
     private companion object {
         private const val TAG = "VisionBodyTracker"
-        private const val TARGET_FPS = 15
     }
 }

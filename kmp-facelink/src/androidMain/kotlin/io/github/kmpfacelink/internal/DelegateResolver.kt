@@ -55,7 +55,7 @@ internal object DelegateResolver {
             try {
                 val result = factory(delegate)
                 if (delegate != chain.first()) {
-                    FaceLinkLogger.i(TAG, "Using ${delegate.name} delegate (fallback from ${chain.first().name})")
+                    FaceLinkLogger.w(TAG, "Using ${delegate.name} delegate (fallback from ${chain.first().name})")
                 } else {
                     FaceLinkLogger.d(TAG, "Using ${delegate.name} delegate")
                 }

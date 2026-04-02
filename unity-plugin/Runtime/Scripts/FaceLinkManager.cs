@@ -44,6 +44,7 @@ namespace KmpFaceLink
         public bool IsTracking => _bridge?.IsTracking ?? false;
 
         private INativeBridge _bridge;
+        private bool _wasTrackingBeforePause;
 
         private void Awake()
         {
@@ -77,6 +78,35 @@ namespace KmpFaceLink
             {
                 OnHandDataUpdated?.Invoke(LatestHandData);
             }
+        }
+
+        private void OnApplicationPause(bool pauseStatus)
+        {
+            if (_bridge == null) return;
+
+            if (pauseStatus)
+            {
+                // App going to background — stop tracking to release camera
+                if (_bridge.IsTracking)
+                {
+                    _wasTrackingBeforePause = true;
+                    _bridge.StopTracking();
+                }
+            }
+            else
+            {
+                // App returning to foreground — resume if was tracking before
+                if (_wasTrackingBeforePause)
+                {
+                    _wasTrackingBeforePause = false;
+                    _bridge.StartTracking();
+                }
+            }
+        }
+
+        private void OnApplicationQuit()
+        {
+            _bridge?.Dispose();
         }
 
         private void OnDestroy()

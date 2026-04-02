@@ -146,7 +146,7 @@ class CMPHandTrackingViewModel: ObservableObject {
             do {
                 try await tracker.stop()
             } catch {
-                // Ignore stop errors
+                print("Failed to stop hand tracking: \(error)")
             }
         }
     }
@@ -233,7 +233,7 @@ class CMPFaceTrackingViewModel: ObservableObject {
             do {
                 try await tracker.stop()
             } catch {
-                // Ignore stop errors
+                print("Failed to stop face tracking: \(error)")
             }
         }
     }

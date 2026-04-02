@@ -2,6 +2,7 @@ package io.github.kmpfacelink.vmc
 
 import io.github.kmpfacelink.api.Releasable
 import io.github.kmpfacelink.networking.UdpSocket
+import io.github.kmpfacelink.util.FaceLinkLogger
 import io.github.kmpfacelink.vmc.osc.OscDecoder
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
@@ -106,9 +107,13 @@ public class VmcReceiver(
                 val parsed = VmcMessageParser.parse(messages)
                 _receivedData.tryEmit(parsed)
             } catch (expected: IllegalStateException) {
-                // Socket closed or decode error — exit if scope is cancelled
                 if (!isActive) break
+                FaceLinkLogger.w(TAG, "Unexpected socket error: ${expected.message}", expected)
             }
         }
+    }
+
+    private companion object {
+        private const val TAG = "VmcReceiver"
     }
 }

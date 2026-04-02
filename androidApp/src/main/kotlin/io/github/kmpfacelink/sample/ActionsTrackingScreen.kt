@@ -39,20 +39,23 @@ import io.github.kmpfacelink.actions.record.TrackingSession
 import io.github.kmpfacelink.api.FaceTracker
 import io.github.kmpfacelink.api.TrackingState
 import io.github.kmpfacelink.internal.PreviewableFaceTracker
+import io.github.kmpfacelink.model.FaceTrackingData
 import io.github.kmpfacelink.sample.ui.FpsOverlay
 import io.github.kmpfacelink.sample.ui.SampleColors
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 
 @Composable
 internal fun ActionsTrackingScreen(
-    activity: MainActivity,
+    faceTracker: FaceTracker,
+    faceTrackingDataState: MutableStateFlow<FaceTrackingData?>,
     onModeChange: (TrackingMode) -> Unit,
     onStartClick: () -> Unit,
     onStopClick: () -> Unit,
 ) {
     val scope = rememberCoroutineScope()
-    val state by activity.faceTracker.state.collectAsState()
-    val trackingData by activity.faceTrackingDataState.collectAsState()
+    val state by faceTracker.state.collectAsState()
+    val trackingData by faceTrackingDataState.collectAsState()
     val isTracking = state == TrackingState.TRACKING
 
     val holder = remember { ActionsTrackingStateHolder(scope) }
@@ -68,7 +71,7 @@ internal fun ActionsTrackingScreen(
 
     DisposableEffect(isTracking) {
         if (isTracking) {
-            holder.startTracking(activity.faceTracker, activeTriggers) { emotionResult = it }
+            holder.startTracking(faceTracker, activeTriggers) { emotionResult = it }
         } else {
             holder.stopTracking()
         }
@@ -76,7 +79,7 @@ internal fun ActionsTrackingScreen(
     }
 
     ActionsScreenContent(
-        faceTracker = activity.faceTracker,
+        faceTracker = faceTracker,
         state = state,
         isTracking = isTracking,
         emotionResult = emotionResult,

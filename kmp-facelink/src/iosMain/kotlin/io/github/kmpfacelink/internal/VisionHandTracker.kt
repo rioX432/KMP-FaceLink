@@ -9,6 +9,7 @@ import io.github.kmpfacelink.api.HandTracker
 import io.github.kmpfacelink.api.TrackingState
 import io.github.kmpfacelink.model.CameraFacing
 import io.github.kmpfacelink.model.HandGesture
+import io.github.kmpfacelink.model.HandPoseRevision
 import io.github.kmpfacelink.model.HandTrackerConfig
 import io.github.kmpfacelink.model.HandTrackingData
 import io.github.kmpfacelink.model.SmoothingConfig
@@ -19,6 +20,7 @@ import io.github.kmpfacelink.util.GestureClassifier
 import io.github.kmpfacelink.util.HandLandmarkSmoother
 import io.github.kmpfacelink.util.createHandSmoother
 import io.github.kmpfacelink.util.withLock
+import kotlinx.cinterop.useContents
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
 import platform.AVFoundation.AVCaptureConnection
@@ -42,6 +44,7 @@ import platform.CoreVideo.CVPixelBufferGetWidth
 import platform.CoreVideo.kCVPixelBufferPixelFormatTypeKey
 import platform.CoreVideo.kCVPixelFormatType_420YpCbCr8BiPlanarFullRange
 import platform.Foundation.NSNumber
+import platform.Foundation.NSProcessInfo
 import platform.Vision.VNDetectHumanHandPoseRequest
 import platform.Vision.VNHumanHandPoseObservation
 import platform.Vision.VNSequenceRequestHandler
@@ -72,8 +75,7 @@ internal class VisionHandTracker(
     private val handPoseRequest = VNDetectHumanHandPoseRequest().apply {
         @Suppress("CAST_NEVER_SUCCEEDS")
         maximumHandCount = config.maxHands.toULong()
-        // Pin to revision 1 for consistent, faster performance across iOS versions
-        revision = HAND_POSE_REVISION
+        revision = resolveHandPoseRevision(config.handPoseRevision)
     }
     private val sequenceHandler = VNSequenceRequestHandler()
 
@@ -325,6 +327,39 @@ internal class VisionHandTracker(
     private companion object {
         private const val TAG = "VisionHandTracker"
         private const val TARGET_FPS = 15
-        private const val HAND_POSE_REVISION = 1UL
+
+        /** Original hand pose model (iOS 14+). */
+        private const val REVISION_V1 = 1UL
+
+        /** New hand pose model (iOS 26+): smaller, more accurate, lower latency. */
+        private const val REVISION_V2 = 2UL
+
+        /** iOS 26 is the first version to ship the revision 2 hand pose model. */
+        private const val IOS_26_MAJOR_VERSION = 26L
+
+        /**
+         * Resolve the [HandPoseRevision] config to a concrete Vision framework revision number.
+         *
+         * - [HandPoseRevision.AUTO]: revision 2 on iOS 26+, revision 1 otherwise.
+         * - [HandPoseRevision.V1]: always revision 1.
+         * - [HandPoseRevision.V2]: revision 2 on iOS 26+, falls back to revision 1 on older iOS.
+         */
+        private fun resolveHandPoseRevision(preference: HandPoseRevision): ULong {
+            val isIos26OrLater = NSProcessInfo.processInfo.operatingSystemVersion()
+                .useContents { majorVersion >= IOS_26_MAJOR_VERSION }
+            return when (preference) {
+                HandPoseRevision.AUTO -> if (isIos26OrLater) REVISION_V2 else REVISION_V1
+                HandPoseRevision.V1 -> REVISION_V1
+                HandPoseRevision.V2 -> if (isIos26OrLater) {
+                    REVISION_V2
+                } else {
+                    FaceLinkLogger.w(
+                        TAG,
+                        "Hand pose revision 2 requested but requires iOS 26+; falling back to revision 1",
+                    )
+                    REVISION_V1
+                }
+            }
+        }
     }
 }

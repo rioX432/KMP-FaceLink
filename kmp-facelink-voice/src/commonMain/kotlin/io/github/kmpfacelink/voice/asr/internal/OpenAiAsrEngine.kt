@@ -6,15 +6,14 @@ import io.github.kmpfacelink.voice.asr.AsrState
 import io.github.kmpfacelink.voice.asr.TranscriptionResult
 import io.github.kmpfacelink.voice.audio.AudioData
 import io.github.kmpfacelink.voice.tts.internal.platformHttpEngine
+import io.github.kmpfacelink.voice.withEngineStateTransition
 import io.ktor.client.HttpClient
-import io.ktor.client.plugins.ResponseException
 import io.ktor.client.request.forms.formData
 import io.ktor.client.request.forms.submitFormWithBinaryData
 import io.ktor.client.request.header
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.Headers
 import io.ktor.http.HttpHeaders
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -23,9 +22,7 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import kotlinx.io.IOException
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
 
 /**
@@ -62,22 +59,15 @@ internal class OpenAiAsrEngine(private val config: AsrConfig.OpenAiWhisper) : As
             performTranscription(audio)
         }
 
-    private suspend fun performTranscription(audio: AudioData): TranscriptionResult {
-        _state.value = AsrState.Processing
-        return try {
-            val result = executeTranscriptionRequest(audio)
-            _state.value = AsrState.Idle
-            result
-        } catch (e: CancellationException) {
-            throw e
-        } catch (e: ResponseException) {
-            failWithError(e)
-        } catch (e: IOException) {
-            failWithError(e)
-        } catch (e: SerializationException) {
-            failWithError(e)
+    private suspend fun performTranscription(audio: AudioData): TranscriptionResult =
+        withEngineStateTransition(
+            state = _state,
+            processingState = AsrState.Processing,
+            idleState = AsrState.Idle,
+            errorState = { AsrState.Error(it) },
+        ) {
+            executeTranscriptionRequest(audio)
         }
-    }
 
     private suspend fun executeTranscriptionRequest(audio: AudioData): TranscriptionResult {
         val response = client.submitFormWithBinaryData(
@@ -93,11 +83,6 @@ internal class OpenAiAsrEngine(private val config: AsrConfig.OpenAiWhisper) : As
             isFinal = true,
             language = parsed.language,
         )
-    }
-
-    private fun failWithError(e: Exception): Nothing {
-        _state.value = AsrState.Error(e.message ?: "Transcription failed")
-        throw e
     }
 
     private fun buildFormData(audio: AudioData) = formData {

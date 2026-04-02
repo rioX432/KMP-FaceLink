@@ -6,6 +6,7 @@ import io.github.kmpfacelink.voice.asr.AsrEngine
 import io.github.kmpfacelink.voice.asr.AsrState
 import io.github.kmpfacelink.voice.asr.TranscriptionResult
 import io.github.kmpfacelink.voice.audio.AudioData
+import io.github.kmpfacelink.voice.withEngineStateTransition
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -49,28 +50,25 @@ internal class WhisperCppAsrEngine(private val config: AsrConfig.WhisperCpp) : A
         }
     }
 
-    override suspend fun transcribe(audio: AudioData): TranscriptionResult {
-        _state.value = AsrState.Processing
-        return try {
+    override suspend fun transcribe(audio: AudioData): TranscriptionResult =
+        withEngineStateTransition(
+            state = _state,
+            processingState = AsrState.Processing,
+            idleState = AsrState.Idle,
+            errorState = { AsrState.Error(it) },
+        ) {
             ensureInitialized()
 
             // Convert Int16 PCM to Float32 samples
             val samples = convertToFloat32(audio.bytes)
             val text = bridge.transcribe(samples, config.language, config.threads)
 
-            val result = TranscriptionResult(
+            TranscriptionResult(
                 text = text.trim(),
                 isFinal = true,
                 language = config.language,
             )
-
-            _state.value = AsrState.Idle
-            result
-        } catch (e: Exception) {
-            _state.value = AsrState.Error(e.message ?: "Whisper transcription failed")
-            throw e
         }
-    }
 
     override suspend fun startListening() {
         _state.value = AsrState.Listening

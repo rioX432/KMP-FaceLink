@@ -8,6 +8,7 @@ import io.github.kmpfacelink.voice.tts.TtsConfig
 import io.github.kmpfacelink.voice.tts.TtsEngine
 import io.github.kmpfacelink.voice.tts.TtsResult
 import io.github.kmpfacelink.voice.tts.TtsState
+import io.github.kmpfacelink.voice.withEngineStateTransition
 import io.ktor.client.HttpClient
 import io.ktor.client.request.header
 import io.ktor.client.request.post
@@ -44,54 +45,52 @@ internal class ElevenLabsTtsEngine(private val config: TtsConfig.ElevenLabs) : T
 
     private val json = Json { ignoreUnknownKeys = true }
 
-    override suspend fun synthesize(text: String): TtsResult {
-        _state.value = TtsState.Synthesizing
-        return try {
-            val requestBody = json.encodeToString(
-                ElevenLabsRequest.serializer(),
-                ElevenLabsRequest(
-                    text = text,
-                    modelId = config.modelId,
-                    voiceSettings = VoiceSettings(
-                        stability = config.stability,
-                        similarityBoost = config.similarityBoost,
-                    ),
+    override suspend fun synthesize(text: String): TtsResult = withEngineStateTransition(
+        state = _state,
+        processingState = TtsState.Synthesizing,
+        idleState = TtsState.Idle,
+        errorState = { TtsState.Error(it) },
+    ) {
+        val requestBody = json.encodeToString(
+            ElevenLabsRequest.serializer(),
+            ElevenLabsRequest(
+                text = text,
+                modelId = config.modelId,
+                voiceSettings = VoiceSettings(
+                    stability = config.stability,
+                    similarityBoost = config.similarityBoost,
                 ),
-            )
+            ),
+        )
 
-            val response = client.post(
-                "${config.baseUrl}/text-to-speech/${config.voiceId}/with-timestamps",
-            ) {
-                header("xi-api-key", config.apiKey)
-                contentType(ContentType.Application.Json)
-                setBody(requestBody)
-            }
-
-            val responseText = response.bodyAsText()
-            val parsed = json.decodeFromString(ElevenLabsResponse.serializer(), responseText)
-
-            val audioBytes = Base64.decode(parsed.audioBase64)
-            val format = AudioFormat(
-                sampleRate = AudioConstants.SAMPLE_RATE_44K,
-                channels = 1,
-                bitsPerSample = AudioConstants.BITS_16,
-            )
-            val durationMs = computeDurationMs(audioBytes.size, format)
-
-            val phonemeEvents = parsed.alignment?.let { alignment ->
-                buildPhonemeEvents(alignment)
-            } ?: emptyList()
-
-            _state.value = TtsState.Idle
-            TtsResult(
-                audio = AudioData(bytes = audioBytes, format = format, durationMs = durationMs),
-                phonemeEvents = phonemeEvents,
-                durationMs = durationMs,
-            )
-        } catch (e: Exception) {
-            _state.value = TtsState.Error(e.message ?: "ElevenLabs TTS failed")
-            throw e
+        val response = client.post(
+            "${config.baseUrl}/text-to-speech/${config.voiceId}/with-timestamps",
+        ) {
+            header("xi-api-key", config.apiKey)
+            contentType(ContentType.Application.Json)
+            setBody(requestBody)
         }
+
+        val responseText = response.bodyAsText()
+        val parsed = json.decodeFromString(ElevenLabsResponse.serializer(), responseText)
+
+        val audioBytes = Base64.decode(parsed.audioBase64)
+        val format = AudioFormat(
+            sampleRate = AudioConstants.SAMPLE_RATE_44K,
+            channels = 1,
+            bitsPerSample = AudioConstants.BITS_16,
+        )
+        val durationMs = computeDurationMs(audioBytes.size, format)
+
+        val phonemeEvents = parsed.alignment?.let { alignment ->
+            buildPhonemeEvents(alignment)
+        } ?: emptyList()
+
+        TtsResult(
+            audio = AudioData(bytes = audioBytes, format = format, durationMs = durationMs),
+            phonemeEvents = phonemeEvents,
+            durationMs = durationMs,
+        )
     }
 
     override fun release() {

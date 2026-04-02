@@ -52,6 +52,7 @@ struct ActionsTrackingView: View {
                     RecordingControlsView(
                         isRecording: viewModel.isRecording,
                         sessionInfo: viewModel.sessionInfo,
+                        errorMessage: viewModel.recordingError,
                         onToggle: { viewModel.toggleRecording() }
                     )
                 }
@@ -130,27 +131,39 @@ struct TriggerLedsView: View {
 struct RecordingControlsView: View {
     let isRecording: Bool
     let sessionInfo: String?
+    let errorMessage: String?
     let onToggle: () -> Void
 
     var body: some View {
-        HStack(spacing: 8) {
-            Button(isRecording ? "Stop Rec" : "Record") {
-                onToggle()
-            }
-            .font(.caption.weight(.semibold))
-            .foregroundStyle(.white)
-            .padding(.horizontal, 12)
-            .padding(.vertical, 6)
-            .background(isRecording ? .red : .blue, in: Capsule())
+        VStack(alignment: .leading, spacing: 4) {
+            HStack(spacing: 8) {
+                Button(isRecording ? "Stop Rec" : "Record") {
+                    onToggle()
+                }
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(.white)
+                .padding(.horizontal, 12)
+                .padding(.vertical, 6)
+                .background(isRecording ? .red : .blue, in: Capsule())
 
-            if let info = sessionInfo {
-                Text(info)
-                    .font(.system(.caption2, design: .monospaced))
-                    .foregroundStyle(.secondary)
-                    .lineLimit(nil)
-                    .minimumScaleFactor(0.7)
+                if let info = sessionInfo {
+                    Text(info)
+                        .font(.system(.caption2, design: .monospaced))
+                        .foregroundStyle(.secondary)
+                        .lineLimit(nil)
+                        .minimumScaleFactor(0.7)
+                }
+            }
+
+            if let error = errorMessage {
+                Text(error)
+                    .font(.caption2)
+                    .foregroundStyle(.red)
+                    .lineLimit(2)
+                    .transition(.opacity)
             }
         }
+        .animation(.easeInOut(duration: 0.2), value: errorMessage)
     }
 }
 
@@ -168,6 +181,7 @@ class ActionsTrackingViewModel: ObservableObject {
     @Published var activeTriggers: Set<String> = []
     @Published var isRecording = false
     @Published var sessionInfo: String?
+    @Published var recordingError: String?
 
     private var tracker: FaceTracker?
     private var actionSystem: ActionSystem?
@@ -200,15 +214,20 @@ class ActionsTrackingViewModel: ObservableObject {
 
     func toggleRecording() {
         guard let recorder = recorder else { return }
+        recordingError = nil
         Task {
-            if isRecording {
-                let session = try await recorder.stop()
-                isRecording = false
-                sessionInfo = "\(session.frameCount) frames, \(session.durationMs)ms"
-            } else {
-                try await recorder.start()
-                isRecording = true
-                sessionInfo = nil
+            do {
+                if isRecording {
+                    let session = try await recorder.stop()
+                    isRecording = false
+                    sessionInfo = "\(session.frameCount) frames, \(session.durationMs)ms"
+                } else {
+                    try await recorder.start()
+                    isRecording = true
+                    sessionInfo = nil
+                }
+            } catch {
+                recordingError = "Recording failed: \(error.localizedDescription)"
             }
         }
     }

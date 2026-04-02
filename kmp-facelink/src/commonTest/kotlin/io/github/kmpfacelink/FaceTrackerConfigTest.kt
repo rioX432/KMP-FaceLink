@@ -1,5 +1,7 @@
 package io.github.kmpfacelink
 
+import io.github.kmpfacelink.model.ALL_BLEND_SHAPES
+import io.github.kmpfacelink.model.BlendShape
 import io.github.kmpfacelink.model.CalibrationConfig
 import io.github.kmpfacelink.model.CameraFacing
 import io.github.kmpfacelink.model.FaceTrackerConfig
@@ -162,6 +164,29 @@ class FaceTrackerConfigTest {
     fun enableIdleDetectionCanBeDisabled() {
         val config = FaceTrackerConfig(enableIdleDetection = false)
         assertFalse(config.enableIdleDetection)
+    }
+
+    @Test
+    fun activeBlendShapesDefaultsToAll() {
+        val config = FaceTrackerConfig()
+        assertEquals(ALL_BLEND_SHAPES, config.activeBlendShapes)
+    }
+
+    @Test
+    fun activeBlendShapesAcceptsSubset() {
+        val subset = setOf(BlendShape.EYE_BLINK_LEFT, BlendShape.JAW_OPEN)
+        val config = FaceTrackerConfig(activeBlendShapes = subset)
+        assertEquals(subset, config.activeBlendShapes)
+    }
+
+    @Test
+    fun activeBlendShapesRejectsEmpty() {
+        try {
+            FaceTrackerConfig(activeBlendShapes = emptySet())
+            fail("Expected IllegalArgumentException for empty activeBlendShapes")
+        } catch (e: IllegalArgumentException) {
+            assertTrue(checkNotNull(e.message).contains("activeBlendShapes"))
+        }
     }
 }
 

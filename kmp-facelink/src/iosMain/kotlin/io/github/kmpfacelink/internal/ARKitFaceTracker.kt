@@ -12,6 +12,7 @@ import io.github.kmpfacelink.model.FaceTrackingData
 import io.github.kmpfacelink.model.HeadTransform
 import io.github.kmpfacelink.model.SmoothingConfig
 import io.github.kmpfacelink.model.TrackedFace
+import io.github.kmpfacelink.model.filterByActive
 import io.github.kmpfacelink.util.BlendShapeMapPool
 import io.github.kmpfacelink.util.BlendShapeSmoother
 import io.github.kmpfacelink.util.Calibrator
@@ -194,7 +195,7 @@ internal class ARKitFaceTracker(
             // Defensive copy: pipeline stages return reusable scratch maps.
             // The result is stored in FaceTrackingData (held by the SharedFlow replay buffer),
             // so we must snapshot it before the next frame overwrites the scratch map.
-            HashMap(blendShapes)
+            HashMap(blendShapes).filterByActive(config.activeBlendShapes)
         }
 
         // Extract head transform from simd_float4x4

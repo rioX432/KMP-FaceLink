@@ -16,7 +16,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
  * @param block The suspend block containing the engine's core logic.
  * @return The result of the block.
  */
-internal suspend inline fun <S, R> withEngineStateTransition(
+internal suspend inline fun <S : EngineState, R> withEngineStateTransition(
     state: MutableStateFlow<S>,
     processingState: S,
     idleState: S,

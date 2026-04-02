@@ -1,19 +1,21 @@
 package io.github.kmpfacelink.voice.tts
 
+import io.github.kmpfacelink.voice.EngineState
 import kotlinx.coroutines.flow.StateFlow
 import kotlin.io.Closeable
+
 /**
  * State of a TTS engine.
  */
-public sealed class TtsState {
+public sealed class TtsState : EngineState {
     /** Engine is idle and ready. */
-    public data object Idle : TtsState()
+    public data object Idle : TtsState(), EngineState.Idle
 
     /** Engine is synthesizing speech. */
-    public data object Synthesizing : TtsState()
+    public data object Synthesizing : TtsState(), EngineState.Active
 
     /** An error occurred. */
-    public data class Error(val message: String) : TtsState()
+    public data class Error(override val message: String) : TtsState(), EngineState.Error
 }
 
 /**

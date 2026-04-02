@@ -1,5 +1,6 @@
 package io.github.kmpfacelink.voice.asr
 
+import io.github.kmpfacelink.voice.EngineState
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
 import kotlin.io.Closeable
@@ -7,18 +8,18 @@ import kotlin.io.Closeable
 /**
  * State of an ASR engine.
  */
-public sealed class AsrState {
+public sealed class AsrState : EngineState {
     /** Engine is idle and ready. */
-    public data object Idle : AsrState()
+    public data object Idle : AsrState(), EngineState.Idle
 
     /** Engine is actively listening for speech. */
-    public data object Listening : AsrState()
+    public data object Listening : AsrState(), EngineState.Active
 
     /** Engine is processing recorded audio. */
-    public data object Processing : AsrState()
+    public data object Processing : AsrState(), EngineState.Active
 
     /** An error occurred. */
-    public data class Error(val message: String) : AsrState()
+    public data class Error(override val message: String) : AsrState(), EngineState.Error
 }
 
 /**

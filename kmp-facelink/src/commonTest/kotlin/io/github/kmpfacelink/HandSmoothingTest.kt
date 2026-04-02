@@ -2,12 +2,13 @@ package io.github.kmpfacelink
 
 import io.github.kmpfacelink.model.HandJoint
 import io.github.kmpfacelink.model.HandLandmarkPoint
+import io.github.kmpfacelink.model.HandTrackerConfig
 import io.github.kmpfacelink.model.Handedness
 import io.github.kmpfacelink.model.SmoothingConfig
 import io.github.kmpfacelink.model.TrackedHand
 import io.github.kmpfacelink.util.HandEmaFilter
 import io.github.kmpfacelink.util.HandOneEuroFilter
-import io.github.kmpfacelink.util.createHandSmoother
+import io.github.kmpfacelink.util.createSmoother
 import kotlin.math.abs
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -129,21 +130,24 @@ class HandSmoothingTest {
     // ---- Factory ----
 
     @Test
-    fun createHandSmootherNone() {
-        val smoother = SmoothingConfig.None.createHandSmoother()
+    fun createSmootherNone() {
+        val config = HandTrackerConfig(smoothingConfig = SmoothingConfig.None)
+        val smoother = config.createSmoother()
         assertNull(smoother)
     }
 
     @Test
-    fun createHandSmootherEma() {
-        val smoother = SmoothingConfig.Ema(alpha = 0.4f).createHandSmoother()
+    fun createSmootherEma() {
+        val config = HandTrackerConfig(smoothingConfig = SmoothingConfig.Ema(alpha = 0.4f))
+        val smoother = config.createSmoother()
         assertNotNull(smoother)
         assertTrue(smoother is HandEmaFilter)
     }
 
     @Test
-    fun createHandSmootherOneEuro() {
-        val smoother = SmoothingConfig.OneEuro().createHandSmoother()
+    fun createSmootherOneEuro() {
+        val config = HandTrackerConfig(smoothingConfig = SmoothingConfig.OneEuro())
+        val smoother = config.createSmoother()
         assertNotNull(smoother)
         assertTrue(smoother is HandOneEuroFilter)
     }

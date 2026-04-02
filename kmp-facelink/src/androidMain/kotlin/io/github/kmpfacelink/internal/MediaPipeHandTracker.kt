@@ -19,6 +19,7 @@ import io.github.kmpfacelink.util.FrameThrottler
 import io.github.kmpfacelink.util.GestureClassifier
 import io.github.kmpfacelink.util.HandLandmarkSmoother
 import io.github.kmpfacelink.util.createHandSmoother
+import io.github.kmpfacelink.util.createSmoother
 import io.github.kmpfacelink.util.withLock
 import kotlin.concurrent.atomics.ExperimentalAtomicApi
 
@@ -47,7 +48,7 @@ internal class MediaPipeHandTracker(
     HandTracker,
     PreviewableHandTracker {
 
-    private var smoother: HandLandmarkSmoother? = config.smoothingConfig.createHandSmoother()
+    private var smoother: HandLandmarkSmoother? = config.createSmoother()
     private var handLandmarker: HandLandmarker? = null
 
     override val tag: String = TAG
@@ -71,6 +72,7 @@ internal class MediaPipeHandTracker(
     override fun updateSmoothing(config: SmoothingConfig) {
         pipelineLock.withLock {
             checkNotReleased("update smoothing")
+            @Suppress("DEPRECATION")
             smoother = config.createHandSmoother()
         }
     }

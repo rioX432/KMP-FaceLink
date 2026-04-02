@@ -18,6 +18,7 @@ import io.github.kmpfacelink.util.FrameThrottler
 import io.github.kmpfacelink.util.GestureClassifier
 import io.github.kmpfacelink.util.HandLandmarkSmoother
 import io.github.kmpfacelink.util.createHandSmoother
+import io.github.kmpfacelink.util.createSmoother
 import io.github.kmpfacelink.util.withLock
 import kotlinx.cinterop.useContents
 import platform.CoreMedia.CMSampleBufferGetImageBuffer
@@ -42,7 +43,7 @@ internal class VisionHandTracker(
 ),
     HandTracker {
 
-    private var smoother: HandLandmarkSmoother? = config.smoothingConfig.createHandSmoother()
+    private var smoother: HandLandmarkSmoother? = config.createSmoother()
 
     private val handPoseRequest = VNDetectHumanHandPoseRequest().apply {
         @Suppress("CAST_NEVER_SUCCEEDS")
@@ -69,6 +70,7 @@ internal class VisionHandTracker(
     override fun updateSmoothing(config: SmoothingConfig) {
         pipelineLock.withLock {
             checkNotReleased("update smoothing")
+            @Suppress("DEPRECATION")
             smoother = config.createHandSmoother()
         }
     }

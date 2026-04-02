@@ -1,5 +1,6 @@
 package io.github.kmpfacelink.util
 
+import io.github.kmpfacelink.model.BodyTrackerConfig
 import io.github.kmpfacelink.model.SmoothingConfig
 import io.github.kmpfacelink.model.TrackedBody
 
@@ -21,8 +22,19 @@ internal interface BodyLandmarkSmoother {
 }
 
 /**
+ * Create a [BodyLandmarkSmoother] from this config's [SmoothingConfig],
+ * or null for [SmoothingConfig.None].
+ */
+internal fun BodyTrackerConfig.createSmoother(): BodyLandmarkSmoother? =
+    smoothingConfig.createBodySmoother()
+
+/**
  * Create a [BodyLandmarkSmoother] from [SmoothingConfig], or null for [SmoothingConfig.None].
  */
+@Deprecated(
+    message = "Use BodyTrackerConfig.createSmoother() for unified API",
+    replaceWith = ReplaceWith("this.createSmoother()", "io.github.kmpfacelink.util.createSmoother"),
+)
 internal fun SmoothingConfig.createBodySmoother(): BodyLandmarkSmoother? = when (this) {
     is SmoothingConfig.None -> null
     is SmoothingConfig.Ema -> BodyEmaFilter(alpha)

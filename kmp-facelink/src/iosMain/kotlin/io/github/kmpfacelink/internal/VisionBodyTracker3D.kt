@@ -14,6 +14,7 @@ import io.github.kmpfacelink.model.TrackedBody
 import io.github.kmpfacelink.util.BodyLandmarkSmoother
 import io.github.kmpfacelink.util.FrameThrottler
 import io.github.kmpfacelink.util.createBodySmoother
+import io.github.kmpfacelink.util.createSmoother
 import io.github.kmpfacelink.util.withLock
 import platform.AVFoundation.AVCaptureSessionPreset640x480
 import platform.CoreMedia.CMSampleBufferGetImageBuffer
@@ -46,7 +47,7 @@ internal class VisionBodyTracker3D(
 ),
     BodyTracker {
 
-    private var smoother: BodyLandmarkSmoother? = config.smoothingConfig.createBodySmoother()
+    private var smoother: BodyLandmarkSmoother? = config.createSmoother()
     private val bodyPose3DRequest = VNDetectHumanBodyPose3DRequest()
 
     override val tag: String = TAG
@@ -67,6 +68,7 @@ internal class VisionBodyTracker3D(
     override fun updateSmoothing(config: SmoothingConfig) {
         pipelineLock.withLock {
             checkNotReleased("update smoothing")
+            @Suppress("DEPRECATION")
             smoother = config.createBodySmoother()
         }
     }

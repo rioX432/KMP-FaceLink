@@ -50,6 +50,62 @@ jobs:
 
       - run: ./gradlew :kmp-facelink:allTests :kmp-facelink-avatar:allTests :kmp-facelink-actions:allTests :kmp-facelink-voice:allTests :kmp-facelink-llm:allTests
 
+  coverage:
+    name: Coverage
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-java@v5
+        with:
+          distribution: zulu
+          java-version: 17
+
+      - uses: gradle/actions/setup-gradle@v5
+
+      - uses: actions/cache@v5
+        with:
+          path: ~/.konan
+          key: konan-${{ runner.os }}-${{ hashFiles('gradle/libs.versions.toml') }}
+          restore-keys: konan-${{ runner.os }}-
+
+      - name: Setup whisper.cpp for iOS
+        run: ./scripts/setup-whisper-ios.sh
+
+      - name: Run tests with coverage
+        run: >-
+          ./gradlew
+          :kmp-facelink:koverXmlReport
+          :kmp-facelink-avatar:koverXmlReport
+          :kmp-facelink-actions:koverXmlReport
+          :kmp-facelink-voice:koverXmlReport
+          :kmp-facelink-llm:koverXmlReport
+
+      - name: Upload coverage reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-reports
+          path: "**/build/reports/kover/report.xml"
+
+      - name: Add coverage to summary
+        run: |
+          echo "## Coverage Report" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Module | Coverage |" >> $GITHUB_STEP_SUMMARY
+          echo "|--------|----------|" >> $GITHUB_STEP_SUMMARY
+          for module in kmp-facelink kmp-facelink-avatar kmp-facelink-actions kmp-facelink-voice kmp-facelink-llm; do
+            report="${module}/build/reports/kover/report.xml"
+            if [ -f "$report" ]; then
+              covered=$(grep -o 'covered="[0-9]*"' "$report" | grep -o '[0-9]*' | paste -sd+ | bc)
+              missed=$(grep -o 'missed="[0-9]*"' "$report" | grep -o '[0-9]*' | paste -sd+ | bc)
+              total=$((covered + missed))
+              if [ "$total" -gt 0 ]; then
+                pct=$((covered * 100 / total))
+                echo "| \`${module}\` | ${pct}% |" >> $GITHUB_STEP_SUMMARY
+              fi
+            fi
+          done
+
   build:
     name: Build
     runs-on: ubuntu-latest

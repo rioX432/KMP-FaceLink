@@ -9,6 +9,7 @@ plugins {
     alias(libs.plugins.detekt)
     alias(libs.plugins.dokka)
     alias(libs.plugins.nexus.publish)
+    alias(libs.plugins.kover) apply false
 }
 
 nexusPublishing {
@@ -76,6 +77,10 @@ dependencies {
 
 subprojects {
     apply(plugin = "io.gitlab.arturbosch.detekt")
+
+    if (name in publishableModules) {
+        apply(plugin = "org.jetbrains.kotlinx.kover")
+    }
 
     detekt {
         buildUponDefaultConfig = true

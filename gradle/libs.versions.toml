@@ -18,6 +18,7 @@ rive = "9.11.2"
 androidxStartup = "1.2.0"
 composeMultiplatform = "1.10.3"
 nexusPublish = "2.0.0"
+kover = "0.9.8"
 androidxTestCore = "1.6.1"
 androidxTestRunner = "1.6.2"
 androidxTestJunit = "1.2.1"
@@ -72,3 +73,4 @@ skie = { id = "co.touchlab.skie", version.ref = "skie" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 compose-multiplatform = { id = "org.jetbrains.compose", version.ref = "composeMultiplatform" }
 nexus-publish = { id = "io.github.gradle-nexus.publish-plugin", version.ref = "nexusPublish" }
+kover = { id = "org.jetbrains.kotlinx.kover", version.ref = "kover" }

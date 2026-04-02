@@ -96,7 +96,12 @@ internal object ImagePreprocessor {
      * Layout: [R_channel, G_channel, B_channel] each of size (h * w).
      */
     private fun imageToNormalizedCHW(image: BufferedImage, width: Int, height: Int): FloatArray {
-        val pixels = (image.raster.dataBuffer as DataBufferByte).data
+        val dataBuffer = image.raster.dataBuffer as? DataBufferByte
+            ?: error(
+                "Expected DataBufferByte but got ${image.raster.dataBuffer::class.simpleName}. " +
+                    "Ensure the image type is TYPE_3BYTE_BGR.",
+            )
+        val pixels = dataBuffer.data
         val channelSize = width * height
         val result = FloatArray(CHANNELS * channelSize)
 

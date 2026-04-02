@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
@@ -21,6 +20,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.rememberTextMeasurer
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import io.github.kmpfacelink.model.BlendShape
@@ -30,6 +30,8 @@ private const val MAX_DISPLAYED_SHAPES = 15
 private const val HIGH_THRESHOLD = 0.7f
 private const val MEDIUM_THRESHOLD = 0.3f
 private const val PERCENT_MULTIPLIER = 100
+private const val LABEL_WEIGHT = 0.35f
+private const val BAR_WEIGHT = 0.65f
 
 /**
  * Scrollable list of blend shape bars showing the top values.
@@ -97,12 +99,13 @@ private fun BlendShapeBarRow(
             fontSize = 10.sp,
             fontFamily = FontFamily.Monospace,
             maxLines = 1,
-            modifier = Modifier.width(130.dp),
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.weight(LABEL_WEIGHT),
         )
 
         Canvas(
             modifier = Modifier
-                .weight(1f)
+                .weight(BAR_WEIGHT)
                 .height(12.dp),
         ) {
             val barW = size.width

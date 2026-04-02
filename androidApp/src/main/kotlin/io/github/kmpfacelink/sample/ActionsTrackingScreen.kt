@@ -28,6 +28,8 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -154,17 +156,28 @@ private fun ActionsTopBar(
             .padding(horizontal = 12.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Text("Actions", color = SampleColors.TextPrimary, fontSize = 14.sp)
+        Text(
+            "Actions",
+            color = SampleColors.TextPrimary,
+            fontSize = 14.sp,
+            modifier = Modifier.semantics { contentDescription = "Actions tracking mode" },
+        )
         Text(
             " — $state",
             color = SampleColors.TextSecondary,
             fontSize = 12.sp,
+            modifier = Modifier.semantics { contentDescription = "Tracking state: $state" },
         )
         if (isTracking) {
             FpsOverlay(frameTimestamp, modifier = Modifier.padding(start = 8.dp))
         }
         Spacer(modifier = Modifier.weight(1f))
-        Button(onClick = { if (isTracking) onStopClick() else onStartClick() }) {
+        Button(
+            onClick = { if (isTracking) onStopClick() else onStartClick() },
+            modifier = Modifier.semantics {
+                contentDescription = if (isTracking) "Stop tracking" else "Start tracking"
+            },
+        ) {
             Text(if (isTracking) "Stop" else "Start")
         }
     }

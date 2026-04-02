@@ -25,6 +25,10 @@ struct VoiceTrackingView: View {
                                     in: Capsule()
                                 )
                         }
+                        .accessibilityLabel("\(provider) provider")
+                        .accessibilityHint(viewModel.selectedProvider == provider
+                            ? "Currently selected"
+                            : "Double tap to select \(provider)")
                     }
                 }
 
@@ -60,6 +64,8 @@ struct VoiceTrackingView: View {
                         .padding(.vertical, 8)
                         .background(.blue, in: Capsule())
                         .disabled(viewModel.isLoading)
+                        .accessibilityLabel("Speak")
+                        .accessibilityHint("Synthesize and play the entered text")
 
                     Button(viewModel.isListening ? "Stop Mic" : "Listen") {
                         viewModel.toggleListening()
@@ -70,6 +76,10 @@ struct VoiceTrackingView: View {
                     .padding(.vertical, 8)
                     .background(viewModel.isListening ? .red : .blue, in: Capsule())
                     .disabled(viewModel.isLoading)
+                    .accessibilityLabel(viewModel.isListening ? "Stop microphone" : "Start listening")
+                    .accessibilityHint(viewModel.isListening
+                        ? "Stop recording from the microphone"
+                        : "Start recording from the microphone")
 
                     if viewModel.isLoading {
                         ProgressView()
@@ -117,6 +127,7 @@ struct VoiceTrackingView: View {
                             }
                             .frame(height: 6)
                         }
+                        .accessibilityLabel("\(key): \(Int(value * 100)) percent")
                     }
                 }
             }

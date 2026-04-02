@@ -27,11 +27,11 @@ struct HolisticTrackingView: View {
                     // Modality indicators
                     HStack(spacing: 8) {
                         ModalityDot(label: "F", active: viewModel.faceActive)
-                            .accessibilityLabel("Face tracking")
+                            .accessibilityLabel("Face tracking: \(viewModel.faceActive ? "active" : "inactive")")
                         ModalityDot(label: "H", active: viewModel.handActive)
-                            .accessibilityLabel("Hand tracking")
+                            .accessibilityLabel("Hand tracking: \(viewModel.handActive ? "active" : "inactive")")
                         ModalityDot(label: "B", active: viewModel.bodyActive)
-                            .accessibilityLabel("Body tracking")
+                            .accessibilityLabel("Body tracking: \(viewModel.bodyActive ? "active" : "inactive")")
                     }
                     .padding(.horizontal, 12)
                     .padding(.vertical, 6)

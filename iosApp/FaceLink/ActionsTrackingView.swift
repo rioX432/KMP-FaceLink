@@ -95,6 +95,7 @@ struct EmotionBarsView: View {
                     }
                     .frame(height: 6)
                 }
+                .accessibilityLabel("\(emotion): \(Int(value * 100)) percent\(isDominant ? ", dominant" : "")")
             }
         }
     }

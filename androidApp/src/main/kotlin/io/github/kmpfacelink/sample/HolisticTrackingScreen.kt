@@ -23,6 +23,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -104,7 +106,12 @@ internal fun HolisticTrackingScreen(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Text("Holistic", color = Color.White, fontSize = 14.sp)
+                    Text(
+                        "Holistic",
+                        color = Color.White,
+                        fontSize = 14.sp,
+                        modifier = Modifier.semantics { contentDescription = "Holistic tracking mode" },
+                    )
                     Spacer(Modifier.weight(1f))
                     HolisticStatusBadges(trackingData)
                 }
@@ -143,12 +150,21 @@ private fun HolisticStatusBadges(data: HolisticTrackingData?) {
 @Composable
 private fun StatusDot(label: String, active: Boolean) {
     val color = if (active) Color.Green else Color.Gray
+    val statusLabel = when (label) {
+        "F" -> "Face tracking"
+        "H" -> "Hand tracking"
+        "B" -> "Body tracking"
+        else -> label
+    }
+    val statusState = if (active) "active" else "inactive"
     Text(
         text = label,
         color = color,
         fontSize = 12.sp,
         fontFamily = FontFamily.Monospace,
-        modifier = Modifier.padding(horizontal = 4.dp),
+        modifier = Modifier
+            .padding(horizontal = 4.dp)
+            .semantics { contentDescription = "$statusLabel $statusState" },
     )
 }
 

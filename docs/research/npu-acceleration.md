@@ -31,7 +31,7 @@ faceLandmarker = try {
 }
 ```
 
-The `Delegate` enum from MediaPipe Tasks currently supports only `CPU` and `GPU`. There is no `NPU` option in the MediaPipe Tasks API as of v0.10.32.
+The `Delegate` enum from MediaPipe Tasks currently supports only `CPU` and `GPU`. There is no `NPU` option in the MediaPipe Tasks API as of v0.10.33. See also [litert-2x-mediapipe-compatibility.md](litert-2x-mediapipe-compatibility.md) for LiteRT 2.x CompiledModel API analysis.
 
 ### 1.2 Power Management
 

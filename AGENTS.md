@@ -80,7 +80,7 @@ Note: `kmp-facelink-llm` includes platform-specific inference engines (llama.cpp
 ### Tech Stack
 
 - **Kotlin 2.2.0** — KMP with `explicitApi()` on all modules
-- **Android**: MediaPipe 0.10.32, CameraX 1.5.3, Compose
+- **Android**: MediaPipe 0.10.33, CameraX 1.5.3, Compose
 - **iOS**: ARKit, Vision framework, SwiftUI
 - **Networking**: Ktor 3.1.1 (OkHttp on Android, Darwin on iOS)
 - **Serialization**: kotlinx-serialization-json 1.8.1

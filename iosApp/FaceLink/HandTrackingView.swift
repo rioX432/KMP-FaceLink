@@ -33,7 +33,7 @@ struct HandTrackingView: View {
                             .font(.system(.title2, design: .monospaced))
                             .lineLimit(1)
                             .minimumScaleFactor(0.5)
-                            .foregroundStyle(isIdle ? .secondary : .white)
+                            .foregroundStyle(isIdle ? .secondary : .primary)
                             .padding(.horizontal, 16)
                             .padding(.vertical, 10)
                             .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 12))

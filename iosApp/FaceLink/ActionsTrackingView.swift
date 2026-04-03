@@ -39,13 +39,13 @@ struct ActionsTrackingView: View {
                     Text("Emotions").font(.caption.weight(.bold))
                     EmotionBarsView(scores: viewModel.emotionScores, dominant: viewModel.dominantEmotion)
 
-                    Divider().background(.white.opacity(0.3))
+                    Divider().background(Color(.separator))
 
                     // Triggers
                     Text("Triggers").font(.caption.weight(.bold))
                     TriggerLedsView(activeTriggers: viewModel.activeTriggers)
 
-                    Divider().background(.white.opacity(0.3))
+                    Divider().background(Color(.separator))
 
                     // Recording
                     Text("Recording").font(.caption.weight(.bold))
@@ -88,7 +88,7 @@ struct EmotionBarsView: View {
                         .frame(width: 80, alignment: .leading)
                     GeometryReader { geo in
                         ZStack(alignment: .leading) {
-                            Rectangle().fill(.white.opacity(0.1))
+                            Rectangle().fill(Color(.separator))
                             Rectangle()
                                 .fill(isDominant ? .green : .orange)
                                 .frame(width: max(0, geo.size.width * CGFloat(min(1, max(0, value)))))

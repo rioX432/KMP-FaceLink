@@ -21,7 +21,7 @@ struct VoiceTrackingView: View {
                                 .padding(.vertical, 5)
                                 .background(
                                     viewModel.selectedProvider == provider
-                                        ? Color.blue.opacity(0.6) : Color.white.opacity(0.15),
+                                        ? Color.blue.opacity(0.6) : Color(.tertiarySystemFill),
                                     in: Capsule()
                                 )
                         }
@@ -84,7 +84,7 @@ struct VoiceTrackingView: View {
                     if viewModel.isLoading {
                         ProgressView()
                             .progressViewStyle(.circular)
-                            .tint(.white)
+                            .tint(.primary)
                             .scaleEffect(0.8)
                     }
                 }
@@ -119,7 +119,7 @@ struct VoiceTrackingView: View {
                                 .frame(width: 100, alignment: .leading)
                             GeometryReader { geo in
                                 ZStack(alignment: .leading) {
-                                    Rectangle().fill(.white.opacity(0.1))
+                                    Rectangle().fill(Color(.separator))
                                     Rectangle()
                                         .fill(.green)
                                         .frame(width: max(0, geo.size.width * CGFloat(min(1, max(0, value)))))

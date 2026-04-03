@@ -11,7 +11,7 @@ struct FpsOverlayView: View {
     var body: some View {
         Text(String(format: "%.0f FPS", fps))
             .font(.system(.caption2, design: .monospaced))
-            .foregroundStyle(.white.opacity(0.8))
+            .foregroundStyle(.primary)
             .padding(.horizontal, 6)
             .padding(.vertical, 2)
             .background(.ultraThinMaterial, in: Capsule())

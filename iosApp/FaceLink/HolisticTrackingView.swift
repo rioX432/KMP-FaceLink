@@ -16,7 +16,7 @@ struct HolisticTrackingView: View {
                 )
                 .ignoresSafeArea()
             } else {
-                Color.black.ignoresSafeArea()
+                Color(.systemBackground).ignoresSafeArea()
             }
 
             // Status overlay

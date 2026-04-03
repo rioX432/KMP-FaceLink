@@ -5,7 +5,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
 /**
- * No-op battery monitor for JVM/desktop targets where battery monitoring is not applicable.
+ * No-op battery monitor for non-mobile targets where battery monitoring is not applicable.
  */
 internal class NoOpBatteryMonitor : BatteryMonitor {
     override val batteryLevel: StateFlow<Float> = MutableStateFlow(1.0f)

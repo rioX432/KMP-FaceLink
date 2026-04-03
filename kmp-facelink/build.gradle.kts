@@ -41,6 +41,18 @@ kotlin {
     }
 
     sourceSets {
+        val nonMobileMain by creating {
+            dependsOn(commonMain.get())
+        }
+
+        jvmMain {
+            dependsOn(nonMobileMain)
+        }
+
+        val wasmJsMain by getting {
+            dependsOn(nonMobileMain)
+        }
+
         commonMain.dependencies {
             implementation(libs.kotlinx.coroutines.core)
         }

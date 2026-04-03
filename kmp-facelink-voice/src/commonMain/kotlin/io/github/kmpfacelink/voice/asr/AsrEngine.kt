@@ -1,5 +1,6 @@
 package io.github.kmpfacelink.voice.asr
 
+import io.github.kmpfacelink.api.Releasable
 import io.github.kmpfacelink.voice.EngineState
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
@@ -27,10 +28,10 @@ public sealed class AsrState : EngineState {
  *
  * Supports both one-shot transcription and continuous listening mode.
  *
- * Implements [Closeable] so engines can be used with `use {}` blocks or
- * other resource-management patterns. [close] delegates to [release].
+ * Implements [Releasable] for consistent lifecycle management and [Closeable]
+ * so engines can be used with `use {}` blocks. [close] delegates to [release].
  */
-public interface AsrEngine : Closeable {
+public interface AsrEngine : Releasable, Closeable {
     /** Current engine state. */
     public val state: StateFlow<AsrState>
 
@@ -52,7 +53,7 @@ public interface AsrEngine : Closeable {
     public val transcriptions: Flow<TranscriptionResult>
 
     /** Releases all resources held by this engine. Idempotent. */
-    public fun release()
+    public override fun release()
 
     /** Delegates to [release]. */
     override fun close(): Unit = release()

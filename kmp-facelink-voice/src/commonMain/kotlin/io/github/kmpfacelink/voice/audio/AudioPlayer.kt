@@ -1,11 +1,14 @@
 package io.github.kmpfacelink.voice.audio
 
+import io.github.kmpfacelink.api.Releasable
 import kotlinx.coroutines.flow.StateFlow
 
 /**
  * Platform audio player for PCM playback.
+ *
+ * Implements [Releasable] for consistent lifecycle management.
  */
-public interface AudioPlayer {
+public interface AudioPlayer : Releasable {
     /** Whether audio is currently playing. */
     public val isPlaying: StateFlow<Boolean>
 
@@ -20,5 +23,5 @@ public interface AudioPlayer {
     public fun stop()
 
     /** Releases all resources held by this player. */
-    public fun release()
+    public override fun release()
 }

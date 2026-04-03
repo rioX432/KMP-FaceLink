@@ -101,8 +101,11 @@ struct VoiceTrackingView: View {
                     .foregroundStyle(viewModel.pipelineStateColor)
 
                 // Transcription
-                if !viewModel.transcription.isEmpty {
-                    Text("Transcription").font(.caption.weight(.bold))
+                Text("Transcription").font(.caption.weight(.bold))
+                if viewModel.transcription.isEmpty {
+                    Text("No transcription yet")
+                        .font(.caption2).foregroundStyle(.secondary)
+                } else {
                     Text(viewModel.transcription)
                         .font(.caption)
                         .foregroundStyle(.secondary)

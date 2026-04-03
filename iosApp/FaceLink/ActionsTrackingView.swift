@@ -31,6 +31,16 @@ struct ActionsTrackingView: View {
                     }
                 }
 
+                if viewModel.isTracking && viewModel.emotionScores.isEmpty {
+                    ProgressView("Starting tracking…")
+                        .font(.caption)
+                        .tint(.white)
+                        .foregroundStyle(.white)
+                        .padding(8)
+                        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 8))
+                        .padding(.top, 8)
+                }
+
                 Spacer()
 
                 // Bottom panel
@@ -75,6 +85,10 @@ struct EmotionBarsView: View {
     let dominant: String
 
     var body: some View {
+        if scores.isEmpty {
+            Text("No emotion data")
+                .font(.caption2).foregroundStyle(.secondary)
+        }
         VStack(spacing: 2) {
             ForEach(Array(scores.keys.sorted()), id: \.self) { emotion in
                 let value = scores[emotion] ?? 0

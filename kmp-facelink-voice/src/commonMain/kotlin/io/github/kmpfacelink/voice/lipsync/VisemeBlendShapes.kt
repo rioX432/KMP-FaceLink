@@ -10,91 +10,102 @@ import io.github.kmpfacelink.model.BlendShape
  */
 public object VisemeBlendShapes {
 
+    private const val WEIGHT_MINIMAL = 0.1f
+    private const val WEIGHT_SUBTLE = 0.15f
+    private const val WEIGHT_LOW = 0.2f
+    private const val WEIGHT_LOW_MID = 0.25f
+    private const val WEIGHT_MEDIUM = 0.3f
+    private const val WEIGHT_MID_HIGH = 0.35f
+    private const val WEIGHT_MODERATE = 0.4f
+    private const val WEIGHT_HALF = 0.5f
+    private const val WEIGHT_STRONG = 0.6f
+    private const val WEIGHT_HIGH = 0.7f
+
     private val mappings: Map<Viseme, Map<BlendShape, Float>> = mapOf(
         Viseme.SIL to emptyMap(),
         Viseme.PP to mapOf(
-            BlendShape.MOUTH_CLOSE to 0.7f,
-            BlendShape.MOUTH_PRESS_LEFT to 0.5f,
-            BlendShape.MOUTH_PRESS_RIGHT to 0.5f,
-            BlendShape.MOUTH_PUCKER to 0.3f,
+            BlendShape.MOUTH_CLOSE to WEIGHT_HIGH,
+            BlendShape.MOUTH_PRESS_LEFT to WEIGHT_HALF,
+            BlendShape.MOUTH_PRESS_RIGHT to WEIGHT_HALF,
+            BlendShape.MOUTH_PUCKER to WEIGHT_MEDIUM,
         ),
         Viseme.FF to mapOf(
-            BlendShape.MOUTH_FUNNEL to 0.3f,
-            BlendShape.MOUTH_LOWER_DOWN_LEFT to 0.2f,
-            BlendShape.MOUTH_LOWER_DOWN_RIGHT to 0.2f,
-            BlendShape.MOUTH_UPPER_UP_LEFT to 0.15f,
-            BlendShape.MOUTH_UPPER_UP_RIGHT to 0.15f,
+            BlendShape.MOUTH_FUNNEL to WEIGHT_MEDIUM,
+            BlendShape.MOUTH_LOWER_DOWN_LEFT to WEIGHT_LOW,
+            BlendShape.MOUTH_LOWER_DOWN_RIGHT to WEIGHT_LOW,
+            BlendShape.MOUTH_UPPER_UP_LEFT to WEIGHT_SUBTLE,
+            BlendShape.MOUTH_UPPER_UP_RIGHT to WEIGHT_SUBTLE,
         ),
         Viseme.TH to mapOf(
-            BlendShape.JAW_OPEN to 0.15f,
-            BlendShape.MOUTH_UPPER_UP_LEFT to 0.1f,
-            BlendShape.MOUTH_UPPER_UP_RIGHT to 0.1f,
-            BlendShape.TONGUE_OUT to 0.3f,
+            BlendShape.JAW_OPEN to WEIGHT_SUBTLE,
+            BlendShape.MOUTH_UPPER_UP_LEFT to WEIGHT_MINIMAL,
+            BlendShape.MOUTH_UPPER_UP_RIGHT to WEIGHT_MINIMAL,
+            BlendShape.TONGUE_OUT to WEIGHT_MEDIUM,
         ),
         Viseme.DD to mapOf(
-            BlendShape.JAW_OPEN to 0.2f,
-            BlendShape.MOUTH_CLOSE to 0.15f,
-            BlendShape.MOUTH_PRESS_LEFT to 0.3f,
-            BlendShape.MOUTH_PRESS_RIGHT to 0.3f,
+            BlendShape.JAW_OPEN to WEIGHT_LOW,
+            BlendShape.MOUTH_CLOSE to WEIGHT_SUBTLE,
+            BlendShape.MOUTH_PRESS_LEFT to WEIGHT_MEDIUM,
+            BlendShape.MOUTH_PRESS_RIGHT to WEIGHT_MEDIUM,
         ),
         Viseme.KK to mapOf(
-            BlendShape.JAW_OPEN to 0.25f,
-            BlendShape.MOUTH_STRETCH_LEFT to 0.2f,
-            BlendShape.MOUTH_STRETCH_RIGHT to 0.2f,
+            BlendShape.JAW_OPEN to WEIGHT_LOW_MID,
+            BlendShape.MOUTH_STRETCH_LEFT to WEIGHT_LOW,
+            BlendShape.MOUTH_STRETCH_RIGHT to WEIGHT_LOW,
         ),
         Viseme.CH to mapOf(
-            BlendShape.JAW_OPEN to 0.2f,
-            BlendShape.MOUTH_FUNNEL to 0.5f,
-            BlendShape.MOUTH_PUCKER to 0.3f,
+            BlendShape.JAW_OPEN to WEIGHT_LOW,
+            BlendShape.MOUTH_FUNNEL to WEIGHT_HALF,
+            BlendShape.MOUTH_PUCKER to WEIGHT_MEDIUM,
         ),
         Viseme.SS to mapOf(
-            BlendShape.JAW_OPEN to 0.1f,
-            BlendShape.MOUTH_SMILE_LEFT to 0.2f,
-            BlendShape.MOUTH_SMILE_RIGHT to 0.2f,
-            BlendShape.MOUTH_STRETCH_LEFT to 0.3f,
-            BlendShape.MOUTH_STRETCH_RIGHT to 0.3f,
+            BlendShape.JAW_OPEN to WEIGHT_MINIMAL,
+            BlendShape.MOUTH_SMILE_LEFT to WEIGHT_LOW,
+            BlendShape.MOUTH_SMILE_RIGHT to WEIGHT_LOW,
+            BlendShape.MOUTH_STRETCH_LEFT to WEIGHT_MEDIUM,
+            BlendShape.MOUTH_STRETCH_RIGHT to WEIGHT_MEDIUM,
         ),
         Viseme.NN to mapOf(
-            BlendShape.JAW_OPEN to 0.1f,
-            BlendShape.MOUTH_CLOSE to 0.3f,
-            BlendShape.MOUTH_PRESS_LEFT to 0.2f,
-            BlendShape.MOUTH_PRESS_RIGHT to 0.2f,
+            BlendShape.JAW_OPEN to WEIGHT_MINIMAL,
+            BlendShape.MOUTH_CLOSE to WEIGHT_MEDIUM,
+            BlendShape.MOUTH_PRESS_LEFT to WEIGHT_LOW,
+            BlendShape.MOUTH_PRESS_RIGHT to WEIGHT_LOW,
         ),
         Viseme.RR to mapOf(
-            BlendShape.JAW_OPEN to 0.15f,
-            BlendShape.MOUTH_FUNNEL to 0.4f,
-            BlendShape.MOUTH_PUCKER to 0.2f,
+            BlendShape.JAW_OPEN to WEIGHT_SUBTLE,
+            BlendShape.MOUTH_FUNNEL to WEIGHT_MODERATE,
+            BlendShape.MOUTH_PUCKER to WEIGHT_LOW,
         ),
         Viseme.AA to mapOf(
-            BlendShape.JAW_OPEN to 0.7f,
-            BlendShape.MOUTH_LOWER_DOWN_LEFT to 0.3f,
-            BlendShape.MOUTH_LOWER_DOWN_RIGHT to 0.3f,
-            BlendShape.MOUTH_UPPER_UP_LEFT to 0.15f,
-            BlendShape.MOUTH_UPPER_UP_RIGHT to 0.15f,
+            BlendShape.JAW_OPEN to WEIGHT_HIGH,
+            BlendShape.MOUTH_LOWER_DOWN_LEFT to WEIGHT_MEDIUM,
+            BlendShape.MOUTH_LOWER_DOWN_RIGHT to WEIGHT_MEDIUM,
+            BlendShape.MOUTH_UPPER_UP_LEFT to WEIGHT_SUBTLE,
+            BlendShape.MOUTH_UPPER_UP_RIGHT to WEIGHT_SUBTLE,
         ),
         Viseme.E to mapOf(
-            BlendShape.JAW_OPEN to 0.35f,
-            BlendShape.MOUTH_SMILE_LEFT to 0.3f,
-            BlendShape.MOUTH_SMILE_RIGHT to 0.3f,
-            BlendShape.MOUTH_STRETCH_LEFT to 0.2f,
-            BlendShape.MOUTH_STRETCH_RIGHT to 0.2f,
+            BlendShape.JAW_OPEN to WEIGHT_MID_HIGH,
+            BlendShape.MOUTH_SMILE_LEFT to WEIGHT_MEDIUM,
+            BlendShape.MOUTH_SMILE_RIGHT to WEIGHT_MEDIUM,
+            BlendShape.MOUTH_STRETCH_LEFT to WEIGHT_LOW,
+            BlendShape.MOUTH_STRETCH_RIGHT to WEIGHT_LOW,
         ),
         Viseme.IH to mapOf(
-            BlendShape.JAW_OPEN to 0.2f,
-            BlendShape.MOUTH_SMILE_LEFT to 0.4f,
-            BlendShape.MOUTH_SMILE_RIGHT to 0.4f,
-            BlendShape.MOUTH_STRETCH_LEFT to 0.3f,
-            BlendShape.MOUTH_STRETCH_RIGHT to 0.3f,
+            BlendShape.JAW_OPEN to WEIGHT_LOW,
+            BlendShape.MOUTH_SMILE_LEFT to WEIGHT_MODERATE,
+            BlendShape.MOUTH_SMILE_RIGHT to WEIGHT_MODERATE,
+            BlendShape.MOUTH_STRETCH_LEFT to WEIGHT_MEDIUM,
+            BlendShape.MOUTH_STRETCH_RIGHT to WEIGHT_MEDIUM,
         ),
         Viseme.OH to mapOf(
-            BlendShape.JAW_OPEN to 0.5f,
-            BlendShape.MOUTH_FUNNEL to 0.5f,
-            BlendShape.MOUTH_PUCKER to 0.2f,
+            BlendShape.JAW_OPEN to WEIGHT_HALF,
+            BlendShape.MOUTH_FUNNEL to WEIGHT_HALF,
+            BlendShape.MOUTH_PUCKER to WEIGHT_LOW,
         ),
         Viseme.OU to mapOf(
-            BlendShape.JAW_OPEN to 0.25f,
-            BlendShape.MOUTH_FUNNEL to 0.6f,
-            BlendShape.MOUTH_PUCKER to 0.5f,
+            BlendShape.JAW_OPEN to WEIGHT_LOW_MID,
+            BlendShape.MOUTH_FUNNEL to WEIGHT_STRONG,
+            BlendShape.MOUTH_PUCKER to WEIGHT_HALF,
         ),
     )
 

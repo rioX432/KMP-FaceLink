@@ -19,6 +19,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.io.IOException
+import kotlin.concurrent.atomics.AtomicBoolean
 import kotlin.concurrent.atomics.AtomicInt
 import kotlin.concurrent.atomics.ExperimentalAtomicApi
 
@@ -63,7 +64,7 @@ public class VtsClient(
 ) : Releasable {
     private val client: HttpClient = httpClient ?: HttpClient { install(WebSockets) }
     private val ownsClient: Boolean = httpClient == null
-    private var released = false
+    private val released = AtomicBoolean(false)
 
     private val mutex = Mutex()
     private var session: WebSocketSession? = null
@@ -291,11 +292,13 @@ public class VtsClient(
      * Releases all resources held by this client.
      *
      * Cancels any active connection and closes the HTTP client if it was
-     * created internally. Safe to call multiple times.
+     * created internally. Safe to call multiple times and from any thread.
      */
     public override fun release() {
-        if (released) return
-        released = true
+        if (!released.compareAndSet(expectedValue = false, newValue = true)) return
+        // Cancel the connection job first; coroutine cancellation will propagate
+        // CancellationException to all pending requests and clean up the session
+        // via receiveLoop's finally block.
         connectionJob?.cancel()
         connectionJob = null
         session = null

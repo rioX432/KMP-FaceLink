@@ -2,6 +2,7 @@ package io.github.kmpfacelink.sample
 
 import androidx.camera.view.PreviewView
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -11,11 +12,13 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -131,6 +134,9 @@ private fun ActionsScreenContent(
         Column(modifier = Modifier.fillMaxSize()) {
             ActionsTopBar(state, isTracking, frameTimestamp, onStartClick, onStopClick)
             ModeToggle(currentMode = TrackingMode.ACTIONS, onModeChange = onModeChange)
+            if (isTracking && emotionResult == null) {
+                LoadingOverlay()
+            }
             Spacer(modifier = Modifier.weight(1f))
             ActionsBottomPanel(
                 emotionResult = emotionResult,
@@ -222,4 +228,24 @@ private fun SectionHeader(title: String) {
         fontWeight = FontWeight.Bold,
         modifier = Modifier.padding(top = 8.dp, bottom = 4.dp),
     )
+}
+
+@Composable
+private fun LoadingOverlay() {
+    Row(
+        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        CircularProgressIndicator(
+            modifier = Modifier.size(16.dp),
+            strokeWidth = 2.dp,
+            color = SampleColors.TextSecondary,
+        )
+        Text(
+            text = "Starting tracking…",
+            color = SampleColors.TextSecondary,
+            fontSize = 12.sp,
+        )
+    }
 }

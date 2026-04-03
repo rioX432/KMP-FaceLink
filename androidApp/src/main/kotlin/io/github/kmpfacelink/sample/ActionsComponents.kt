@@ -31,10 +31,18 @@ import io.github.kmpfacelink.sample.ui.SampleColors
 
 @Composable
 internal fun EmotionBars(result: EmotionResult?) {
-    val scores = result?.scores ?: Emotion.entries.associateWith { 0f }
+    if (result == null) {
+        Text(
+            text = "No emotion data",
+            color = SampleColors.TextTertiary,
+            fontSize = 11.sp,
+        )
+        return
+    }
+    val scores = result.scores.ifEmpty { Emotion.entries.associateWith { 0f } }
     Emotion.entries.forEach { emotion ->
         val score = scores[emotion] ?: 0f
-        val isDominant = result?.emotion == emotion
+        val isDominant = result.emotion == emotion
         val dominantLabel = if (isDominant) ", dominant emotion" else ""
         val scorePercent = (score.coerceIn(0f, 1f) * 100).toInt()
         Row(

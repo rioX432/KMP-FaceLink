@@ -68,10 +68,11 @@ public class WebSocketTransport(
     }
 
     override suspend fun send(data: ByteArray) {
-        val currentSession = mutex.withLock { session }
-        check(currentSession != null) { "Transport is not connected" }
         try {
-            currentSession.outgoing.send(Frame.Binary(true, data))
+            mutex.withLock {
+                val currentSession = checkNotNull(session) { "Transport is not connected" }
+                currentSession.outgoing.send(Frame.Binary(true, data))
+            }
         } catch (e: CancellationException) {
             throw e
         } catch (@Suppress("TooGenericExceptionCaught") e: Exception) {

@@ -12,6 +12,7 @@ import io.github.kmpfacelink.model.TrackedFace
 import io.github.kmpfacelink.model.emptyBlendShapeData
 import io.github.kmpfacelink.model.filterByActive
 import io.github.kmpfacelink.util.FaceLinkLogger
+import io.github.kmpfacelink.util.GazeEstimator
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -134,16 +135,18 @@ internal class MediaPipeWasmFaceTracker(
         video: JsVideoElement,
         timestamp: Int,
     ) {
-        val primaryBlendShapes = WasmResultMapper.extractBlendShapes(result, 0)
-            .filterByActive(config.activeBlendShapes)
+        val rawPrimaryBlendShapes = WasmResultMapper.extractBlendShapes(result, 0)
+        val primaryBlendShapes = rawPrimaryBlendShapes.filterByActive(config.activeBlendShapes)
         val primaryLandmarks = WasmResultMapper.extractLandmarks(result, 0)
         val primaryTransform = WasmResultMapper.extractHeadTransform(result, 0)
+        val primaryGaze = GazeEstimator.estimate(rawPrimaryBlendShapes)
 
         val faces = buildTrackedFaces(result, faceCount)
 
         val data = FaceTrackingData(
             blendShapes = primaryBlendShapes,
             headTransform = primaryTransform,
+            gazeData = primaryGaze,
             landmarks = primaryLandmarks,
             sourceImageWidth = getVideoWidthJs(video),
             sourceImageHeight = getVideoHeightJs(video),
@@ -158,11 +161,12 @@ internal class MediaPipeWasmFaceTracker(
         result: JsFaceLandmarkerResult,
         faceCount: Int,
     ): List<TrackedFace> = List(faceCount) { i ->
+        val rawBlendShapes = WasmResultMapper.extractBlendShapes(result, i)
         TrackedFace(
             faceIndex = i,
-            blendShapes = WasmResultMapper.extractBlendShapes(result, i)
-                .filterByActive(config.activeBlendShapes),
+            blendShapes = rawBlendShapes.filterByActive(config.activeBlendShapes),
             headTransform = WasmResultMapper.extractHeadTransform(result, i),
+            gazeData = GazeEstimator.estimate(rawBlendShapes),
             landmarks = WasmResultMapper.extractLandmarks(result, i),
         )
     }

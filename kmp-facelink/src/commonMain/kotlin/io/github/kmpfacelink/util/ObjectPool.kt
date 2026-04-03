@@ -1,5 +1,7 @@
 package io.github.kmpfacelink.util
 
+import kotlin.concurrent.Volatile
+
 /**
  * A simple object pool that reuses pre-allocated instances to reduce GC pressure.
  *

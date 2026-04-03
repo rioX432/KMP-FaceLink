@@ -12,6 +12,9 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -48,11 +51,18 @@ public class LiveKitDataChannelPublisher(
         install(WebSockets)
     }
 
+    private val _connectionState = MutableStateFlow(LiveKitConnectionState.DISCONNECTED)
+
+    /** Observable connection state. */
+    public val connectionState: StateFlow<LiveKitConnectionState> =
+        _connectionState.asStateFlow()
+
     override val isConnected: Boolean
-        get() = session != null
+        get() = _connectionState.value == LiveKitConnectionState.CONNECTED
 
     override suspend fun connect(scope: CoroutineScope) {
         connectionJob?.cancel()
+        _connectionState.value = LiveKitConnectionState.CONNECTING
         connectionJob = scope.launch { establishConnection() }
     }
 
@@ -77,6 +87,7 @@ public class LiveKitDataChannelPublisher(
             session = null
         }
         reconnectAttempts = 0
+        _connectionState.value = LiveKitConnectionState.DISCONNECTED
     }
 
     private suspend fun establishConnection() {
@@ -85,6 +96,7 @@ public class LiveKitDataChannelPublisher(
             client.webSocket(urlString = wsUrl) {
                 mutex.withLock { session = this }
                 reconnectAttempts = 0
+                _connectionState.value = LiveKitConnectionState.CONNECTED
                 // Keep connection alive by consuming incoming frames
                 for (incoming in this.incoming) {
                     // Server may send acks or control messages; consume silently
@@ -100,8 +112,12 @@ public class LiveKitDataChannelPublisher(
     }
 
     private suspend fun attemptReconnect() {
-        if (reconnectAttempts >= config.maxReconnectAttempts) return
+        if (reconnectAttempts >= config.maxReconnectAttempts) {
+            _connectionState.value = LiveKitConnectionState.DISCONNECTED
+            return
+        }
         reconnectAttempts++
+        _connectionState.value = LiveKitConnectionState.RECONNECTING
         delay(config.reconnectDelayMs)
         establishConnection()
     }
@@ -109,6 +125,7 @@ public class LiveKitDataChannelPublisher(
     private suspend fun handleSendFailure(error: Exception) {
         FaceLinkLogger.w(TAG, "Send failed (${error::class.simpleName}): ${error.message}")
         mutex.withLock { session = null }
+        _connectionState.value = LiveKitConnectionState.DISCONNECTED
     }
 
     /**

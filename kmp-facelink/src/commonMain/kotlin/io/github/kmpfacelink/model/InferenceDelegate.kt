@@ -45,5 +45,10 @@ public enum class InferenceDelegate {
      * direct LiteRT vendor delegates will be needed (tracked separately).
      * This option has no effect on iOS.
      */
+    @Deprecated(
+        message = "NNAPI is deprecated in Android 15 (API 35). Use AUTO or GPU instead. " +
+            "This option currently falls back to GPU → CPU.",
+        replaceWith = ReplaceWith("AUTO"),
+    )
     NNAPI,
 }

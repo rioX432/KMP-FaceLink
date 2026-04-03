@@ -32,11 +32,12 @@ internal object HardwareCapabilityDetector {
      * @property gpuComputeSupported Whether the device supports OpenGL ES 3.1+ compute shaders,
      *           required by MediaPipe's GPU delegate.
      * @property nnapiAvailable Whether the Android NNAPI is available on this device.
-     *           Note: NNAPI is deprecated starting in Android 15 (API 35).
+     *           Deprecated: NNAPI is deprecated starting in Android 15 (API 35).
      * @property androidApiLevel The device's Android API level.
      */
     data class Capabilities(
         val gpuComputeSupported: Boolean,
+        @Deprecated("NNAPI is deprecated in Android 15 (API 35)")
         val nnapiAvailable: Boolean,
         val androidApiLevel: Int,
     )

@@ -8,27 +8,14 @@ import com.google.mediapipe.tasks.vision.facelandmarker.FaceLandmarkerResult
 import io.github.kmpfacelink.api.FaceTracker
 import io.github.kmpfacelink.api.PlatformContext
 import io.github.kmpfacelink.api.TrackingState
-import io.github.kmpfacelink.model.BlendShapeData
 import io.github.kmpfacelink.model.CameraFacing
-import io.github.kmpfacelink.model.FaceLandmark
 import io.github.kmpfacelink.model.FaceTrackerConfig
 import io.github.kmpfacelink.model.FaceTrackingData
-import io.github.kmpfacelink.model.HeadTransform
 import io.github.kmpfacelink.model.SmoothingConfig
-import io.github.kmpfacelink.model.TrackedFace
-import io.github.kmpfacelink.model.filterByActive
-import io.github.kmpfacelink.util.BlendShapeEnhancer
-import io.github.kmpfacelink.util.BlendShapeInterpolator
-import io.github.kmpfacelink.util.BlendShapeSmoother
-import io.github.kmpfacelink.util.Calibrator
-import io.github.kmpfacelink.util.ConfidenceFrameStrategy
 import io.github.kmpfacelink.util.FaceLinkLogger
-import io.github.kmpfacelink.util.FrameDecision
 import io.github.kmpfacelink.util.FrameThrottler
 import io.github.kmpfacelink.util.GazeEstimator
 import io.github.kmpfacelink.util.PowerModeManager
-import io.github.kmpfacelink.util.createFaceSmoother
-import io.github.kmpfacelink.util.createSmoother
 import io.github.kmpfacelink.util.withLock
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -41,12 +28,6 @@ import java.util.concurrent.RejectedExecutionException
 import java.util.concurrent.TimeUnit
 import kotlin.concurrent.atomics.ExperimentalAtomicApi
 
-// Lifecycle (start/stop/release/switchCamera), config (resetCalibration/updateSmoothing),
-// camera pipeline (startCamera/processFrame/processSharedFrame), result assembly
-// (onFaceLandmarkerResult/processPrimaryPipeline/buildTrackedFaces), and frame skip
-// interpolation (emitInterpolatedFrame) form a cohesive unit.
-// Raw result extraction is delegated to FaceLandmarkerResultMapper.
-@Suppress("TooManyFunctions")
 @OptIn(ExperimentalAtomicApi::class)
 internal class MediaPipeFaceTracker(
     private val platformContext: PlatformContext,
@@ -63,12 +44,6 @@ internal class MediaPipeFaceTracker(
     override val state: StateFlow<TrackingState> = super.state
     override val errorMessage: StateFlow<String?> = super.errorMessage
 
-    private var smoother: BlendShapeSmoother? = config.createSmoother()
-    private val enhancer: BlendShapeEnhancer? = BlendShapeEnhancer.create(config.enhancerConfig)
-    private val calibrator = Calibrator(
-        warmupFrames = config.calibrationConfig.warmupFrames,
-        decayRate = config.calibrationConfig.rangeDecayRate,
-    )
     private val batteryMonitor = AndroidBatteryMonitor(platformContext.context)
     private val powerModeManager: PowerModeManager? = config.powerMode?.let { mode ->
         PowerModeManager(
@@ -79,9 +54,15 @@ internal class MediaPipeFaceTracker(
             enableIdleDetection = config.enableIdleDetection,
         )
     }
-    private val frameSkipStrategy = ConfidenceFrameStrategy(config.frameSkipConfig)
-    private val interpolator = BlendShapeInterpolator()
-    private var lastConfidence: Float = 0f
+
+    private val resultProcessor = FaceResultProcessor(
+        config = config,
+        pipelineLock = pipelineLock,
+        isReleased = ::isReleased,
+        isEnhancerDisabled = ::isEnhancerDisabled,
+    )
+    private val interpolationHandler = FrameInterpolationHandler(config)
+
     private val analysisExecutor = Executors.newSingleThreadExecutor()
     private val imageConverter = ImageProxyConverter()
     private val cameraManager = if (sharedCameraSession == null) CameraXManager(platformContext) else null
@@ -187,15 +168,14 @@ internal class MediaPipeFaceTracker(
     override fun resetCalibration() {
         pipelineLock.withLock {
             checkNotReleased("reset calibration")
-            calibrator.reset()
-            smoother?.reset()
+            resultProcessor.resetCalibration()
         }
     }
 
     override fun updateSmoothing(config: SmoothingConfig) {
         pipelineLock.withLock {
             checkNotReleased("update smoothing")
-            smoother = config.createFaceSmoother()
+            resultProcessor.updateSmoothing(config)
         }
     }
 
@@ -257,7 +237,6 @@ internal class MediaPipeFaceTracker(
         result: FaceLandmarkerResult,
         @Suppress("UNUSED_PARAMETER") input: com.google.mediapipe.framework.image.MPImage,
     ) {
-        // Return the bitmap now that MediaPipe is done processing
         cameraPipeline.returnBitmapAfterResult(result.timestampMs())
 
         val timestampMs = result.timestampMs()
@@ -269,16 +248,21 @@ internal class MediaPipeFaceTracker(
 
         val primaryLandmarks = FaceLandmarkerResultMapper.extractLandmarks(result, faceIndex = 0)
         val primaryBlendShapes = FaceLandmarkerResultMapper.extractBlendShapes(result, faceIndex = 0)
-        val processedPrimary = processPrimaryPipeline(primaryBlendShapes, primaryLandmarks, timestampMs) ?: return
+        val processedPrimary = resultProcessor.processPrimary(primaryBlendShapes, primaryLandmarks, timestampMs)
+            ?: return
         val primaryHeadTransform = FaceLandmarkerResultMapper.extractHeadTransform(result, faceIndex = 0)
 
-        val faces = buildTrackedFaces(result, processedPrimary, primaryLandmarks, primaryHeadTransform, timestampMs)
+        val faces = resultProcessor.buildTrackedFaces(
+            result,
+            processedPrimary,
+            primaryLandmarks,
+            primaryHeadTransform,
+            timestampMs,
+        )
 
-        // Update interpolator and confidence strategy with processed data
         val primaryConfidence = faces.firstOrNull()?.confidence ?: 1.0f
-        lastConfidence = primaryConfidence
-        interpolator.onFrameProcessed(processedPrimary, primaryHeadTransform, timestampMs)
-        frameSkipStrategy.onFrameProcessed(processedPrimary, primaryConfidence)
+        interpolationHandler.onFrameProcessed(processedPrimary, primaryHeadTransform, timestampMs, primaryConfidence)
+        powerModeManager?.onFrameProcessed(processedPrimary, timestampMs)
 
         val data = FaceTrackingData(
             blendShapes = processedPrimary,
@@ -305,115 +289,22 @@ internal class MediaPipeFaceTracker(
         }
         if (!throttleAllowed) return false
 
-        // Confidence-guided skip: if conditions are stable, emit interpolated data
-        val decision = frameSkipStrategy.evaluate(lastConfidence)
-        if (decision == FrameDecision.SKIP) {
-            emitInterpolatedFrame(timestampMs)
+        if (interpolationHandler.shouldSkip()) {
+            interpolationHandler.buildInterpolatedData(
+                timestampMs = timestampMs,
+                imageWidth = cameraPipeline.lastImageWidth,
+                imageHeight = cameraPipeline.lastImageHeight,
+                thermalState = thermalMonitor.thermalState.value,
+            )?.let { mutableTrackingData.tryEmit(it) }
             return false
         }
         return true
     }
 
-    private fun emitInterpolatedFrame(timestampMs: Long) {
-        val blendShapes = interpolator.interpolateBlendShapes(timestampMs) ?: return
-        val headTransform = interpolator.interpolateTransform(timestampMs) ?: return
-        val filtered = blendShapes.filterByActive(config.activeBlendShapes)
-
-        val data = FaceTrackingData(
-            blendShapes = filtered,
-            headTransform = headTransform,
-            gazeData = GazeEstimator.estimate(filtered),
-            sourceImageWidth = cameraPipeline.lastImageWidth,
-            sourceImageHeight = cameraPipeline.lastImageHeight,
-            timestampMs = timestampMs,
-            isTracking = true,
-            faces = listOf(
-                TrackedFace(
-                    faceIndex = 0,
-                    blendShapes = filtered,
-                    headTransform = headTransform,
-                    gazeData = GazeEstimator.estimate(filtered),
-                    confidence = lastConfidence,
-                ),
-            ),
-            thermalState = thermalMonitor.thermalState.value,
-        )
-        mutableTrackingData.tryEmit(data)
-    }
-
-    /** Runs enhance -> calibrate -> smooth on the primary face. Returns null if tracker is released. */
-    private fun processPrimaryPipeline(
-        blendShapes: BlendShapeData,
-        landmarks: List<FaceLandmark>,
-        timestampMs: Long,
-    ): BlendShapeData? {
-        var result = blendShapes
-        return pipelineLock.withLock {
-            if (isReleased()) return null
-
-            val enhancerDisabled = if (powerModeManager != null) {
-                powerModeManager.shouldDisableEnhancer()
-            } else {
-                frameThrottler.shouldDisableEnhancer(thermalMonitor.thermalState.value)
-            }
-            if (!enhancerDisabled) {
-                enhancer?.let { result = it.enhance(result, landmarks) }
-            }
-
-            if (config.calibrationConfig.enabled) {
-                result = calibrator.calibrate(result)
-            }
-
-            smoother?.let { result = it.smooth(result, timestampMs) }
-
-            // Notify power mode manager for idle detection
-            powerModeManager?.onFrameProcessed(result, timestampMs)
-
-            // Defensive copy: pipeline stages return reusable scratch maps.
-            // The result is stored in FaceTrackingData (held by the SharedFlow replay buffer),
-            // so we must snapshot it before the next frame overwrites the scratch map.
-            HashMap(result).filterByActive(config.activeBlendShapes)
-        }
-    }
-
-    private fun buildTrackedFaces(
-        result: FaceLandmarkerResult,
-        processedPrimary: BlendShapeData,
-        primaryLandmarks: List<FaceLandmark>,
-        primaryHeadTransform: HeadTransform,
-        timestampMs: Long,
-    ): List<TrackedFace> {
-        val faceCount = result.faceBlendshapes().get().size
-        return List(faceCount) { index ->
-            if (index == 0) {
-                TrackedFace(
-                    faceIndex = 0,
-                    blendShapes = processedPrimary,
-                    headTransform = primaryHeadTransform,
-                    gazeData = GazeEstimator.estimate(processedPrimary),
-                    landmarks = primaryLandmarks,
-                )
-            } else {
-                val landmarks = FaceLandmarkerResultMapper.extractLandmarks(result, index)
-                val headTransform = FaceLandmarkerResultMapper.extractHeadTransform(result, index)
-                // Secondary faces: apply only smoothing (no per-face calibration/enhancement state)
-                var blendShapes = FaceLandmarkerResultMapper.extractBlendShapes(result, index)
-                pipelineLock.withLock {
-                    smoother?.let {
-                        // Defensive copy: smoother returns a reusable scratch map.
-                        blendShapes = HashMap(it.smooth(blendShapes, timestampMs))
-                    }
-                }
-                blendShapes = blendShapes.filterByActive(config.activeBlendShapes)
-                TrackedFace(
-                    faceIndex = index,
-                    blendShapes = blendShapes,
-                    headTransform = headTransform,
-                    gazeData = GazeEstimator.estimate(blendShapes),
-                    landmarks = landmarks,
-                )
-            }
-        }
+    private fun isEnhancerDisabled(): Boolean = if (powerModeManager != null) {
+        powerModeManager.shouldDisableEnhancer()
+    } else {
+        frameThrottler.shouldDisableEnhancer(thermalMonitor.thermalState.value)
     }
 
     companion object {

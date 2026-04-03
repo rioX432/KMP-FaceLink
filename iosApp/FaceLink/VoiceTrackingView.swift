@@ -100,6 +100,8 @@ struct VoiceTrackingView: View {
                     Text(viewModel.transcription)
                         .font(.caption)
                         .foregroundStyle(.secondary)
+                        .lineLimit(3)
+                        .truncationMode(.tail)
                 }
 
                 // Lip sync bars

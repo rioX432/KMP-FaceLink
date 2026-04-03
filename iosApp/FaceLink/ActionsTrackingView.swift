@@ -154,7 +154,8 @@ struct RecordingControlsView: View {
                     Text(info)
                         .font(.system(.caption2, design: .monospaced))
                         .foregroundStyle(.secondary)
-                        .lineLimit(nil)
+                        .lineLimit(2)
+                        .truncationMode(.tail)
                         .minimumScaleFactor(0.7)
                 }
             }

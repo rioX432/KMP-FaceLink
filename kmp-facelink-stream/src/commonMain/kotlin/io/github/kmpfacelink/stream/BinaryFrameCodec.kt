@@ -36,7 +36,7 @@ internal object BinaryFrameCodec {
     private const val HEADER_SIZE: Int = 10 // 1 + 1 + 8
     private const val FACE_BLOCK_SIZE: Int = (BLEND_SHAPE_COUNT + HEAD_POSE_FLOATS) * Float.SIZE_BYTES
     private const val HAND_ENTRY_SIZE: Int = 1 + HAND_LANDMARK_FLOATS * Float.SIZE_BYTES
-    private const val FLOAT_BYTE_MASK: Int = 0xFF
+    private const val BYTE_MASK: Int = 0xFF
 
     /**
      * Encodes a [StreamFrame] into a compact binary representation.
@@ -57,7 +57,7 @@ internal object BinaryFrameCodec {
         var offset = 0
         // skip version byte
         offset++
-        val flags = data[offset].toInt() and FLOAT_BYTE_MASK
+        val flags = data[offset].toInt() and BYTE_MASK
         offset++
         val timestampMs = readLong(data, offset)
         offset += Long.SIZE_BYTES
@@ -145,11 +145,11 @@ internal object BinaryFrameCodec {
 
     private fun readHandsBlock(data: ByteArray, startOffset: Int): Pair<List<HandFrame>, Int> {
         var offset = startOffset
-        val count = data[offset].toInt() and FLOAT_BYTE_MASK
+        val count = data[offset].toInt() and BYTE_MASK
         offset++
         val hands = mutableListOf<HandFrame>()
         repeat(count) {
-            val sideIndex = data[offset].toInt() and FLOAT_BYTE_MASK
+            val sideIndex = data[offset].toInt() and BYTE_MASK
             offset++
             val landmarks = mutableListOf<Float>()
             repeat(HAND_LANDMARK_FLOATS) {
@@ -210,6 +210,15 @@ private fun indexToSide(index: Int): String = when (index) {
 
 // Little-endian byte I/O helpers
 
+private const val BYTE_MASK: Int = 0xFF
+private const val LONG_MASK: Long = 0xFFFFFFFFL
+private const val BITS_PER_BYTE: Int = 8
+private const val SHIFT_TWO_BYTES: Int = 16
+private const val SHIFT_THREE_BYTES: Int = 24
+private const val BITS_PER_INT: Int = 32
+private const val BYTE_OFFSET_2: Int = 2
+private const val BYTE_OFFSET_3: Int = 3
+
 internal fun writeFloat(buffer: ByteArray, offset: Int, value: Float) {
     writeInt(buffer, offset, value.toRawBits())
 }
@@ -217,30 +226,26 @@ internal fun writeFloat(buffer: ByteArray, offset: Int, value: Float) {
 internal fun readFloat(buffer: ByteArray, offset: Int): Float =
     Float.fromBits(readInt(buffer, offset))
 
-@Suppress("MagicNumber")
 internal fun writeInt(buffer: ByteArray, offset: Int, value: Int) {
-    buffer[offset] = (value and 0xFF).toByte()
-    buffer[offset + 1] = (value shr 8 and 0xFF).toByte()
-    buffer[offset + 2] = (value shr 16 and 0xFF).toByte()
-    buffer[offset + 3] = (value shr 24 and 0xFF).toByte()
+    buffer[offset] = (value and BYTE_MASK).toByte()
+    buffer[offset + 1] = (value shr BITS_PER_BYTE and BYTE_MASK).toByte()
+    buffer[offset + BYTE_OFFSET_2] = (value shr SHIFT_TWO_BYTES and BYTE_MASK).toByte()
+    buffer[offset + BYTE_OFFSET_3] = (value shr SHIFT_THREE_BYTES and BYTE_MASK).toByte()
 }
 
-@Suppress("MagicNumber")
 internal fun readInt(buffer: ByteArray, offset: Int): Int =
-    (buffer[offset].toInt() and 0xFF) or
-        (buffer[offset + 1].toInt() and 0xFF shl 8) or
-        (buffer[offset + 2].toInt() and 0xFF shl 16) or
-        (buffer[offset + 3].toInt() and 0xFF shl 24)
+    (buffer[offset].toInt() and BYTE_MASK) or
+        (buffer[offset + 1].toInt() and BYTE_MASK shl BITS_PER_BYTE) or
+        (buffer[offset + BYTE_OFFSET_2].toInt() and BYTE_MASK shl SHIFT_TWO_BYTES) or
+        (buffer[offset + BYTE_OFFSET_3].toInt() and BYTE_MASK shl SHIFT_THREE_BYTES)
 
-@Suppress("MagicNumber")
 internal fun writeLong(buffer: ByteArray, offset: Int, value: Long) {
     writeInt(buffer, offset, value.toInt())
-    writeInt(buffer, offset + 4, (value shr 32).toInt())
+    writeInt(buffer, offset + Int.SIZE_BYTES, (value shr BITS_PER_INT).toInt())
 }
 
-@Suppress("MagicNumber")
 internal fun readLong(buffer: ByteArray, offset: Int): Long {
-    val low = readInt(buffer, offset).toLong() and 0xFFFFFFFFL
-    val high = readInt(buffer, offset + 4).toLong() and 0xFFFFFFFFL
-    return low or (high shl 32)
+    val low = readInt(buffer, offset).toLong() and LONG_MASK
+    val high = readInt(buffer, offset + Int.SIZE_BYTES).toLong() and LONG_MASK
+    return low or (high shl BITS_PER_INT)
 }

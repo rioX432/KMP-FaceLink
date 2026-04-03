@@ -6,6 +6,8 @@ import io.github.kmpfacelink.pipeline.AvatarPipelineConfig
 import io.github.kmpfacelink.pipeline.AvatarPipelineOutput
 import io.github.kmpfacelink.pipeline.DefaultAvatarPipeline
 import io.github.kmpfacelink.pipeline.benchmark.PipelineLatencyTracker
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
@@ -45,7 +47,7 @@ class PipelineLatencyTest {
             llmClient = llm,
             ttsEngine = tts,
             lipSyncEngine = lipSync,
-            dispatcher = UnconfinedTestDispatcher(),
+            scope = CoroutineScope(SupervisorJob() + UnconfinedTestDispatcher()),
         )
         pipeline.start()
 
@@ -115,7 +117,7 @@ class PipelineLatencyTest {
             llmClient = llm,
             ttsEngine = tts,
             lipSyncEngine = lipSync,
-            dispatcher = UnconfinedTestDispatcher(),
+            scope = CoroutineScope(SupervisorJob() + UnconfinedTestDispatcher()),
         )
         pipeline.start()
 

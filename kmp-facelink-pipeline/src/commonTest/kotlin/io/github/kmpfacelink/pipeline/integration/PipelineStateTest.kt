@@ -9,6 +9,8 @@ import io.github.kmpfacelink.voice.asr.AsrEngine
 import io.github.kmpfacelink.voice.asr.AsrState
 import io.github.kmpfacelink.voice.asr.TranscriptionResult
 import io.github.kmpfacelink.voice.audio.AudioData
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -43,7 +45,7 @@ class PipelineStateTest {
             config = testConfig,
             llmClient = DelayedMockLlmClient(),
             asrEngine = asr,
-            dispatcher = UnconfinedTestDispatcher(),
+            scope = CoroutineScope(SupervisorJob() + UnconfinedTestDispatcher()),
         )
         pipeline.start()
         assertEquals(AvatarPipelineState.Idle, pipeline.state.value)
@@ -65,7 +67,7 @@ class PipelineStateTest {
             llmClient = DelayedMockLlmClient(tokens = listOf("OK.")),
             ttsEngine = tts,
             lipSyncEngine = lipSync,
-            dispatcher = UnconfinedTestDispatcher(),
+            scope = CoroutineScope(SupervisorJob() + UnconfinedTestDispatcher()),
         )
         pipeline.start()
 
@@ -102,7 +104,7 @@ class PipelineStateTest {
                 tokens = listOf("Slow", " response."),
                 delayPerTokenMs = SLOW_TOKEN_DELAY_MS,
             ),
-            dispatcher = UnconfinedTestDispatcher(),
+            scope = CoroutineScope(SupervisorJob() + UnconfinedTestDispatcher()),
         )
         pipeline.start()
 
@@ -122,7 +124,7 @@ class PipelineStateTest {
         val pipeline = DefaultAvatarPipeline(
             config = testConfig,
             llmClient = failingLlm,
-            dispatcher = UnconfinedTestDispatcher(),
+            scope = CoroutineScope(SupervisorJob() + UnconfinedTestDispatcher()),
         )
         pipeline.start()
 
@@ -138,7 +140,7 @@ class PipelineStateTest {
         val recoveredPipeline = DefaultAvatarPipeline(
             config = testConfig,
             llmClient = workingLlm,
-            dispatcher = UnconfinedTestDispatcher(),
+            scope = CoroutineScope(SupervisorJob() + UnconfinedTestDispatcher()),
         )
         recoveredPipeline.start()
 
@@ -159,7 +161,7 @@ class PipelineStateTest {
         val pipeline = DefaultAvatarPipeline(
             config = testConfig,
             llmClient = slowLlm,
-            dispatcher = UnconfinedTestDispatcher(),
+            scope = CoroutineScope(SupervisorJob() + UnconfinedTestDispatcher()),
         )
         pipeline.start()
 

@@ -9,7 +9,9 @@ import io.github.kmpfacelink.voice.asr.AsrEngine
 import io.github.kmpfacelink.voice.lipsync.LipSyncEngine
 import io.github.kmpfacelink.voice.tts.TtsEngine
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
@@ -40,6 +42,7 @@ public class AvatarPipelineBuilder {
     private var customLipSyncEngine: LipSyncEngine? = null
     private var customAsrEngine: AsrEngine? = null
     private var thermalState: StateFlow<ThermalState>? = null
+    private var customScope: CoroutineScope? = null
     private var customDispatcher: CoroutineDispatcher = Dispatchers.Default
 
     /** Sets the LLM provider configuration. */
@@ -77,7 +80,22 @@ public class AvatarPipelineBuilder {
         customAsrEngine = engine
     }
 
-    /** Sets the coroutine dispatcher for background work. */
+    /**
+     * Sets the coroutine scope for the pipeline.
+     *
+     * The caller owns [scope] and is responsible for cancelling it.
+     * Takes precedence over [dispatcher] if both are set.
+     */
+    public fun scope(scope: CoroutineScope) {
+        customScope = scope
+    }
+
+    /**
+     * Sets the coroutine dispatcher for background work.
+     *
+     * An internal [CoroutineScope] is created from the dispatcher at build time.
+     * Ignored if [scope] is also set.
+     */
     public fun dispatcher(dispatcher: CoroutineDispatcher) {
         customDispatcher = dispatcher
     }
@@ -100,13 +118,15 @@ public class AvatarPipelineBuilder {
     public fun build(): AvatarPipeline {
         val client = resolveClient()
         val config = buildConfig()
+        val resolvedScope = customScope
+            ?: CoroutineScope(SupervisorJob() + customDispatcher)
         return DefaultAvatarPipeline(
             config = config,
             llmClient = client,
             ttsEngine = customTtsEngine,
             lipSyncEngine = customLipSyncEngine,
             asrEngine = customAsrEngine,
-            dispatcher = customDispatcher,
+            scope = resolvedScope,
         )
     }
 

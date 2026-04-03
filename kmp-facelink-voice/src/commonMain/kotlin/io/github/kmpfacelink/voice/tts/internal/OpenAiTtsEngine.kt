@@ -1,5 +1,6 @@
 package io.github.kmpfacelink.voice.tts.internal
 
+import io.github.kmpfacelink.networking.http.platformHttpEngine
 import io.github.kmpfacelink.voice.AudioConstants
 import io.github.kmpfacelink.voice.audio.AudioData
 import io.github.kmpfacelink.voice.audio.AudioFormat

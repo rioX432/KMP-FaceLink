@@ -35,19 +35,12 @@ kotlin {
     sourceSets {
         commonMain.dependencies {
             api(project(":kmp-facelink"))
+            implementation(project(":kmp-facelink-networking"))
             implementation(libs.kotlinx.coroutines.core)
             implementation(libs.kotlinx.serialization.json)
             implementation(libs.ktor.client.core)
             implementation(libs.ktor.client.content.negotiation)
             implementation(libs.ktor.serialization.kotlinx.json)
-        }
-
-        androidMain.dependencies {
-            implementation(libs.ktor.client.okhttp)
-        }
-
-        iosMain.dependencies {
-            implementation(libs.ktor.client.darwin)
         }
 
         commonTest.dependencies {

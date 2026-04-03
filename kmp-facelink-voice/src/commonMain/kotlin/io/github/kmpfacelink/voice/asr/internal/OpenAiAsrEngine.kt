@@ -1,11 +1,11 @@
 package io.github.kmpfacelink.voice.asr.internal
 
+import io.github.kmpfacelink.networking.http.platformHttpEngine
 import io.github.kmpfacelink.voice.asr.AsrConfig
 import io.github.kmpfacelink.voice.asr.AsrEngine
 import io.github.kmpfacelink.voice.asr.AsrState
 import io.github.kmpfacelink.voice.asr.TranscriptionResult
 import io.github.kmpfacelink.voice.audio.AudioData
-import io.github.kmpfacelink.voice.tts.internal.platformHttpEngine
 import io.github.kmpfacelink.voice.withEngineStateTransition
 import io.ktor.client.HttpClient
 import io.ktor.client.request.forms.formData

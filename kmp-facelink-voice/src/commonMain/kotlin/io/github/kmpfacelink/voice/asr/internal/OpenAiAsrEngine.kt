@@ -36,7 +36,10 @@ import kotlinx.serialization.json.Json
  * - `kotlinx.serialization.SerializationException` — response body could not be parsed.
  * - `kotlinx.coroutines.CancellationException` — the coroutine was cancelled; always re-thrown.
  */
-internal class OpenAiAsrEngine(private val config: AsrConfig.OpenAiWhisper) : AsrEngine {
+internal class OpenAiAsrEngine(
+    private val config: AsrConfig.OpenAiWhisper,
+    httpClient: HttpClient? = null,
+) : AsrEngine {
 
     private val _state = MutableStateFlow<AsrState>(AsrState.Idle)
     override val state: StateFlow<AsrState> = _state.asStateFlow()
@@ -44,9 +47,10 @@ internal class OpenAiAsrEngine(private val config: AsrConfig.OpenAiWhisper) : As
     private val _transcriptions = MutableSharedFlow<TranscriptionResult>(extraBufferCapacity = 16)
     override val transcriptions: Flow<TranscriptionResult> = _transcriptions.asSharedFlow()
 
-    private val client = HttpClient(platformHttpEngine()) {
+    private val client: HttpClient = httpClient ?: HttpClient(platformHttpEngine()) {
         expectSuccess = true
     }
+    private val ownsClient: Boolean = httpClient == null
 
     @Volatile private var released = false
     private val releaseMutex = Mutex()
@@ -112,7 +116,7 @@ internal class OpenAiAsrEngine(private val config: AsrConfig.OpenAiWhisper) : As
         released = true
         if (releaseMutex.tryLock()) {
             try {
-                client.close()
+                if (ownsClient) client.close()
             } finally {
                 releaseMutex.unlock()
             }

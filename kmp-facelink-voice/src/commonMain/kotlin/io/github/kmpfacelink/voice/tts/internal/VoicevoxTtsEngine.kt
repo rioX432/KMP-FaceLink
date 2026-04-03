@@ -35,16 +35,20 @@ private const val WAV_HEADER_SIZE = 44
  *
  * Flow: POST /audio_query → parse mora timing → POST /synthesis → WAV audio
  */
-internal class VoicevoxTtsEngine(private val config: TtsConfig.Voicevox) : TtsEngine {
+internal class VoicevoxTtsEngine(
+    private val config: TtsConfig.Voicevox,
+    httpClient: HttpClient? = null,
+) : TtsEngine {
 
     private val _state = MutableStateFlow<TtsState>(TtsState.Idle)
     override val state: StateFlow<TtsState> = _state.asStateFlow()
 
     private val baseUrl = "http://${config.host}:${config.port}"
 
-    private val client = HttpClient(platformHttpEngine()) {
+    private val client: HttpClient = httpClient ?: HttpClient(platformHttpEngine()) {
         expectSuccess = true
     }
+    private val ownsClient: Boolean = httpClient == null
 
     @Volatile private var released = false
 
@@ -103,7 +107,7 @@ internal class VoicevoxTtsEngine(private val config: TtsConfig.Voicevox) : TtsEn
     override fun release() {
         if (released) return
         released = true
-        client.close()
+        if (ownsClient) client.close()
     }
 
     private fun extractPhonemeEvents(audioQuery: AudioQuery): List<PhonemeEvent> {

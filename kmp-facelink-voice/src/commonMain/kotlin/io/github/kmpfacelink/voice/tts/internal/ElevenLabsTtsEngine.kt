@@ -33,14 +33,18 @@ import kotlin.io.encoding.ExperimentalEncodingApi
  * to get character alignment data for approximate phoneme lip sync.
  */
 @OptIn(ExperimentalEncodingApi::class)
-internal class ElevenLabsTtsEngine(private val config: TtsConfig.ElevenLabs) : TtsEngine {
+internal class ElevenLabsTtsEngine(
+    private val config: TtsConfig.ElevenLabs,
+    httpClient: HttpClient? = null,
+) : TtsEngine {
 
     private val _state = MutableStateFlow<TtsState>(TtsState.Idle)
     override val state: StateFlow<TtsState> = _state.asStateFlow()
 
-    private val client = HttpClient(platformHttpEngine()) {
+    private val client: HttpClient = httpClient ?: HttpClient(platformHttpEngine()) {
         expectSuccess = true
     }
+    private val ownsClient: Boolean = httpClient == null
 
     @Volatile private var released = false
 
@@ -97,7 +101,7 @@ internal class ElevenLabsTtsEngine(private val config: TtsConfig.ElevenLabs) : T
     override fun release() {
         if (released) return
         released = true
-        client.close()
+        if (ownsClient) client.close()
     }
 
     private fun buildPhonemeEvents(

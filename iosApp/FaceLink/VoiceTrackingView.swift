@@ -35,18 +35,23 @@ struct VoiceTrackingView: View {
                 // Provider config
                 switch viewModel.selectedProvider {
                 case "Voicevox":
-                    TextField("Host", text: $viewModel.voicevoxHost)
+                    TextField("Voicevox host address", text: $viewModel.voicevoxHost)
                         .textFieldStyle(.roundedBorder).font(.caption)
+                        .accessibilityLabel("Voicevox host address")
                 case "OpenAI":
-                    TextField("API Key", text: $viewModel.apiKey)
+                    TextField("OpenAI API key", text: $viewModel.apiKey)
                         .textFieldStyle(.roundedBorder).font(.caption)
-                    TextField("Voice", text: $viewModel.voiceId)
+                        .accessibilityLabel("OpenAI API key")
+                    TextField("OpenAI voice name", text: $viewModel.voiceId)
                         .textFieldStyle(.roundedBorder).font(.caption)
+                        .accessibilityLabel("OpenAI voice name")
                 case "ElevenLabs":
-                    TextField("API Key", text: $viewModel.apiKey)
+                    TextField("ElevenLabs API key", text: $viewModel.apiKey)
                         .textFieldStyle(.roundedBorder).font(.caption)
-                    TextField("Voice ID", text: $viewModel.voiceId)
+                        .accessibilityLabel("ElevenLabs API key")
+                    TextField("ElevenLabs voice ID", text: $viewModel.voiceId)
                         .textFieldStyle(.roundedBorder).font(.caption)
+                        .accessibilityLabel("ElevenLabs voice ID")
                 default: EmptyView()
                 }
 
@@ -55,6 +60,7 @@ struct VoiceTrackingView: View {
                 TextField("Text to speak", text: $viewModel.speakText, axis: .vertical)
                     .textFieldStyle(.roundedBorder).font(.caption)
                     .lineLimit(3)
+                    .accessibilityLabel("Text to speak")
 
                 HStack(spacing: 8) {
                     Button("Speak") { viewModel.speak() }

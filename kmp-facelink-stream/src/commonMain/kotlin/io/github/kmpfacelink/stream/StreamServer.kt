@@ -1,5 +1,6 @@
 package io.github.kmpfacelink.stream
 
+import io.github.kmpfacelink.api.Releasable
 import io.github.kmpfacelink.util.FaceLinkLogger
 import io.ktor.server.application.install
 import io.ktor.server.cio.CIO
@@ -55,7 +56,7 @@ import kotlin.time.Duration.Companion.milliseconds
 @OptIn(ExperimentalAtomicApi::class)
 public class StreamServer(
     private val config: StreamConfig = StreamConfig(),
-) {
+) : Releasable {
     private val json = Json { encodeDefaults = false }
     private val mutex = Mutex()
     private val sessions = mutableListOf<ClientSession>()
@@ -100,6 +101,11 @@ public class StreamServer(
         serverJob = null
         sessions.clear()
         _clientCount.store(0)
+    }
+
+    /** Releases all resources by stopping the server. */
+    public override fun release() {
+        stop()
     }
 
     /**

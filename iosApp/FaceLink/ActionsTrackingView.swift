@@ -85,7 +85,7 @@ struct EmotionBarsView: View {
                         .foregroundStyle(isDominant ? .green : .secondary)
                         .lineLimit(1)
                         .truncationMode(.tail)
-                        .frame(width: 80, alignment: .leading)
+                        .frame(minWidth: 80, alignment: .leading)
                     GeometryReader { geo in
                         ZStack(alignment: .leading) {
                             Rectangle().fill(Color(.separator))

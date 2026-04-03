@@ -7,67 +7,62 @@ struct HandTrackingView: View {
     @StateObject private var viewModel = HandTrackingViewModel()
 
     var body: some View {
-        GeometryReader { geometry in
-            ZStack {
-                // Camera preview background — intentionally fills the full screen including safe areas
-                HandCameraPreview(session: viewModel.captureSession)
-                    .ignoresSafeArea()
+        ZStack {
+            // Camera preview background — intentionally fills the full screen including safe areas
+            HandCameraPreview(session: viewModel.captureSession)
+                .ignoresSafeArea()
 
-                // Controls overlay — pinned inside safe area insets so content is never
-                // obscured by the notch, Dynamic Island, or home indicator in any orientation.
-                VStack {
-                    // Status bar
-                    HStack {
-                        StatusBadge(text: viewModel.statusText, isTracking: viewModel.isTracking)
-                        Spacer()
-                    }
-                    .padding(.horizontal, max(geometry.safeAreaInsets.leading, 16))
-                    .padding(.top, max(geometry.safeAreaInsets.top, 16))
-
+            // Controls overlay — SwiftUI's built-in safe area handling keeps content clear
+            // of the notch, Dynamic Island, and home indicator in any orientation.
+            VStack {
+                // Status bar
+                HStack {
+                    StatusBadge(text: viewModel.statusText, isTracking: viewModel.isTracking)
                     Spacer()
+                }
+                .padding(.horizontal, 16)
 
-                    // Gesture display
-                    if viewModel.isTracking {
-                        let isIdle = viewModel.gestureText == "No gesture"
-                        Text(viewModel.gestureText)
-                            .font(.system(.title2, design: .monospaced))
-                            .lineLimit(1)
-                            .minimumScaleFactor(0.5)
-                            .foregroundStyle(isIdle ? .secondary : .primary)
-                            .padding(.horizontal, 16)
-                            .padding(.vertical, 10)
-                            .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 12))
-                            .opacity(isIdle ? 0.6 : 1.0)
-                            .padding(.horizontal, max(geometry.safeAreaInsets.leading, 16))
-                    }
+                Spacer()
 
-                    // Hand count
-                    Text(viewModel.handsText)
-                        .font(.system(.body, design: .monospaced))
+                // Gesture display
+                if viewModel.isTracking {
+                    let isIdle = viewModel.gestureText == "No gesture"
+                    Text(viewModel.gestureText)
+                        .font(.system(.title2, design: .monospaced))
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.5)
+                        .foregroundStyle(isIdle ? .secondary : .primary)
                         .padding(.horizontal, 16)
                         .padding(.vertical, 10)
                         .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 12))
-                        .padding(.horizontal, max(geometry.safeAreaInsets.leading, 16))
+                        .opacity(isIdle ? 0.6 : 1.0)
+                        .padding(.horizontal, 16)
+                }
 
-                    // Control button
-                    Button(viewModel.isTracking ? "Stop" : "Start") {
-                        withAnimation {
-                            viewModel.toggleTracking()
-                        }
+                // Hand count
+                Text(viewModel.handsText)
+                    .font(.system(.body, design: .monospaced))
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 10)
+                    .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 12))
+                    .padding(.horizontal, 16)
+
+                // Control button
+                Button(viewModel.isTracking ? "Stop" : "Start") {
+                    withAnimation {
+                        viewModel.toggleTracking()
                     }
-                    .buttonStyle(TrackingButtonStyle(isTracking: viewModel.isTracking))
-                    .padding(.bottom, max(geometry.safeAreaInsets.bottom, 16))
                 }
-                .ignoresSafeArea()
+                .buttonStyle(TrackingButtonStyle(isTracking: viewModel.isTracking))
+                .padding(.bottom, 16)
+            }
 
-                // Hand landmark overlay — fills the full screen to match the camera preview
-                if viewModel.isTracking, let data = viewModel.latestData {
-                    HandLandmarkOverlayView(trackingData: data)
-                        .ignoresSafeArea()
-                }
+            // Hand landmark overlay — fills the full screen to match the camera preview
+            if viewModel.isTracking, let data = viewModel.latestData {
+                HandLandmarkOverlayView(trackingData: data)
+                    .ignoresSafeArea()
             }
         }
-        .ignoresSafeArea()
     }
 }
 

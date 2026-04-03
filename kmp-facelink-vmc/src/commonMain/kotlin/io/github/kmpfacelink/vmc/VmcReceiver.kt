@@ -6,6 +6,7 @@ import io.github.kmpfacelink.util.FaceLinkLogger
 import io.github.kmpfacelink.vmc.osc.OscDecoder
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -103,20 +104,33 @@ public class VmcReceiver(
     }
 
     private suspend fun CoroutineScope.receiveLoop() {
+        var backoffMs = 0L
         while (isActive) {
             try {
+                if (backoffMs > 0L) {
+                    delay(backoffMs)
+                }
                 val packetData = socket.receive()
                 val messages = OscDecoder.decode(packetData)
                 val parsed = VmcMessageParser.parse(messages)
                 _receivedData.tryEmit(parsed)
+                backoffMs = 0L
             } catch (expected: IllegalStateException) {
                 if (!isActive) break
                 FaceLinkLogger.w(TAG, "Unexpected socket error: ${expected.message}", expected)
+                backoffMs = if (backoffMs == 0L) {
+                    INITIAL_BACKOFF_MS
+                } else {
+                    (backoffMs * BACKOFF_MULTIPLIER).coerceAtMost(MAX_BACKOFF_MS)
+                }
             }
         }
     }
 
     private companion object {
         private const val TAG = "VmcReceiver"
+        private const val INITIAL_BACKOFF_MS = 100L
+        private const val MAX_BACKOFF_MS = 5000L
+        private const val BACKOFF_MULTIPLIER = 2
     }
 }

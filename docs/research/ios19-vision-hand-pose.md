@@ -25,30 +25,22 @@ returned for each joint have shifted due to the new underlying ML model.
 
 ## Impact on KMP-FaceLink
 
-### Current Implementation
+### Implementation Status: **Complete**
 
-- **File**: `kmp-facelink/src/iosMain/kotlin/io/github/kmpfacelink/internal/VisionHandTracker.kt`
-- Uses `VNDetectHumanHandPoseRequest` with `revision = 1UL` (pinned)
-- Maps 21 joints via `VisionHandLandmarkMapper.kt`
-- Gesture classification via `GestureClassifier` uses joint positions for pose recognition
+- **Tracker**: `VisionHandTracker.kt` — auto-selects revision via `HandPoseRevision` config
+- **Config**: `HandTrackerConfig.handPoseRevision` — defaults to `AUTO` (v2 on iOS 26+, v1 otherwise)
+- **Mapping**: `VisionHandLandmarkMapper.kt` — unchanged (joint names are the same across revisions)
+- **Tracking data**: `HandTrackingData.activeHandPoseRevision` — reports which revision produced the frame
+- **Gesture classification**: `GestureClassifier` — uses relative distance ratios, largely revision-invariant
 
 ### Risk Assessment
 
 | Area | Risk | Reason |
 |------|------|--------|
 | Landmark mapping | **Low** | Joint names unchanged; mapping code doesn't need changes |
-| Gesture classification | **Medium** | `GestureClassifier` uses relative joint positions — shifted coordinates could affect thresholds |
-| Revision pinning | **Currently safe** | We pin to `revision = 1UL`, so existing behavior is preserved on iOS 26 |
-| Default revision change | **Watch** | If Apple changes `currentRevision` to 2 on iOS 26, apps not pinning a revision would get different results |
-
-### Why We're Currently Safe
-
-The project already pins `revision = HAND_POSE_REVISION` (= `1UL`) in `VisionHandTracker.kt`
-line 76. This means:
-
-- On iOS 26 devices, revision 1 (the old model) will still be used
-- Joint locations will remain consistent with iOS 17-18
-- No immediate breakage when users upgrade to iOS 26
+| Gesture classification | **Low-Medium** | Uses relative distance ratios (revision-invariant). Only `PINCH_DISTANCE_THRESHOLD` uses absolute coords and may need recalibration |
+| Runtime revision selection | **Resolved** | `resolveHandPoseRevision()` selects v2 on iOS 26+, v1 on older; logs the selection |
+| Consumer awareness | **Resolved** | `HandTrackingData.activeHandPoseRevision` lets consumers adapt to the active model |
 
 ## API Compatibility Analysis
 
@@ -80,21 +72,19 @@ been reflected in third-party bindings yet. Verification on actual iOS 26 SDK he
 
 ## Migration Plan
 
-### Phase 1: Verification (when iOS 26 SDK is available)
+### Phase 1: Runtime revision selection — **Done**
 
-1. Check `VNDetectHumanHandPoseRequest.currentRevision` on iOS 26 to confirm the new default
-2. Check `supportedRevisions` to see if revision 2 is listed
-3. Verify that pinning `revision = 1UL` still works on iOS 26 (backward compatibility)
-4. Compare joint locations between revision 1 and revision 2 for the same hand pose
+1. ~~Add runtime revision selection based on iOS version~~ — `resolveHandPoseRevision()` in `VisionHandTracker`
+2. ~~Expose revision selection in `HandTrackerConfig`~~ — `HandTrackerConfig.handPoseRevision` (AUTO/V1/V2)
+3. ~~Report active revision to consumers~~ — `HandTrackingData.activeHandPoseRevision`
 
-### Phase 2: Support New Model (optional, for better accuracy)
+### Phase 2: Verification (on physical iOS 26 device)
 
-1. Add runtime revision selection based on iOS version:
-   - iOS 14-25: revision 1 (only option)
-   - iOS 26+: revision 2 (new model) or revision 1 (legacy)
-2. Re-calibrate `GestureClassifier` thresholds with revision 2 joint positions
-3. Expose revision selection in `HandTrackerConfig` so consumers can choose
-4. Update smoothing parameters if the new model's output characteristics differ
+1. Confirm `VNDetectHumanHandPoseRequest.currentRevision` is 2 on iOS 26
+2. Confirm `supportedRevisions` contains both 1 and 2
+3. Verify revision 1 fallback still works on iOS 26
+4. Compare joint locations between revision 1 and 2 for the same hand pose
+5. Validate `PINCH_DISTANCE_THRESHOLD` accuracy on revision 2
 
 ### Phase 3: Testing
 
@@ -103,17 +93,13 @@ been reflected in third-party bindings yet. Verification on actual iOS 26 SDK he
 3. Validate on physical iOS 26 devices
 4. Ensure the iOS sample app works correctly with both models
 
-## Recommendation
+## Remaining Work
 
-**No immediate action required.** The current revision pinning (`revision = 1UL`) protects
-against unexpected behavior changes. When iOS 26 reaches stable release:
-
-1. Test with the pinned revision 1 to confirm no regressions
-2. Optionally adopt revision 2 for improved accuracy/performance
-3. If adopting revision 2, re-validate gesture classification thresholds
-
-Apple's guidance is clear: if you have trained classifiers (which `GestureClassifier` effectively
-is, with hardcoded thresholds), retrain/recalibrate them with the new model.
+- **Pinch threshold calibration**: `GestureClassifier.PINCH_DISTANCE_THRESHOLD` (0.06f) uses
+  absolute normalized coordinates. If revision 2 shifts the coordinate scale, this needs
+  recalibration on a physical iOS 26 device.
+- **Smoothing parameters**: The new model may have different noise characteristics; smoothing
+  config may benefit from revision-specific tuning.
 
 ## References
 

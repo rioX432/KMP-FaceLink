@@ -10,6 +10,17 @@ import kotlin.math.sqrt
  *
  * Classifies hand gestures from 21 landmark positions by computing
  * finger extension states and matching against known gesture patterns.
+ *
+ * **Revision resilience**: All thresholds use *relative* distance ratios
+ * (e.g., tip-to-wrist / mcp-to-wrist) rather than absolute positions.
+ * This makes gesture classification largely invariant to the iOS Vision
+ * hand pose model revision (v1 vs v2), since the relative proportions of
+ * a hand pose are preserved even when absolute joint locations shift.
+ * The exception is [PINCH_DISTANCE_THRESHOLD] which uses an absolute
+ * distance in normalized coordinates — if the v2 model changes the scale
+ * of the coordinate space, this threshold may need recalibration.
+ *
+ * @see io.github.kmpfacelink.model.HandPoseRevision
  */
 internal object GestureClassifier {
 

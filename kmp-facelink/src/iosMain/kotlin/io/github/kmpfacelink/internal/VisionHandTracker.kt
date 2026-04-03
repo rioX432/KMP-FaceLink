@@ -45,12 +45,22 @@ internal class VisionHandTracker(
 
     private var smoother: HandLandmarkSmoother? = config.createSmoother()
 
+    private val resolvedRevision: ULong = resolveHandPoseRevision(config.handPoseRevision)
+
+    /** The [HandPoseRevision] enum value matching [resolvedRevision], exposed in tracking data. */
+    private val activeRevision: HandPoseRevision =
+        if (resolvedRevision == REVISION_V2) HandPoseRevision.V2 else HandPoseRevision.V1
+
     private val handPoseRequest = VNDetectHumanHandPoseRequest().apply {
         @Suppress("CAST_NEVER_SUCCEEDS")
         maximumHandCount = config.maxHands.toULong()
-        revision = resolveHandPoseRevision(config.handPoseRevision)
+        revision = resolvedRevision
     }
     private val sequenceHandler = VNSequenceRequestHandler()
+
+    init {
+        FaceLinkLogger.i(TAG, "Hand pose revision: $activeRevision (raw=$resolvedRevision)")
+    }
 
     override val tag: String = TAG
     override val videoQueueLabel: String = "io.github.kmpfacelink.hand.video"
@@ -116,6 +126,7 @@ internal class VisionHandTracker(
                 timestampMs = timestampMs,
                 isTracking = true,
                 thermalState = currentThermalState,
+                activeHandPoseRevision = activeRevision,
             ),
         )
     }

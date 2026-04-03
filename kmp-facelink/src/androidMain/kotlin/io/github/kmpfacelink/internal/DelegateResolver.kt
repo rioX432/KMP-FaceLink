@@ -27,7 +27,15 @@ internal object DelegateResolver {
             InferenceDelegate.AUTO -> listOf(Delegate.GPU, Delegate.CPU)
             InferenceDelegate.GPU -> listOf(Delegate.GPU, Delegate.CPU)
             InferenceDelegate.CPU -> listOf(Delegate.CPU)
-            InferenceDelegate.NNAPI -> listOf(Delegate.GPU, Delegate.CPU)
+            @Suppress("DEPRECATION")
+            InferenceDelegate.NNAPI
+            -> {
+                FaceLinkLogger.w(
+                    TAG,
+                    "NNAPI delegate is deprecated (Android 15+). Falling back to GPU → CPU.",
+                )
+                listOf(Delegate.GPU, Delegate.CPU)
+            }
         }
     }
 

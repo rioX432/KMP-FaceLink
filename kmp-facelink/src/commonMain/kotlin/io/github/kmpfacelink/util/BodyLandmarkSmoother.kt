@@ -31,10 +31,6 @@ internal fun BodyTrackerConfig.createSmoother(): BodyLandmarkSmoother? =
 /**
  * Create a [BodyLandmarkSmoother] from [SmoothingConfig], or null for [SmoothingConfig.None].
  */
-@Deprecated(
-    message = "Use BodyTrackerConfig.createSmoother() for unified API",
-    replaceWith = ReplaceWith("this.createSmoother()", "io.github.kmpfacelink.util.createSmoother"),
-)
 internal fun SmoothingConfig.createBodySmoother(): BodyLandmarkSmoother? = when (this) {
     is SmoothingConfig.None -> null
     is SmoothingConfig.Ema -> BodyEmaFilter(alpha)

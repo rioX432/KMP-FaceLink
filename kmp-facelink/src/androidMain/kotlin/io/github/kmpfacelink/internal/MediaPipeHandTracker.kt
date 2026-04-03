@@ -72,7 +72,6 @@ internal class MediaPipeHandTracker(
     override fun updateSmoothing(config: SmoothingConfig) {
         pipelineLock.withLock {
             checkNotReleased("update smoothing")
-            @Suppress("DEPRECATION")
             smoother = config.createHandSmoother()
         }
     }

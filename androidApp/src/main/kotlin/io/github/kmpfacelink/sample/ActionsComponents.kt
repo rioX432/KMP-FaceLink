@@ -61,7 +61,9 @@ internal fun EmotionBars(result: EmotionResult?) {
                 fontFamily = FontFamily.Monospace,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.weight(0.3f),
+                modifier = Modifier
+                    .weight(0.3f)
+                    .semantics { contentDescription = "Emotion: ${emotion.name}" },
             )
             Box(
                 modifier = Modifier

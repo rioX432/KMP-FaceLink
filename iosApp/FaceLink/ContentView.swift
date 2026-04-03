@@ -33,7 +33,7 @@ struct ContentView: View {
                     .padding(.horizontal)
                     .padding(.vertical, 8)
                 }
-                .background(Color.black)
+                .background(Color(.systemBackground))
             }
 
             // Content
@@ -64,11 +64,11 @@ struct ModeChip: View {
         Button(action: action) {
             Text(title)
                 .font(.caption.weight(.medium))
-                .foregroundStyle(.white)
+                .foregroundStyle(.primary)
                 .padding(.horizontal, 12)
                 .padding(.vertical, 6)
                 .background(
-                    isSelected ? Color.blue.opacity(0.6) : Color.white.opacity(0.15),
+                    isSelected ? Color.blue.opacity(0.6) : Color(.tertiarySystemFill),
                     in: Capsule()
                 )
         }

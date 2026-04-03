@@ -25,17 +25,17 @@ struct HomeView: View {
             }
             .padding(.bottom, 16)
         }
-        .background(Color(white: 0.07))
+        .background(Color(.systemBackground))
     }
 
     private var headerSection: some View {
         VStack(alignment: .leading, spacing: 4) {
             Text("KMP-FaceLink")
                 .font(.largeTitle.bold())
-                .foregroundStyle(.white)
+                .foregroundStyle(.primary)
             Text("Cross-platform face, hand & body tracking SDK")
                 .font(.subheadline)
-                .foregroundStyle(.white.opacity(0.6))
+                .foregroundStyle(.secondary)
         }
         .padding(.horizontal, 20)
         .padding(.top, 16)
@@ -77,21 +77,21 @@ private struct FeatureCard: View {
                 VStack(alignment: .leading, spacing: 2) {
                     Text(title)
                         .font(.headline)
-                        .foregroundStyle(.white)
+                        .foregroundStyle(.primary)
                     Text(description)
                         .font(.caption)
-                        .foregroundStyle(.white.opacity(0.6))
+                        .foregroundStyle(.secondary)
                         .lineLimit(2)
                 }
 
                 Spacer()
 
                 Image(systemName: "chevron.right")
-                    .foregroundStyle(.white.opacity(0.4))
+                    .foregroundStyle(.secondary)
                     .font(.caption)
             }
             .padding(16)
-            .background(Color(white: 0.12), in: RoundedRectangle(cornerRadius: 12))
+            .background(Color(.secondarySystemBackground), in: RoundedRectangle(cornerRadius: 12))
         }
     }
 }

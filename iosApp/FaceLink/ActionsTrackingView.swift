@@ -74,7 +74,7 @@ struct ActionsTrackingView: View {
                     viewModel.toggleTracking()
                 }
                 .buttonStyle(TrackingButtonStyle(isTracking: viewModel.isTracking))
-                .padding(.bottom, 40)
+                .padding(.bottom, 16)
             }
         }
     }

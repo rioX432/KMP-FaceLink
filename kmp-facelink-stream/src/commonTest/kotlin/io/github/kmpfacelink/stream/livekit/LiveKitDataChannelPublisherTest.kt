@@ -50,4 +50,19 @@ class LiveKitDataChannelPublisherTest {
 
         assertFalse(publisher.isConnected)
     }
+
+    @Test
+    fun initialConnectionStateIsDisconnected() {
+        val config = LiveKitBridgeConfig(
+            serverUrl = "wss://x",
+            token = "t",
+            roomName = "r",
+        )
+        val publisher = LiveKitDataChannelPublisher(config)
+
+        assertEquals(
+            LiveKitConnectionState.DISCONNECTED,
+            publisher.connectionState.value,
+        )
+    }
 }

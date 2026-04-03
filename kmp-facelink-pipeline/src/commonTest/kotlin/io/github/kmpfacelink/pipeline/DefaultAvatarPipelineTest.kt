@@ -18,6 +18,8 @@ import io.github.kmpfacelink.voice.tts.PhonemeEvent
 import io.github.kmpfacelink.voice.tts.TtsEngine
 import io.github.kmpfacelink.voice.tts.TtsResult
 import io.github.kmpfacelink.voice.tts.TtsState
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -65,7 +67,7 @@ class DefaultAvatarPipelineTest {
         ttsEngine = ttsEngine,
         lipSyncEngine = lipSyncEngine,
         asrEngine = asrEngine,
-        dispatcher = UnconfinedTestDispatcher(),
+        scope = CoroutineScope(SupervisorJob() + UnconfinedTestDispatcher()),
     )
 
     // endregion

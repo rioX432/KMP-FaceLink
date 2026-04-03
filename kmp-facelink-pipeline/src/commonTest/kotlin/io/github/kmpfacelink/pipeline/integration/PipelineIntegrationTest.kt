@@ -6,6 +6,8 @@ import io.github.kmpfacelink.pipeline.AvatarPipelineConfig
 import io.github.kmpfacelink.pipeline.AvatarPipelineOutput
 import io.github.kmpfacelink.pipeline.AvatarPipelineState
 import io.github.kmpfacelink.pipeline.DefaultAvatarPipeline
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
@@ -40,7 +42,7 @@ class PipelineIntegrationTest {
         llmClient = llmClient,
         ttsEngine = ttsEngine,
         lipSyncEngine = lipSyncEngine,
-        dispatcher = UnconfinedTestDispatcher(),
+        scope = CoroutineScope(SupervisorJob() + UnconfinedTestDispatcher()),
     )
 
     @Test
@@ -93,7 +95,7 @@ class PipelineIntegrationTest {
             llmClient = DelayedMockLlmClient(tokens = listOf("Hello", " world.")),
             ttsEngine = null,
             lipSyncEngine = null,
-            dispatcher = UnconfinedTestDispatcher(),
+            scope = CoroutineScope(SupervisorJob() + UnconfinedTestDispatcher()),
         )
         pipeline.start()
 
@@ -119,7 +121,7 @@ class PipelineIntegrationTest {
         val pipeline = DefaultAvatarPipeline(
             config = testConfig,
             llmClient = failingLlm,
-            dispatcher = UnconfinedTestDispatcher(),
+            scope = CoroutineScope(SupervisorJob() + UnconfinedTestDispatcher()),
         )
         pipeline.start()
 

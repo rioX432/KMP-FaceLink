@@ -11,12 +11,10 @@ import io.github.kmpfacelink.util.FaceLinkLogger
 import io.github.kmpfacelink.voice.asr.AsrEngine
 import io.github.kmpfacelink.voice.lipsync.LipSyncEngine
 import io.github.kmpfacelink.voice.tts.TtsEngine
-import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -41,7 +39,9 @@ private const val OUTPUT_BUFFER_CAPACITY = 64
  * @param ttsEngine Optional TTS engine; if null, text-only output is produced
  * @param lipSyncEngine Optional lip sync engine; if null, text-only output is produced
  * @param asrEngine Optional ASR engine; if null, [listen] throws [IllegalStateException]
- * @param dispatcher Coroutine dispatcher for background work (defaults to [Dispatchers.Default])
+ * @param scope Coroutine scope for background work. The caller owns [scope] and is
+ *   responsible for cancelling it when the pipeline is no longer needed.
+ *   Defaults to an internal scope using [Dispatchers.Default].
  */
 public class DefaultAvatarPipeline(
     private val config: AvatarPipelineConfig,
@@ -49,10 +49,10 @@ public class DefaultAvatarPipeline(
     private val ttsEngine: TtsEngine? = null,
     private val lipSyncEngine: LipSyncEngine? = null,
     private val asrEngine: AsrEngine? = null,
-    dispatcher: CoroutineDispatcher = Dispatchers.Default,
+    scope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Default),
 ) : AvatarPipeline {
 
-    private val scope = CoroutineScope(SupervisorJob() + dispatcher)
+    private val scope: CoroutineScope = scope
     private val _state = MutableStateFlow<AvatarPipelineState>(AvatarPipelineState.Idle)
     private val _output = MutableSharedFlow<AvatarPipelineOutput>(extraBufferCapacity = OUTPUT_BUFFER_CAPACITY)
 
@@ -117,10 +117,8 @@ public class DefaultAvatarPipeline(
     }
 
     override fun release() {
-        // Cancel the scope first — this cancels currentJob and prevents new launches.
-        // No mutex needed here because scope.cancel() is thread-safe and makes
-        // subsequent scope.launch() throw, so no new jobs can be created.
-        scope.cancel()
+        // Cancel any in-progress job. The scope is caller-owned, so we do not cancel it.
+        currentJob?.cancel()
         currentJob = null
         runCatching { llmClient.release() }.onFailure { FaceLinkLogger.w(TAG, "Failed to release LlmClient", it) }
         runCatching { ttsEngine?.release() }.onFailure { FaceLinkLogger.w(TAG, "Failed to release TtsEngine", it) }

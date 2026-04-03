@@ -14,10 +14,10 @@ Unified face, hand & body tracking SDK for Kotlin Multiplatform — one API, bot
 
 | Module | Purpose | Stability |
 |---|---|---|
-| `kmp-facelink` | Core face, hand & body tracking API (Android, iOS, JVM, Wasm) | **Stable** |
+| `kmp-facelink` | Core face, hand & body tracking API (Android, iOS, JVM/ONNX, Wasm) with N-euro Predictor smoothing | **Stable** |
 | `kmp-facelink-avatar` | BlendShape → Live2D / VRM parameter mapping (+ Wasm) | **Stable** |
 | `kmp-facelink-actions` | Gesture/expression triggers, emotion classification, recording (+ Wasm) | **Stable** |
-| `kmp-facelink-voice` | TTS, ASR, multilingual lip sync | **Mostly stable** |
+| `kmp-facelink-voice` | TTS, ASR, multilingual lip sync | **Experimental** |
 | `kmp-facelink-llm` | LLM streaming API (cloud + on-device) with hybrid routing | **Experimental** |
 | `kmp-facelink-pipeline` | AI avatar pipeline: Voice → LLM → TTS → LipSync → Expression | **Experimental** |
 | `kmp-facelink-networking` | Shared UDP socket, time utilities, mDNS service discovery | **Stable** |
@@ -51,8 +51,15 @@ Unified face, hand & body tracking SDK for Kotlin Multiplatform — one API, bot
 ### Wasm/JS (Experimental)
 - Supported modules: `kmp-facelink`, `kmp-facelink-avatar`, `kmp-facelink-actions`
 - Kotlin/Wasm target (`wasmJs`) — requires a browser with [WebAssembly GC](https://developer.mozilla.org/en-US/docs/WebAssembly/GC) support (Chrome 119+, Firefox 120+)
-- Tracking APIs return no-op stubs; avatar mapping and action triggers are fully functional
+- Face tracking functional via MediaPipe JS interop (with gaze estimation); hand/body tracking are no-op stubs; avatar mapping and action triggers are fully functional
 - See [docs/research/kotlin-wasm-web-target.md](docs/research/kotlin-wasm-web-target.md) for roadmap
+
+## Quick Start
+
+- [Android Quick Start](docs/quick-start-android.md)
+- [iOS Quick Start](docs/quick-start-ios.md)
+- [Integration Guide](docs/quick-start-integration.md)
+- [API Overview](docs/api-overview.md)
 
 ## Documentation
 

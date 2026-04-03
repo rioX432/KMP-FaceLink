@@ -26,16 +26,16 @@ KMP-FaceLink is a Kotlin Multiplatform SDK for real-time face/hand/body tracking
 
 ```
 kmp-facelink (core)
-  ├── kmp-facelink-avatar    → depends on core
-  ├── kmp-facelink-actions   → depends on core
-  ├── kmp-facelink-voice     → depends on core
-  ├── kmp-facelink-llm       → depends on core
-  ├── kmp-facelink-pipeline  → depends on core, voice, llm, actions, avatar
-  ├── kmp-facelink-networking → standalone (UDP + time utils)
-  ├── kmp-facelink-vmc      → depends on core, networking
-  ├── kmp-facelink-ifm      → depends on core, networking
-  ├── kmp-facelink-stream   → depends on core
-  └── kmp-facelink-vts     → depends on core
+  ├── kmp-facelink-avatar       → depends on core
+  ├── kmp-facelink-actions      → depends on core
+  ├── kmp-facelink-voice        → depends on core, networking
+  ├── kmp-facelink-llm          → depends on core, networking
+  ├── kmp-facelink-pipeline     → depends on core, voice, llm, actions, avatar
+  ├── kmp-facelink-networking   → standalone (UDP + time utils)
+  ├── kmp-facelink-vmc          → depends on core, networking
+  ├── kmp-facelink-ifm          → depends on core, networking
+  ├── kmp-facelink-stream       → depends on core (JVM only)
+  └── kmp-facelink-vts          → depends on core (JVM only)
 ```
 
 ### Source Set Layout
@@ -44,15 +44,19 @@ Each library module follows this pattern:
 
 ```
 <module>/src/
-  ├── commonMain/    # Shared API and logic
-  ├── commonTest/    # Unit tests
-  ├── androidMain/   # Android platform impl (if needed)
-  └── iosMain/       # iOS platform impl (if needed)
+  ├── commonMain/      # Shared API and logic
+  ├── commonTest/      # Unit tests
+  ├── androidMain/     # Android platform impl (if needed)
+  ├── iosMain/         # iOS platform impl (if needed)
+  ├── nonMobileMain/   # Shared JVM + Wasm no-op stubs (if needed)
+  └── wasmJsMain/      # Wasm/JS platform impl (if needed)
 ```
 
-Modules with platform code: `kmp-facelink` (android/ios/jvm), `kmp-facelink-networking` (android/ios), `kmp-facelink-voice`, `kmp-facelink-llm`
-Pure common modules: `kmp-facelink-avatar`, `kmp-facelink-actions`, `kmp-facelink-pipeline`, `kmp-facelink-vts`
-Note: `kmp-facelink` has a `jvmMain` source set with no-op tracker stubs for desktop/JVM target support.
+Modules with platform code: `kmp-facelink` (android/ios/jvm/wasmJs), `kmp-facelink-networking` (android/ios), `kmp-facelink-voice` (android/ios), `kmp-facelink-llm` (android/ios)
+Pure common modules: `kmp-facelink-avatar`, `kmp-facelink-actions`, `kmp-facelink-pipeline`, `kmp-facelink-vmc`, `kmp-facelink-ifm`
+JVM-only modules: `kmp-facelink-stream`, `kmp-facelink-vts` (JVM target only, no Android/iOS)
+Wasm modules: `kmp-facelink`, `kmp-facelink-avatar`, `kmp-facelink-actions` include `wasmJs` target (face tracking functional via MediaPipe JS interop; hand/body tracking are no-op stubs; mapping/actions are fully functional)
+Note: `kmp-facelink` has `jvmMain` (ONNX Runtime + JavaCV) and `nonMobileMain` (shared no-op stubs for JVM + Wasm) source sets.
 Note: `kmp-facelink-llm` includes platform-specific inference engines (llama.cpp on Android, Apple Foundation Models on iOS 26+) for on-device LLM.
 
 ## Commands

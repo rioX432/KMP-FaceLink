@@ -11,10 +11,10 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.emptyFlow
 
 /**
- * No-op hand tracker stub for JVM/Desktop.
+ * No-op hand tracker stub for non-mobile targets.
  *
- * Actual webcam-based hand tracking will be implemented in a future phase.
- * This stub allows the core module to compile and publish a JVM artifact.
+ * Platform-specific hand tracking will be implemented in a future phase.
+ * This stub allows the module to compile and publish artifacts for JVM and Wasm.
  */
 internal class NoOpHandTracker : HandTracker {
 
@@ -28,7 +28,7 @@ internal class NoOpHandTracker : HandTracker {
 
     override suspend fun start() {
         _state.value = TrackingState.ERROR
-        _errorMessage.value = "JVM hand tracking is not yet implemented"
+        _errorMessage.value = "Hand tracking is not yet implemented on this platform"
     }
 
     override suspend fun stop() {

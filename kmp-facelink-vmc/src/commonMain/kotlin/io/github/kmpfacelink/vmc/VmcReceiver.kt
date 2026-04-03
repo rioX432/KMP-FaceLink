@@ -54,7 +54,7 @@ import kotlinx.coroutines.launch
 public class VmcReceiver(
     private val port: Int = VmcConfig.DEFAULT_MARIONETTE_PORT,
 ) : Releasable {
-    private val socket = UdpSocket()
+    private var socket = UdpSocket()
     private var listenJob: Job? = null
     private val _receivedData = MutableSharedFlow<VmcReceivedData>(extraBufferCapacity = 1)
 
@@ -74,6 +74,7 @@ public class VmcReceiver(
      */
     public fun start(scope: CoroutineScope) {
         stop()
+        socket = UdpSocket()
         socket.bind(port)
         listenJob = scope.launch {
             receiveLoop()
@@ -81,7 +82,9 @@ public class VmcReceiver(
     }
 
     /**
-     * Stops listening and releases the UDP socket.
+     * Stops listening and closes the current UDP socket.
+     *
+     * Can be restarted by calling [start] again.
      */
     public fun stop() {
         listenJob?.cancel()

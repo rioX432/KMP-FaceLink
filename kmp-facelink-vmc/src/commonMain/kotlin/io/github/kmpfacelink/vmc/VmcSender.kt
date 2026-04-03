@@ -66,7 +66,7 @@ import kotlinx.coroutines.launch
 public class VmcSender(
     private val config: VmcConfig = VmcConfig(),
 ) : Releasable {
-    private val socket = UdpSocket()
+    private var socket = UdpSocket()
     private var collectJob: Job? = null
     private var startTimeMs: Long = 0L
 
@@ -84,6 +84,7 @@ public class VmcSender(
         scope: CoroutineScope,
     ) {
         stop()
+        socket = UdpSocket()
         startTimeMs = currentTimeMs()
         collectJob = scope.launch {
             trackingFlow.collect { data ->
@@ -111,6 +112,7 @@ public class VmcSender(
         headParamKeys: VmcHeadParamKeys = VmcHeadParamKeys.VRM_1_0,
     ) {
         stop()
+        socket = UdpSocket()
         startTimeMs = currentTimeMs()
         collectJob = scope.launch {
             expressionFlow.collect { params ->
@@ -151,7 +153,9 @@ public class VmcSender(
     }
 
     /**
-     * Stops collecting tracking data and releases the UDP socket.
+     * Stops collecting tracking data and closes the current UDP socket.
+     *
+     * Can be restarted by calling [start] or [startWithExpressions] again.
      */
     public fun stop() {
         collectJob?.cancel()

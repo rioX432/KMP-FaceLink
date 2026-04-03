@@ -38,15 +38,3 @@ internal fun SmoothingConfig.createFaceSmoother(): BlendShapeSmoother? = when (t
     is SmoothingConfig.CategoryAware -> CategoryAwareSmoother(this)
     is SmoothingConfig.NeuroPredictive -> NeuroPredictorSmoother(windowSize)
 }
-
-/**
- * Create a [BlendShapeSmoother] from [SmoothingConfig], or null for [SmoothingConfig.None].
- */
-@Deprecated(
-    message = "Use FaceTrackerConfig.createSmoother() for unified API",
-    replaceWith = ReplaceWith(
-        "this.createFaceSmoother()",
-        "io.github.kmpfacelink.util.createFaceSmoother",
-    ),
-)
-internal fun SmoothingConfig.createSmoother(): BlendShapeSmoother? = createFaceSmoother()

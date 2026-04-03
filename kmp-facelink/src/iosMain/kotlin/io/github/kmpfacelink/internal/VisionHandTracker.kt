@@ -70,7 +70,6 @@ internal class VisionHandTracker(
     override fun updateSmoothing(config: SmoothingConfig) {
         pipelineLock.withLock {
             checkNotReleased("update smoothing")
-            @Suppress("DEPRECATION")
             smoother = config.createHandSmoother()
         }
     }

@@ -31,10 +31,6 @@ internal fun HandTrackerConfig.createSmoother(): HandLandmarkSmoother? =
 /**
  * Create a [HandLandmarkSmoother] from [SmoothingConfig], or null for [SmoothingConfig.None].
  */
-@Deprecated(
-    message = "Use HandTrackerConfig.createSmoother() for unified API",
-    replaceWith = ReplaceWith("this.createSmoother()", "io.github.kmpfacelink.util.createSmoother"),
-)
 internal fun SmoothingConfig.createHandSmoother(): HandLandmarkSmoother? = when (this) {
     is SmoothingConfig.None -> null
     is SmoothingConfig.Ema -> HandEmaFilter(alpha)

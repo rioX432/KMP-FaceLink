@@ -240,6 +240,11 @@ struct HandLandmarkOverlayView: View {
         let landmarks = hand.landmarks
         guard !landmarks.isEmpty else { return }
 
+        // Scale overlay sizes relative to view dimensions
+        let minDim = min(size.width, size.height)
+        let boneWidth = minDim * 0.005
+        let jointRadius = minDim * 0.01
+
         let landmarkMap = Dictionary(uniqueKeysWithValues: landmarks.map { ($0.joint, $0) })
 
         func pos(_ joint: HandJoint) -> CGPoint? {
@@ -260,7 +265,7 @@ struct HandLandmarkOverlayView: View {
             var path = Path()
             path.move(to: a)
             path.addLine(to: b)
-            context.stroke(path, with: .color(boneColor), lineWidth: 2)
+            context.stroke(path, with: .color(boneColor), lineWidth: boneWidth)
         }
 
         // Wrist connections
@@ -306,7 +311,7 @@ struct HandLandmarkOverlayView: View {
         for lm in landmarks {
             guard let p = pos(lm.joint) else { continue }
             let color: Color = tipJoints.contains(lm.joint) ? .red : .cyan
-            let rect = CGRect(x: p.x - 4, y: p.y - 4, width: 8, height: 8)
+            let rect = CGRect(x: p.x - jointRadius, y: p.y - jointRadius, width: jointRadius * 2, height: jointRadius * 2)
             context.fill(Path(ellipseIn: rect), with: .color(color))
         }
     }

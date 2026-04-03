@@ -5,6 +5,7 @@ import io.github.kmpfacelink.llm.ConversationHistory
 import io.github.kmpfacelink.llm.LlmClient
 import io.github.kmpfacelink.llm.LlmConfig
 import io.github.kmpfacelink.llm.LlmState
+import io.github.kmpfacelink.networking.http.platformHttpEngine
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.HttpResponseValidator
 import io.ktor.client.request.parameter

@@ -3,10 +3,13 @@ package io.github.kmpfacelink.stream
 import io.github.kmpfacelink.api.Releasable
 import io.github.kmpfacelink.model.FaceTrackingData
 import io.github.kmpfacelink.model.HandTrackingData
+import io.github.kmpfacelink.util.FaceLinkLogger
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -65,7 +68,7 @@ public class StreamSender(
         handJob = handFlow?.let { flow ->
             scope.launch { flow.collect { mutex.withLock { latestHandData = it } } }
         }
-        broadcastJob = scope.launch { broadcastLoop() }
+        broadcastJob = scope.launch { this.broadcastLoop() }
     }
 
     /**
@@ -92,17 +95,27 @@ public class StreamSender(
         stop()
     }
 
-    private suspend fun broadcastLoop() {
+    private suspend fun CoroutineScope.broadcastLoop() {
         val frameIntervalMs = MS_PER_SEC / config.targetFps
-        while (true) {
-            val (face, hand) = mutex.withLock { latestFaceData to latestHandData }
-            if (face != null || hand != null) {
-                val timestampMs = face?.timestampMs ?: hand?.timestampMs ?: 0L
-                val frame = buildStreamFrame(face, hand, timestampMs)
-                server.sendFrame(frame)
+        while (isActive) {
+            try {
+                val (face, hand) = mutex.withLock { latestFaceData to latestHandData }
+                if (face != null || hand != null) {
+                    val timestampMs = face?.timestampMs ?: hand?.timestampMs ?: 0L
+                    val frame = buildStreamFrame(face, hand, timestampMs)
+                    server.sendFrame(frame)
+                }
+            } catch (ce: CancellationException) {
+                throw ce
+            } catch (@Suppress("TooGenericExceptionCaught") e: Exception) {
+                FaceLinkLogger.w(TAG, "Error in broadcast loop: ${e.message}", e)
             }
             delay(frameIntervalMs)
         }
+    }
+
+    private companion object {
+        private const val TAG = "StreamSender"
     }
 }
 

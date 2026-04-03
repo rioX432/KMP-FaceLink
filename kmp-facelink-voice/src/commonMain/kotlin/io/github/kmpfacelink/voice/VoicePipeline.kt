@@ -1,5 +1,6 @@
 package io.github.kmpfacelink.voice
 
+import io.github.kmpfacelink.api.Releasable
 import io.github.kmpfacelink.model.BlendShape
 import io.github.kmpfacelink.util.FaceLinkLogger
 import io.github.kmpfacelink.voice.asr.AsrEngine
@@ -36,6 +37,9 @@ private const val TAG = "VoicePipeline"
  * This class manages a background [CoroutineScope]. Callers must invoke [release]
  * (or use [AutoCloseable.use]) when done to cancel pending jobs and free resources.
  *
+ * Implements [Releasable] for consistent lifecycle management and [AutoCloseable]
+ * so it can be used with `use {}` blocks. [close] delegates to [release].
+ *
  * @param config Pipeline configuration
  * @param audioRecorder Platform audio recorder (null to disable recording)
  * @param audioPlayer Platform audio player (null to disable playback)
@@ -53,7 +57,7 @@ public class VoicePipeline(
     asrEngine: AsrEngine? = null,
     lipSyncEngine: LipSyncEngine? = null,
     dispatcher: CoroutineDispatcher = Dispatchers.Default,
-) : AutoCloseable {
+) : Releasable, AutoCloseable {
     private val scope = CoroutineScope(SupervisorJob() + dispatcher)
 
     private val _state = MutableStateFlow<VoicePipelineState>(VoicePipelineState.Idle)
@@ -175,7 +179,7 @@ public class VoicePipeline(
      * Ensures all engines and I/O components are cleaned up even if individual
      * [release] calls throw. Equivalent to [close].
      */
-    public fun release() {
+    public override fun release() {
         scope.cancel()
         runCatching { tts.release() }.onFailure { FaceLinkLogger.w(TAG, "Failed to release TtsEngine", it) }
         runCatching { lipSync.release() }.onFailure { FaceLinkLogger.w(TAG, "Failed to release LipSyncEngine", it) }

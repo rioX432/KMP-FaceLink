@@ -1,12 +1,15 @@
 package io.github.kmpfacelink.voice.audio
 
+import io.github.kmpfacelink.api.Releasable
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
 
 /**
  * Platform audio recorder for capturing microphone input.
+ *
+ * Implements [Releasable] for consistent lifecycle management.
  */
-public interface AudioRecorder {
+public interface AudioRecorder : Releasable {
     /** Whether the recorder is currently capturing audio. */
     public val isRecording: StateFlow<Boolean>
 
@@ -28,5 +31,5 @@ public interface AudioRecorder {
     public val audioChunks: Flow<ByteArray>
 
     /** Releases all resources held by this recorder. */
-    public fun release()
+    public override fun release()
 }

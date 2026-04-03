@@ -1,5 +1,6 @@
 package io.github.kmpfacelink.actions
 
+import io.github.kmpfacelink.api.Releasable
 import io.github.kmpfacelink.model.FaceTrackingData
 import io.github.kmpfacelink.model.HandTrackingData
 import kotlinx.coroutines.channels.Channel
@@ -23,7 +24,7 @@ import kotlin.concurrent.atomics.ExperimentalAtomicApi
  * @see io.github.kmpfacelink.actions.BuiltInTriggers
  */
 @OptIn(ExperimentalAtomicApi::class)
-public class ActionSystem {
+public class ActionSystem : Releasable {
 
     /** Immutable snapshot of the latest tracking data, captured under [mutex]. */
     private data class TrackingSnapshot(
@@ -74,7 +75,7 @@ public class ActionSystem {
     }
 
     /** Release all resources. Closes the [events] channel and clears all state. */
-    public fun release() {
+    public override fun release() {
         released.store(1)
         _events.close()
     }

@@ -84,12 +84,13 @@ public class DefaultModelManager(
     }
 
     private suspend fun verifyAndRecord(modelInfo: ModelInfo, filePath: String) {
-        if (modelInfo.sha256Checksum.startsWith("placeholder")) {
-            println("WARNING: Model ${modelInfo.id} has placeholder checksum — integrity not verified")
+        val expected = modelInfo.sha256Checksum
+        if (expected == null) {
+            println("WARNING: No checksum available for model ${modelInfo.id} — integrity not verified")
         } else {
             val actual = sha256Hex(filePath)
-            check(actual == modelInfo.sha256Checksum) {
-                "Checksum mismatch for ${modelInfo.id}: expected ${modelInfo.sha256Checksum}, got $actual"
+            check(actual == expected) {
+                "Checksum mismatch for ${modelInfo.id}: expected $expected, got $actual"
             }
         }
         val fileName = "${modelInfo.id}$MODEL_FILE_EXTENSION"

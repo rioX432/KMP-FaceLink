@@ -42,7 +42,7 @@ class ConfidenceFrameStrategyTest {
             FrameSkipConfig(enabled = true, level = FrameSkipLevel.BALANCED),
         )
         val data = stableBlendShapes()
-        strategy.onFrameProcessed(data, 1.0f)
+        strategy.onFrameProcessed(data)
         strategy.onFrameProcessed(slightlyDifferent(delta = 0.005f))
 
         assertEquals(FrameDecision.SKIP, strategy.evaluate(1.0f))

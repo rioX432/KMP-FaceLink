@@ -118,8 +118,9 @@ class VmcStressTest {
             val decoded = OscDecoder.decode(bundleBytes)
             val received = VmcMessageParser.parse(decoded)
 
-            assertTrue(received.senderTime >= lastTime, "Timestamps should be monotonic")
-            lastTime = received.senderTime
+            val receivedTime = requireNotNull(received.senderTime) { "senderTime should not be null" }
+            assertTrue(receivedTime >= lastTime, "Timestamps should be monotonic")
+            lastTime = receivedTime
         }
     }
 

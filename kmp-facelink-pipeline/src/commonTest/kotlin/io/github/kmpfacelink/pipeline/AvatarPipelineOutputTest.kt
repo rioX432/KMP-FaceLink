@@ -12,7 +12,7 @@ class AvatarPipelineOutputTest {
 
     @Test
     fun constructsWithAllFields() {
-        val blendShapes = mapOf(BlendShape.jawOpen to 0.5f, BlendShape.mouthSmileLeft to 0.3f)
+        val blendShapes = mapOf(BlendShape.JAW_OPEN to 0.5f, BlendShape.MOUTH_SMILE_LEFT to 0.3f)
         val output = AvatarPipelineOutput(
             blendShapes = blendShapes,
             emotion = Emotion.HAPPY,
@@ -44,7 +44,7 @@ class AvatarPipelineOutputTest {
     @Test
     fun equalityByValue() {
         val a = AvatarPipelineOutput(
-            blendShapes = mapOf(BlendShape.jawOpen to 1.0f),
+            blendShapes = mapOf(BlendShape.JAW_OPEN to 1.0f),
             emotion = Emotion.SAD,
             text = "text",
             isAudioPlaying = false,

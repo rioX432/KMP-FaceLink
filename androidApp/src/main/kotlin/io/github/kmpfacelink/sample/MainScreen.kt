@@ -1,6 +1,16 @@
 package io.github.kmpfacelink.sample
 
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import io.github.kmpfacelink.sample.ui.HomeScreen
 import io.github.kmpfacelink.sample.ui.TrackingMode as SharedTrackingMode
 
@@ -51,6 +61,28 @@ internal fun MainScreen(
         TrackingMode.VOICE -> VoiceTrackingScreen(
             onModeChange = onModeChange,
         )
+    }
+}
+
+@Composable
+internal fun ModeToggle(
+    currentMode: TrackingMode,
+    onModeChange: (TrackingMode) -> Unit,
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .horizontalScroll(rememberScrollState())
+            .padding(horizontal = 8.dp),
+        horizontalArrangement = Arrangement.spacedBy(4.dp),
+    ) {
+        TrackingMode.entries.filter { it != TrackingMode.HOME }.forEach { mode ->
+            FilterChip(
+                selected = mode == currentMode,
+                onClick = { onModeChange(mode) },
+                label = { Text(mode.name.lowercase().replaceFirstChar { it.uppercase() }) },
+            )
+        }
     }
 }
 

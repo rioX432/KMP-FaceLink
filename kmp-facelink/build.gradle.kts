@@ -40,6 +40,8 @@ kotlin {
         }
     }
 
+    applyDefaultHierarchyTemplate()
+
     sourceSets {
         val nonMobileMain by creating {
             dependsOn(commonMain.get())

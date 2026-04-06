@@ -6,15 +6,15 @@ package io.github.kmpfacelink.util
  * - Android: [java.util.concurrent.locks.ReentrantLock]
  * - iOS: [platform.Foundation.NSRecursiveLock]
  */
-internal expect class PlatformLock() {
-    fun lock()
-    fun unlock()
+public expect class PlatformLock() {
+    public fun lock()
+    public fun unlock()
 }
 
 /**
  * Execute [block] while holding the [PlatformLock].
  */
-internal inline fun <T> PlatformLock.withLock(block: () -> T): T {
+public inline fun <T> PlatformLock.withLock(block: () -> T): T {
     lock()
     try {
         return block()

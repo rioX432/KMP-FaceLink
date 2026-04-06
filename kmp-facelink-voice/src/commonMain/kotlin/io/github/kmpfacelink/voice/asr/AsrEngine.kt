@@ -4,7 +4,6 @@ import io.github.kmpfacelink.api.Releasable
 import io.github.kmpfacelink.voice.EngineState
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
-import kotlin.io.Closeable
 
 /**
  * State of an ASR engine.
@@ -31,7 +30,7 @@ public sealed class AsrState : EngineState {
  * Implements [Releasable] for consistent lifecycle management and [Closeable]
  * so engines can be used with `use {}` blocks. [close] delegates to [release].
  */
-public interface AsrEngine : Releasable, Closeable {
+public interface AsrEngine : Releasable, AutoCloseable {
     /** Current engine state. */
     public val state: StateFlow<AsrState>
 

@@ -10,8 +10,6 @@ import io.github.kmpfacelink.model.CameraFacing
 import io.github.kmpfacelink.util.FaceLinkLogger
 import io.github.kmpfacelink.util.FrameThrottler
 import io.github.kmpfacelink.util.withLock
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.StateFlow
 import platform.AVFoundation.AVCaptureConnection
 import platform.AVFoundation.AVCaptureDevice
 import platform.AVFoundation.AVCaptureDeviceInput
@@ -54,15 +52,12 @@ internal abstract class BaseVisionTracker<T>(
     frameThrottler: FrameThrottler,
     initialCameraFacing: CameraFacing,
     private val targetFps: Int = DEFAULT_TARGET_FPS,
-    private val sessionPreset: String = AVCaptureSessionPreset352x288,
+    private val sessionPreset: String = requireNotNull(AVCaptureSessionPreset352x288) { "AVCaptureSessionPreset352x288 unavailable" },
 ) : BaseTracker<T>(
     thermalMonitor = thermalMonitor,
     frameThrottler = frameThrottler,
 ) {
 
-    override val trackingData: Flow<T> = super.trackingData
-    override val state: StateFlow<TrackingState> = super.state
-    override val errorMessage: StateFlow<String?> = super.errorMessage
 
     protected val processing = AtomicInt(0)
     protected var currentCameraFacing: CameraFacing = initialCameraFacing

@@ -69,7 +69,7 @@ internal class VisionHandTracker(
     private val sequenceHandler = VNSequenceRequestHandler()
 
     init {
-        FaceLinkLogger.i(TAG, "Hand pose revision: $activeRevision (raw=$resolvedRevision)")
+        FaceLinkLogger.d(TAG, "Hand pose revision: $activeRevision (raw=$resolvedRevision)")
     }
 
     override val tag: String = TAG

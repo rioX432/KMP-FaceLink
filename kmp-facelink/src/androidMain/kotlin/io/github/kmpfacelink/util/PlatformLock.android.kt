@@ -2,9 +2,9 @@ package io.github.kmpfacelink.util
 
 import java.util.concurrent.locks.ReentrantLock
 
-internal actual class PlatformLock actual constructor() {
+public actual class PlatformLock public actual constructor() {
     private val lock = ReentrantLock()
 
-    actual fun lock() = lock.lock()
-    actual fun unlock() = lock.unlock()
+    public actual fun lock(): Unit = lock.lock()
+    public actual fun unlock(): Unit = lock.unlock()
 }

@@ -73,9 +73,9 @@ class OnDeviceLlmClientTest {
         shouldFail: Boolean = false,
         modelDownloaded: Boolean = true,
     ): LlmClient {
-        val engine = FakeInferenceEngine(tokens, shouldFail)
-        val modelManager = FakeModelManager(modelDownloaded)
-        return FakeOnDeviceLlmClient(
+        val engine = StubInferenceEngine(tokens, shouldFail)
+        val modelManager = StubModelManager(modelDownloaded)
+        return StubOnDeviceLlmClient(
             config = LlmConfig.OnDevice(modelId = "gemma-3-1b-int4"),
             engine = engine,
             modelManager = modelManager,
@@ -86,7 +86,7 @@ class OnDeviceLlmClientTest {
 /**
  * Fake [InferenceEngine] for testing that emits predefined tokens.
  */
-private class FakeInferenceEngine(
+class StubInferenceEngine(
     private val tokens: List<String>,
     private val shouldFail: Boolean,
 ) : InferenceEngine {
@@ -112,7 +112,7 @@ private class FakeInferenceEngine(
 /**
  * Fake [ModelManager] for testing.
  */
-private class FakeModelManager(
+class StubModelManager(
     private val hasModel: Boolean,
 ) : ModelManager {
     override fun download(modelInfo: ModelInfo): Flow<DownloadProgress> = flow { }
@@ -127,7 +127,7 @@ private class FakeModelManager(
  * Minimal on-device LLM client for common tests.
  * Mirrors the real [OnDeviceLlmClient] state management without Android-specific code.
  */
-private class FakeOnDeviceLlmClient(
+class StubOnDeviceLlmClient(
     private val config: LlmConfig.OnDevice,
     private val engine: InferenceEngine,
     private val modelManager: ModelManager,

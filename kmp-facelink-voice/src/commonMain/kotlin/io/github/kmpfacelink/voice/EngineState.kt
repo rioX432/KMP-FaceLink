@@ -12,7 +12,7 @@ package io.github.kmpfacelink.voice
  * `VoicePipelineState`) implements this interface while keeping its
  * own domain-specific sub-states.
  */
-public sealed interface EngineState {
+public interface EngineState {
 
     /**
      * Marker for the "idle / ready" state.

@@ -43,7 +43,7 @@ class IfmStressTest {
         val msg1 = "eyeBlink_L-|jawOpen-60|"
         val result1 = IfmMessageParser.parse(msg1)
         assertEquals(1, result1.blendShapes.size)
-        assertEquals(0.6f, result1.blendShapes[BlendShape.JAW_OPEN], 0.01f)
+        assertEquals(0.6f, result1.blendShapes[BlendShape.JAW_OPEN]!!, 0.01f)
     }
 
     @Test
@@ -147,7 +147,7 @@ class IfmStressTest {
         // be confused with V1 separator
         val msg = "eyeBlink_L&50|=head#-10.5,-20.3,5.0,0.0,0.0,0.0|sendDataVersion=v2|"
         val result = IfmMessageParser.parse(msg)
-        assertEquals(0.5f, result.blendShapes[BlendShape.EYE_BLINK_LEFT], 0.01f)
+        assertEquals(0.5f, result.blendShapes[BlendShape.EYE_BLINK_LEFT]!!, 0.01f)
         assertEquals(-10.5f, result.headTransform.pitch, 0.01f)
         assertEquals(-20.3f, result.headTransform.yaw, 0.01f)
     }

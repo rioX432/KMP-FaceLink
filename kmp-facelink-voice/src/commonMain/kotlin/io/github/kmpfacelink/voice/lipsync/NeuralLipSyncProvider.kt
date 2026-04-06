@@ -2,6 +2,7 @@ package io.github.kmpfacelink.voice.lipsync
 
 import io.github.kmpfacelink.voice.lipsync.internal.NeuralLipSyncEngineImpl
 import io.github.kmpfacelink.voice.lipsync.internal.StubNeuralModelBridge
+import kotlin.concurrent.Volatile
 
 /**
  * Factory for creating [NeuralLipSyncEngine] instances.

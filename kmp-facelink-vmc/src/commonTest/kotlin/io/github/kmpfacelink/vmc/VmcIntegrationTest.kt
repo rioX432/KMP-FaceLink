@@ -31,11 +31,12 @@ class VmcIntegrationTest {
             val decoded = OscDecoder.decode(bytes)
             val received = VmcMessageParser.parse(decoded)
 
+            val receivedTime = requireNotNull(received.senderTime) { "senderTime should not be null" }
             assertTrue(
-                received.senderTime >= lastTime,
+                receivedTime >= lastTime,
                 "Frame $frame: timestamp $time < $lastTime",
             )
-            lastTime = received.senderTime
+            lastTime = receivedTime
         }
     }
 

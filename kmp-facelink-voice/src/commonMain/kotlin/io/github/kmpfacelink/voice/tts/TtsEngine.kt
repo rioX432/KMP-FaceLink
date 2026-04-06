@@ -3,7 +3,6 @@ package io.github.kmpfacelink.voice.tts
 import io.github.kmpfacelink.api.Releasable
 import io.github.kmpfacelink.voice.EngineState
 import kotlinx.coroutines.flow.StateFlow
-import kotlin.io.Closeable
 
 /**
  * State of a TTS engine.
@@ -25,7 +24,7 @@ public sealed class TtsState : EngineState {
  * Implements [Releasable] for consistent lifecycle management and [Closeable]
  * so engines can be used with `use {}` blocks. [close] delegates to [release].
  */
-public interface TtsEngine : Releasable, Closeable {
+public interface TtsEngine : Releasable, AutoCloseable {
     /** Current engine state. */
     public val state: StateFlow<TtsState>
 

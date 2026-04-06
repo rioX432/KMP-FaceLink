@@ -38,13 +38,13 @@ internal abstract class BaseTracker<T>(
         replay = 1,
         extraBufferCapacity = 1,
     )
-    internal open val trackingData: Flow<T> = mutableTrackingData.asSharedFlow()
+    public open val trackingData: Flow<T> = mutableTrackingData.asSharedFlow()
 
     protected val mutableState: MutableStateFlow<TrackingState> = MutableStateFlow(TrackingState.IDLE)
-    internal open val state: StateFlow<TrackingState> = mutableState.asStateFlow()
+    public open val state: StateFlow<TrackingState> = mutableState.asStateFlow()
 
     protected val mutableErrorMessage: MutableStateFlow<String?> = MutableStateFlow(null)
-    internal open val errorMessage: StateFlow<String?> = mutableErrorMessage.asStateFlow()
+    public open val errorMessage: StateFlow<String?> = mutableErrorMessage.asStateFlow()
 
     // -- Thread-safety primitives --
 

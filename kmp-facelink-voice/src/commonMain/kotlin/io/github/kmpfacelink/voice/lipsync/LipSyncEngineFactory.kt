@@ -2,6 +2,7 @@ package io.github.kmpfacelink.voice.lipsync
 
 import io.github.kmpfacelink.voice.lipsync.internal.DefaultLipSyncEngine
 import io.github.kmpfacelink.voice.lipsync.internal.EnhancedAmplitudeLipSync
+import kotlin.concurrent.Volatile
 
 /**
  * Factory for creating [LipSyncEngine] instances.

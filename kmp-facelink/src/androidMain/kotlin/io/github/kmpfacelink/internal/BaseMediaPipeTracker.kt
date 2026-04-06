@@ -11,8 +11,6 @@ import io.github.kmpfacelink.util.ThermalMonitor
 import io.github.kmpfacelink.util.withLock
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.withContext
 import java.util.concurrent.ExecutionException
 import java.util.concurrent.Executors
@@ -56,9 +54,6 @@ internal abstract class BaseMediaPipeTracker<T>(
 
     protected val platformContext: PlatformContext = params.platformContext
 
-    override val trackingData: Flow<T> = super.trackingData
-    override val state: StateFlow<TrackingState> = super.state
-    override val errorMessage: StateFlow<String?> = super.errorMessage
 
     @Volatile
     internal var currentCameraFacing: CameraFacing = params.initialCameraFacing
@@ -108,7 +103,7 @@ internal abstract class BaseMediaPipeTracker<T>(
     /** Perform tracker-specific cleanup during [release]. Called inside pipelineLock. */
     protected open fun performExtraRelease() {}
 
-    internal fun setSurfaceProvider(surfaceProvider: Preview.SurfaceProvider?) {
+    public open fun setSurfaceProvider(surfaceProvider: Preview.SurfaceProvider?) {
         previewSurfaceProvider = surfaceProvider
     }
 

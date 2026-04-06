@@ -13,6 +13,7 @@ dokka {
 
 kotlin {
     explicitApi()
+    applyDefaultHierarchyTemplate()
 
     androidLibrary {
         namespace = "io.github.kmpfacelink.llm"
@@ -41,6 +42,10 @@ kotlin {
             implementation(libs.ktor.client.core)
             implementation(libs.ktor.client.content.negotiation)
             implementation(libs.ktor.serialization.kotlinx.json)
+        }
+
+        androidMain.dependencies {
+            implementation(libs.ktor.client.okhttp)
         }
 
         commonTest.dependencies {

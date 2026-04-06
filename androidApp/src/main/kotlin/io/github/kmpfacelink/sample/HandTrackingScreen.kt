@@ -5,7 +5,6 @@ import io.github.kmpfacelink.api.HandTracker
 import io.github.kmpfacelink.model.HandTrackingData
 import kotlinx.coroutines.flow.MutableStateFlow
 import io.github.kmpfacelink.sample.ui.HandTrackingScreen as SharedHandTrackingScreen
-import io.github.kmpfacelink.sample.ui.TrackingMode as SharedTrackingMode
 
 /**
  * Android hand tracking screen that delegates to the shared CMP implementation.
@@ -25,13 +24,4 @@ internal fun HandTrackingScreen(
         onStartClick = onStartClick,
         onStopClick = onStopClick,
     )
-}
-
-private fun SharedTrackingMode.toLocal(): TrackingMode = when (this) {
-    SharedTrackingMode.HOME -> TrackingMode.HOME
-    SharedTrackingMode.FACE -> TrackingMode.FACE
-    SharedTrackingMode.HAND -> TrackingMode.HAND
-    SharedTrackingMode.HOLISTIC -> TrackingMode.HOLISTIC
-    SharedTrackingMode.ACTIONS -> TrackingMode.ACTIONS
-    SharedTrackingMode.VOICE -> TrackingMode.VOICE
 }

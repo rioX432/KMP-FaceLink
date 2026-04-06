@@ -45,7 +45,7 @@ internal class VisionBodyTracker3D(
     frameThrottler = FrameThrottler(config.thermalPolicy),
     initialCameraFacing = config.cameraFacing,
     // 3D pose needs higher resolution than 2D for depth estimation
-    sessionPreset = AVCaptureSessionPreset640x480,
+    sessionPreset = requireNotNull(AVCaptureSessionPreset640x480) { "AVCaptureSessionPreset640x480 unavailable" },
 ),
     BodyTracker {
 

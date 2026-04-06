@@ -72,10 +72,8 @@ internal class ConfidenceFrameStrategy(private val config: FrameSkipConfig) {
      * Must be called after each processed frame to update internal state.
      *
      * @param blendShapes The processed blend shape data.
-     * @param confidence The confidence from this frame (unused; kept for API clarity).
      */
-    @Suppress("UNUSED_PARAMETER")
-    fun onFrameProcessed(blendShapes: BlendShapeData, confidence: Float) {
+    fun onFrameProcessed(blendShapes: BlendShapeData) {
         val prev = latestProcessedBlendShapes
         previousProcessedBlendShapes = prev
         latestProcessedBlendShapes = blendShapes

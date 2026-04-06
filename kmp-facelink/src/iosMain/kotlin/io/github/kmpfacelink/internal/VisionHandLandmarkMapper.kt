@@ -5,6 +5,7 @@ package io.github.kmpfacelink.internal
 import io.github.kmpfacelink.model.HandJoint
 import io.github.kmpfacelink.model.HandLandmarkPoint
 import io.github.kmpfacelink.model.Handedness
+import io.github.kmpfacelink.util.FaceLinkLogger
 import kotlinx.cinterop.useContents
 import platform.Vision.VNChiralityLeft
 import platform.Vision.VNChiralityRight
@@ -36,6 +37,8 @@ import platform.Vision.VNRecognizedPointKey
  * Maps Apple Vision VNHumanHandPoseObservation to KMP-FaceLink model types.
  */
 internal object VisionHandLandmarkMapper {
+
+    private const val TAG = "VisionHandLandmarkMapper"
 
     /**
      * Ordered mapping from Vision joint names to [HandJoint].
@@ -78,7 +81,8 @@ internal object VisionHandLandmarkMapper {
         for ((visionJoint, handJoint) in jointMapping) {
             val point = try {
                 observation.recognizedPointForJointName(visionJoint, null)
-            } catch (_: Exception) {
+            } catch (e: Exception) {
+                FaceLinkLogger.w(TAG, "Failed to read joint $handJoint", e)
                 null
             }
 

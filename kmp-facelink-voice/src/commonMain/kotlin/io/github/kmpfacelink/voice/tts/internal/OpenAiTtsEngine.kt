@@ -21,6 +21,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+import kotlin.concurrent.atomics.AtomicInt
+import kotlin.concurrent.atomics.ExperimentalAtomicApi
 
 /**
  * OpenAI TTS engine using /v1/audio/speech endpoint.
@@ -36,6 +38,7 @@ import kotlinx.serialization.json.Json
  * The catch clause intentionally keeps a generic `Exception` catch to avoid leaking internal
  * Ktor/serialization types into the public [TtsEngine] interface signature.
  */
+@OptIn(ExperimentalAtomicApi::class)
 internal class OpenAiTtsEngine(
     private val config: TtsConfig.OpenAiTts,
     httpClient: HttpClient? = null,
@@ -49,7 +52,7 @@ internal class OpenAiTtsEngine(
     }
     private val ownsClient: Boolean = httpClient == null
 
-    @Volatile private var released = false
+    private val released = AtomicInt(0)
 
     private val json = Json { ignoreUnknownKeys = true }
 
@@ -92,8 +95,7 @@ internal class OpenAiTtsEngine(
     }
 
     override fun release() {
-        if (released) return
-        released = true
+        if (!released.compareAndSet(expectedValue = 0, newValue = 1)) return
         if (ownsClient) client.close()
     }
 

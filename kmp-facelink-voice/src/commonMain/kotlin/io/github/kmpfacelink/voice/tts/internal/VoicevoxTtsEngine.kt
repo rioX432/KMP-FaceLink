@@ -24,6 +24,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+import kotlin.concurrent.atomics.AtomicInt
+import kotlin.concurrent.atomics.ExperimentalAtomicApi
 
 private const val WAV_HEADER_SIZE = 44
 
@@ -35,6 +37,7 @@ private const val WAV_HEADER_SIZE = 44
  *
  * Flow: POST /audio_query → parse mora timing → POST /synthesis → WAV audio
  */
+@OptIn(ExperimentalAtomicApi::class)
 internal class VoicevoxTtsEngine(
     private val config: TtsConfig.Voicevox,
     httpClient: HttpClient? = null,
@@ -50,7 +53,7 @@ internal class VoicevoxTtsEngine(
     }
     private val ownsClient: Boolean = httpClient == null
 
-    @Volatile private var released = false
+    private val released = AtomicInt(0)
 
     private val json = Json { ignoreUnknownKeys = true }
 
@@ -105,8 +108,7 @@ internal class VoicevoxTtsEngine(
     }
 
     override fun release() {
-        if (released) return
-        released = true
+        if (!released.compareAndSet(expectedValue = 0, newValue = 1)) return
         if (ownsClient) client.close()
     }
 

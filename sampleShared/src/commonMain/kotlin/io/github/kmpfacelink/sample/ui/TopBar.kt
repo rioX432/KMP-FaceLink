@@ -13,7 +13,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import io.github.kmpfacelink.api.TrackingState
@@ -46,10 +49,18 @@ public fun TopBar(
                 text = "Status: $state",
                 color = SampleColors.TextPrimary,
                 fontSize = 14.sp,
-                modifier = Modifier.weight(1f),
+                modifier = Modifier
+                    .weight(1f)
+                    .semantics { contentDescription = "Tracking status: $state" },
             )
-            Button(onClick = { if (isTracking) onStopClick() else onStartClick() }) {
-                Text(if (isTracking) "Stop" else "Start")
+            val buttonLabel = if (isTracking) "Stop" else "Start"
+            Button(
+                onClick = { if (isTracking) onStopClick() else onStartClick() },
+                modifier = Modifier.semantics {
+                    contentDescription = "$buttonLabel tracking"
+                },
+            ) {
+                Text(buttonLabel)
             }
         }
         HeadTransformText(headTransform)
@@ -68,6 +79,8 @@ private fun HeadTransformText(headTransform: HeadTransform?) {
         color = SampleColors.TextSecondary,
         fontSize = 12.sp,
         fontFamily = FontFamily.Monospace,
+        maxLines = 1,
+        overflow = TextOverflow.Ellipsis,
     )
 }
 

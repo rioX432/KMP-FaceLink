@@ -12,6 +12,8 @@ import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
@@ -34,10 +36,20 @@ public fun ModeToggle(
             .padding(horizontal = 12.dp, vertical = 4.dp),
     ) {
         TrackingMode.entries.filter { it != TrackingMode.HOME }.forEach { mode ->
+            val selected = currentMode == mode
+            val stateLabel = if (selected) "selected" else "not selected"
             FilterChip(
-                selected = currentMode == mode,
+                selected = selected,
                 onClick = { onModeChange(mode) },
-                label = { Text(mode.name, fontSize = 12.sp) },
+                modifier = Modifier.semantics {
+                    contentDescription = "${mode.name} mode, $stateLabel"
+                },
+                label = {
+                    Text(
+                        text = mode.name,
+                        fontSize = 12.sp,
+                    )
+                },
                 colors = FilterChipDefaults.filterChipColors(
                     containerColor = SampleColors.ChipDefault,
                     labelColor = SampleColors.TextPrimary,

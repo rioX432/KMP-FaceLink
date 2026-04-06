@@ -23,6 +23,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+import kotlin.concurrent.atomics.AtomicInt
+import kotlin.concurrent.atomics.ExperimentalAtomicApi
 import kotlin.io.encoding.Base64
 import kotlin.io.encoding.ExperimentalEncodingApi
 
@@ -32,7 +34,7 @@ import kotlin.io.encoding.ExperimentalEncodingApi
  * Uses the /v1/text-to-speech/{voice_id}/with-timestamps endpoint
  * to get character alignment data for approximate phoneme lip sync.
  */
-@OptIn(ExperimentalEncodingApi::class)
+@OptIn(ExperimentalEncodingApi::class, ExperimentalAtomicApi::class)
 internal class ElevenLabsTtsEngine(
     private val config: TtsConfig.ElevenLabs,
     httpClient: HttpClient? = null,
@@ -46,7 +48,7 @@ internal class ElevenLabsTtsEngine(
     }
     private val ownsClient: Boolean = httpClient == null
 
-    @Volatile private var released = false
+    private val released = AtomicInt(0)
 
     private val json = Json { ignoreUnknownKeys = true }
 
@@ -99,8 +101,7 @@ internal class ElevenLabsTtsEngine(
     }
 
     override fun release() {
-        if (released) return
-        released = true
+        if (!released.compareAndSet(expectedValue = 0, newValue = 1)) return
         if (ownsClient) client.close()
     }
 

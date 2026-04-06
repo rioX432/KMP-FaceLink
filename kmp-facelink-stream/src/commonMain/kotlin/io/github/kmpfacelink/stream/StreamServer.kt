@@ -99,8 +99,11 @@ public class StreamServer(
         engine = null
         serverJob?.cancel()
         serverJob = null
-        sessions.clear()
+        // Sessions are cleaned up by handleClientSession's finally block when
+        // serverJob is cancelled. Avoid clearing the list without mutex here
+        // to prevent a data race with concurrent sendFrame/handleClientSession.
         _clientCount.store(0)
+        _connectionCount.tryEmit(0)
     }
 
     /** Releases all resources by stopping the server. */

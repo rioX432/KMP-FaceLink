@@ -15,6 +15,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -48,20 +50,28 @@ public fun StreamingToggle(
             fontSize = 11.sp,
             fontWeight = FontWeight.Bold,
         )
+        val vmcState = if (vmcEnabled) "enabled" else "disabled"
         FilterChip(
             selected = vmcEnabled,
             onClick = {
                 vmcEnabled = !vmcEnabled
                 onVmcToggle(vmcEnabled)
             },
+            modifier = Modifier.semantics {
+                contentDescription = "VMC streaming, $vmcState"
+            },
             label = { Text("VMC", fontSize = 11.sp) },
             colors = streamingChipColors(),
         )
+        val ifmState = if (ifmEnabled) "enabled" else "disabled"
         FilterChip(
             selected = ifmEnabled,
             onClick = {
                 ifmEnabled = !ifmEnabled
                 onIfmToggle(ifmEnabled)
+            },
+            modifier = Modifier.semantics {
+                contentDescription = "iFacialMocap streaming, $ifmState"
             },
             label = { Text("iFacialMocap", fontSize = 11.sp) },
             colors = streamingChipColors(),

@@ -13,6 +13,7 @@ import io.github.kmpfacelink.model.SmoothingConfig
 import io.github.kmpfacelink.model.TrackedBody
 import io.github.kmpfacelink.util.BodyLandmarkSmoother
 import io.github.kmpfacelink.util.FrameThrottler
+import io.github.kmpfacelink.util.PowerModeManager
 import io.github.kmpfacelink.util.createBodySmoother
 import io.github.kmpfacelink.util.createSmoother
 import io.github.kmpfacelink.util.withLock
@@ -41,6 +42,15 @@ internal class VisionBodyTracker(
     private val bodyPoseRequest = VNDetectHumanBodyPoseRequest()
     private val sequenceHandler = VNSequenceRequestHandler()
 
+    private val batteryMonitor = IosBatteryMonitor()
+    private val powerModeManager: PowerModeManager? = config.powerMode?.let { mode ->
+        PowerModeManager(
+            powerMode = mode,
+            thermalMonitor = thermalMonitor,
+            batteryMonitor = batteryMonitor,
+        )
+    }
+
     override val tag: String = TAG
     override val videoQueueLabel: String = "io.github.kmpfacelink.body.video"
 
@@ -54,6 +64,11 @@ internal class VisionBodyTracker(
 
     override fun release() {
         performRelease()
+    }
+
+    override fun performExtraRelease() {
+        batteryMonitor.release()
+        powerModeManager?.release()
     }
 
     override fun updateSmoothing(config: SmoothingConfig) {
@@ -78,9 +93,14 @@ internal class VisionBodyTracker(
         val pixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) ?: return
         val timestampMs = currentTimeMillis()
 
-        // Thermal throttling: skip frame if needed
+        // Power mode or thermal throttling: skip frame if needed
         val currentThermalState = thermalMonitor.thermalState.value
-        if (!frameThrottler.shouldProcess(timestampMs, currentThermalState)) return
+        val shouldProcess = if (powerModeManager != null) {
+            powerModeManager.shouldProcess(timestampMs)
+        } else {
+            frameThrottler.shouldProcess(timestampMs, currentThermalState)
+        }
+        if (!shouldProcess) return
 
         // Get source image dimensions from pixel buffer
         val imageWidth = CVPixelBufferGetWidth(pixelBuffer).toInt()

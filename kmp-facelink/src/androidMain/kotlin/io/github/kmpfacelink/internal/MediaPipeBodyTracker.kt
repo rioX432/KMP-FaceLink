@@ -17,11 +17,13 @@ import io.github.kmpfacelink.model.TrackedBody
 import io.github.kmpfacelink.util.BodyLandmarkSmoother
 import io.github.kmpfacelink.util.FaceLinkLogger
 import io.github.kmpfacelink.util.FrameThrottler
+import io.github.kmpfacelink.util.PowerModeManager
 import io.github.kmpfacelink.util.createBodySmoother
 import io.github.kmpfacelink.util.createSmoother
 import io.github.kmpfacelink.util.withLock
 import kotlin.concurrent.atomics.ExperimentalAtomicApi
 
+@Suppress("TooManyFunctions")
 @OptIn(ExperimentalAtomicApi::class)
 internal class MediaPipeBodyTracker(
     platformContext: PlatformContext,
@@ -43,6 +45,15 @@ internal class MediaPipeBodyTracker(
 
     private var smoother: BodyLandmarkSmoother? = config.createSmoother()
     private var poseLandmarker: PoseLandmarker? = null
+
+    private val batteryMonitor = AndroidBatteryMonitor(platformContext.context)
+    private val powerModeManager: PowerModeManager? = config.powerMode?.let { mode ->
+        PowerModeManager(
+            powerMode = mode,
+            thermalMonitor = thermalMonitor,
+            batteryMonitor = batteryMonitor,
+        )
+    }
 
     override val tag: String = TAG
 
@@ -91,11 +102,22 @@ internal class MediaPipeBodyTracker(
         poseLandmarker = null
     }
 
+    override fun performExtraRelease() {
+        batteryMonitor.release()
+        powerModeManager?.release()
+    }
+
     override fun buildDetectionCallbacks(): DetectionCallbacks {
         val landmarker = poseLandmarker
         return DetectionCallbacks(
             isLandmarkerReady = landmarker != null,
-            shouldProcess = { ts -> frameThrottler.shouldProcess(ts, thermalMonitor.thermalState.value) },
+            shouldProcess = { ts ->
+                if (powerModeManager != null) {
+                    powerModeManager.shouldProcess(ts)
+                } else {
+                    frameThrottler.shouldProcess(ts, thermalMonitor.thermalState.value)
+                }
+            },
             detectAsync = { mpImage, ts -> landmarker!!.detectAsync(mpImage, ts) },
         )
     }

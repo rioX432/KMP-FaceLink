@@ -18,6 +18,7 @@ import io.github.kmpfacelink.util.FaceLinkLogger
 import io.github.kmpfacelink.util.FrameThrottler
 import io.github.kmpfacelink.util.GestureClassifier
 import io.github.kmpfacelink.util.HandLandmarkSmoother
+import io.github.kmpfacelink.util.PowerModeManager
 import io.github.kmpfacelink.util.createHandSmoother
 import io.github.kmpfacelink.util.createSmoother
 import io.github.kmpfacelink.util.withLock
@@ -50,6 +51,15 @@ internal class MediaPipeHandTracker(
 
     private var smoother: HandLandmarkSmoother? = config.createSmoother()
     private var handLandmarker: HandLandmarker? = null
+
+    private val batteryMonitor = AndroidBatteryMonitor(platformContext.context)
+    private val powerModeManager: PowerModeManager? = config.powerMode?.let { mode ->
+        PowerModeManager(
+            powerMode = mode,
+            thermalMonitor = thermalMonitor,
+            batteryMonitor = batteryMonitor,
+        )
+    }
 
     override val tag: String = TAG
 
@@ -98,11 +108,22 @@ internal class MediaPipeHandTracker(
         handLandmarker = null
     }
 
+    override fun performExtraRelease() {
+        batteryMonitor.release()
+        powerModeManager?.release()
+    }
+
     override fun buildDetectionCallbacks(): DetectionCallbacks {
         val landmarker = handLandmarker
         return DetectionCallbacks(
             isLandmarkerReady = landmarker != null,
-            shouldProcess = { ts -> frameThrottler.shouldProcess(ts, thermalMonitor.thermalState.value) },
+            shouldProcess = { ts ->
+                if (powerModeManager != null) {
+                    powerModeManager.shouldProcess(ts)
+                } else {
+                    frameThrottler.shouldProcess(ts, thermalMonitor.thermalState.value)
+                }
+            },
             detectAsync = { mpImage, ts -> landmarker!!.detectAsync(mpImage, ts) },
         )
     }
@@ -185,7 +206,7 @@ internal class MediaPipeHandTracker(
             val handedness = if (result.handednesses().isNotEmpty() && i < result.handednesses().size) {
                 val category = result.handednesses()[i]
                 if (category.isNotEmpty()) {
-                    HandLandmarkMapper.mapHandedness(category[0].categoryName(), isFrontCamera)
+                    HandLandmarkMapper.mapHandedness(category[0].categoryName())
                 } else {
                     io.github.kmpfacelink.model.Handedness.UNKNOWN
                 }

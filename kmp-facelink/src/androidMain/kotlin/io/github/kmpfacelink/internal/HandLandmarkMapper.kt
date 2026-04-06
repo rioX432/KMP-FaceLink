@@ -24,10 +24,8 @@ internal object HandLandmarkMapper {
      * from the user's perspective. No flip is needed.
      *
      * @param categoryName MediaPipe handedness string ("Left" or "Right")
-     * @param isFrontCamera Retained for API compatibility (unused after pre-mirror)
      */
-    @Suppress("UNUSED_PARAMETER")
-    fun mapHandedness(categoryName: String, isFrontCamera: Boolean): Handedness =
+    fun mapHandedness(categoryName: String): Handedness =
         when (categoryName) {
             "Left" -> Handedness.LEFT
             "Right" -> Handedness.RIGHT

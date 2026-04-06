@@ -24,6 +24,8 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+import kotlin.concurrent.atomics.AtomicInt
+import kotlin.concurrent.atomics.ExperimentalAtomicApi
 
 /**
  * OpenAI Whisper cloud ASR engine.
@@ -36,6 +38,7 @@ import kotlinx.serialization.json.Json
  * - `kotlinx.serialization.SerializationException` — response body could not be parsed.
  * - `kotlinx.coroutines.CancellationException` — the coroutine was cancelled; always re-thrown.
  */
+@OptIn(ExperimentalAtomicApi::class)
 internal class OpenAiAsrEngine(
     private val config: AsrConfig.OpenAiWhisper,
     httpClient: HttpClient? = null,
@@ -52,14 +55,14 @@ internal class OpenAiAsrEngine(
     }
     private val ownsClient: Boolean = httpClient == null
 
-    @Volatile private var released = false
+    private val released = AtomicInt(0)
     private val releaseMutex = Mutex()
 
     private val json = Json { ignoreUnknownKeys = true }
 
     override suspend fun transcribe(audio: AudioData): TranscriptionResult =
         releaseMutex.withLock {
-            check(!released) { "Cannot transcribe: engine has been released" }
+            check(released.load() == 0) { "Cannot transcribe: engine has been released" }
             performTranscription(audio)
         }
 
@@ -112,8 +115,7 @@ internal class OpenAiAsrEngine(
     }
 
     override fun release() {
-        if (released) return
-        released = true
+        if (!released.compareAndSet(expectedValue = 0, newValue = 1)) return
         if (releaseMutex.tryLock()) {
             try {
                 if (ownsClient) client.close()

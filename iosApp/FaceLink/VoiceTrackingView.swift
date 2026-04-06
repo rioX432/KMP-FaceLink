@@ -25,6 +25,7 @@ struct VoiceTrackingView: View {
                                     in: Capsule()
                                 )
                         }
+                        .frame(minHeight: 44)
                         .accessibilityLabel("\(provider) provider")
                         .accessibilityHint(viewModel.selectedProvider == provider
                             ? "Currently selected"

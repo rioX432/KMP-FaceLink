@@ -106,6 +106,8 @@ internal class PlatformAudioRecorder : AudioRecorder {
         recordingJob = null
 
         audioRecord?.stop()
+        audioRecord?.release()
+        audioRecord = null
 
         return dataMutex.withLock {
             val bytes = recordedData.toByteArray()

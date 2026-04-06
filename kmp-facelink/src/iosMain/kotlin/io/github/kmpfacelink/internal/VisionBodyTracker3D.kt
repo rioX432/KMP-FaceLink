@@ -12,7 +12,9 @@ import io.github.kmpfacelink.model.CameraFacing
 import io.github.kmpfacelink.model.SmoothingConfig
 import io.github.kmpfacelink.model.TrackedBody
 import io.github.kmpfacelink.util.BodyLandmarkSmoother
+import io.github.kmpfacelink.util.FaceLinkLogger
 import io.github.kmpfacelink.util.FrameThrottler
+import io.github.kmpfacelink.util.PowerModeManager
 import io.github.kmpfacelink.util.createBodySmoother
 import io.github.kmpfacelink.util.createSmoother
 import io.github.kmpfacelink.util.withLock
@@ -50,6 +52,15 @@ internal class VisionBodyTracker3D(
     private var smoother: BodyLandmarkSmoother? = config.createSmoother()
     private val bodyPose3DRequest = VNDetectHumanBodyPose3DRequest()
 
+    private val batteryMonitor = IosBatteryMonitor()
+    private val powerModeManager: PowerModeManager? = config.powerMode?.let { mode ->
+        PowerModeManager(
+            powerMode = mode,
+            thermalMonitor = thermalMonitor,
+            batteryMonitor = batteryMonitor,
+        )
+    }
+
     override val tag: String = TAG
     override val videoQueueLabel: String = "io.github.kmpfacelink.body3d.video"
 
@@ -63,6 +74,11 @@ internal class VisionBodyTracker3D(
 
     override fun release() {
         performRelease()
+    }
+
+    override fun performExtraRelease() {
+        batteryMonitor.release()
+        powerModeManager?.release()
     }
 
     override fun updateSmoothing(config: SmoothingConfig) {
@@ -87,8 +103,14 @@ internal class VisionBodyTracker3D(
         val pixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) ?: return
         val timestampMs = currentTimeMillis()
 
+        // Power mode or thermal throttling: skip frame if needed
         val currentThermalState = thermalMonitor.thermalState.value
-        if (!frameThrottler.shouldProcess(timestampMs, currentThermalState)) return
+        val shouldProcess = if (powerModeManager != null) {
+            powerModeManager.shouldProcess(timestampMs)
+        } else {
+            frameThrottler.shouldProcess(timestampMs, currentThermalState)
+        }
+        if (!shouldProcess) return
 
         val imageWidth = CVPixelBufferGetWidth(pixelBuffer).toInt()
         val imageHeight = CVPixelBufferGetHeight(pixelBuffer).toInt()
@@ -126,7 +148,8 @@ internal class VisionBodyTracker3D(
         val handler = VNImageRequestHandler(pixelBuffer, options = emptyMap<Any?, Any>())
         try {
             handler.performRequests(listOf(bodyPose3DRequest), error = null)
-        } catch (_: Exception) {
+        } catch (e: Exception) {
+            FaceLinkLogger.w(TAG, "Body pose 3D detection failed", e)
             mutableTrackingData.tryEmit(BodyTrackingData.notTracking(timestampMs))
             return null
         }

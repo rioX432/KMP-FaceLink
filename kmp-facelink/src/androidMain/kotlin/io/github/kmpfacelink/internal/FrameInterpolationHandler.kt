@@ -41,7 +41,7 @@ internal class FrameInterpolationHandler(config: FaceTrackerConfig) {
     ) {
         lastConfidence = confidence
         interpolator.onFrameProcessed(blendShapes, headTransform, timestampMs)
-        frameSkipStrategy.onFrameProcessed(blendShapes, confidence)
+        frameSkipStrategy.onFrameProcessed(blendShapes)
     }
 
     /** Builds interpolated [FaceTrackingData] for a skipped frame, or null if not enough history. */

@@ -212,7 +212,7 @@ internal class ARKitFaceTracker(
         // Update interpolator and strategy with processed data
         lastConfidence = faceConfidence
         interpolator.onFrameProcessed(processedBlendShapes, headTransform, timestampMs)
-        frameSkipStrategy.onFrameProcessed(processedBlendShapes, faceConfidence)
+        frameSkipStrategy.onFrameProcessed(processedBlendShapes)
 
         val trackedFace = TrackedFace(
             faceIndex = 0,

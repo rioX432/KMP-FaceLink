@@ -6,12 +6,17 @@ import io.github.kmpfacelink.llm.LlmClient
 import io.github.kmpfacelink.llm.LlmConfig
 import io.github.kmpfacelink.llm.LlmState
 import io.github.kmpfacelink.llm.ModelManager
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.onCompletion
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
@@ -36,6 +41,7 @@ internal class OnDeviceLlmClient(
     private val _state = MutableStateFlow<LlmState>(LlmState.Idle)
     override val state: StateFlow<LlmState> = _state.asStateFlow()
     private val chatMutex = Mutex()
+    private val releaseScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 
     override fun chat(history: ConversationHistory): Flow<String> = flow {
         chatMutex.withLock {
@@ -61,8 +67,9 @@ internal class OnDeviceLlmClient(
     }
 
     override fun release() {
-        // Engine unload is a suspend function; release is best-effort synchronous.
-        // Callers needing graceful shutdown should call engine.unload() directly.
+        // Engine unload is a suspend function; fire-and-forget since release() is synchronous.
+        releaseScope.launch { engine.unload() }
+        releaseScope.cancel()
     }
 
     private suspend fun ensureModelLoaded() {

@@ -15,6 +15,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -117,9 +118,11 @@ public class DefaultAvatarPipeline(
     }
 
     override fun release() {
-        // Cancel any in-progress job. The scope is caller-owned, so we do not cancel it.
         currentJob?.cancel()
         currentJob = null
+        // Cancel the scope to clean up any leaked coroutines.
+        // If the scope was externally provided, the caller should not reuse it after release().
+        scope.cancel()
         runCatching { llmClient.release() }.onFailure { FaceLinkLogger.w(TAG, "Failed to release LlmClient", it) }
         runCatching { ttsEngine?.release() }.onFailure { FaceLinkLogger.w(TAG, "Failed to release TtsEngine", it) }
         runCatching { asrEngine?.release() }.onFailure { FaceLinkLogger.w(TAG, "Failed to release AsrEngine", it) }

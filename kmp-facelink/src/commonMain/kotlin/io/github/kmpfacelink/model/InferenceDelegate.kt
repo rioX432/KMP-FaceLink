@@ -8,8 +8,8 @@ package io.github.kmpfacelink.model
  * does not support it — see [AUTO] for automatic fallback behavior.
  *
  * Android (MediaPipe): All options are supported. GPU requires OpenGL ES 3.1+.
- *   NNAPI delegates to the Android Neural Networks API (deprecated in Android 15,
- *   but still functional on older devices and useful as a bridge to NPU acceleration).
+ *   NPU delegates to vendor-specific accelerators (Qualcomm QNN, MediaTek NeuroPilot)
+ *   via LiteRT vendor delegates. Falls back to GPU → CPU when unavailable.
  * iOS (ARKit/Vision): This setting has no effect — Apple frameworks manage
  *   hardware acceleration internally via CoreML and the Apple Neural Engine.
  */
@@ -35,20 +35,32 @@ public enum class InferenceDelegate {
     GPU,
 
     /**
-     * Prefer Android NNAPI delegate.
+     * Prefer NPU inference via LiteRT vendor delegates.
      *
-     * NNAPI can route inference to a device's NPU/DSP when a vendor driver is available,
-     * providing significant performance gains. Falls back to GPU → CPU if NNAPI is
-     * unavailable or fails to initialize.
+     * Routes inference to the device's Neural Processing Unit when a supported vendor
+     * runtime is available:
+     * - **Qualcomm**: QNN / AI Engine Direct (Snapdragon 8 Gen 1+, 7 Gen 3+)
+     * - **MediaTek**: NeuroPilot (Dimensity 7300+)
      *
-     * Note: NNAPI is deprecated starting in Android 15 (API 35). For future NPU access,
-     * direct LiteRT vendor delegates will be needed (tracked separately).
+     * Falls back to GPU → CPU when the NPU delegate is unavailable or fails to
+     * initialize. NPU inference provides significant power efficiency gains (3-5x
+     * over GPU), making it ideal for long tracking sessions.
+     *
+     * Note: NPU delegate support in MediaPipe Tasks is currently in progress.
+     * Until fully available, this option falls back to GPU → CPU.
      * This option has no effect on iOS.
      */
+    NPU,
+
+    /**
+     * Prefer Android NNAPI delegate.
+     *
+     * @see NPU for the recommended replacement using LiteRT vendor delegates.
+     */
     @Deprecated(
-        message = "NNAPI is deprecated in Android 15 (API 35). Use AUTO or GPU instead. " +
-            "This option currently falls back to GPU → CPU.",
-        replaceWith = ReplaceWith("AUTO"),
+        message = "NNAPI is deprecated in Android 15 (API 35). Use NPU for vendor-specific " +
+            "NPU acceleration, or AUTO/GPU instead.",
+        replaceWith = ReplaceWith("NPU"),
     )
     NNAPI,
 }

@@ -19,7 +19,8 @@ internal object DelegateResolver {
      * Returns an ordered fallback chain of [Delegate] values for the given [InferenceDelegate].
      *
      * - [InferenceDelegate.AUTO] / [InferenceDelegate.GPU]: GPU → CPU
-     * - [InferenceDelegate.NNAPI]: NNAPI → GPU → CPU
+     * - [InferenceDelegate.NPU]: GPU → CPU (NPU delegate pending MediaPipe support)
+     * - [InferenceDelegate.NNAPI]: GPU → CPU (deprecated)
      * - [InferenceDelegate.CPU]: CPU only
      */
     fun resolve(preference: InferenceDelegate): List<Delegate> {
@@ -27,16 +28,38 @@ internal object DelegateResolver {
             InferenceDelegate.AUTO -> listOf(Delegate.GPU, Delegate.CPU)
             InferenceDelegate.GPU -> listOf(Delegate.GPU, Delegate.CPU)
             InferenceDelegate.CPU -> listOf(Delegate.CPU)
+            InferenceDelegate.NPU -> resolveNpu()
             @Suppress("DEPRECATION")
             InferenceDelegate.NNAPI
             -> {
                 FaceLinkLogger.w(
                     TAG,
-                    "NNAPI delegate is deprecated (Android 15+). Falling back to GPU → CPU.",
+                    "NNAPI delegate is deprecated (Android 15+). Use NPU instead. " +
+                        "Falling back to GPU → CPU.",
                 )
                 listOf(Delegate.GPU, Delegate.CPU)
             }
         }
+    }
+
+    /**
+     * Resolves the NPU delegate fallback chain.
+     *
+     * MediaPipe Tasks Vision does not yet expose an NPU delegate value in its
+     * [Delegate] enum. When MediaPipe adds NPU support, this method will be
+     * updated to include the NPU delegate at the head of the chain.
+     * Until then, NPU preference falls back to GPU → CPU.
+     */
+    private fun resolveNpu(): List<Delegate> {
+        val vendor = NpuVendorDetector.detect()
+        FaceLinkLogger.d(
+            TAG,
+            "NPU requested (vendor=$vendor). MediaPipe NPU delegate not yet available; " +
+                "falling back to GPU → CPU.",
+        )
+        // NPU delegate will be prepended when MediaPipe exposes Delegate.NPU
+        // for supported vendors (Qualcomm QNN, MediaTek NeuroPilot).
+        return listOf(Delegate.GPU, Delegate.CPU)
     }
 
     /**

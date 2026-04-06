@@ -7,6 +7,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- Gemma 4 E2B/E4B as on-device LLM options with `supportsNativeAudio` and `audioCapableModels` (6ba104c)
+- LiteRT-LM dual-backend scaffold: `ModelFormat`, `OnDeviceBackend`, `LiteRtLmEngine` stub (65b75af)
+- IFM receiver lifecycle, VMC integration, and VTS reconnection tests (296617c)
+- IFM and VMC stress tests for rapid frame bursts and connection churn (296617c)
+- FaceLink Studio design document: market analysis, architecture, MVP scope, monetization (26439c2)
 - Expose active hand pose revision in tracking data with revision-aware docs (13dfbce)
 - Gaze estimation for Wasm face tracker (8f4b043)
 - Empty and loading states to tracking screens (be01a06)
@@ -113,6 +118,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - `enhancerConfig` Android-only clarification in KDoc (48634ee)
 
 ### Changed
+- Stabilize vmc, ifm, vts modules from Experimental to Stable (296617c)
+- Raise hybrid routing `complexityThreshold` from 0.5 to 0.6 for Gemma 4 quality (6ba104c)
+- Prefer Gemma 4 E2B/E4B over Gemma 3n in RAM-based model selection (6ba104c)
+- Update LiteRT-LM research with Gemma 4 compatibility and SDK v0.10.x findings (65b75af)
 - Upgrade ONNX Runtime from 1.21.0 to 1.24.2 (f73fe1d)
 - Resolve tech-debt issues #545, #546, #547 (88ff4cf)
 - Scale hand landmark overlay sizes proportionally to view dimensions (a03a2c9)
@@ -182,6 +191,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Improve calibration with warmup and exponential decay (e60209e)
 
 ### Fixed
+- IFM silent exception swallowing: add error logging and generic exception handling (296617c)
+- IFM socket recreation on `start()` for clean reconnection after drops (296617c)
+- VTS `MockVtsServer` shutdown port leak by saving `EmbeddedServer` reference (296617c)
 - TOCTOU race in `WebSocketTransport.send()` (1c78893)
 - Create fresh `UdpSocket` on `start()` to fix socket reuse after `stop()` (cb244d4)
 - `VtsClient.release()` race condition with AtomicBoolean (f073cb6)

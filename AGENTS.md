@@ -91,7 +91,7 @@ Note: `kmp-facelink-llm` includes platform-specific inference engines (llama.cpp
 - **Coroutines**: kotlinx-coroutines 1.10.2
 - **Interop**: SKIE 0.10.10 (Swift-Kotlin Flow bridging)
 - **Build**: AGP 8.8.2, Detekt 1.23.8, Dokka 2.1.0
-- **On-device AI**: llama.cpp (Android JNI), Apple Foundation Models (iOS 26+)
+- **On-device AI**: llama.cpp (Android JNI), LiteRT-LM scaffold (Android GPU/NPU), Apple Foundation Models (iOS 26+)
 
 ### Platform Implementations
 
@@ -119,9 +119,13 @@ Note: `kmp-facelink-llm` includes platform-specific inference engines (llama.cpp
 | Actions | `EmotionClassifier` | `classify(BlendShapeData): EmotionResult`, FACS-based cosine similarity |
 | Voice | `VoicePipeline` | `speak(text): Flow<BlendShapes>`, `startListening()`, `transcriptions: Flow<T>` |
 | LLM | `LlmClient`, `LlmConfig` | `LlmClient.create(config)`, `chat(history): Flow<String>`, cloud + on-device + hybrid routing |
-| LLM | `ModelManager`, `ModelRegistry` | Model download/cache, on-device inference (llama.cpp) |
+| LLM | `ModelManager`, `ModelRegistry` | Model download/cache, on-device inference (llama.cpp), Gemma 4 E2B/E4B support |
+| LLM | `ModelFormat`, `OnDeviceBackend` | Dual-backend config: GGUF (llama.cpp) or LiteRT-LM format; AUTO/LLAMA_CPP/LITERT_LM backend selection |
 | LLM | `FoundationModelsProvider`, `FoundationModelsProviderRegistry` | Apple Foundation Models bridge (iOS 26+, no download needed) |
 | Pipeline | `AvatarPipeline`, `buildAvatarPipeline {}` | `listen()`, `processText()`, `output: Flow<AvatarPipelineOutput>`, streaming LLM→TTS→LipSync |
+| VMC | `VmcSender`, `VmcReceiver` | `start()`/`stop()`, UDP OSC packets, VRM 1.0 expressions, exponential backoff |
+| IFM | `IfmSender`, `IfmReceiver` | `start()`/`stop()`, UDP packets, handshake, connection drop recovery |
+| VTS | `VtsClient`, `VtsSender` | WebSocket Plugin API, token persistence, auto-reconnection |
 
 ### Key Design Decisions
 

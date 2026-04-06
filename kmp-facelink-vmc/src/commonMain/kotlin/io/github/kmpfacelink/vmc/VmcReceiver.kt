@@ -85,12 +85,16 @@ public class VmcReceiver(
     /**
      * Stops listening and closes the current UDP socket.
      *
+     * The socket is closed first so that any blocking [UdpSocket.receive] call
+     * throws immediately, allowing the coroutine to observe cancellation without
+     * waiting for the next packet. The job is then cancelled and cleared.
+     *
      * Can be restarted by calling [start] again.
      */
     public fun stop() {
+        socket.close()
         listenJob?.cancel()
         listenJob = null
-        socket.close()
     }
 
     /**
@@ -115,7 +119,11 @@ public class VmcReceiver(
                 val parsed = VmcMessageParser.parse(messages)
                 _receivedData.tryEmit(parsed)
                 backoffMs = 0L
-            } catch (expected: IllegalStateException) {
+            } catch (expected: Exception) {
+                // On stop(), the socket is closed before the job is cancelled.
+                // Closing the socket causes the blocking receive() to throw
+                // (SocketException on JVM, IllegalStateException on iOS via check()).
+                // If the scope is no longer active, treat this as a normal shutdown.
                 if (!isActive) break
                 FaceLinkLogger.w(TAG, "Unexpected socket error: ${expected.message}", expected)
                 backoffMs = if (backoffMs == 0L) {

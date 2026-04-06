@@ -1,14 +1,16 @@
 # LiteRT-LM Research: Optional Android LLM Backend for Gemma Models
 
-**Issue:** #248
-**Status:** Research complete
-**Date:** 2026-03-24
+**Issue:** #248, #654
+**Status:** Research complete — updated with Gemma 4 findings
+**Date:** 2026-03-24 (updated 2026-04-06)
 
 ## Executive Summary
 
 This document evaluates Google's LiteRT-LM as an alternative on-device LLM inference backend for Android, complementing the existing llama.cpp integration. LiteRT-LM is Google's production-ready, open-source framework (successor to MediaPipe LLM Inference API) optimized for Gemma models with GPU/NPU acceleration via the ML Drift engine.
 
 **Key finding:** LiteRT-LM provides significant performance advantages over llama.cpp specifically for Gemma models on Android (up to ~7x faster prefill on GPU, NPU further improves this). However, it uses a proprietary `.litertlm` model format (no GGUF support), limiting it to pre-converted models from HuggingFace. The recommended approach is to add LiteRT-LM as an optional backend alongside llama.cpp, selected automatically based on model family and device capabilities.
+
+**2026-04-06 update:** LiteRT-LM v0.10.0 (released April 2026) adds day-one Gemma 4 support. Pre-converted `.litertlm` models for Gemma 4 E2B (~2.58 GB) and E4B are available on HuggingFace (`litert-community/gemma-4-E2B-it-litert-lm`, `litert-community/gemma-4-E4B-it-litert-lm`). Gemma 4 E2B runs in <1.5 GB RAM with INT4 quantization. A GPU decode regression on Pixel 8 was identified in v0.10.0 (issue #1850) and patched in v0.10.1. The SDK is now stable enough for scaffold integration. Recommendation: proceed with `LiteRtLmEngine` scaffold and `ModelFormat`/`OnDeviceBackend` enums.
 
 ---
 
@@ -43,7 +45,17 @@ The existing `kmp-facelink-llm` module uses llama.cpp via JNI for on-device infe
 
 LiteRT-LM is Google's production-ready, open-source inference framework for on-device LLMs. It powers Gemini Nano and Gemma in Chrome, Chromebook Plus, and Pixel Watch. Released June 2025 (v0.6.1), now at v0.8.1 stable (v0.9.0-beta in pre-release as of March 2026).
 
-### 2.2 Key Features
+### 2.2 SDK Version History
+
+| Version | Date | Key Changes |
+|---|---|---|
+| v0.6.1 | June 2025 | Initial public release |
+| v0.8.1 | ~Dec 2025 | Stable release used in original evaluation |
+| v0.9.0 | ~Feb 2026 | Function calling improvements, performance stability |
+| v0.10.0 | April 2, 2026 | Gemma 4 day-one support, GPU decode regression on Pixel 8 |
+| v0.10.1 | April 2026 | Hotfix for GPU decode (`clEnqueueNDRangeKernel` failure) |
+
+### 2.3 Key Features
 
 | Feature | Details |
 |---|---|
@@ -57,7 +69,7 @@ LiteRT-LM is Google's production-ready, open-source inference framework for on-d
 | Conversation API | Session management with system instructions |
 | Platforms | Android, iOS (Swift in dev), JVM, C++ |
 
-### 2.3 Kotlin API
+### 2.4 Kotlin API
 
 ```kotlin
 // Dependency
@@ -89,7 +101,7 @@ engine.createConversation(conversationConfig).use { conversation ->
 }
 ```
 
-### 2.4 Android Manifest Requirements (GPU)
+### 2.5 Android Manifest Requirements (GPU)
 
 ```xml
 <uses-native-library android:name="libvndksupport.so" android:required="false"/>
@@ -166,6 +178,8 @@ From `huggingface.co/litert-community`:
 | Gemma 3n E2B IT | 2,965 MB | INT4 | 32K |
 | Gemma 3n E4B IT | ~5 GB | INT4 | 32K |
 | Phi-4-mini | 3,728 MB | INT8 | 4096 |
+| Gemma 4 E2B IT | 2,580 MB | INT4 | 32K |
+| Gemma 4 E4B IT | ~5 GB | INT4 | 32K |
 | Qwen2.5 1.5B | 1,524 MB | INT8 | 4096 |
 
 ### 4.3 No GGUF-to-LiteRT-LM Conversion
@@ -176,9 +190,42 @@ There is **no public tool** to convert GGUF models to `.litertlm` format. The `.
 
 ---
 
-## 5. Integration Design
+## 5. Gemma 4 Compatibility (April 2026 Update)
 
-### 5.1 LiteRtLmEngine: InferenceEngine Implementation
+### 5.1 Day-One LiteRT-LM Support
+
+Gemma 4 launched with immediate LiteRT-LM support. Pre-converted `.litertlm` models are available from the `litert-community` HuggingFace org:
+
+| Model | HuggingFace Repo | Size | RAM (INT4) |
+|---|---|---|---|
+| Gemma 4 E2B IT | `litert-community/gemma-4-E2B-it-litert-lm` | 2.58 GB | <1.5 GB |
+| Gemma 4 E4B IT | `litert-community/gemma-4-E4B-it-litert-lm` | ~5 GB | ~4 GB |
+
+### 5.2 Performance (Gemma 4 via LiteRT-LM)
+
+| Model | Device | Backend | Prefill (tok/s) | Decode (tok/s) |
+|---|---|---|---|---|
+| Gemma 4 E2B | Raspberry Pi 5 | CPU | 133 | 7.6 |
+
+Note: Gemma 4 E2B is ~3x faster prefill than E4B at the edge. Android GPU benchmarks are expected to be comparable or better than Gemma 3n E2B numbers (816 tok/s prefill on S24 Ultra GPU) given architectural improvements.
+
+### 5.3 Known Issues
+
+- **v0.10.0 GPU decode regression on Pixel 8**: `clEnqueueNDRangeKernel - Invalid command queue` during decode. Fixed in v0.10.1 runtime patch. Pin to `litertlm-android:0.10.1` or later.
+- Qualcomm-specific `.litertlm` variants exist (e.g. `gemma-4-E2B-it_qualcomm_qcs8275.litertlm` at 3.29 GB) for NPU-optimized inference.
+
+### 5.4 Implications for KMP-FaceLink
+
+Gemma 4's day-one LiteRT-LM support strengthens the case for the dual-backend approach:
+- Gemma 4 E2B fits in <1.5 GB RAM — viable on mid-range Android devices
+- The `.litertlm` ecosystem is growing (Gemma 3n, Gemma 3, Gemma 4, Phi-4, Qwen2.5)
+- LiteRT-LM SDK has stabilized at v0.10.x with active maintenance
+
+---
+
+## 6. Integration Design
+
+### 6.1 LiteRtLmEngine: InferenceEngine Implementation
 
 ```kotlin
 // New file: androidMain/.../internal/LiteRtLmEngine.kt
@@ -231,7 +278,7 @@ internal class LiteRtLmEngine(
 internal enum class LiteRtBackend { CPU, GPU, NPU }
 ```
 
-### 5.2 ModelInfo Extension
+### 6.2 ModelInfo Extension
 
 Add a `format` field to `ModelInfo` to distinguish GGUF and LiteRT-LM models:
 
@@ -253,7 +300,7 @@ public data class ModelInfo(
 )
 ```
 
-### 5.3 ModelRegistry Updates
+### 6.3 ModelRegistry Updates
 
 Add `.litertlm` variants alongside existing GGUF entries:
 
@@ -274,7 +321,7 @@ ModelInfo(
 ),
 ```
 
-### 5.4 OnDevice Config Extension
+### 6.4 OnDevice Config Extension
 
 Add optional backend preference to `LlmConfig.OnDevice`:
 
@@ -293,7 +340,7 @@ public enum class OnDeviceBackend {
 }
 ```
 
-### 5.5 Routing Strategy Updates
+### 6.5 Routing Strategy Updates
 
 The `Auto` routing in `HybridLlmClient` currently routes by query complexity. With dual backends, we add backend-level routing:
 
@@ -331,9 +378,9 @@ This aligns with LiteRT-LM's strength (Gemma-optimized) while keeping llama.cpp 
 
 ---
 
-## 6. Dependency and Size Impact
+## 7. Dependency and Size Impact
 
-### 6.1 AAR Size
+### 7.1 AAR Size
 
 | Dependency | Estimated Size |
 |---|---|
@@ -341,7 +388,7 @@ This aligns with LiteRT-LM's strength (Gemma-optimized) while keeping llama.cpp 
 | LiteRT-LM Android SDK | ~15-25 MB (includes ML Drift GPU engine) |
 | Combined | ~20-33 MB |
 
-### 6.2 Mitigation
+### 7.2 Mitigation
 
 - Make LiteRT-LM an **optional dependency** via Gradle feature variants:
   ```kotlin
@@ -357,7 +404,7 @@ This aligns with LiteRT-LM's strength (Gemma-optimized) while keeping llama.cpp 
 
 ---
 
-## 7. Risk Assessment
+## 8. Risk Assessment
 
 | Risk | Likelihood | Impact | Mitigation |
 |---|---|---|---|
@@ -371,7 +418,7 @@ This aligns with LiteRT-LM's strength (Gemma-optimized) while keeping llama.cpp 
 
 ---
 
-## 8. Comparison Summary
+## 9. Comparison Summary
 
 | Aspect | llama.cpp | LiteRT-LM |
 |---|---|---|
@@ -393,7 +440,7 @@ This aligns with LiteRT-LM's strength (Gemma-optimized) while keeping llama.cpp 
 
 ---
 
-## 9. Recommendation
+## 10. Recommendation
 
 **Proceed with implementation as an optional backend module.**
 
@@ -425,7 +472,7 @@ LiteRT-LM offers compelling advantages for the VTuber AI avatar use case:
 
 ---
 
-## References
+## 11. References
 
 - [LiteRT-LM GitHub](https://github.com/google-ai-edge/LiteRT-LM)
 - [LiteRT-LM Kotlin API](https://github.com/google-ai-edge/LiteRT-LM/blob/main/docs/api/kotlin/getting_started.md)
@@ -437,3 +484,9 @@ LiteRT-LM offers compelling advantages for the VTuber AI avatar use case:
 - [Gemma 3n E4B LiteRT-LM on HuggingFace](https://huggingface.co/google/gemma-3n-E4B-it-litert-lm)
 - [LiteRT-LM Maven (Android)](https://mvnrepository.com/artifact/com.google.ai.edge.litertlm/litertlm-android)
 - [Google AI Edge Gallery](https://github.com/google-ai-edge/gallery)
+- [Gemma 4 Announcement (Google Blog)](https://blog.google/innovation-and-ai/technology/developers-tools/gemma-4/)
+- [Gemma 4 Edge Deployment (Google Developers Blog)](https://developers.googleblog.com/bring-state-of-the-art-agentic-skills-to-the-edge-with-gemma-4/)
+- [Gemma 4 E2B LiteRT-LM on HuggingFace](https://huggingface.co/litert-community/gemma-4-E2B-it-litert-lm)
+- [Gemma 4 E4B LiteRT-LM on HuggingFace](https://huggingface.co/litert-community/gemma-4-E4B-it-litert-lm)
+- [Gemma 4 in AICore Developer Preview](https://android-developers.googleblog.com/2026/04/AI-Core-Developer-Preview.html)
+- [LiteRT-LM v0.10.0 GPU Issue #1850](https://github.com/google-ai-edge/LiteRT-LM/issues/1850)

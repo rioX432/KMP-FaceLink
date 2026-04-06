@@ -70,11 +70,13 @@ public sealed class LlmConfig {
      * @property modelId Identifier matching a [ModelRegistry] entry (e.g. "gemma-4-e2b-int4")
      * @property maxTokens Maximum tokens in the response
      * @property temperature Sampling temperature (0.0–2.0)
+     * @property preferredBackend Inference backend preference (defaults to [OnDeviceBackend.AUTO])
      */
     public data class OnDevice(
         val modelId: String,
         val maxTokens: Int = DEFAULT_MAX_TOKENS,
         val temperature: Double = DEFAULT_TEMPERATURE,
+        val preferredBackend: OnDeviceBackend = OnDeviceBackend.AUTO,
     ) : LlmConfig()
 
     /**

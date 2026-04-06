@@ -12,6 +12,7 @@ package io.github.kmpfacelink.llm
  * @property ramRequirementBytes Minimum device RAM in bytes needed to run this model
  * @property supportsNativeAudio Whether the model supports native audio input,
  *   enabling single-stage audio-to-text inference (bypassing separate ASR)
+ * @property format Model file format (defaults to [ModelFormat.GGUF] for backward compatibility)
  */
 public data class ModelInfo(
     val id: String,
@@ -22,4 +23,5 @@ public data class ModelInfo(
     val sha256Checksum: String,
     val ramRequirementBytes: Long = 0L,
     val supportsNativeAudio: Boolean = false,
+    val format: ModelFormat = ModelFormat.GGUF,
 )

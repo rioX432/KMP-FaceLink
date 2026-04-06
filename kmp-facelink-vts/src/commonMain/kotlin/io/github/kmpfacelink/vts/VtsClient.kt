@@ -14,7 +14,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.ClosedReceiveChannelException
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -26,9 +25,10 @@ import kotlin.concurrent.atomics.ExperimentalAtomicApi
 /**
  * WebSocket client for the VTube Studio Plugin API.
  *
- * Manages the WebSocket connection, authentication flow, parameter injection,
- * and post-processing control. The client must be [connect]ed and [authenticate]d
- * before sending parameter data or controlling post-processing effects.
+ * Manages the WebSocket connection lifecycle and delegates authentication to
+ * [VtsAuthenticator] and parameter injection to [VtsParameterInjector].
+ * The client must be [connect]ed and [authenticate]d before sending parameter
+ * data or controlling post-processing effects.
  *
  * ## Authentication Flow
  *
@@ -56,7 +56,6 @@ import kotlin.concurrent.atomics.ExperimentalAtomicApi
  * @param httpClient Optional Ktor HttpClient (must have WebSockets plugin installed)
  * @see VtsSender for a high-level sender that handles the full lifecycle
  */
-@Suppress("TooManyFunctions")
 @OptIn(ExperimentalAtomicApi::class)
 public class VtsClient(
     private val config: VtsConfig = VtsConfig(),
@@ -72,6 +71,16 @@ public class VtsClient(
     private val sendChannel = Channel<String>(Channel.BUFFERED)
     private val pendingRequests = mutableMapOf<String, CompletableDeferred<VtsEnvelope>>()
     private val requestCounter = AtomicInt(0)
+
+    private val transport: VtsTransport = object : VtsTransport {
+        override suspend fun sendAndReceive(request: String): VtsEnvelope =
+            this@VtsClient.sendAndReceive(request)
+
+        override fun nextRequestId(): String = this@VtsClient.nextRequestId()
+    }
+
+    private val authenticator = VtsAuthenticator(config, transport)
+    private val parameterInjector = VtsParameterInjector(transport)
 
     /** Whether the client is currently connected to VTS. */
     public val isConnected: Boolean get() = session != null
@@ -125,8 +134,25 @@ public class VtsClient(
      * @throws VtsAuthException if authentication is denied
      * @throws VtsApiException if VTS returns an API error
      */
-    public suspend fun authenticate(): String =
-        requestAndValidateAuth(config.authToken)
+    public suspend fun authenticate(): String = authenticator.authenticate()
+
+    /**
+     * Authenticates with retry logic for transient failures.
+     *
+     * Attempts authentication up to [maxRetries] times with exponential backoff.
+     * Useful when VTS may not be ready immediately after launch.
+     * [VtsAuthException] (user denied) is never retried.
+     *
+     * @param maxRetries Maximum number of retry attempts (default 3)
+     * @param initialDelayMs Initial delay between retries in milliseconds (default 1000)
+     * @return The authentication token
+     * @throws VtsAuthException if authentication is denied by the user
+     * @throws VtsApiException if all retries are exhausted
+     */
+    public suspend fun authenticateWithRetry(
+        maxRetries: Int = DEFAULT_MAX_RETRIES,
+        initialDelayMs: Long = DEFAULT_RETRY_DELAY_MS,
+    ): String = authenticator.authenticateWithRetry(maxRetries, initialDelayMs)
 
     /**
      * Injects parameter values into VTube Studio.
@@ -143,15 +169,7 @@ public class VtsClient(
         parameters: List<ParameterValue>,
         faceFound: Boolean = true,
         mode: String = "set",
-    ) {
-        val request = VtsMessageBuilder.buildInjectRequest(
-            parameters = parameters,
-            faceFound = faceFound,
-            mode = mode,
-            requestId = nextRequestId(),
-        )
-        sendAndReceive(request)
-    }
+    ): Unit = parameterInjector.injectParameters(parameters, faceFound, mode)
 
     /**
      * Creates a custom parameter in VTube Studio.
@@ -172,55 +190,7 @@ public class VtsClient(
         min: Float = 0f,
         max: Float = 1f,
         defaultValue: Float = 0f,
-    ) {
-        val data = ParameterCreationData(
-            parameterName = name,
-            explanation = explanation,
-            min = min,
-            max = max,
-            defaultValue = defaultValue,
-        )
-        val request = VtsMessageBuilder.buildParameterCreationRequest(
-            data = data,
-            requestId = nextRequestId(),
-        )
-        sendAndReceive(request)
-    }
-
-    /**
-     * Authenticates with retry logic for transient failures.
-     *
-     * Attempts authentication up to [maxRetries] times with exponential backoff.
-     * Useful when VTS may not be ready immediately after launch.
-     * [VtsAuthException] (user denied) is never retried.
-     *
-     * @param maxRetries Maximum number of retry attempts (default 3)
-     * @param initialDelayMs Initial delay between retries in milliseconds (default 1000)
-     * @return The authentication token
-     * @throws VtsAuthException if authentication is denied by the user
-     * @throws VtsApiException if all retries are exhausted
-     */
-    public suspend fun authenticateWithRetry(
-        maxRetries: Int = DEFAULT_MAX_RETRIES,
-        initialDelayMs: Long = DEFAULT_RETRY_DELAY_MS,
-    ): String {
-        var lastException: Exception? = null
-        var delayMs = initialDelayMs
-        repeat(maxRetries + 1) { attempt ->
-            try {
-                return authenticate()
-            } catch (e: VtsAuthException) {
-                throw e // User denied — do not retry
-            } catch (e: VtsApiException) {
-                lastException = e
-                if (attempt < maxRetries) {
-                    delay(delayMs)
-                    delayMs *= BACKOFF_MULTIPLIER
-                }
-            }
-        }
-        throw lastException ?: VtsApiException(0, "Authentication failed after retries")
-    }
+    ): Unit = parameterInjector.createParameter(name, explanation, min, max, defaultValue)
 
     /**
      * Retrieves the current post-processing state and available effects.
@@ -311,35 +281,6 @@ public class VtsClient(
         }
     }
 
-    private suspend fun requestAndValidateAuth(existingToken: String?): String {
-        val token = if (existingToken != null) {
-            existingToken
-        } else {
-            val request = VtsMessageBuilder.buildAuthTokenRequest(
-                pluginName = config.pluginName,
-                pluginDeveloper = config.pluginDeveloper,
-                pluginIcon = config.pluginIcon,
-                requestId = nextRequestId(),
-            )
-            val response = sendAndReceive(request)
-            val data = requireNotNull(response.data) { "Token response missing data" }
-            VtsResponseParser.parseAuthTokenResponse(data).authenticationToken
-        }
-        val authRequest = VtsMessageBuilder.buildAuthRequest(
-            pluginName = config.pluginName,
-            pluginDeveloper = config.pluginDeveloper,
-            authToken = token,
-            requestId = nextRequestId(),
-        )
-        val authResponse = sendAndReceive(authRequest)
-        val authData = requireNotNull(authResponse.data) { "Auth response missing data" }
-        val result = VtsResponseParser.parseAuthResponse(authData)
-        if (!result.authenticated) {
-            throw VtsAuthException(result.reason)
-        }
-        return token
-    }
-
     private suspend fun sendAndReceive(request: String): VtsEnvelope {
         val envelope = VtsResponseParser.parseEnvelope(request)
         val deferred = CompletableDeferred<VtsEnvelope>()
@@ -394,4 +335,3 @@ public class VtsClient(
 
 private const val DEFAULT_MAX_RETRIES = 3
 private const val DEFAULT_RETRY_DELAY_MS = 1000L
-private const val BACKOFF_MULTIPLIER = 2L

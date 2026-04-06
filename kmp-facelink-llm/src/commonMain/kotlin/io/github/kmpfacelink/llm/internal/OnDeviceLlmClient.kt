@@ -67,9 +67,9 @@ internal class OnDeviceLlmClient(
     }
 
     override fun release() {
-        // Engine unload is a suspend function; fire-and-forget since release() is synchronous.
-        releaseScope.launch { engine.unload() }
-        releaseScope.cancel()
+        // Launch unload and cancel the scope only after unload completes,
+        // preventing scope cancellation from interrupting the unload coroutine.
+        releaseScope.launch { engine.unload() }.invokeOnCompletion { releaseScope.cancel() }
     }
 
     private suspend fun ensureModelLoaded() {

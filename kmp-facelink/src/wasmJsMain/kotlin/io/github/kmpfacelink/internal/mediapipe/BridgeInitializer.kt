@@ -21,18 +21,20 @@ import kotlin.js.Promise
  *
  * @param modelUrl URL or path to the face landmarker model asset
  * @param maxFaces Maximum number of faces to detect
+ * @param delegate Hardware delegate for inference: "GPU" or "CPU"
  * @return Promise resolving to the FaceLandmarker JS object
  */
 internal fun createFaceLandmarkerJs(
     modelUrl: String,
     maxFaces: Int,
+    delegate: String,
 ): Promise<JsAny?> = js("""(async () => {
     const vision = await globalThis.__faceLinkVision;
     if (!vision) throw new Error('MediaPipe Tasks Vision not loaded. Set globalThis.__faceLinkVision to the vision module.');
     const landmarker = await vision.FaceLandmarker.createFromOptions(
         vision,
         {
-            baseOptions: { modelAssetPath: modelUrl },
+            baseOptions: { modelAssetPath: modelUrl, delegate: delegate },
             runningMode: 'VIDEO',
             numFaces: maxFaces,
             outputFaceBlendshapes: true,

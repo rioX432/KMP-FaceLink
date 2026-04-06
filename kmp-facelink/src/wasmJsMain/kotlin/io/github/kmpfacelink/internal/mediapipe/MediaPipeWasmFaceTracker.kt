@@ -7,6 +7,7 @@ import io.github.kmpfacelink.api.TrackingState
 import io.github.kmpfacelink.model.CameraFacing
 import io.github.kmpfacelink.model.FaceTrackerConfig
 import io.github.kmpfacelink.model.FaceTrackingData
+import io.github.kmpfacelink.model.InferenceDelegate
 import io.github.kmpfacelink.model.SmoothingConfig
 import io.github.kmpfacelink.model.TrackedFace
 import io.github.kmpfacelink.model.emptyBlendShapeData
@@ -60,6 +61,7 @@ internal class MediaPipeWasmFaceTracker(
     private var trackingJob: Job? = null
     private var released = false
     private var frameCounter = 0
+    private var activeBackend: GpuBackend = GpuBackend.NONE
 
     override suspend fun start() {
         checkNotReleased("start")
@@ -78,9 +80,12 @@ internal class MediaPipeWasmFaceTracker(
     }
 
     private suspend fun initializeAndTrack() {
-        val lm = awaitJsPromise<JsFaceLandmarker>(
-            createFaceLandmarkerJs(config.modelAssetPath, config.maxFaces)
-        )
+        val backend = resolveBackend()
+        activeBackend = backend
+        val delegate = WebGpuCapability.resolveDelegate(backend)
+        FaceLinkLogger.d(TAG, "Initializing FaceLandmarker with delegate=$delegate (backend=$backend)")
+
+        val lm = createLandmarkerWithFallback(delegate)
         landmarker = lm
 
         val stream = awaitJsPromise<JsMediaStream>(getUserMediaJs())
@@ -92,6 +97,31 @@ internal class MediaPipeWasmFaceTracker(
         _state.value = TrackingState.TRACKING
         startTrackingLoop(lm, video)
     }
+
+    private suspend fun resolveBackend(): GpuBackend = when (config.inferenceDelegate) {
+        InferenceDelegate.CPU -> GpuBackend.NONE
+        InferenceDelegate.GPU, InferenceDelegate.AUTO,
+        InferenceDelegate.NPU,
+        @Suppress("DEPRECATION") InferenceDelegate.NNAPI,
+        -> WebGpuCapability.detect()
+    }
+
+    private suspend fun createLandmarkerWithFallback(delegate: String): JsFaceLandmarker =
+        try {
+            awaitJsPromise(
+                createFaceLandmarkerJs(config.modelAssetPath, config.maxFaces, delegate),
+            )
+        } catch (@Suppress("TooGenericExceptionCaught") e: Throwable) {
+            if (delegate != CPU_DELEGATE) {
+                FaceLinkLogger.w(TAG, "GPU delegate failed, falling back to CPU", e)
+                activeBackend = GpuBackend.NONE
+                awaitJsPromise(
+                    createFaceLandmarkerJs(config.modelAssetPath, config.maxFaces, CPU_DELEGATE),
+                )
+            } else {
+                throw e
+            }
+        }
 
     private fun startTrackingLoop(lm: JsFaceLandmarker, video: JsVideoElement) {
         val scope = CoroutineScope(Dispatchers.Default + SupervisorJob())
@@ -223,5 +253,6 @@ internal class MediaPipeWasmFaceTracker(
 
     private companion object {
         private const val TAG = "MediaPipeWasmFaceTracker"
+        private const val CPU_DELEGATE = "CPU"
     }
 }

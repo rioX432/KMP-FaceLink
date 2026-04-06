@@ -8,7 +8,8 @@ package io.github.kmpfacelink.llm
  * @property sizeBytes Approximate file size in bytes
  * @property quantization Quantization level of this model variant
  * @property downloadUrl URL to download the model weights
- * @property sha256Checksum SHA-256 hex digest for integrity verification
+ * @property sha256Checksum SHA-256 hex digest for integrity verification,
+ *   or null if the checksum is not yet available (verification will be skipped with a warning)
  * @property ramRequirementBytes Minimum device RAM in bytes needed to run this model
  * @property supportsNativeAudio Whether the model supports native audio input,
  *   enabling single-stage audio-to-text inference (bypassing separate ASR)
@@ -20,7 +21,7 @@ public data class ModelInfo(
     val sizeBytes: Long,
     val quantization: Quantization,
     val downloadUrl: String,
-    val sha256Checksum: String,
+    val sha256Checksum: String?,
     val ramRequirementBytes: Long = 0L,
     val supportsNativeAudio: Boolean = false,
     val format: ModelFormat = ModelFormat.GGUF,

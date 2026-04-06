@@ -64,7 +64,7 @@ public object ModelRegistry {
             sizeBytes = GEMMA_4_E2B_SIZE,
             quantization = Quantization.INT4,
             downloadUrl = GEMMA_4_E2B_URL,
-            sha256Checksum = "placeholder-checksum-gemma-4-e2b-int4",
+            sha256Checksum = null,
             ramRequirementBytes = GEMMA_4_E2B_RAM,
         ),
         ModelInfo(
@@ -73,7 +73,7 @@ public object ModelRegistry {
             sizeBytes = GEMMA_4_E4B_SIZE,
             quantization = Quantization.INT4,
             downloadUrl = GEMMA_4_E4B_URL,
-            sha256Checksum = "placeholder-checksum-gemma-4-e4b-int4",
+            sha256Checksum = null,
             ramRequirementBytes = GEMMA_4_E4B_RAM,
             supportsNativeAudio = true,
         ),
@@ -83,7 +83,7 @@ public object ModelRegistry {
             sizeBytes = GEMMA_3N_E2B_SIZE,
             quantization = Quantization.INT4,
             downloadUrl = GEMMA_3N_E2B_URL,
-            sha256Checksum = "placeholder-checksum-gemma-3n-e2b-int4",
+            sha256Checksum = null,
             ramRequirementBytes = GEMMA_3N_E2B_RAM,
         ),
         ModelInfo(
@@ -92,7 +92,7 @@ public object ModelRegistry {
             sizeBytes = GEMMA_3N_E4B_SIZE,
             quantization = Quantization.INT4,
             downloadUrl = GEMMA_3N_E4B_URL,
-            sha256Checksum = "placeholder-checksum-gemma-3n-e4b-int4",
+            sha256Checksum = null,
             ramRequirementBytes = GEMMA_3N_E4B_RAM,
         ),
         ModelInfo(
@@ -101,7 +101,7 @@ public object ModelRegistry {
             sizeBytes = QWEN3_06B_SIZE,
             quantization = Quantization.INT4,
             downloadUrl = QWEN3_06B_URL,
-            sha256Checksum = "placeholder-checksum-qwen3-0.6b-int4",
+            sha256Checksum = null,
             ramRequirementBytes = QWEN3_06B_RAM,
         ),
         ModelInfo(
@@ -110,7 +110,7 @@ public object ModelRegistry {
             sizeBytes = GEMMA_3_1B_SIZE,
             quantization = Quantization.INT4,
             downloadUrl = GEMMA_3_1B_URL,
-            sha256Checksum = "placeholder-checksum-gemma-3-1b-int4",
+            sha256Checksum = null,
             ramRequirementBytes = GEMMA_3_1B_RAM,
         ),
         ModelInfo(
@@ -119,7 +119,7 @@ public object ModelRegistry {
             sizeBytes = GEMMA_3_4B_SIZE,
             quantization = Quantization.INT4,
             downloadUrl = GEMMA_3_4B_URL,
-            sha256Checksum = "placeholder-checksum-gemma-3-4b-int4",
+            sha256Checksum = null,
             ramRequirementBytes = GEMMA_3_4B_RAM,
         ),
         ModelInfo(
@@ -128,7 +128,7 @@ public object ModelRegistry {
             sizeBytes = PHI_3_MINI_SIZE,
             quantization = Quantization.INT4,
             downloadUrl = PHI_3_MINI_URL,
-            sha256Checksum = "placeholder-checksum-phi-3-mini-int4",
+            sha256Checksum = null,
             ramRequirementBytes = PHI_3_MINI_RAM,
         ),
         ModelInfo(
@@ -137,7 +137,7 @@ public object ModelRegistry {
             sizeBytes = PHI_4_MINI_SIZE,
             quantization = Quantization.INT4,
             downloadUrl = PHI_4_MINI_URL,
-            sha256Checksum = "placeholder-checksum-phi-4-mini-int4",
+            sha256Checksum = null,
             ramRequirementBytes = PHI_4_MINI_RAM,
         ),
     )

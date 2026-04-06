@@ -9,11 +9,13 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
+private const val EXPECTED_ENTRY_COUNT = 5
+
 class InferenceDelegateTest {
 
     @Test
-    fun hasFourEntries() {
-        assertEquals(4, InferenceDelegate.entries.size)
+    fun hasFiveEntries() {
+        assertEquals(EXPECTED_ENTRY_COUNT, InferenceDelegate.entries.size)
     }
 
     @Test
@@ -21,6 +23,7 @@ class InferenceDelegateTest {
         assertEquals(InferenceDelegate.AUTO, InferenceDelegate.valueOf("AUTO"))
         assertEquals(InferenceDelegate.CPU, InferenceDelegate.valueOf("CPU"))
         assertEquals(InferenceDelegate.GPU, InferenceDelegate.valueOf("GPU"))
+        assertEquals(InferenceDelegate.NPU, InferenceDelegate.valueOf("NPU"))
         assertEquals(InferenceDelegate.NNAPI, InferenceDelegate.valueOf("NNAPI"))
     }
 
@@ -43,8 +46,16 @@ class InferenceDelegateTest {
     }
 
     @Test
+    fun faceTrackerConfigAcceptsNpu() {
+        val config = FaceTrackerConfig(inferenceDelegate = InferenceDelegate.NPU)
+        assertEquals(InferenceDelegate.NPU, config.inferenceDelegate)
+    }
+
+    @Test
     fun faceTrackerConfigAcceptsNnapi() {
+        @Suppress("DEPRECATION")
         val config = FaceTrackerConfig(inferenceDelegate = InferenceDelegate.NNAPI)
+        @Suppress("DEPRECATION")
         assertEquals(InferenceDelegate.NNAPI, config.inferenceDelegate)
     }
 
@@ -72,9 +83,9 @@ class InferenceDelegateTest {
 
     @Test
     fun handTrackerConfigPreservedOnCopy() {
-        val original = HandTrackerConfig(inferenceDelegate = InferenceDelegate.NNAPI)
+        val original = HandTrackerConfig(inferenceDelegate = InferenceDelegate.NPU)
         val copy = original.copy(maxHands = 1)
-        assertEquals(InferenceDelegate.NNAPI, copy.inferenceDelegate)
+        assertEquals(InferenceDelegate.NPU, copy.inferenceDelegate)
     }
 
     @Test

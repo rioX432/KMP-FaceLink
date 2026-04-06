@@ -1,5 +1,7 @@
 package io.github.kmpfacelink.llm
 
+private const val GEMMA_4_E2B_SIZE = 1_500_000_000L
+private const val GEMMA_4_E4B_SIZE = 2_800_000_000L
 private const val GEMMA_3N_E2B_SIZE = 1_800_000_000L
 private const val GEMMA_3N_E4B_SIZE = 3_200_000_000L
 private const val QWEN3_06B_SIZE = 500_000_000L
@@ -8,6 +10,8 @@ private const val GEMMA_3_4B_SIZE = 2_500_000_000L
 private const val PHI_3_MINI_SIZE = 2_300_000_000L
 private const val PHI_4_MINI_SIZE = 2_400_000_000L
 
+private const val GEMMA_4_E2B_RAM = 2_000_000_000L
+private const val GEMMA_4_E4B_RAM = 4_000_000_000L
 private const val GEMMA_3N_E2B_RAM = 2_000_000_000L
 private const val GEMMA_3N_E4B_RAM = 4_500_000_000L
 private const val QWEN3_06B_RAM = 800_000_000L
@@ -24,6 +28,10 @@ private const val RAM_THRESHOLD_1GB = 1_000_000_000L
 
 private const val HF_BASE = "https://huggingface.co"
 
+private const val GEMMA_4_E2B_URL =
+    "$HF_BASE/google/gemma-4-E2B-it-qat-q4_0-gguf/resolve/main/gemma-4-E2B-it-q4_0.gguf"
+private const val GEMMA_4_E4B_URL =
+    "$HF_BASE/google/gemma-4-E4B-it-qat-q4_0-gguf/resolve/main/gemma-4-E4B-it-q4_0.gguf"
 private const val GEMMA_3N_E2B_URL =
     "$HF_BASE/google/gemma-3n-E2B-it-qat-q4_0-gguf/resolve/main/gemma-3n-E2B-it-q4_0.gguf"
 private const val GEMMA_3N_E4B_URL =
@@ -43,13 +51,32 @@ private const val PHI_4_MINI_URL =
  * Registry of available on-device LLM models.
  *
  * Provides a catalog of models that can be downloaded and used for local inference.
- * The default model is Gemma 3n E2B, which uses MatFormer selective layer activation
- * to achieve 2B effective parameters from a 5B raw model at ~2 GB download size.
+ * The default model is Gemma 4 E2B, which offers improved quality over Gemma 3n
+ * with a smaller download size (~1.5 GB) and native audio input support on E4B.
  */
 public object ModelRegistry {
 
     /** All available models in the registry, ordered by recommendation priority. */
     public val models: List<ModelInfo> = listOf(
+        ModelInfo(
+            id = "gemma-4-e2b-int4",
+            displayName = "Gemma 4 E2B (INT4)",
+            sizeBytes = GEMMA_4_E2B_SIZE,
+            quantization = Quantization.INT4,
+            downloadUrl = GEMMA_4_E2B_URL,
+            sha256Checksum = "placeholder-checksum-gemma-4-e2b-int4",
+            ramRequirementBytes = GEMMA_4_E2B_RAM,
+        ),
+        ModelInfo(
+            id = "gemma-4-e4b-int4",
+            displayName = "Gemma 4 E4B (INT4)",
+            sizeBytes = GEMMA_4_E4B_SIZE,
+            quantization = Quantization.INT4,
+            downloadUrl = GEMMA_4_E4B_URL,
+            sha256Checksum = "placeholder-checksum-gemma-4-e4b-int4",
+            ramRequirementBytes = GEMMA_4_E4B_RAM,
+            supportsNativeAudio = true,
+        ),
         ModelInfo(
             id = "gemma-3n-e2b-int4",
             displayName = "Gemma 3n E2B (INT4)",
@@ -115,10 +142,13 @@ public object ModelRegistry {
         ),
     )
 
+    /** All models that support native audio input (single-stage audio-to-text). */
+    public val audioCapableModels: List<ModelInfo> = models.filter { it.supportsNativeAudio }
+
     /**
      * Finds a model by its unique identifier.
      *
-     * @param id Model identifier (e.g. "gemma-3n-e2b-int4")
+     * @param id Model identifier (e.g. "gemma-4-e2b-int4")
      * @return The matching [ModelInfo], or null if not found
      */
     public fun findById(id: String): ModelInfo? = models.find { it.id == id }
@@ -126,10 +156,10 @@ public object ModelRegistry {
     /**
      * Recommends the best model for the given device RAM.
      *
-     * Selection logic:
+     * Selection logic (Gemma 4 preferred over 3n for improved quality):
      * - RAM < 1 GB → Qwen3 0.6B (ultra-lightweight fallback)
-     * - RAM ≤ 4 GB → Gemma 3n E2B (default, 2B effective params)
-     * - RAM > 4 GB → Gemma 3n E4B (high-quality, 4B effective params)
+     * - RAM ≤ 4 GB → Gemma 4 E2B (default, 2.3B params, ~1.5 GB)
+     * - RAM > 4 GB → Gemma 4 E4B (high-quality, 4B params, native audio)
      *
      * @param deviceRamBytes Total device RAM in bytes
      * @return The recommended [ModelInfo] for the device
@@ -137,15 +167,15 @@ public object ModelRegistry {
     public fun recommendForRam(deviceRamBytes: Long): ModelInfo {
         return when {
             deviceRamBytes < RAM_THRESHOLD_1GB -> findById("qwen3-0.6b-int4")!!
-            deviceRamBytes <= RAM_THRESHOLD_4GB -> findById("gemma-3n-e2b-int4")!!
-            else -> findById("gemma-3n-e4b-int4")!!
+            deviceRamBytes <= RAM_THRESHOLD_4GB -> findById("gemma-4-e2b-int4")!!
+            else -> findById("gemma-4-e4b-int4")!!
         }
     }
 
     /**
-     * Returns the default model (Gemma 3n E2B).
+     * Returns the default model (Gemma 4 E2B).
      *
      * Use [recommendForRam] for device-adaptive selection instead.
      */
-    public fun defaultModel(): ModelInfo = findById("gemma-3n-e2b-int4")!!
+    public fun defaultModel(): ModelInfo = findById("gemma-4-e2b-int4")!!
 }

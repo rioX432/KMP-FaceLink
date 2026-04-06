@@ -2,6 +2,7 @@ package io.github.kmpfacelink.llm
 
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
@@ -9,8 +10,28 @@ import kotlin.test.assertTrue
 class ModelRegistryTest {
 
     @Test
-    fun registryContainsSevenModels() {
-        assertEquals(7, ModelRegistry.models.size)
+    fun registryContainsNineModels() {
+        assertEquals(9, ModelRegistry.models.size)
+    }
+
+    @Test
+    fun registryContainsGemma4E2b() {
+        val model = ModelRegistry.findById("gemma-4-e2b-int4")
+        assertNotNull(model)
+        assertEquals("Gemma 4 E2B (INT4)", model.displayName)
+        assertEquals(Quantization.INT4, model.quantization)
+        assertTrue(model.ramRequirementBytes > 0)
+        assertFalse(model.supportsNativeAudio)
+    }
+
+    @Test
+    fun registryContainsGemma4E4b() {
+        val model = ModelRegistry.findById("gemma-4-e4b-int4")
+        assertNotNull(model)
+        assertEquals("Gemma 4 E4B (INT4)", model.displayName)
+        assertEquals(Quantization.INT4, model.quantization)
+        assertTrue(model.ramRequirementBytes > 0)
+        assertTrue(model.supportsNativeAudio)
     }
 
     @Test
@@ -102,9 +123,9 @@ class ModelRegistryTest {
     }
 
     @Test
-    fun defaultModelIsGemma3nE2b() {
+    fun defaultModelIsGemma4E2b() {
         val default = ModelRegistry.defaultModel()
-        assertEquals("gemma-3n-e2b-int4", default.id)
+        assertEquals("gemma-4-e2b-int4", default.id)
     }
 
     @Test
@@ -114,26 +135,33 @@ class ModelRegistryTest {
     }
 
     @Test
-    fun recommendForRamAt1GbReturnsGemma3nE2b() {
+    fun recommendForRamAt1GbReturnsGemma4E2b() {
         val model = ModelRegistry.recommendForRam(1_000_000_000L)
-        assertEquals("gemma-3n-e2b-int4", model.id)
+        assertEquals("gemma-4-e2b-int4", model.id)
     }
 
     @Test
-    fun recommendForRamAt4GbReturnsGemma3nE2b() {
+    fun recommendForRamAt4GbReturnsGemma4E2b() {
         val model = ModelRegistry.recommendForRam(4_000_000_000L)
-        assertEquals("gemma-3n-e2b-int4", model.id)
+        assertEquals("gemma-4-e2b-int4", model.id)
     }
 
     @Test
-    fun recommendForRamAbove4GbReturnsGemma3nE4b() {
+    fun recommendForRamAbove4GbReturnsGemma4E4b() {
         val model = ModelRegistry.recommendForRam(6_000_000_000L)
-        assertEquals("gemma-3n-e4b-int4", model.id)
+        assertEquals("gemma-4-e4b-int4", model.id)
     }
 
     @Test
-    fun recommendForRamAt8GbReturnsGemma3nE4b() {
+    fun recommendForRamAt8GbReturnsGemma4E4b() {
         val model = ModelRegistry.recommendForRam(8_000_000_000L)
-        assertEquals("gemma-3n-e4b-int4", model.id)
+        assertEquals("gemma-4-e4b-int4", model.id)
+    }
+
+    @Test
+    fun audioCapableModelsContainsOnlyGemma4E4b() {
+        val audioModels = ModelRegistry.audioCapableModels
+        assertEquals(1, audioModels.size)
+        assertEquals("gemma-4-e4b-int4", audioModels.first().id)
     }
 }

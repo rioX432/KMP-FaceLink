@@ -35,38 +35,48 @@ public actual class UdpSocket actual constructor(
     private var fd: Int = -1
     private val lock = NSLock()
 
+    /** Must be called with [lock] held. Creates the socket if not yet open. */
+    private fun ensureSocketLocked(): Int {
+        if (fd < 0) {
+            fd = socket(AF_INET, SOCK_DGRAM, 0)
+            check(fd >= 0) { "Failed to create UDP socket: errno=$errno" }
+        }
+        return fd
+    }
+
     private fun ensureSocket(): Int {
         lock.lock()
         try {
-            if (fd < 0) {
-                fd = socket(AF_INET, SOCK_DGRAM, 0)
-                check(fd >= 0) { "Failed to create UDP socket: errno=$errno" }
-            }
-            return fd
+            return ensureSocketLocked()
         } finally {
             lock.unlock()
         }
     }
 
     public actual fun send(data: ByteArray, host: String, port: Int) {
-        val sock = ensureSocket()
-        memScoped {
-            val addr = alloc<sockaddr_in>()
-            addr.sin_family = AF_INET.convert()
-            addr.sin_port = hostToNetworkShort(port)
-            addr.sin_addr.s_addr = parseIpv4Address(host)
+        lock.lock()
+        try {
+            val sock = ensureSocketLocked()
+            memScoped {
+                val addr = alloc<sockaddr_in>()
+                addr.sin_family = AF_INET.convert()
+                addr.sin_port = hostToNetworkShort(port)
+                addr.sin_addr.s_addr = parseIpv4Address(host)
 
-            data.usePinned { pinned ->
-                val result = sendto(
-                    sock,
-                    pinned.addressOf(0),
-                    data.size.convert(),
-                    0,
-                    addr.ptr.reinterpret(),
-                    sizeOf<sockaddr_in>().convert(),
-                )
-                check(result >= 0) { "UDP send failed: errno=$errno" }
+                data.usePinned { pinned ->
+                    val result = sendto(
+                        sock,
+                        pinned.addressOf(0),
+                        data.size.convert(),
+                        0,
+                        addr.ptr.reinterpret(),
+                        sizeOf<sockaddr_in>().convert(),
+                    )
+                    check(result >= 0) { "UDP send failed: errno=$errno" }
+                }
             }
+        } finally {
+            lock.unlock()
         }
     }
 

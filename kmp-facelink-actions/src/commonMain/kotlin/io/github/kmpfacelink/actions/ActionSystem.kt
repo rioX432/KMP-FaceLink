@@ -86,7 +86,6 @@ public class ActionSystem : Releasable {
      * @return the list of [ActionEvent]s produced for this frame.
      */
     public suspend fun processFace(data: FaceTrackingData): List<ActionEvent> {
-        if (released.load() != 0) return emptyList()
         return mutex.withLock {
             if (released.load() != 0) return@withLock emptyList()
             latestFace = data
@@ -102,7 +101,6 @@ public class ActionSystem : Releasable {
      * @return the list of [ActionEvent]s produced for this frame.
      */
     public suspend fun processHand(data: HandTrackingData): List<ActionEvent> {
-        if (released.load() != 0) return emptyList()
         return mutex.withLock {
             if (released.load() != 0) return@withLock emptyList()
             latestHand = data

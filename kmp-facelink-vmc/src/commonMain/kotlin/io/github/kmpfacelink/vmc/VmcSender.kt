@@ -6,11 +6,13 @@ import io.github.kmpfacelink.model.FaceTrackingData
 import io.github.kmpfacelink.model.HeadTransform
 import io.github.kmpfacelink.networking.UdpSocket
 import io.github.kmpfacelink.networking.currentTimeMs
+import io.github.kmpfacelink.util.FaceLinkLogger
 import io.github.kmpfacelink.vmc.osc.OscEncoder
 import io.github.kmpfacelink.vmc.osc.OscMessage
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
 /**
@@ -87,9 +89,19 @@ public class VmcSender(
         socket = UdpSocket()
         startTimeMs = currentTimeMs()
         collectJob = scope.launch {
-            trackingFlow.collect { data ->
-                if (data.isTracking) {
-                    sendFrame(data.blendShapes, data.headTransform, data.timestampMs)
+            try {
+                trackingFlow.collect { data ->
+                    if (data.isTracking) {
+                        sendFrame(data.blendShapes, data.headTransform, data.timestampMs)
+                    }
+                }
+            } catch (expected: Exception) {
+                // On stop(), the socket is closed before the job is cancelled.
+                // Closing the socket causes send() to throw (SocketException on JVM,
+                // IllegalStateException on iOS via check()). If the scope is no longer
+                // active, treat this as a normal shutdown.
+                if (isActive) {
+                    FaceLinkLogger.w(TAG, "Unexpected socket error: ${expected.message}", expected)
                 }
             }
         }
@@ -115,8 +127,18 @@ public class VmcSender(
         socket = UdpSocket()
         startTimeMs = currentTimeMs()
         collectJob = scope.launch {
-            expressionFlow.collect { params ->
-                sendExpressionFrame(params, headParamKeys, currentTimeMs())
+            try {
+                expressionFlow.collect { params ->
+                    sendExpressionFrame(params, headParamKeys, currentTimeMs())
+                }
+            } catch (expected: Exception) {
+                // On stop(), the socket is closed before the job is cancelled.
+                // Closing the socket causes send() to throw (SocketException on JVM,
+                // IllegalStateException on iOS via check()). If the scope is no longer
+                // active, treat this as a normal shutdown.
+                if (isActive) {
+                    FaceLinkLogger.w(TAG, "Unexpected socket error: ${expected.message}", expected)
+                }
             }
         }
     }
@@ -155,12 +177,16 @@ public class VmcSender(
     /**
      * Stops collecting tracking data and closes the current UDP socket.
      *
+     * The socket is closed first so that any in-progress [UdpSocket.send] call
+     * throws immediately, allowing the coroutine to observe cancellation without
+     * completing the current send. The job is then cancelled and cleared.
+     *
      * Can be restarted by calling [start] or [startWithExpressions] again.
      */
     public fun stop() {
+        socket.close()
         collectJob?.cancel()
         collectJob = null
-        socket.close()
     }
 
     /**
@@ -205,6 +231,10 @@ public class VmcSender(
         messages.add(VmcMessageBuilder.buildHeadBoneMessage(headTransform))
         messages.add(VmcMessageBuilder.buildTimestampMessage(relativeTimeSec))
         return messages
+    }
+
+    private companion object {
+        private const val TAG = "VmcSender"
     }
 
     private fun sendMessages(messages: List<OscMessage>) {

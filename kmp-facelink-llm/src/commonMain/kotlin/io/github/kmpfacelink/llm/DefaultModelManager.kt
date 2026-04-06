@@ -5,10 +5,12 @@ import io.github.kmpfacelink.llm.internal.DownloadRequest
 import io.github.kmpfacelink.llm.internal.FileSystem
 import io.github.kmpfacelink.llm.internal.executeDownload
 import io.github.kmpfacelink.llm.internal.sha256Hex
+import io.github.kmpfacelink.util.FaceLinkLogger
 import io.ktor.client.HttpClient
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 
+private const val TAG = "DefaultModelManager"
 private const val DEFAULT_MAX_CACHE_BYTES = 4_000_000_000L
 private const val MODEL_FILE_EXTENSION = ".gguf"
 
@@ -86,7 +88,7 @@ public class DefaultModelManager(
     private suspend fun verifyAndRecord(modelInfo: ModelInfo, filePath: String) {
         val expected = modelInfo.sha256Checksum
         if (expected == null) {
-            println("WARNING: No checksum available for model ${modelInfo.id} — integrity not verified")
+            FaceLinkLogger.w(TAG, "No checksum available for model ${modelInfo.id} — integrity not verified")
         } else {
             val actual = sha256Hex(filePath)
             check(actual == expected) {

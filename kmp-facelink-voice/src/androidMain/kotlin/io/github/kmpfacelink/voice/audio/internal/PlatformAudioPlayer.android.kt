@@ -1,6 +1,7 @@
 package io.github.kmpfacelink.voice.audio.internal
 
 import android.media.AudioTrack
+import io.github.kmpfacelink.util.FaceLinkLogger
 import io.github.kmpfacelink.voice.audio.AudioData
 import io.github.kmpfacelink.voice.audio.AudioPlayer
 import kotlinx.coroutines.Dispatchers
@@ -91,7 +92,7 @@ internal class PlatformAudioPlayer : AudioPlayer {
             try {
                 track.stop()
             } catch (_: IllegalStateException) {
-                // Already stopped
+                FaceLinkLogger.d(TAG, "AudioTrack already stopped")
             }
         }
         _isPlaying.value = false
@@ -101,5 +102,9 @@ internal class PlatformAudioPlayer : AudioPlayer {
         stop()
         audioTrack?.release()
         audioTrack = null
+    }
+
+    private companion object {
+        private const val TAG = "PlatformAudioPlayer"
     }
 }

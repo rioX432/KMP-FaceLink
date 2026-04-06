@@ -49,7 +49,7 @@ internal fun EmotionBars(result: EmotionResult?) {
             modifier = Modifier
                 .fillMaxWidth()
                 .height(16.dp)
-                .semantics {
+                .semantics(mergeDescendants = true) {
                     contentDescription = "${emotion.name} emotion: $scorePercent%$dominantLabel"
                 },
             verticalAlignment = Alignment.CenterVertically,

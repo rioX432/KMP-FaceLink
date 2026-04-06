@@ -147,6 +147,14 @@ private fun GestureText(trackingData: HandTrackingData?) {
         }
         "$h: $g"
     } ?: "No hands detected"
+    val a11yDescription = currentData?.hands?.joinToString(". ") { hand ->
+        val g = if (hand.gesture != HandGesture.NONE) {
+            "${hand.gesture.name}, ${(hand.gestureConfidence * PERCENT_MULTIPLIER).toInt()} percent"
+        } else {
+            "no gesture"
+        }
+        "${hand.handedness.name} hand: $g"
+    } ?: "No hands detected"
     Text(
         text = gestureText,
         color = SampleColors.TextSecondary,
@@ -154,7 +162,7 @@ private fun GestureText(trackingData: HandTrackingData?) {
         fontFamily = FontFamily.Monospace,
         maxLines = 1,
         overflow = TextOverflow.Ellipsis,
-        modifier = Modifier.semantics { contentDescription = "Gesture: $gestureText" },
+        modifier = Modifier.semantics { contentDescription = a11yDescription },
     )
 }
 

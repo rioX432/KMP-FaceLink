@@ -1,14 +1,18 @@
 # React Native and Flutter Wrapper Packages Research
 
-**Issue:** #477
+**Issue:** #602
 **Status:** Research complete
-**Date:** 2026-04-02
+**Date:** 2026-04-06 (updated from initial #477 research on 2026-04-02)
 
 ## Executive Summary
 
 This document evaluates creating official wrapper packages for React Native (Turbo Module) and Flutter (Platform Channel / FFI) to expose KMP-FaceLink's tracking capabilities to those ecosystems. KMP-FaceLink already produces AAR (Android) and XCFramework (iOS) artifacts, and the existing Unity plugin demonstrates a proven polling-based bridge pattern that can be adapted for both frameworks.
 
-**Key finding:** Both wrappers are feasible. React Native's Turbo Module with JSI ArrayBuffer support enables zero-copy binary data transfer at 60fps. Flutter's dart:ffi approach bypasses platform channel overhead entirely, matching native performance. A shared binary protocol (flat float arrays, ~242 bytes per face frame) already exists in the Unity plugin and can be reused. Estimated effort: 3-4 weeks for RN, 2-3 weeks for Flutter, with an additional 1-2 weeks for publishing and sample apps.
+**Key finding:** Both wrappers are feasible. React Native's Turbo Module with JSI ArrayBuffer support enables zero-copy binary data transfer at 60fps. Flutter's dart:ffi approach bypasses platform channel overhead entirely, matching native performance. A shared binary protocol (flat float arrays, ~242 bytes per face frame) already exists in the Unity plugin and can be reused. Estimated effort: ~3 weeks each for RN and Flutter, plus ~3 days for shared C bridge extraction.
+
+**Ecosystem update (April 2026):** React Native 0.82+ has permanently removed the old bridge architecture — New Architecture (Turbo Modules + JSI) is now the only option. Flutter 3.38+ stabilized build hooks and `package:ffi` native assets (current stable: 3.41.5). Both frameworks are now in an ideal state for high-performance native module wrappers.
+
+**Prioritization:** React Native first, based on VTuber developer community analysis (see Section 9).
 
 ---
 
@@ -125,7 +129,8 @@ react-native-kmp-facelink/
 - Package name: `react-native-kmp-facelink`
 - Prefix convention: no `RTN` prefix needed for third-party packages
 - Must include: `package.json` with `react-native` field, Codegen spec, podspec for iOS
-- React Native >= 0.76 (New Architecture stable)
+- React Native >= 0.82 (New Architecture only — old bridge permanently removed)
+- Current stable: RN 0.83 (Expo SDK 55), legacy architecture frozen since June 2025
 - Turbo Module Codegen auto-runs during `pod install` / Gradle build
 - AAR bundled in `android/libs/`, XCFramework referenced via podspec vendored_frameworks
 - Size estimate: ~5MB (AAR) + ~8MB (XCFramework) = ~13MB total
@@ -252,7 +257,9 @@ flutter_kmp_facelink/
 - Size limit: <100MB gzipped, <256MB uncompressed
 - Dependencies must be hosted on pub.dev or SDK dependencies only
 - AAR bundled in `android/libs/`, XCFramework via podspec vendored_frameworks
-- Minimum Flutter SDK: 3.38+ (for build hooks / `package:ffi` template)
+- Minimum Flutter SDK: 3.38+ (build hooks and native assets stable since 3.38 / Dart 3.10)
+- Current stable: Flutter 3.41.5. `flutter create --template=package_ffi` generates build hooks automatically
+- `@Native()` annotation + `ffigen` eliminates manual `dlopen` platform logic
 
 ---
 
@@ -324,11 +331,25 @@ No serialization step exists in either path — data is accessed directly from t
 
 No existing KMP tracking SDK provides RN/Flutter wrappers. The closest competitors are:
 
-- **react-native-vision-camera-face-detector:** MLKit-based, lower-level than KMP-FaceLink (raw landmarks, no blend shapes)
-- **google_mlkit_face_detection (Flutter):** Similar to above, no ARKit-compatible blend shape output
-- **KBY-AI Face SDK (RN):** Commercial, focused on recognition/liveness, not real-time blend shape streaming
+**React Native ecosystem:**
 
-KMP-FaceLink wrappers would be the first to provide ARKit-compatible blend shape data at 60fps in both ecosystems.
+| Library | Stars | Blend Shapes | Notes |
+|---|---|---|---|
+| `react-native-mediapipe` (cdiddy77) | ~66 | Face landmarks only (478 points), no blend shapes | Vision Camera integration, active maintenance |
+| `@thinksys/react-native-mediapipe` | <50 | Pose only (iOS) | No face tracking support |
+| `react-native-vision-camera-face-detector` | ~200 | MLKit landmarks, no blend shapes | Lower-level detection only |
+| KBY-AI Face SDK | N/A | Recognition/liveness only | Commercial, no real-time streaming |
+
+**Flutter ecosystem:**
+
+| Library | Pub Likes | Blend Shapes | Notes |
+|---|---|---|---|
+| `mediapipe_face_mesh` | ~20 | 468 landmarks, no blend shapes | FFI-powered TFLite core |
+| `google_mediapipe_face_detection` | <10 | Detection only (bounding box) | No landmarks or blend shapes |
+| `ar_flutter_plugin` | ~300 | ARKit/ARCore access but no blend shape API | General AR, not face-tracking focused |
+| ThinkSys mediapipe-flutter | <50 | Pose only | No face tracking |
+
+**Gap analysis:** None of the existing libraries in either ecosystem provide ARKit-compatible blend shape data (52 coefficients). They all stop at either face detection (bounding box), landmark points (468/478), or pose estimation. KMP-FaceLink wrappers would be the first to provide production-ready blend shape streaming at 60fps in both ecosystems — a significant competitive advantage for VTuber/avatar applications.
 
 ---
 
@@ -393,7 +414,7 @@ The KMP → RN/Flutter wrapper space is largely uncharted. Being first with a hi
 
 **~6-7 weeks** for both wrappers (with some parallelization possible).
 
-**Recommended order:** Flutter first (simpler FFI path, reuses C bridge directly), then RN (more complex JSI setup). Alternatively, share the C bridge extraction work first, then develop both in parallel.
+**Recommended order:** React Native first (larger VTuber community overlap, see Section 9), extracting the shared C bridge during RN development. Flutter follows, reusing the C bridge directly for a faster implementation. Alternatively, extract the C bridge first, then develop both in parallel.
 
 ---
 
@@ -403,13 +424,52 @@ The KMP → RN/Flutter wrapper space is largely uncharted. Being first with a hi
 
 2. **Use polling over push for both wrappers** — the Unity plugin proves this pattern works at 60fps with minimal complexity. Push models (EventEmitter/EventChannel) add unnecessary bridge overhead.
 
-3. **Start with Flutter** — the dart:ffi path is more straightforward and the C bridge can be reused almost verbatim from the Unity plugin.
+3. **Start with React Native** — despite Flutter's simpler FFI path, RN's larger developer community and stronger VTuber ecosystem overlap make it the better first target (see Section 9). The shared C bridge extracted during RN development will accelerate the subsequent Flutter wrapper.
 
 4. **Use JSI ArrayBuffer for RN** — standard Turbo Module types work but waste frame budget on serialization. JSI ArrayBuffer provides near-zero-cost data transfer.
 
 5. **Publish as separate packages** — `react-native-kmp-facelink` on npm, `flutter_kmp_facelink` on pub.dev. Keep them independent of each other and of the core KMP library's release cycle.
 
-6. **Target RN 0.76+ and Flutter 3.38+** — both versions have stable support for the required features (New Architecture / build hooks).
+6. **Target RN 0.82+ and Flutter 3.38+** — RN 0.82 permanently removed the old bridge (New Architecture only), and Flutter 3.38 stabilized build hooks. Both are now in an ideal state for high-performance wrappers.
+
+7. **Prioritize React Native over Flutter** — based on VTuber developer community analysis (see Section 9).
+
+---
+
+## 9. VTuber Developer Community Prioritization
+
+### Framework Popularity (General Market, 2026)
+
+| Metric | React Native | Flutter |
+|---|---|---|
+| GitHub stars | ~92,200 | ~102,000 |
+| Stack Overflow usage | 8.43% | 9.12% |
+| Enterprise adoption | 42% | 38% |
+| LinkedIn job postings (US) | ~6,400 | ~1,070 |
+| Cross-platform market share | 35% | 46% |
+
+### VTuber-Specific Considerations
+
+The VTuber developer ecosystem is niche and does not have direct survey data for framework preferences. However, several factors inform the prioritization:
+
+1. **Web ecosystem proximity:** Most VTuber tools (Live2D Cubism SDK Web, VTube Studio API, VMC Protocol clients) originate from or have strong integrations with JavaScript/TypeScript ecosystems. React Native developers can directly leverage existing JS VTuber libraries and community knowledge.
+
+2. **Live2D Cubism SDK:** The primary avatar rendering SDK for VTubers has official Web (JS) and native (C++) SDKs. React Native's JSI allows closer integration with the JS SDK, while Flutter would require FFI bindings to the C++ SDK — a higher barrier.
+
+3. **Existing VTuber mobile apps:** VTube Studio (Unity), REALITY (native), Luppet (Unity) — none use RN or Flutter. A wrapper for either framework would be equally greenfield for VTuber apps, but RN's larger job market means more potential contributors.
+
+4. **Community size and reach:** React Native has ~6x more job postings and deeper enterprise adoption. Publishing a high-quality RN wrapper first maximizes initial reach and early adopter feedback.
+
+5. **Open-LLM-VTuber integration:** The project's sibling (`Mobile-LLM-VTuber`) targets a mobile AITuber client. If this client were built in RN (common for chat/WebSocket apps), the RN wrapper would provide direct integration. Flutter is also viable but less common for this type of app.
+
+### Recommendation
+
+**React Native first, Flutter second.** The reasoning:
+
+- RN's JS ecosystem has stronger overlap with existing VTuber tooling (Live2D Web SDK, WebSocket protocols)
+- 6x larger job market = more potential contributors and adopters
+- JSI ArrayBuffer provides competitive performance parity with Flutter's FFI
+- Flutter can follow ~2-3 weeks later, reusing the shared C bridge extracted during RN development
 
 ---
 
@@ -431,3 +491,12 @@ The KMP → RN/Flutter wrapper space is largely uncharted. Being first with a hi
 - [KMP vs React Native (Kotlin docs)](https://kotlinlang.org/docs/multiplatform/kotlin-multiplatform-react-native.html)
 - [KMP vs Flutter (Kotlin docs)](https://kotlinlang.org/docs/multiplatform/kotlin-multiplatform-flutter.html)
 - [react-native-vision-camera-face-detector](https://github.com/luicfrr/react-native-vision-camera-face-detector)
+- [React Native 0.82 - New Architecture Only](https://reactnative.dev/blog/2025/10/08/react-native-0.82)
+- [React Native New Architecture Migration Guide 2026](https://www.agilesoftlabs.com/blog/2026/03/react-native-new-architecture-migration)
+- [Flutter 3.38 & Dart 3.10 Announcement](https://blog.flutter.dev/announcing-flutter-3-38-dart-3-10-building-the-future-of-apps-503429eeb685)
+- [Flutter 3.38 Release Notes](https://docs.flutter.dev/release/release-notes/release-notes-3.38.0)
+- [Dart Build Hooks & Native Assets](https://dart.dev/tools/hooks)
+- [mediapipe_face_mesh (pub.dev)](https://pub.dev/packages/mediapipe_face_mesh)
+- [google_mediapipe_face_detection (pub.dev)](https://pub.dev/packages/google_mediapipe_face_detection)
+- [ThinkSys MediaPipe Flutter Plugin](https://thinksys.com/development/thinksys-mediapipe-flutter-plugin/)
+- [Flutter vs React Native 2026 Comparison](https://www.discretelogix.com/react-native-vs-flutter/)

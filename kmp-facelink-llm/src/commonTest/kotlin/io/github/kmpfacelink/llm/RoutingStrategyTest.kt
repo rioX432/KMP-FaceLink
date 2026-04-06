@@ -20,7 +20,7 @@ class RoutingStrategyTest {
     @Test
     fun autoHasDefaultThreshold() {
         val auto = RoutingStrategy.Auto()
-        assertEquals(0.5f, auto.complexityThreshold)
+        assertEquals(0.6f, auto.complexityThreshold)
     }
 
     @Test
@@ -39,7 +39,7 @@ class RoutingStrategyTest {
     @Test
     fun adaptiveHasDefaults() {
         val adaptive = RoutingStrategy.Adaptive()
-        assertEquals(0.5f, adaptive.complexityThreshold)
+        assertEquals(0.6f, adaptive.complexityThreshold)
         assertEquals(ThermalState.SERIOUS, adaptive.thermalThreshold)
         assertEquals(5000L, adaptive.latencyTimeoutMs)
         assertEquals(1.0, adaptive.dailyCostBudget, 0.001)

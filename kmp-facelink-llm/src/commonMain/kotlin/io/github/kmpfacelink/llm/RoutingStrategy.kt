@@ -51,7 +51,8 @@ public sealed class RoutingStrategy {
     ) : RoutingStrategy()
 }
 
-private const val DEFAULT_THRESHOLD = 0.5f
+/** Raised from 0.5 to 0.6: Gemma 4 handles more complex queries on-device. */
+private const val DEFAULT_THRESHOLD = 0.6f
 private const val DEFAULT_LATENCY_TIMEOUT_MS = 5000L
 private const val DEFAULT_DAILY_COST_BUDGET = 1.0
 private const val DEFAULT_COST_PER_REQUEST = 0.003

@@ -21,6 +21,7 @@ public actual class UdpSocket actual constructor(
         return socket ?: DatagramSocket().also { socket = it }
     }
 
+    @Synchronized
     public actual fun send(data: ByteArray, host: String, port: Int) {
         val address = InetAddress.getByName(host)
         val packet = DatagramPacket(data, data.size, address, port)
@@ -33,6 +34,7 @@ public actual class UdpSocket actual constructor(
         socket = DatagramSocket(port)
     }
 
+    @Synchronized
     public actual fun receive(): ByteArray {
         val buf = ByteArray(bufferSize)
         val packet = DatagramPacket(buf, buf.size)

@@ -2,6 +2,7 @@ package io.github.kmpfacelink.vts
 
 import io.ktor.server.application.install
 import io.ktor.server.cio.CIO
+import io.ktor.server.engine.EmbeddedServer
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.routing.routing
 import io.ktor.server.websocket.WebSockets
@@ -29,6 +30,7 @@ internal class MockVtsServer(
 ) {
     private val json = Json { ignoreUnknownKeys = true }
     private var serverJob: Job? = null
+    private var server: EmbeddedServer<*, *>? = null
 
     /** Number of InjectParameterDataRequest messages received. */
     var injectCount: Int = 0
@@ -43,12 +45,14 @@ internal class MockVtsServer(
     }
 
     fun stop() {
+        server?.stop(gracePeriodMillis = 0, timeoutMillis = STOP_TIMEOUT_MS)
+        server = null
         serverJob?.cancel()
         serverJob = null
     }
 
     private suspend fun runServer() {
-        embeddedServer(CIO, port = port) {
+        val s = embeddedServer(CIO, port = port) {
             install(WebSockets)
             routing {
                 webSocket("/") {
@@ -62,7 +66,9 @@ internal class MockVtsServer(
                     }
                 }
             }
-        }.start(wait = true)
+        }
+        server = s
+        s.start(wait = true)
     }
 
     private fun handleMessage(text: String): String? {
@@ -171,3 +177,5 @@ internal class MockVtsServer(
         return json.encodeToString(response)
     }
 }
+
+private const val STOP_TIMEOUT_MS = 500L

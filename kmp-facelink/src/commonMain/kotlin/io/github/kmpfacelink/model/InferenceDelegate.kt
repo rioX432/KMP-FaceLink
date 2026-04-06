@@ -12,6 +12,10 @@ package io.github.kmpfacelink.model
  *   via LiteRT vendor delegates. Falls back to GPU → CPU when unavailable.
  * iOS (ARKit/Vision): This setting has no effect — Apple frameworks manage
  *   hardware acceleration internally via CoreML and the Apple Neural Engine.
+ * Wasm/Web (MediaPipe JS): [AUTO] and [GPU] probe for WebGPU (Chrome 113+,
+ *   Safari 26+, Firefox 141+) then WebGL 2.0, passing the "GPU" delegate to
+ *   MediaPipe Tasks Vision. Falls back to CPU when no GPU backend is available.
+ *   [CPU] forces CPU-only inference. [NPU] and [NNAPI] behave like [AUTO].
  */
 public enum class InferenceDelegate {
     /**

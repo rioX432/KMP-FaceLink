@@ -59,7 +59,8 @@ public data class CalibrationConfig(
  * @property enableIdleDetection Whether to reduce frame rate when the face is stationary.
  *           Only effective when [powerMode] is set. Defaults to true.
  * @property inferenceDelegate Preferred hardware accelerator for ML model inference.
- *           Android (MediaPipe) only — has no effect on iOS (ARKit).
+ *           Android (MediaPipe) and Wasm/Web: controls GPU vs CPU delegate selection.
+ *           Has no effect on iOS (ARKit).
  *           Defaults to [InferenceDelegate.AUTO] (GPU with CPU fallback).
  * @property analysisWidth Width of the camera analysis stream in pixels. Android only.
  *           Lower values improve performance at the cost of accuracy. Defaults to 640.

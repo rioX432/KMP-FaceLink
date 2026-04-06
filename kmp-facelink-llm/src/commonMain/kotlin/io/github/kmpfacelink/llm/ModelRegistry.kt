@@ -166,9 +166,15 @@ public object ModelRegistry {
      */
     public fun recommendForRam(deviceRamBytes: Long): ModelInfo {
         return when {
-            deviceRamBytes < RAM_THRESHOLD_1GB -> findById("qwen3-0.6b-int4")!!
-            deviceRamBytes <= RAM_THRESHOLD_4GB -> findById("gemma-4-e2b-int4")!!
-            else -> findById("gemma-4-e4b-int4")!!
+            deviceRamBytes < RAM_THRESHOLD_1GB -> requireNotNull(findById("qwen3-0.6b-int4")) {
+                "Built-in model 'qwen3-0.6b-int4' not found in registry; registry may be corrupted"
+            }
+            deviceRamBytes <= RAM_THRESHOLD_4GB -> requireNotNull(findById("gemma-4-e2b-int4")) {
+                "Built-in model 'gemma-4-e2b-int4' not found in registry; registry may be corrupted"
+            }
+            else -> requireNotNull(findById("gemma-4-e4b-int4")) {
+                "Built-in model 'gemma-4-e4b-int4' not found in registry; registry may be corrupted"
+            }
         }
     }
 
@@ -177,5 +183,7 @@ public object ModelRegistry {
      *
      * Use [recommendForRam] for device-adaptive selection instead.
      */
-    public fun defaultModel(): ModelInfo = findById("gemma-4-e2b-int4")!!
+    public fun defaultModel(): ModelInfo = requireNotNull(findById("gemma-4-e2b-int4")) {
+        "Built-in model 'gemma-4-e2b-int4' not found in registry; registry may be corrupted"
+    }
 }

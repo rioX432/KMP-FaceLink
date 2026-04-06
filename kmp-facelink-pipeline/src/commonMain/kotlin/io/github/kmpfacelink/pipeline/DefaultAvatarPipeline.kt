@@ -167,8 +167,12 @@ public class DefaultAvatarPipeline(
 
     private fun createStreamingCoordinator(): StreamingCoordinator =
         StreamingCoordinator(
-            ttsEngine = ttsEngine!!,
-            lipSyncEngine = lipSyncEngine!!,
+            ttsEngine = requireNotNull(ttsEngine) {
+                "ttsEngine must not be null when creating StreamingCoordinator; check pipeline configuration"
+            },
+            lipSyncEngine = requireNotNull(lipSyncEngine) {
+                "lipSyncEngine must not be null when creating StreamingCoordinator; check pipeline configuration"
+            },
             sentimentAnalyzer = TextSentimentAnalyzer(),
             expressionMapper = DefaultExpressionMapper(),
             expressionBlender = ExpressionBlender(emotionWeight = config.expressionBlendRatio),

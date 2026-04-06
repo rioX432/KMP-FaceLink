@@ -5,6 +5,7 @@ import io.github.kmpfacelink.llm.LlmClient
 import io.github.kmpfacelink.llm.LlmState
 import io.github.kmpfacelink.llm.RoutingStrategy
 import io.github.kmpfacelink.model.ThermalState
+import io.github.kmpfacelink.networking.currentTimeMs
 import io.github.kmpfacelink.util.FaceLinkLogger
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.TimeoutCancellationException
@@ -123,15 +124,15 @@ internal class HybridLlmClient(
     private suspend fun FlowCollector<String>.collectWithTimeout(
         history: ConversationHistory,
     ) {
-        val startMs = currentTimeMillis()
+        val startMs = currentTimeMs()
         try {
             withTimeout(latencyTimeout) {
                 onDeviceClient.chat(history).collect { emit(it) }
             }
-            recordLatency(currentTimeMillis() - startMs)
+            recordLatency(currentTimeMs() - startMs)
         } catch (e: TimeoutCancellationException) {
             FaceLinkLogger.d(TAG, "on-device chat timed out, falling back to cloud — $e")
-            recordLatency(currentTimeMillis() - startMs)
+            recordLatency(currentTimeMs() - startMs)
             recordCost()
             cloudClient.chat(history).collect { emit(it) }
         }
@@ -149,14 +150,14 @@ internal class HybridLlmClient(
     }
 
     private suspend fun chatOnceWithTimeout(history: ConversationHistory): String {
-        val startMs = currentTimeMillis()
+        val startMs = currentTimeMs()
         return try {
             val result = withTimeout(latencyTimeout) { onDeviceClient.chatOnce(history) }
-            recordLatency(currentTimeMillis() - startMs)
+            recordLatency(currentTimeMs() - startMs)
             result
         } catch (e: TimeoutCancellationException) {
             FaceLinkLogger.d(TAG, "on-device chatOnce timed out, falling back to cloud — $e")
-            recordLatency(currentTimeMillis() - startMs)
+            recordLatency(currentTimeMs() - startMs)
             recordCost()
             cloudClient.chatOnce(history)
         }

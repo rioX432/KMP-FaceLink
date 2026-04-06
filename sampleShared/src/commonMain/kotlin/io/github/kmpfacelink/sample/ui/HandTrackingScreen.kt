@@ -19,7 +19,10 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import io.github.kmpfacelink.api.HandTracker
@@ -44,6 +47,7 @@ public fun HandTrackingScreen(
 ) {
     val state by handTracker.state.collectAsState()
     val trackingData by trackingDataState.collectAsState()
+    val errorMessage by handTracker.errorMessage.collectAsState()
     val isTracking = state == TrackingState.TRACKING
 
     Box(modifier = Modifier.fillMaxSize()) {
@@ -62,6 +66,9 @@ public fun HandTrackingScreen(
                 onStartClick = onStartClick,
                 onStopClick = onStopClick,
             )
+            if (state == TrackingState.ERROR) {
+                ErrorBanner(errorMessage)
+            }
             ModeToggle(currentMode = TrackingMode.HAND, onModeChange = onModeChange)
 
             Spacer(modifier = Modifier.weight(1f))
@@ -109,10 +116,18 @@ private fun HandTopBar(
                 text = "Status: $state",
                 color = SampleColors.TextPrimary,
                 fontSize = 14.sp,
-                modifier = Modifier.weight(1f),
+                modifier = Modifier
+                    .weight(1f)
+                    .semantics { contentDescription = "Tracking status: $state" },
             )
-            Button(onClick = { if (isTracking) onStopClick() else onStartClick() }) {
-                Text(if (isTracking) "Stop" else "Start")
+            val buttonLabel = if (isTracking) "Stop" else "Start"
+            Button(
+                onClick = { if (isTracking) onStopClick() else onStartClick() },
+                modifier = Modifier.semantics {
+                    contentDescription = "$buttonLabel hand tracking"
+                },
+            ) {
+                Text(buttonLabel)
             }
         }
 
@@ -137,6 +152,9 @@ private fun GestureText(trackingData: HandTrackingData?) {
         color = SampleColors.TextSecondary,
         fontSize = 12.sp,
         fontFamily = FontFamily.Monospace,
+        maxLines = 1,
+        overflow = TextOverflow.Ellipsis,
+        modifier = Modifier.semantics { contentDescription = "Gesture: $gestureText" },
     )
 }
 
@@ -155,9 +173,27 @@ private fun HandBottomBar(trackingData: HandTrackingData?) {
             text = if (handsCount > 0) "Hands detected: $handsCount" else "Tap Start to begin hand tracking",
             color = SampleColors.TextTertiary,
             fontSize = 12.sp,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
             modifier = Modifier.padding(8.dp),
         )
     }
+}
+
+@Composable
+private fun ErrorBanner(errorMessage: String?) {
+    val message = errorMessage ?: "An unknown error occurred"
+    Text(
+        text = message,
+        color = SampleColors.TextPrimary,
+        fontSize = 13.sp,
+        maxLines = 2,
+        overflow = TextOverflow.Ellipsis,
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(SampleColors.ErrorRed.copy(alpha = 0.85f))
+            .padding(horizontal = 12.dp, vertical = 8.dp),
+    )
 }
 
 private const val PERCENT_MULTIPLIER = 100

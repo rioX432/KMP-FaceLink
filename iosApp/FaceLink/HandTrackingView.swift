@@ -54,7 +54,7 @@ struct HandTrackingView: View {
                     }
                 }
                 .buttonStyle(TrackingButtonStyle(isTracking: viewModel.isTracking))
-                .padding(.bottom, 16)
+                .padding(.bottom)
             }
 
             // Hand landmark overlay — fills the full screen to match the camera preview

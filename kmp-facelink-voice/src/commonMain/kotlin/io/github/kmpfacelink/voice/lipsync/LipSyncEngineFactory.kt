@@ -21,12 +21,14 @@ public object LipSyncEngineFactory {
      * @param type Desired engine type
      * @return A [LipSyncEngine] instance (may fall back to a simpler engine)
      */
-    public fun create(type: LipSyncEngineType = LipSyncEngineType.DEFAULT): LipSyncEngine =
-        when (type) {
+    public fun create(type: LipSyncEngineType = LipSyncEngineType.DEFAULT): LipSyncEngine {
+        val provider = neuralProvider // Snapshot volatile read
+        return when (type) {
             LipSyncEngineType.DEFAULT -> DefaultLipSyncEngine()
             LipSyncEngineType.ENHANCED_AMPLITUDE -> EnhancedAmplitudeLipSync()
-            LipSyncEngineType.NEURAL -> neuralProvider?.invoke() ?: EnhancedAmplitudeLipSync()
+            LipSyncEngineType.NEURAL -> provider?.invoke() ?: EnhancedAmplitudeLipSync()
         }
+    }
 
     /**
      * Registers a provider for [NeuralLipSyncEngine] instances.

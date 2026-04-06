@@ -26,6 +26,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -114,6 +117,7 @@ private fun FeatureCard(
             .fillMaxWidth()
             .clip(RoundedCornerShape(CARD_CORNER_RADIUS))
             .background(SampleColors.Surface)
+            .semantics { role = Role.Button }
             .clickable(onClick = onClick)
             .padding(CARD_PADDING),
         verticalAlignment = Alignment.CenterVertically,

@@ -1,7 +1,7 @@
 package io.github.kmpfacelink.llm
 
-import io.github.kmpfacelink.llm.internal.PlatformLock
-import io.github.kmpfacelink.llm.internal.withLock
+import io.github.kmpfacelink.util.PlatformLock
+import io.github.kmpfacelink.util.withLock
 
 /**
  * Manages conversation messages with token-aware context window trimming.

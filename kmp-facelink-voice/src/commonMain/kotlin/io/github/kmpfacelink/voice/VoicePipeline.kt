@@ -9,7 +9,7 @@ import io.github.kmpfacelink.voice.asr.internal.AsrEngineFactory
 import io.github.kmpfacelink.voice.audio.AudioPlayer
 import io.github.kmpfacelink.voice.audio.AudioRecorder
 import io.github.kmpfacelink.voice.lipsync.LipSyncEngine
-import io.github.kmpfacelink.voice.lipsync.internal.DefaultLipSyncEngine
+import io.github.kmpfacelink.voice.lipsync.LipSyncEngineFactory
 import io.github.kmpfacelink.voice.tts.TtsEngine
 import io.github.kmpfacelink.voice.tts.internal.TtsEngineFactory
 import kotlinx.coroutines.CoroutineDispatcher
@@ -67,7 +67,7 @@ public class VoicePipeline(
 
     private val tts: TtsEngine = ttsEngine ?: TtsEngineFactory.create(config.ttsConfig)
     private val asr: AsrEngine? = asrEngine ?: config.asrConfig?.let { AsrEngineFactory.create(it) }
-    private val lipSync: LipSyncEngine = lipSyncEngine ?: DefaultLipSyncEngine()
+    private val lipSync: LipSyncEngine = lipSyncEngine ?: LipSyncEngineFactory.create()
 
     private val _lipSyncOutput = MutableSharedFlow<Map<BlendShape, Float>>(extraBufferCapacity = 16)
 

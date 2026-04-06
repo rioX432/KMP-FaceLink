@@ -1,5 +1,6 @@
 package io.github.kmpfacelink.llm.internal
 
+import io.github.kmpfacelink.networking.currentTimeMs
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.SerializationException
@@ -66,7 +67,7 @@ internal class CacheMetadataStore(private val cacheDir: String) {
                 modelId = modelId,
                 fileName = fileName,
                 sizeBytes = sizeBytes,
-                lastUsedTimestamp = currentTimeMillis(),
+                lastUsedTimestamp = currentTimeMs(),
             ),
         )
         save(metadata)
@@ -82,5 +83,3 @@ internal class CacheMetadataStore(private val cacheDir: String) {
         return load().entries.values.sortedBy { it.lastUsedTimestamp }
     }
 }
-
-internal expect fun currentTimeMillis(): Long

@@ -9,9 +9,14 @@ import io.github.kmpfacelink.util.FaceLinkLogger
 import io.github.kmpfacelink.util.FrameThrottler
 import io.github.kmpfacelink.util.ThermalMonitor
 import io.github.kmpfacelink.util.withLock
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.withContext
+import java.util.concurrent.ExecutionException
 import java.util.concurrent.Executors
+import java.util.concurrent.RejectedExecutionException
 import kotlin.concurrent.atomics.ExperimentalAtomicApi
 
 /**
@@ -127,9 +132,27 @@ internal abstract class BaseMediaPipeTracker<T>(
 
     internal suspend fun performStop() {
         pipelineLock.withLock {
-            cameraManager?.unbindAll()
-            closeLandmarker()
             mutableState.value = TrackingState.STOPPED
+            cameraManager?.unbindAll()
+        }
+        // Drain any in-flight frame processing on the analysis executor
+        if (cameraManager != null) {
+            try {
+                withContext(Dispatchers.IO) { analysisExecutor.submit {}.get() }
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                throw e
+            } catch (_: RejectedExecutionException) {
+                // Executor may already be shut down — safe to ignore
+            } catch (_: ExecutionException) {
+                // Task execution failed — safe to ignore during drain
+            } catch (_: InterruptedException) {
+                // Thread interrupted during drain — safe to ignore
+            }
+        }
+        // Allow final async detection result from MediaPipe to be delivered
+        delay(STOP_DRAIN_DELAY_MS)
+        pipelineLock.withLock {
+            closeLandmarker()
         }
     }
 
@@ -196,5 +219,10 @@ internal abstract class BaseMediaPipeTracker<T>(
             isFrontCamera = isFrontCamera,
             callbacks = buildDetectionCallbacks(),
         )
+    }
+
+    private companion object {
+        /** Delay before closing the landmarker to allow in-flight results to drain. */
+        private const val STOP_DRAIN_DELAY_MS = 100L
     }
 }

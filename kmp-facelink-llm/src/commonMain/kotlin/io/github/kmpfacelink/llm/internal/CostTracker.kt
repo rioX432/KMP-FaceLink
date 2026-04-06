@@ -1,5 +1,6 @@
 package io.github.kmpfacelink.llm.internal
 
+import io.github.kmpfacelink.networking.currentTimeMs
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -24,7 +25,7 @@ private const val MILLIS_PER_DAY =
 internal class CostTracker(
     private val dailyBudget: Double,
     private val costPerRequest: Double,
-    private val timeProvider: () -> Long = { currentTimeMillis() },
+    private val timeProvider: () -> Long = { currentTimeMs() },
 ) {
     private var dayStartMs: Long = computeDayStart(timeProvider())
     private val _dailyCost = MutableStateFlow(0.0)

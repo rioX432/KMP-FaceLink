@@ -14,6 +14,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import io.github.kmpfacelink.api.FaceTracker
@@ -38,8 +40,13 @@ public fun SmoothingFilterChips(
             .padding(horizontal = 12.dp, vertical = 4.dp),
     ) {
         FILTER_LABELS.forEach { label ->
+            val isSelected = selectedFilter == label
+            val stateLabel = if (isSelected) "selected" else "not selected"
             FilterChip(
-                selected = selectedFilter == label,
+                selected = isSelected,
+                modifier = Modifier.semantics {
+                    contentDescription = "Smoothing filter: $label, $stateLabel"
+                },
                 onClick = {
                     selectedFilter = label
                     val config = when (label) {

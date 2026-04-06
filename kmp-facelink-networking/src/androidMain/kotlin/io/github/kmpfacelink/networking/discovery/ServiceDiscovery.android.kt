@@ -3,9 +3,11 @@ package io.github.kmpfacelink.networking.discovery
 import android.content.Context
 import android.net.nsd.NsdManager
 import android.net.nsd.NsdServiceInfo
+import android.os.Build
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import java.util.concurrent.Executors
 
 /**
  * Android [ServiceDiscovery] implementation backed by [NsdManager].
@@ -94,6 +96,15 @@ public actual class ServiceDiscovery(context: Context) {
     }
 
     private fun resolveService(serviceInfo: NsdServiceInfo) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            resolveServiceModern(serviceInfo)
+        } else {
+            resolveServiceLegacy(serviceInfo)
+        }
+    }
+
+    @Suppress("DEPRECATION")
+    private fun resolveServiceLegacy(serviceInfo: NsdServiceInfo) {
         val listener = object : NsdManager.ResolveListener {
             override fun onResolveFailed(info: NsdServiceInfo, errorCode: Int) {
                 _events.value = DiscoveryEvent.Error(
@@ -102,18 +113,46 @@ public actual class ServiceDiscovery(context: Context) {
             }
 
             override fun onServiceResolved(info: NsdServiceInfo) {
-                val discovered = DiscoveredService(
-                    name = info.serviceName,
-                    type = info.serviceType,
-                    host = info.host?.hostAddress,
-                    port = info.port,
-                )
-                addService(discovered)
-                _events.value = DiscoveryEvent.Found(discovered)
+                handleServiceResolved(info)
             }
         }
-        @Suppress("DEPRECATION")
         nsdManager.resolveService(serviceInfo, listener)
+    }
+
+    private fun resolveServiceModern(serviceInfo: NsdServiceInfo) {
+        val executor = Executors.newSingleThreadExecutor()
+        val callback = object : NsdManager.ServiceInfoCallback {
+            override fun onServiceInfoCallbackRegistrationFailed(errorCode: Int) {
+                _events.value = DiscoveryEvent.Error(
+                    "Resolve registration failed for ${serviceInfo.serviceName} (error=$errorCode)"
+                )
+            }
+
+            override fun onServiceUpdated(info: NsdServiceInfo) {
+                handleServiceResolved(info)
+                nsdManager.unregisterServiceInfoCallback(this)
+            }
+
+            override fun onServiceLost() {
+                // Service disappeared during resolution; nothing to do
+            }
+
+            override fun onServiceInfoCallbackUnregistered() {
+                // Callback unregistered; nothing to do
+            }
+        }
+        nsdManager.registerServiceInfoCallback(serviceInfo, executor, callback)
+    }
+
+    private fun handleServiceResolved(info: NsdServiceInfo) {
+        val discovered = DiscoveredService(
+            name = info.serviceName,
+            type = info.serviceType,
+            host = info.host?.hostAddress,
+            port = info.port,
+        )
+        addService(discovered)
+        _events.value = DiscoveryEvent.Found(discovered)
     }
 
     private fun addService(service: DiscoveredService) {

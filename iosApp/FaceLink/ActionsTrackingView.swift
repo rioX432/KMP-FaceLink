@@ -74,7 +74,7 @@ struct ActionsTrackingView: View {
                     viewModel.toggleTracking()
                 }
                 .buttonStyle(TrackingButtonStyle(isTracking: viewModel.isTracking))
-                .padding(.bottom, 16)
+                .padding(.bottom)
             }
         }
     }
@@ -271,7 +271,7 @@ class ActionsTrackingViewModel: ObservableObject {
         cancelObserveTasks()
         guard let tracker = tracker else { return }
         Task {
-            do { try await tracker.stop() } catch {}
+            do { try await tracker.stop() } catch { print("Failed to stop tracker: \(error)") }
             isTracking = false
             statusText = "Stopped"
         }
@@ -331,7 +331,7 @@ class ActionsTrackingViewModel: ObservableObject {
             try await system.register(binding: ActionBinding(actionId: "tongueOut", trigger: BuiltInTriggersKt.tongueOutTrigger(threshold: 0.6), holdTimeMs: 0, cooldownMs: 0, debounceMs: 0, emitHeldEvents: false))
             try await system.register(binding: ActionBinding(actionId: "surprised", trigger: BuiltInTriggersKt.surprisedTrigger(threshold: 0.6), holdTimeMs: 0, cooldownMs: 0, debounceMs: 0, emitHeldEvents: false))
         } catch {
-            // Ignore registration errors
+            print("Failed to register trigger: \(error)")
         }
     }
 

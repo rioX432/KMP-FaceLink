@@ -71,6 +71,7 @@ struct ModeChip: View {
                     isSelected ? Color.blue.opacity(0.6) : Color(.tertiarySystemFill),
                     in: Capsule()
                 )
+                .frame(minHeight: 44)
         }
     }
 }

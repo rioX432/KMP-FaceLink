@@ -58,7 +58,7 @@ struct HolisticTrackingView: View {
                     }
                 }
                 .buttonStyle(TrackingButtonStyle(isTracking: viewModel.isTracking))
-                .padding(.bottom, 40)
+                .padding(.bottom)
             }
         }
     }

@@ -17,6 +17,7 @@ import io.github.kmpfacelink.util.FaceLinkLogger
 import io.github.kmpfacelink.util.FrameThrottler
 import io.github.kmpfacelink.util.GestureClassifier
 import io.github.kmpfacelink.util.HandLandmarkSmoother
+import io.github.kmpfacelink.util.PowerModeManager
 import io.github.kmpfacelink.util.createHandSmoother
 import io.github.kmpfacelink.util.createSmoother
 import io.github.kmpfacelink.util.withLock
@@ -44,6 +45,15 @@ internal class VisionHandTracker(
     HandTracker {
 
     private var smoother: HandLandmarkSmoother? = config.createSmoother()
+
+    private val batteryMonitor = IosBatteryMonitor()
+    private val powerModeManager: PowerModeManager? = config.powerMode?.let { mode ->
+        PowerModeManager(
+            powerMode = mode,
+            thermalMonitor = thermalMonitor,
+            batteryMonitor = batteryMonitor,
+        )
+    }
 
     private val resolvedRevision: ULong = resolveHandPoseRevision(config.handPoseRevision)
 
@@ -77,6 +87,11 @@ internal class VisionHandTracker(
         performRelease()
     }
 
+    override fun performExtraRelease() {
+        batteryMonitor.release()
+        powerModeManager?.release()
+    }
+
     override fun updateSmoothing(config: SmoothingConfig) {
         pipelineLock.withLock {
             checkNotReleased("update smoothing")
@@ -99,9 +114,14 @@ internal class VisionHandTracker(
         val pixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) ?: return
         val timestampMs = currentTimeMillis()
 
-        // Thermal throttling: skip frame if needed
+        // Power mode or thermal throttling: skip frame if needed
         val currentThermalState = thermalMonitor.thermalState.value
-        if (!frameThrottler.shouldProcess(timestampMs, currentThermalState)) return
+        val shouldProcess = if (powerModeManager != null) {
+            powerModeManager.shouldProcess(timestampMs)
+        } else {
+            frameThrottler.shouldProcess(timestampMs, currentThermalState)
+        }
+        if (!shouldProcess) return
 
         // Get source image dimensions from pixel buffer
         val imageWidth = CVPixelBufferGetWidth(pixelBuffer).toInt()
@@ -138,7 +158,8 @@ internal class VisionHandTracker(
         // Use VNSequenceRequestHandler to avoid per-frame handler allocation overhead
         try {
             sequenceHandler.performRequests(listOf(handPoseRequest), onCVPixelBuffer = pixelBuffer, error = null)
-        } catch (_: Exception) {
+        } catch (e: Exception) {
+            FaceLinkLogger.w(TAG, "Hand pose detection failed", e)
             mutableTrackingData.tryEmit(HandTrackingData.notTracking(timestampMs))
             return null
         }

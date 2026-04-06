@@ -1,5 +1,6 @@
 package io.github.kmpfacelink.ifm
 
+import io.github.kmpfacelink.api.Releasable
 import io.github.kmpfacelink.model.FaceTrackingData
 import io.github.kmpfacelink.networking.UdpSocket
 import io.github.kmpfacelink.networking.currentTimeMs
@@ -34,7 +35,7 @@ import kotlinx.coroutines.launch
  */
 public class IfmReceiver(
     private val port: Int = IfmConfig.DEFAULT_PORT,
-) {
+) : Releasable {
     private val socket = UdpSocket()
     private var listenJob: Job? = null
     private val _trackingData = MutableSharedFlow<FaceTrackingData>(extraBufferCapacity = 1)
@@ -82,6 +83,11 @@ public class IfmReceiver(
         listenJob?.cancel()
         listenJob = null
         socket.close()
+    }
+
+    /** Releases all resources by stopping the receiver. */
+    override fun release() {
+        stop()
     }
 
     private suspend fun CoroutineScope.receiveLoop() {

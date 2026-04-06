@@ -1,7 +1,7 @@
 package io.github.kmpfacelink.llm.internal
 
-private const val DEFAULT_CONTEXT_SIZE = 2048
-private const val DEFAULT_GPU_LAYERS = 0
+private const val DEFAULT_CONTEXT_SIZE = 4096
+private const val DEFAULT_GPU_LAYERS = 32
 
 /**
  * Android JNI bridge to llama.cpp.
@@ -64,7 +64,4 @@ internal class LlamaCppBridge {
         callback: LlamaCallback,
     ): String
     private external fun nativeFree(ctx: Long)
-
-    @Suppress("UnusedPrivateMember")
-    private external fun nativeIsLoaded(ctx: Long): Boolean
 }

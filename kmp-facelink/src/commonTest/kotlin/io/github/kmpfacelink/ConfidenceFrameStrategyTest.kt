@@ -20,8 +20,8 @@ class ConfidenceFrameStrategyTest {
     @Test
     fun disabledConfigAlwaysProcesses() {
         val strategy = ConfidenceFrameStrategy(FrameSkipConfig(enabled = false))
-        strategy.onFrameProcessed(stableBlendShapes(), 1.0f)
-        strategy.onFrameProcessed(stableBlendShapes(), 1.0f)
+        strategy.onFrameProcessed(stableBlendShapes())
+        strategy.onFrameProcessed(stableBlendShapes())
         assertEquals(FrameDecision.PROCESS, strategy.evaluate(1.0f))
     }
 
@@ -30,8 +30,8 @@ class ConfidenceFrameStrategyTest {
         val strategy = ConfidenceFrameStrategy(
             FrameSkipConfig(enabled = true, level = FrameSkipLevel.BALANCED),
         )
-        strategy.onFrameProcessed(stableBlendShapes(), 1.0f)
-        strategy.onFrameProcessed(stableBlendShapes(), 1.0f)
+        strategy.onFrameProcessed(stableBlendShapes())
+        strategy.onFrameProcessed(stableBlendShapes())
         // Below BALANCED threshold (0.8)
         assertEquals(FrameDecision.PROCESS, strategy.evaluate(0.5f))
     }
@@ -43,7 +43,7 @@ class ConfidenceFrameStrategyTest {
         )
         val data = stableBlendShapes()
         strategy.onFrameProcessed(data, 1.0f)
-        strategy.onFrameProcessed(slightlyDifferent(delta = 0.005f), 1.0f)
+        strategy.onFrameProcessed(slightlyDifferent(delta = 0.005f))
 
         assertEquals(FrameDecision.SKIP, strategy.evaluate(1.0f))
     }
@@ -54,8 +54,8 @@ class ConfidenceFrameStrategyTest {
             FrameSkipConfig(enabled = true, level = FrameSkipLevel.CONSERVATIVE),
         )
         // CONSERVATIVE: maxConsecutiveSkips = 1
-        strategy.onFrameProcessed(stableBlendShapes(), 1.0f)
-        strategy.onFrameProcessed(slightlyDifferent(delta = 0.005f), 1.0f)
+        strategy.onFrameProcessed(stableBlendShapes())
+        strategy.onFrameProcessed(slightlyDifferent(delta = 0.005f))
 
         // First skip is allowed
         assertEquals(FrameDecision.SKIP, strategy.evaluate(1.0f))
@@ -69,8 +69,8 @@ class ConfidenceFrameStrategyTest {
             FrameSkipConfig(enabled = true, level = FrameSkipLevel.BALANCED),
         )
         // BALANCED movementThreshold = 0.025
-        strategy.onFrameProcessed(stableBlendShapes(0.3f), 1.0f)
-        strategy.onFrameProcessed(stableBlendShapes(0.5f), 1.0f) // delta 0.2 > 0.025
+        strategy.onFrameProcessed(stableBlendShapes(0.3f))
+        strategy.onFrameProcessed(stableBlendShapes(0.5f)) // delta 0.2 > 0.025
 
         assertEquals(FrameDecision.PROCESS, strategy.evaluate(1.0f))
     }
@@ -81,8 +81,8 @@ class ConfidenceFrameStrategyTest {
             FrameSkipConfig(enabled = true, level = FrameSkipLevel.AGGRESSIVE),
         )
         // AGGRESSIVE: maxConsecutiveSkips = 3
-        strategy.onFrameProcessed(stableBlendShapes(), 1.0f)
-        strategy.onFrameProcessed(slightlyDifferent(delta = 0.005f), 1.0f)
+        strategy.onFrameProcessed(stableBlendShapes())
+        strategy.onFrameProcessed(slightlyDifferent(delta = 0.005f))
 
         assertEquals(FrameDecision.SKIP, strategy.evaluate(0.8f))
         assertEquals(FrameDecision.SKIP, strategy.evaluate(0.8f))
@@ -104,7 +104,7 @@ class ConfidenceFrameStrategyTest {
         val strategy = ConfidenceFrameStrategy(
             FrameSkipConfig(enabled = true, level = FrameSkipLevel.BALANCED),
         )
-        strategy.onFrameProcessed(stableBlendShapes(), 1.0f)
+        strategy.onFrameProcessed(stableBlendShapes())
         // Only one frame processed, no previous to compare
         assertEquals(FrameDecision.PROCESS, strategy.evaluate(1.0f))
     }
@@ -114,8 +114,8 @@ class ConfidenceFrameStrategyTest {
         val strategy = ConfidenceFrameStrategy(
             FrameSkipConfig(enabled = true, level = FrameSkipLevel.BALANCED),
         )
-        strategy.onFrameProcessed(stableBlendShapes(), 1.0f)
-        strategy.onFrameProcessed(slightlyDifferent(delta = 0.005f), 1.0f)
+        strategy.onFrameProcessed(stableBlendShapes())
+        strategy.onFrameProcessed(slightlyDifferent(delta = 0.005f))
         assertEquals(FrameDecision.SKIP, strategy.evaluate(1.0f))
 
         strategy.reset()
@@ -129,8 +129,8 @@ class ConfidenceFrameStrategyTest {
             FrameSkipConfig(enabled = true, level = FrameSkipLevel.BALANCED),
         )
         // BALANCED: maxConsecutiveSkips = 2
-        strategy.onFrameProcessed(stableBlendShapes(), 1.0f)
-        strategy.onFrameProcessed(slightlyDifferent(delta = 0.005f), 1.0f)
+        strategy.onFrameProcessed(stableBlendShapes())
+        strategy.onFrameProcessed(slightlyDifferent(delta = 0.005f))
 
         assertEquals(FrameDecision.SKIP, strategy.evaluate(1.0f))
         assertEquals(FrameDecision.SKIP, strategy.evaluate(1.0f))
@@ -138,7 +138,7 @@ class ConfidenceFrameStrategyTest {
         assertEquals(FrameDecision.PROCESS, strategy.evaluate(1.0f))
 
         // After onFrameProcessed resets counter, can skip again
-        strategy.onFrameProcessed(slightlyDifferent(delta = 0.003f), 1.0f)
+        strategy.onFrameProcessed(slightlyDifferent(delta = 0.003f))
         assertEquals(FrameDecision.SKIP, strategy.evaluate(1.0f))
     }
 }

@@ -23,7 +23,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontFamily
@@ -36,6 +35,7 @@ import io.github.kmpfacelink.internal.PreviewableHolisticTracker
 import io.github.kmpfacelink.model.HolisticTrackingData
 import io.github.kmpfacelink.sample.ui.FaceLandmarkOverlay
 import io.github.kmpfacelink.sample.ui.HandLandmarkOverlay
+import io.github.kmpfacelink.sample.ui.SampleColors
 import kotlinx.coroutines.flow.MutableStateFlow
 
 @Suppress("LongMethod")
@@ -150,7 +150,7 @@ private fun HolisticStatusBadges(data: HolisticTrackingData?) {
 
 @Composable
 private fun StatusDot(label: String, active: Boolean) {
-    val color = if (active) Color.Green else Color.Gray
+    val color = if (active) SampleColors.StatusActive else SampleColors.StatusInactive
     val statusLabel = when (label) {
         "F" -> "Face tracking"
         "H" -> "Hand tracking"
@@ -197,7 +197,7 @@ internal fun BodyLandmarkOverlay(
         val radius = size.minDimension * 0.008f
         for (landmark in landmarks) {
             drawCircle(
-                color = Color.Cyan,
+                color = SampleColors.JointColor,
                 radius = radius,
                 center = Offset(landmark.x * scaleX, landmark.y * scaleY),
             )

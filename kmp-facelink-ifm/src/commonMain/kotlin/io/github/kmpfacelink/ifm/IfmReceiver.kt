@@ -115,6 +115,8 @@ public class IfmReceiver(
                 if (!isActive) return
                 FaceLinkLogger.w(TAG, "Socket error: ${expected.message}", expected)
                 backoffMs = nextBackoff(backoffMs)
+            } catch (expected: kotlinx.coroutines.CancellationException) {
+                throw expected
             } catch (expected: Exception) {
                 if (!isActive) return
                 FaceLinkLogger.e(TAG, "Unexpected error in receive loop: ${expected.message}", expected)

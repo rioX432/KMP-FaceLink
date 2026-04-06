@@ -63,10 +63,26 @@ public class StreamSender(
     ) {
         stop()
         faceJob = faceFlow?.let { flow ->
-            scope.launch { flow.collect { mutex.withLock { latestFaceData = it } } }
+            scope.launch {
+                try {
+                    flow.collect { mutex.withLock { latestFaceData = it } }
+                } catch (ce: CancellationException) {
+                    throw ce
+                } catch (@Suppress("TooGenericExceptionCaught") e: Exception) {
+                    FaceLinkLogger.e(TAG, "Face flow collection failed: ${e.message}", e)
+                }
+            }
         }
         handJob = handFlow?.let { flow ->
-            scope.launch { flow.collect { mutex.withLock { latestHandData = it } } }
+            scope.launch {
+                try {
+                    flow.collect { mutex.withLock { latestHandData = it } }
+                } catch (ce: CancellationException) {
+                    throw ce
+                } catch (@Suppress("TooGenericExceptionCaught") e: Exception) {
+                    FaceLinkLogger.e(TAG, "Hand flow collection failed: ${e.message}", e)
+                }
+            }
         }
         broadcastJob = scope.launch { this.broadcastLoop() }
     }

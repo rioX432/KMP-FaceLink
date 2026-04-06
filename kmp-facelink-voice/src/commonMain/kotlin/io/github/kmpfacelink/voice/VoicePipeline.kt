@@ -51,6 +51,8 @@ private const val TAG = "VoicePipeline"
  * @param lipSyncEngine Optional pre-built lip sync engine
  * @param dispatcher Coroutine dispatcher for background work (defaults to [Dispatchers.Default])
  */
+// Suppress justified: aggregates multiple optional engines and platform services —
+// a config object would lose named-parameter clarity at the call site.
 @Suppress("LongParameterList")
 public class VoicePipeline(
     private val config: VoicePipelineConfig,

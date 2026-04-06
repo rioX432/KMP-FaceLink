@@ -15,6 +15,7 @@ import io.github.kmpfacelink.voice.tts.internal.TtsEngineFactory
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.Flow
@@ -25,6 +26,8 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 
 private const val TAG = "VoicePipeline"
 
@@ -79,7 +82,14 @@ public class VoicePipeline(
     /** Flow of transcription results from ASR. */
     public val transcriptions: Flow<TranscriptionResult> = _transcriptions.asSharedFlow()
 
-    private var transcriptionCollectorJob: kotlinx.coroutines.Job? = null
+    /** Serializes concurrent [startListening] / [stopListening] calls and job assignment. */
+    private val listenerMutex = Mutex()
+
+    /**
+     * Collector job for ASR transcriptions. All reads and writes must be performed
+     * while holding [listenerMutex] to prevent data races between concurrent callers.
+     */
+    private var transcriptionCollectorJob: Job? = null
 
     /**
      * Synthesizes speech from text and generates lip sync animation.
@@ -148,10 +158,12 @@ public class VoicePipeline(
             throw e
         }
 
-        transcriptionCollectorJob?.cancel()
-        transcriptionCollectorJob = scope.launch {
-            engine.transcriptions.collect { result ->
-                _transcriptions.tryEmit(result)
+        listenerMutex.withLock {
+            transcriptionCollectorJob?.cancel()
+            transcriptionCollectorJob = scope.launch {
+                engine.transcriptions.collect { result ->
+                    _transcriptions.tryEmit(result)
+                }
             }
         }
     }
@@ -162,6 +174,11 @@ public class VoicePipeline(
     public suspend fun stopListening(): TranscriptionResult? {
         val engine = asr ?: return null
         val recorder = audioRecorder ?: return null
+
+        listenerMutex.withLock {
+            transcriptionCollectorJob?.cancel()
+            transcriptionCollectorJob = null
+        }
 
         engine.stopListening()
         val audioData = recorder.stop() ?: return null
@@ -180,7 +197,11 @@ public class VoicePipeline(
      * [release] calls throw. Equivalent to [close].
      */
     public override fun release() {
+        // Cancel the scope first — this stops all running coroutines (including any holding
+        // listenerMutex). After scope.cancel(), no new suspend callers can enter startListening
+        // or stopListening successfully, so nulling the field here is safe without the mutex.
         scope.cancel()
+        transcriptionCollectorJob = null
         runCatching { tts.release() }.onFailure { FaceLinkLogger.w(TAG, "Failed to release TtsEngine", it) }
         runCatching { lipSync.release() }.onFailure { FaceLinkLogger.w(TAG, "Failed to release LipSyncEngine", it) }
         runCatching { asr?.release() }.onFailure { FaceLinkLogger.w(TAG, "Failed to release AsrEngine", it) }

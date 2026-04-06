@@ -19,6 +19,33 @@ internal enum class GpuBackend {
 }
 
 /**
+ * Whether the browser supports the WebNN API for NPU/GPU/CPU neural network inference.
+ *
+ * WebNN (Web Neural Network API) is a W3C standard that provides access to hardware
+ * accelerators including NPUs. As of April 2026, only Chromium-based browsers (Chrome 146+,
+ * Edge 146+) ship stable support. Firefox and Safari have not yet implemented it.
+ *
+ * This enum represents the best available WebNN device type, which is separate from
+ * [GpuBackend] — WebNN targets dedicated ML accelerators while WebGPU targets general
+ * GPU compute.
+ *
+ * @see <a href="https://www.w3.org/TR/webnn/">W3C WebNN Specification</a>
+ */
+internal enum class WebNnDeviceType {
+    /** NPU (Neural Processing Unit) is available for ML inference. */
+    NPU,
+
+    /** WebNN GPU device is available (distinct from WebGPU — uses ML-optimized paths). */
+    GPU,
+
+    /** WebNN CPU device is available. */
+    CPU,
+
+    /** WebNN API is not available in this browser. */
+    UNAVAILABLE,
+}
+
+/**
  * Detects the best available GPU backend in the current browser.
  *
  * Checks for WebGPU first (`navigator.gpu.requestAdapter()`), then falls back
@@ -71,6 +98,29 @@ internal object WebGpuCapability {
             false
         }
 
+    /**
+     * Probes the browser for WebNN API availability and returns the best device type.
+     *
+     * WebNN can target NPU, GPU, or CPU backends for ML inference. This method checks
+     * API presence only — it does not create an ML context or run inference.
+     *
+     * As of April 2026, WebNN is only available in Chromium 146+. This detection is
+     * provided as a scaffold for future integration when broader browser support lands.
+     *
+     * @return the best available [WebNnDeviceType], or [WebNnDeviceType.UNAVAILABLE]
+     */
+    fun detectWebNn(): WebNnDeviceType {
+        if (!isWebNnAvailable()) {
+            FaceLinkLogger.d(TAG, "WebNN API not available in this browser")
+            return WebNnDeviceType.UNAVAILABLE
+        }
+        FaceLinkLogger.d(TAG, "WebNN API detected — NPU/GPU/CPU inference possible")
+        // TODO: When WebNN is production-ready, probe for specific device types
+        //  by attempting MLContext creation with deviceType: "npu", "gpu", "cpu".
+        //  For now, just report API presence without probing device availability.
+        return WebNnDeviceType.CPU
+    }
+
     private const val TAG = "WebGpuCapability"
     private const val DELEGATE_GPU = "GPU"
     private const val DELEGATE_CPU = "CPU"
@@ -95,3 +145,13 @@ private fun requestWebGpuAdapterJs(): Promise<JsAny?> =
  */
 private fun isWebGl2Available(): Boolean =
     js("(typeof OffscreenCanvas !== 'undefined' && new OffscreenCanvas(1, 1).getContext('webgl2') != null)")
+
+/**
+ * Checks whether the WebNN API is present (`navigator.ml` exists).
+ *
+ * This only checks for API presence, not whether a specific device type (NPU/GPU)
+ * is available. Device probing requires creating an MLContext which is deferred
+ * until WebNN reaches broader browser support.
+ */
+private fun isWebNnAvailable(): Boolean =
+    js("(typeof navigator !== 'undefined' && navigator.ml != null)")

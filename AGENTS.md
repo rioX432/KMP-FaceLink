@@ -17,10 +17,10 @@ KMP-FaceLink is a Kotlin Multiplatform SDK for real-time face/hand/body tracking
 | `kmp-facelink-llm` | LLM streaming API (cloud + on-device) with hybrid routing | Experimental |
 | `kmp-facelink-pipeline` | AI avatar pipeline: Voice → LLM → TTS → LipSync → Expression | Experimental |
 | `kmp-facelink-networking` | Shared UDP socket and time utilities for protocol modules | Stable |
-| `kmp-facelink-vmc` | VMC Protocol (OSC over UDP) sender/receiver for VRM apps | Experimental |
-| `kmp-facelink-ifm` | iFacialMocap protocol output (MeowFace replacement) for VTube Studio | Experimental |
+| `kmp-facelink-vmc` | VMC Protocol (OSC over UDP) sender/receiver for VRM apps | Stable |
+| `kmp-facelink-ifm` | iFacialMocap protocol output (MeowFace replacement) for VTube Studio | Stable |
 | `kmp-facelink-stream` | WebSocket streaming server for phone-as-tracker use case | Experimental |
-| `kmp-facelink-vts` | VTube Studio Plugin API direct integration via WebSocket | Experimental |
+| `kmp-facelink-vts` | VTube Studio Plugin API direct integration via WebSocket | Stable |
 
 ### Dependency Tree
 

@@ -4,8 +4,10 @@ import io.github.kmpfacelink.api.Releasable
 import io.github.kmpfacelink.model.FaceTrackingData
 import io.github.kmpfacelink.networking.UdpSocket
 import io.github.kmpfacelink.networking.currentTimeMs
+import io.github.kmpfacelink.util.FaceLinkLogger
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -36,7 +38,7 @@ import kotlinx.coroutines.launch
 public class IfmReceiver(
     private val port: Int = IfmConfig.DEFAULT_PORT,
 ) : Releasable {
-    private val socket = UdpSocket()
+    private var socket = UdpSocket()
     private var listenJob: Job? = null
     private val _trackingData = MutableSharedFlow<FaceTrackingData>(extraBufferCapacity = 1)
 
@@ -48,13 +50,15 @@ public class IfmReceiver(
     /**
      * Starts listening for iFacialMocap messages on the configured port.
      *
-     * The caller owns [scope] and is responsible for cancelling it
-     * when receiving is no longer needed.
+     * Creates a fresh UDP socket on each start, ensuring clean state
+     * after connection drops. The caller owns [scope] and is responsible
+     * for cancelling it when receiving is no longer needed.
      *
      * @param scope Coroutine scope for the listener job
      */
     public fun start(scope: CoroutineScope) {
         stop()
+        socket = UdpSocket()
         socket.bind(port)
         listenJob = scope.launch {
             receiveLoop()
@@ -77,7 +81,9 @@ public class IfmReceiver(
     }
 
     /**
-     * Stops listening and releases the UDP socket.
+     * Stops listening and closes the current UDP socket.
+     *
+     * Can be restarted by calling [start] again.
      */
     public fun stop() {
         listenJob?.cancel()
@@ -85,30 +91,65 @@ public class IfmReceiver(
         socket.close()
     }
 
-    /** Releases all resources by stopping the receiver. */
+    /**
+     * Releases all resources held by this receiver.
+     *
+     * Stops listening and closes the UDP socket.
+     * Safe to call multiple times.
+     */
     override fun release() {
         stop()
     }
 
+    @Suppress("TooGenericExceptionCaught")
     private suspend fun CoroutineScope.receiveLoop() {
+        var backoffMs = 0L
         while (isActive) {
             try {
+                if (backoffMs > 0L) {
+                    delay(backoffMs)
+                }
                 val packetData = socket.receive()
-                val message = packetData.decodeToString()
-                if (message == HANDSHAKE_STRING) continue
-                val parsed = IfmMessageParser.parse(message)
-                val trackingData = FaceTrackingData(
-                    blendShapes = parsed.blendShapes,
-                    headTransform = parsed.headTransform,
-                    gazeData = parsed.gazeData,
-                    timestampMs = currentTimeMs(),
-                    isTracking = parsed.blendShapes.isNotEmpty(),
-                )
-                _trackingData.tryEmit(trackingData)
+                backoffMs = processPacket(packetData, backoffMs)
             } catch (expected: IllegalStateException) {
-                if (!isActive) break
+                if (!isActive) return
+                FaceLinkLogger.w(TAG, "Socket error: ${expected.message}", expected)
+                backoffMs = nextBackoff(backoffMs)
+            } catch (expected: Exception) {
+                if (!isActive) return
+                FaceLinkLogger.e(TAG, "Unexpected error in receive loop: ${expected.message}", expected)
+                backoffMs = nextBackoff(backoffMs)
             }
         }
+    }
+
+    private fun processPacket(packetData: ByteArray, currentBackoff: Long): Long {
+        val message = packetData.decodeToString()
+        if (message == HANDSHAKE_STRING) return currentBackoff
+        val parsed = IfmMessageParser.parse(message)
+        val trackingData = FaceTrackingData(
+            blendShapes = parsed.blendShapes,
+            headTransform = parsed.headTransform,
+            gazeData = parsed.gazeData,
+            timestampMs = currentTimeMs(),
+            isTracking = parsed.blendShapes.isNotEmpty(),
+        )
+        _trackingData.tryEmit(trackingData)
+        return 0L
+    }
+
+    private companion object {
+        private const val TAG = "IfmReceiver"
+        private const val INITIAL_BACKOFF_MS = 100L
+        private const val MAX_BACKOFF_MS = 5000L
+        private const val BACKOFF_MULTIPLIER = 2
+
+        private fun nextBackoff(current: Long): Long =
+            if (current == 0L) {
+                INITIAL_BACKOFF_MS
+            } else {
+                (current * BACKOFF_MULTIPLIER).coerceAtMost(MAX_BACKOFF_MS)
+            }
     }
 }
 

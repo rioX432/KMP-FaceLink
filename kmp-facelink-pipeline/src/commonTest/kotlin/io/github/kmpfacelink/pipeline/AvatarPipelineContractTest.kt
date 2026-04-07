@@ -5,8 +5,9 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.yield
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
@@ -73,6 +74,11 @@ class AvatarPipelineContractTest {
     fun outputFlowEmitsFrames() = runTest {
         val pipeline = createPipeline()
         pipeline.start()
+
+        val frames = mutableListOf<AvatarPipelineOutput>()
+        val collectJob = launch { pipeline.output.collect { frames.add(it) } }
+        yield() // Ensure collector is subscribed before emitting
+
         pipeline.emitOutput(
             AvatarPipelineOutput(
                 blendShapes = emptyMap(),
@@ -82,9 +88,12 @@ class AvatarPipelineContractTest {
                 timestampMs = 100L,
             ),
         )
-        val frame = pipeline.output.first()
-        assertEquals("test", frame.text)
-        assertEquals(100L, frame.timestampMs)
+        yield() // Allow emission to propagate
+
+        collectJob.cancel()
+        assertTrue(frames.isNotEmpty(), "Should have received at least one frame")
+        assertEquals("test", frames.first().text)
+        assertEquals(100L, frames.first().timestampMs)
     }
 }
 

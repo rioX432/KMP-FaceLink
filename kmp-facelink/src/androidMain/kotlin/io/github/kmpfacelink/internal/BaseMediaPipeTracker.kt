@@ -54,7 +54,6 @@ internal abstract class BaseMediaPipeTracker<T>(
 
     protected val platformContext: PlatformContext = params.platformContext
 
-
     @Volatile
     internal var currentCameraFacing: CameraFacing = params.initialCameraFacing
     protected val isFrontCamera: Boolean

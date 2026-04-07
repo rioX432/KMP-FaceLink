@@ -11,9 +11,11 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.TestDispatcher
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.yield
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
@@ -33,25 +35,28 @@ class PipelineIntegrationTest {
         llmClient: DelayedMockLlmClient = DelayedMockLlmClient(
             tokens = listOf("Hello", " world."),
         ),
-        ttsEngine: DelayedMockTtsEngine = DelayedMockTtsEngine(),
-        lipSyncEngine: DelayedMockLipSyncEngine = DelayedMockLipSyncEngine(
+        ttsEngine: DelayedMockTtsEngine? = DelayedMockTtsEngine(),
+        lipSyncEngine: DelayedMockLipSyncEngine? = DelayedMockLipSyncEngine(
             framesPerSentence = FRAMES_PER_SENTENCE,
         ),
+        dispatcher: TestDispatcher = UnconfinedTestDispatcher(),
     ): DefaultAvatarPipeline = DefaultAvatarPipeline(
         config = testConfig,
         llmClient = llmClient,
         ttsEngine = ttsEngine,
         lipSyncEngine = lipSyncEngine,
-        scope = CoroutineScope(SupervisorJob() + UnconfinedTestDispatcher()),
+        scope = CoroutineScope(SupervisorJob() + dispatcher),
     )
 
     @Test
     fun fullConversationFlowProducesBlendShapeOutput() = runTest {
-        val pipeline = createFullPipeline()
+        val dispatcher = UnconfinedTestDispatcher(testScheduler)
+        val pipeline = createFullPipeline(dispatcher = dispatcher)
         pipeline.start()
 
         val outputs = mutableListOf<AvatarPipelineOutput>()
-        val collectJob = launch { pipeline.output.toList(outputs) }
+        val collectJob = launch(dispatcher) { pipeline.output.toList(outputs) }
+        yield()
 
         pipeline.processText("Hello")
         advanceUntilIdle()
@@ -90,17 +95,18 @@ class PipelineIntegrationTest {
 
     @Test
     fun textOnlyFallbackWhenNoTtsConfigured() = runTest {
-        val pipeline = DefaultAvatarPipeline(
-            config = testConfig,
+        val dispatcher = UnconfinedTestDispatcher(testScheduler)
+        val pipeline = createFullPipeline(
             llmClient = DelayedMockLlmClient(tokens = listOf("Hello", " world.")),
             ttsEngine = null,
             lipSyncEngine = null,
-            scope = CoroutineScope(SupervisorJob() + UnconfinedTestDispatcher()),
+            dispatcher = dispatcher,
         )
         pipeline.start()
 
         val outputs = mutableListOf<AvatarPipelineOutput>()
-        val collectJob = launch { pipeline.output.toList(outputs) }
+        val collectJob = launch(dispatcher) { pipeline.output.toList(outputs) }
+        yield()
 
         pipeline.processText("Hello")
         advanceUntilIdle()
@@ -117,11 +123,13 @@ class PipelineIntegrationTest {
 
     @Test
     fun errorRecoveryAfterLlmFailure() = runTest {
+        val dispatcher = UnconfinedTestDispatcher(testScheduler)
         val failingLlm = DelayedMockLlmClient(shouldFail = true)
-        val pipeline = DefaultAvatarPipeline(
-            config = testConfig,
+        val pipeline = createFullPipeline(
             llmClient = failingLlm,
-            scope = CoroutineScope(SupervisorJob() + UnconfinedTestDispatcher()),
+            ttsEngine = null,
+            lipSyncEngine = null,
+            dispatcher = dispatcher,
         )
         pipeline.start()
 
@@ -132,11 +140,13 @@ class PipelineIntegrationTest {
         assertIs<AvatarPipelineState.Error>(pipeline.state.value)
 
         // Replace pipeline with a working one to verify recovery pattern
-        val workingPipeline = createFullPipeline()
+        val workingDispatcher = UnconfinedTestDispatcher(testScheduler)
+        val workingPipeline = createFullPipeline(dispatcher = workingDispatcher)
         workingPipeline.start()
 
         val outputs = mutableListOf<AvatarPipelineOutput>()
-        val collectJob = launch { workingPipeline.output.toList(outputs) }
+        val collectJob = launch(workingDispatcher) { workingPipeline.output.toList(outputs) }
+        yield()
 
         workingPipeline.processText("Recover")
         advanceUntilIdle()

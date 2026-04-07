@@ -54,7 +54,10 @@ class IfmReceiverLifecycleTest {
 
             val expectedJaw = (jawOpen * 100).toInt()
             val actualJaw = (parsed.blendShapes[BlendShape.JAW_OPEN]!! * 100).toInt()
-            assertEquals(expectedJaw, actualJaw, "Frame $frame: JAW_OPEN mismatch")
+            // Allow ±1 tolerance for float-to-int rounding differences across platforms
+            check(kotlin.math.abs(expectedJaw - actualJaw) <= 1) {
+                "Frame $frame: JAW_OPEN mismatch. Expected $expectedJaw, actual $actualJaw"
+            }
 
             assertEquals(
                 head.pitch,

@@ -9,11 +9,11 @@ import io.github.kmpfacelink.pipeline.benchmark.PipelineLatencyTracker
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.yield
 import kotlin.test.Test
 import kotlin.test.assertTrue
 
@@ -47,39 +47,35 @@ class PipelineLatencyTest {
             llmClient = llm,
             ttsEngine = tts,
             lipSyncEngine = lipSync,
-            scope = CoroutineScope(SupervisorJob() + UnconfinedTestDispatcher()),
+            scope = CoroutineScope(
+                SupervisorJob() + UnconfinedTestDispatcher(testScheduler),
+            ),
         )
         pipeline.start()
 
         tracker.onProcessingStart()
 
         val outputs = mutableListOf<AvatarPipelineOutput>()
-        val collectJob = launch {
-            pipeline.output.toList(outputs)
-        }
-
         var firstTokenRecorded = false
         var firstSentenceRecorded = false
         var firstAudioRecorded = false
-        val outputTrackJob = launch {
+        val collectJob = launch(UnconfinedTestDispatcher(testScheduler)) {
             pipeline.output.collect { output ->
-                if (output.text != null && !firstTokenRecorded) {
-                    tracker.onFirstToken()
-                    firstTokenRecorded = true
-                }
-                if (output.isAudioPlaying && !firstAudioRecorded) {
-                    tracker.onFirstAudio()
-                    firstAudioRecorded = true
-                }
-                if (output.blendShapes.isNotEmpty()) {
-                    if (!firstSentenceRecorded) {
-                        tracker.onFirstSentence()
-                        firstSentenceRecorded = true
-                    }
-                    tracker.onFirstBlendShape()
+                outputs.add(output)
+                recordTrackerEvents(
+                    output,
+                    tracker,
+                    firstTokenRecorded,
+                    firstSentenceRecorded,
+                    firstAudioRecorded,
+                ) { token, sentence, audio ->
+                    firstTokenRecorded = token
+                    firstSentenceRecorded = sentence
+                    firstAudioRecorded = audio
                 }
             }
         }
+        yield()
 
         pipeline.processText("Test")
         advanceUntilIdle()
@@ -88,7 +84,6 @@ class PipelineLatencyTest {
         tracker.onComplete()
 
         collectJob.cancel()
-        outputTrackJob.cancel()
         pipeline.release()
 
         val report = tracker.report()
@@ -100,9 +95,6 @@ class PipelineLatencyTest {
 
     @Test
     fun streamingAdvantageFirstBlendShapeBeforeLlmCompletion() = runTest {
-        // LLM emits 6 tokens with 50ms delay = ~300ms total
-        // After first sentence (2 tokens, ~100ms), TTS + lip sync starts
-        // So first blend shape should appear before all 6 tokens are emitted
         val llm = DelayedMockLlmClient(
             tokens = listOf("Hello", " world.", " How", " are", " you", "?"),
             delayPerTokenMs = DELAY_PER_TOKEN_MS,
@@ -117,12 +109,17 @@ class PipelineLatencyTest {
             llmClient = llm,
             ttsEngine = tts,
             lipSyncEngine = lipSync,
-            scope = CoroutineScope(SupervisorJob() + UnconfinedTestDispatcher()),
+            scope = CoroutineScope(
+                SupervisorJob() + UnconfinedTestDispatcher(testScheduler),
+            ),
         )
         pipeline.start()
 
         val outputs = mutableListOf<AvatarPipelineOutput>()
-        val collectJob = launch { pipeline.output.toList(outputs) }
+        val collectJob = launch(UnconfinedTestDispatcher(testScheduler)) {
+            pipeline.output.collect { outputs.add(it) }
+        }
+        yield()
 
         pipeline.processText("Test streaming")
         advanceUntilIdle()
@@ -131,11 +128,40 @@ class PipelineLatencyTest {
         collectJob.cancel()
         pipeline.release()
 
-        // Verify streaming happened: should have blend shape outputs
         val blendShapeOutputs = outputs.filter { it.blendShapes.isNotEmpty() }
         assertTrue(
             blendShapeOutputs.isNotEmpty(),
             "Should have blend shape frames from streaming pipeline",
         )
     }
+}
+
+@Suppress("LongParameterList")
+private fun recordTrackerEvents(
+    output: AvatarPipelineOutput,
+    tracker: PipelineLatencyTracker,
+    firstTokenRecorded: Boolean,
+    firstSentenceRecorded: Boolean,
+    firstAudioRecorded: Boolean,
+    update: (Boolean, Boolean, Boolean) -> Unit,
+) {
+    var token = firstTokenRecorded
+    var sentence = firstSentenceRecorded
+    var audio = firstAudioRecorded
+    if (output.text != null && !token) {
+        tracker.onFirstToken()
+        token = true
+    }
+    if (output.isAudioPlaying && !audio) {
+        tracker.onFirstAudio()
+        audio = true
+    }
+    if (output.blendShapes.isNotEmpty()) {
+        if (!sentence) {
+            tracker.onFirstSentence()
+            sentence = true
+        }
+        tracker.onFirstBlendShape()
+    }
+    update(token, sentence, audio)
 }

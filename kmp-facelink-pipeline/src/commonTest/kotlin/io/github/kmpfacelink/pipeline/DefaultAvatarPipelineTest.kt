@@ -30,9 +30,11 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.TestDispatcher
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.yield
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
@@ -61,13 +63,14 @@ class DefaultAvatarPipelineTest {
         ttsEngine: TtsEngine? = null,
         lipSyncEngine: LipSyncEngine? = null,
         asrEngine: AsrEngine? = null,
+        dispatcher: TestDispatcher = UnconfinedTestDispatcher(),
     ): DefaultAvatarPipeline = DefaultAvatarPipeline(
         config = testConfig,
         llmClient = llmClient,
         ttsEngine = ttsEngine,
         lipSyncEngine = lipSyncEngine,
         asrEngine = asrEngine,
-        scope = CoroutineScope(SupervisorJob() + UnconfinedTestDispatcher()),
+        scope = CoroutineScope(SupervisorJob() + dispatcher),
     )
 
     // endregion
@@ -82,11 +85,13 @@ class DefaultAvatarPipelineTest {
 
     @Test
     fun processTextTransitionsThroughStates() = runTest {
+        val dispatcher = UnconfinedTestDispatcher(testScheduler)
         val states = mutableListOf<AvatarPipelineState>()
-        val pipeline = createPipeline()
+        val pipeline = createPipeline(dispatcher = dispatcher)
         pipeline.start()
 
-        val collectJob = launch { pipeline.state.toList(states) }
+        val collectJob = launch(dispatcher) { pipeline.state.toList(states) }
+        yield()
         pipeline.processText("Hello")
         advanceUntilIdle()
         delay(STATE_SETTLE_DELAY)
@@ -99,11 +104,13 @@ class DefaultAvatarPipelineTest {
 
     @Test
     fun processTextEmitsTextOnlyOutputWithoutTts() = runTest {
-        val pipeline = createPipeline()
+        val dispatcher = UnconfinedTestDispatcher(testScheduler)
+        val pipeline = createPipeline(dispatcher = dispatcher)
         pipeline.start()
 
         val outputs = mutableListOf<AvatarPipelineOutput>()
-        val collectJob = launch { pipeline.output.toList(outputs) }
+        val collectJob = launch(dispatcher) { pipeline.output.toList(outputs) }
+        yield()
 
         pipeline.processText("Test input")
         advanceUntilIdle()
@@ -119,14 +126,17 @@ class DefaultAvatarPipelineTest {
 
     @Test
     fun processTextWithTtsEmitsBlendShapes() = runTest {
+        val dispatcher = UnconfinedTestDispatcher(testScheduler)
         val pipeline = createPipeline(
             ttsEngine = FakeTtsEngine(),
             lipSyncEngine = FakeLipSyncEngine(),
+            dispatcher = dispatcher,
         )
         pipeline.start()
 
         val outputs = mutableListOf<AvatarPipelineOutput>()
-        val collectJob = launch { pipeline.output.toList(outputs) }
+        val collectJob = launch(dispatcher) { pipeline.output.toList(outputs) }
+        yield()
 
         pipeline.processText("Hello")
         advanceUntilIdle()

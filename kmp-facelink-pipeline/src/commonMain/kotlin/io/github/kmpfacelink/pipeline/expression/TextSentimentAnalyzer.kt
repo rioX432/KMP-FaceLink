@@ -6,6 +6,7 @@ private const val EXCLAMATION_INTENSITY_BOOST = 0.1f
 private const val BASE_INTENSITY = 0.5f
 private const val MAX_INTENSITY = 1.0f
 private const val MIN_INTENSITY = 0.0f
+private const val DENSITY_SCALE = 2.0f
 
 /**
  * Analyzes text to determine emotional sentiment using keyword-based heuristics.
@@ -81,7 +82,7 @@ public class TextSentimentAnalyzer {
             exclamationCount: Int,
         ): Float {
             val densityBoost = if (textLength > 0) {
-                (matchCount.toFloat() / textLength) * textLength.coerceAtMost(100)
+                (matchCount.toFloat() / textLength.coerceAtLeast(1)) * DENSITY_SCALE
             } else {
                 MIN_INTENSITY
             }

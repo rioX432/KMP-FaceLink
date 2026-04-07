@@ -52,12 +52,13 @@ internal abstract class BaseVisionTracker<T>(
     frameThrottler: FrameThrottler,
     initialCameraFacing: CameraFacing,
     private val targetFps: Int = DEFAULT_TARGET_FPS,
-    private val sessionPreset: String = requireNotNull(AVCaptureSessionPreset352x288) { "AVCaptureSessionPreset352x288 unavailable" },
+    private val sessionPreset: String = requireNotNull(AVCaptureSessionPreset352x288) {
+        "AVCaptureSessionPreset352x288 unavailable"
+    },
 ) : BaseTracker<T>(
     thermalMonitor = thermalMonitor,
     frameThrottler = frameThrottler,
 ) {
-
 
     protected val processing = AtomicInt(0)
     protected var currentCameraFacing: CameraFacing = initialCameraFacing

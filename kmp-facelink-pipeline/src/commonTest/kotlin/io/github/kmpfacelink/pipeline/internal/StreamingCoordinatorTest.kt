@@ -14,8 +14,6 @@ import io.github.kmpfacelink.voice.tts.PhonemeEvent
 import io.github.kmpfacelink.voice.tts.TtsEngine
 import io.github.kmpfacelink.voice.tts.TtsResult
 import io.github.kmpfacelink.voice.tts.TtsState
-import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -23,6 +21,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
@@ -201,25 +200,16 @@ class StreamingCoordinatorTest {
 
     @Test
     fun cancellationStopsProcessing() = runTest {
-        var emittedCount = 0
         val tokens = flow {
             emit("First.")
             emit("Second.")
             emit("Third.")
         }
 
-        try {
-            coordinator.processLlmStream(tokens).collect {
-                emittedCount++
-                if (emittedCount >= 2) {
-                    cancel("Test cancellation")
-                }
-            }
-        } catch (_: CancellationException) {
-            // Expected
-        }
+        // Use take() instead of cancel() to avoid K/N CancellationException propagation
+        val collected = coordinator.processLlmStream(tokens).take(2).toList()
 
-        assertTrue(emittedCount >= 2)
+        assertEquals(2, collected.size)
         assertTrue(synthesizedTexts.size < 3)
     }
 

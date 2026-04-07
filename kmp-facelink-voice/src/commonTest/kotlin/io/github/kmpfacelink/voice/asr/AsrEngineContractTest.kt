@@ -2,6 +2,7 @@ package io.github.kmpfacelink.voice.asr
 
 import io.github.kmpfacelink.voice.audio.AudioData
 import io.github.kmpfacelink.voice.audio.AudioFormat
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -9,6 +10,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.yield
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
@@ -55,8 +57,11 @@ class AsrEngineContractTest {
     fun transcriptionsFlowEmitsDuringListening() = runTest {
         val engine = createEngine()
         engine.startListening()
+        // Start collecting before emitting to avoid race on K/N
+        val deferred = async { engine.transcriptions.first() }
+        yield() // Let the collector subscribe
         engine.emitTranscription(TranscriptionResult(text = "hello", isFinal = true))
-        val result = engine.transcriptions.first()
+        val result = deferred.await()
         assertEquals("hello", result.text)
         engine.stopListening()
     }

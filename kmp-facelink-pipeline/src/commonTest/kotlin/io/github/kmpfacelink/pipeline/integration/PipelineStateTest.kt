@@ -17,11 +17,11 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.yield
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
@@ -45,7 +45,9 @@ class PipelineStateTest {
             config = testConfig,
             llmClient = DelayedMockLlmClient(),
             asrEngine = asr,
-            scope = CoroutineScope(SupervisorJob() + UnconfinedTestDispatcher()),
+            scope = CoroutineScope(
+                SupervisorJob() + UnconfinedTestDispatcher(testScheduler),
+            ),
         )
         pipeline.start()
         assertEquals(AvatarPipelineState.Idle, pipeline.state.value)
@@ -60,19 +62,30 @@ class PipelineStateTest {
 
     @Test
     fun idleToProcessingToSpeakingToIdle() = runTest {
+        // Use a small lip-sync delay so the Speaking state persists long enough
+        // for StateFlow to emit it before being conflated with Idle.
+        // On K/N, zero-delay transitions are conflated by StateFlow.
         val tts = DelayedMockTtsEngine()
-        val lipSync = DelayedMockLipSyncEngine()
+        val lipSync = DelayedMockLipSyncEngine(
+            framesPerSentence = 2,
+            delayPerFrameMs = 1L,
+        )
         val pipeline = DefaultAvatarPipeline(
             config = testConfig,
             llmClient = DelayedMockLlmClient(tokens = listOf("OK.")),
             ttsEngine = tts,
             lipSyncEngine = lipSync,
-            scope = CoroutineScope(SupervisorJob() + UnconfinedTestDispatcher()),
+            scope = CoroutineScope(
+                SupervisorJob() + UnconfinedTestDispatcher(testScheduler),
+            ),
         )
         pipeline.start()
 
         val states = mutableListOf<AvatarPipelineState>()
-        val collectJob = launch { pipeline.state.toList(states) }
+        val collectJob = launch(UnconfinedTestDispatcher(testScheduler)) {
+            pipeline.state.collect { states.add(it) }
+        }
+        yield()
 
         pipeline.processText("Hello")
         advanceUntilIdle()
@@ -83,16 +96,16 @@ class PipelineStateTest {
 
         assertTrue(
             states.any { it is AvatarPipelineState.Processing },
-            "Should transition through Processing",
+            "Should transition through Processing, got: $states",
         )
         assertTrue(
             states.any { it is AvatarPipelineState.Speaking },
-            "Should transition through Speaking",
+            "Should transition through Speaking, got: $states",
         )
         assertEquals(
             AvatarPipelineState.Idle,
             states.last(),
-            "Should return to Idle",
+            "Should return to Idle, got: $states",
         )
     }
 
@@ -104,7 +117,9 @@ class PipelineStateTest {
                 tokens = listOf("Slow", " response."),
                 delayPerTokenMs = SLOW_TOKEN_DELAY_MS,
             ),
-            scope = CoroutineScope(SupervisorJob() + UnconfinedTestDispatcher()),
+            scope = CoroutineScope(
+                SupervisorJob() + UnconfinedTestDispatcher(testScheduler),
+            ),
         )
         pipeline.start()
 
@@ -124,7 +139,9 @@ class PipelineStateTest {
         val pipeline = DefaultAvatarPipeline(
             config = testConfig,
             llmClient = failingLlm,
-            scope = CoroutineScope(SupervisorJob() + UnconfinedTestDispatcher()),
+            scope = CoroutineScope(
+                SupervisorJob() + UnconfinedTestDispatcher(testScheduler),
+            ),
         )
         pipeline.start()
 
@@ -140,7 +157,9 @@ class PipelineStateTest {
         val recoveredPipeline = DefaultAvatarPipeline(
             config = testConfig,
             llmClient = workingLlm,
-            scope = CoroutineScope(SupervisorJob() + UnconfinedTestDispatcher()),
+            scope = CoroutineScope(
+                SupervisorJob() + UnconfinedTestDispatcher(testScheduler),
+            ),
         )
         recoveredPipeline.start()
 
@@ -161,15 +180,21 @@ class PipelineStateTest {
         val pipeline = DefaultAvatarPipeline(
             config = testConfig,
             llmClient = slowLlm,
-            scope = CoroutineScope(SupervisorJob() + UnconfinedTestDispatcher()),
+            scope = CoroutineScope(
+                SupervisorJob() + UnconfinedTestDispatcher(testScheduler),
+            ),
         )
         pipeline.start()
 
         val outputs = mutableListOf<io.github.kmpfacelink.pipeline.AvatarPipelineOutput>()
-        val collectJob = launch { pipeline.output.toList(outputs) }
+        val collectJob = launch(UnconfinedTestDispatcher(testScheduler)) {
+            pipeline.output.collect { outputs.add(it) }
+        }
+        yield()
 
         // Start first processing
         pipeline.processText("First")
+        yield() // let the first job start
         // Immediately start second — should cancel first
         pipeline.processText("Second")
         advanceUntilIdle()

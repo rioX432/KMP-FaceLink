@@ -170,8 +170,14 @@ class VmcIntegrationTest {
         assertEquals(bundleResult.blendShapes, individualResult.blendShapes)
         assertEquals(bundleResult.isLoaded, individualResult.isLoaded)
         assertEquals(bundleResult.senderTime, individualResult.senderTime)
-        assertEquals(bundleResult.headRotation, individualResult.headRotation)
-        assertEquals(bundleResult.headPosition, individualResult.headPosition)
+        assertTrue(
+            bundleResult.headPosition?.toList() == individualResult.headPosition?.toList(),
+            "headPosition: ${bundleResult.headPosition?.toList()} vs ${individualResult.headPosition?.toList()}",
+        )
+        assertTrue(
+            bundleResult.headRotation?.toList() == individualResult.headRotation?.toList(),
+            "headRotation: ${bundleResult.headRotation?.toList()} vs ${individualResult.headRotation?.toList()}",
+        )
     }
 }
 

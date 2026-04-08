@@ -3,6 +3,7 @@
 **Issue:** #478
 **Status:** Research complete
 **Date:** 2026-04-02
+**Updated:** 2026-04-08 — Added KleidiAI status and ARM64 session tuning guidance (#697)
 
 ## Executive Summary
 
@@ -336,3 +337,98 @@ This combination provides:
 - [MediaPipe TFLite to ONNX Conversion (Issue #197)](https://github.com/PINTO0309/PINTO_model_zoo/issues/197)
 - [Qualcomm MediaPipe Face Detection ONNX (HuggingFace)](https://huggingface.co/qualcomm/MediaPipe-Face-Detection)
 - [FaceONNX GitHub](https://github.com/FaceONNX/FaceONNX)
+
+---
+
+## Appendix A — Arm KleidiAI Status (Update 2026-04-08)
+
+Research for issue #697 examined whether we need to upgrade ONNX Runtime or
+enable an explicit execution provider to take advantage of Arm KleidiAI
+acceleration on ARM64 hosts (Apple Silicon, Windows on Arm, Linux aarch64
+servers). Findings below supersede any earlier assumption that KleidiAI
+requires an opt-in configuration.
+
+### A.1 What KleidiAI Accelerates
+
+Arm KleidiAI is a set of AI micro-kernels that accelerate common MLAS
+operators on ARMv8/v9 cores. In ONNX Runtime since v1.22 (May 2025) the
+following operators are auto-dispatched to KleidiAI kernels on ARM64:
+
+| Operator | KleidiAI kernel | Target |
+|---|---|---|
+| `SGEMM` (FP32 matmul) | Neon / SME2 SGEMM | Dense layers |
+| `IGEMM` (INT8 matmul) | Neon IGEMM | Quantized conv/matmul |
+| `MatMulNBits` (INT4) | Neon / SME2 4-bit GEMM | Weight-quantized LLM / DNN |
+| Dynamic Quantized MatMul | Neon IGEMM | Runtime-quantized matmul |
+| Conv2D / SGemv (v1.24.1+) | SME1/SME2 conv & SGemv | Convolutional models on SME hardware |
+
+### A.2 Activation Model
+
+KleidiAI is wired into the MLAS backend used by the default CPU Execution
+Provider. Microsoft's CI build script (`tools/ci_build/build.py`) enables
+`-Donnxruntime_USE_KLEIDIAI=ON` unless `--no_kleidiai` is passed, so the
+Maven artifact `com.microsoft.onnxruntime:onnxruntime` ships with KleidiAI
+linked into its ARM64 native libraries. No additional execution provider,
+session option, or runtime flag is required — KleidiAI engages automatically
+when the loaded native library runs on an ARM64 core.
+
+The Java distribution (`onnxruntime` jar) has bundled linux-aarch64 and
+osx-aarch64 (Apple Silicon) natives since v1.12.1, so the default Gradle
+dependency picks up KleidiAI automatically on M-series Macs.
+
+**Implication:** The working assumption in the original issue #697 ("enable
+ARM execution provider") is obsolete. The actionable tuning is limited to
+session options, model quantization, and verification logging.
+
+### A.3 Session Option Tuning (Implemented in #697)
+
+`OnnxModelLoader` now builds session options with:
+
+- `GraphOptimizationLevel.ALL_OPT` — enables all MLAS-level fusions, including
+  fusions that feed into KleidiAI dispatch.
+- `setIntraOpNumThreads(n)` where `n = clamp(Runtime.availableProcessors(), 2, 4)`.
+  The upper bound exists because the tracking loop runs face detection and
+  landmark inference sequentially, so adding more than ~4 intra-op threads on
+  Apple-Silicon performance clusters produces no throughput gain and can hurt
+  latency by inducing scheduler churn.
+
+`OnnxModelLoader.logRuntimeEnvironment()` emits a single INFO-level log on
+first load capturing `os.arch`, `os.name`, and the resolved thread count so
+operators can confirm ARM64 detection at runtime.
+
+### A.4 Latency Instrumentation (Implemented in #697)
+
+`TrackingLoop.runTrackingLoop()` now feeds detection, landmark post-processing,
+and inference-pipeline end-to-end timings into `InferenceLatencyStats`, which
+maintains an exponential moving average (alpha=0.1) and emits a periodic debug
+log every 30 recorded frames. Frames with no detected face are skipped from
+the EMA to keep the landmark channel meaningful. The end-to-end window covers
+preprocess → detect → landmark post-processing only — camera grab and
+tracking-data emission are excluded so that camera stalls or downstream back
+pressure do not pollute the inference metric. This provides a zero-cost
+measurement path for comparing inference latency across ARM64 hosts without a
+separate benchmark harness.
+
+### A.5 Remaining Opportunity: Quantized Models
+
+The current OpenSeeFace models shipped in
+`models/openseeface/mnv3_detection_opt.onnx` and `lm_model3_opt.onnx` are
+FP32. On ARM64 the KleidiAI SGEMM path already accelerates them, but the
+largest remaining speedup (~2x on Apple Silicon, larger on SME2 hardware) is
+unlocked by INT8 or INT4 MatMulNBits quantization. This is tracked as a
+follow-up issue and is out of scope for #697 because:
+
+1. The OpenSeeFace author does not publish quantized variants; we would need
+   to run ONNX Runtime's quantization toolchain ourselves.
+2. Accuracy validation against the FP32 baseline (landmark RMSE, blend-shape
+   stability) must pass before shipping.
+3. Quantization may require retraining the face detection confidence head to
+   preserve recall under INT8 activation ranges.
+
+### A.6 References
+
+- [KleidiAI in ONNX Runtime (onnxruntime.ai blog)](https://onnxruntime.ai/blogs/arm-microsoft-kleidiai)
+- [Arm × Microsoft KleidiAI announcement](https://newsroom.arm.com/blog/arm-microsoft-kleidiai-onnx-runtime)
+- [ONNX Runtime v1.22 release notes](https://github.com/microsoft/onnxruntime/releases/tag/v1.22.0)
+- [ONNX Runtime v1.24.1 release notes](https://github.com/microsoft/onnxruntime/releases/tag/v1.24.1)
+- [Java ARM64 native support issue #13190](https://github.com/microsoft/onnxruntime/issues/13190)

@@ -44,3 +44,10 @@ progress.txt
 /iosApp/build
 /iosApp/FaceLink.xcodeproj/xcuserdata/
 /iosApp/FaceLink.xcodeproj/project.xcworkspace/xcuserdata/
+
+# Build & tooling artifacts
+/.build/
+/build.log
+/firebase-debug.log
+/kotlin-js-store/
+/.claude/worktrees/

@@ -111,19 +111,50 @@ internal class BlendShapeInterpolator {
         /** Maximum extrapolation factor to prevent overshooting. */
         internal const val MAX_EXTRAPOLATION_FACTOR = 1.5f
 
+        /**
+         * Extrapolates a head transform forward by `t` frame intervals past `cur`.
+         *
+         * Rotation is extrapolated along the great-circle arc through the previous
+         * and current orientations using quaternion slerp. This avoids the gimbal
+         * artifacts that naive per-component Euler interpolation produces when yaw
+         * approaches ±90° or when rotation axes swap sign between frames.
+         *
+         * Position and (when present) the raw transform matrix fall back to linear
+         * component-wise extrapolation, since they are free of the angle-wrap
+         * pathology that motivated slerp.
+         *
+         * - `t == 0` returns `cur` exactly.
+         * - `t == 1` returns one frame interval beyond `cur` along the
+         *   `prev -> cur` trajectory.
+         */
         internal fun lerpTransform(
             prev: HeadTransform,
             cur: HeadTransform,
             t: Float,
-        ): HeadTransform = HeadTransform(
-            pitch = cur.pitch + (cur.pitch - prev.pitch) * t,
-            yaw = cur.yaw + (cur.yaw - prev.yaw) * t,
-            roll = cur.roll + (cur.roll - prev.roll) * t,
-            positionX = cur.positionX + (cur.positionX - prev.positionX) * t,
-            positionY = cur.positionY + (cur.positionY - prev.positionY) * t,
-            positionZ = cur.positionZ + (cur.positionZ - prev.positionZ) * t,
-            // Don't interpolate the raw matrix — consumers use Euler angles
-            transformMatrix = cur.transformMatrix,
-        )
+        ): HeadTransform {
+            // At t == 0 the caller wants cur verbatim — skip the quat round-trip so the
+            // result is bit-identical to the input (needed by callers that rely on
+            // equality checks for cache invalidation) and to avoid pointless work on
+            // the hot skip-frame path.
+            if (t == 0f) return cur
+
+            val qPrev = Quaternion.fromEulerDegrees(prev.pitch, prev.yaw, prev.roll)
+            val qCur = Quaternion.fromEulerDegrees(cur.pitch, cur.yaw, cur.roll)
+            // slerp parameter 1 returns `cur`; parameter `1 + t` extrapolates `t` frame
+            // intervals beyond `cur` along the `prev -> cur` great-circle arc.
+            val qExtrapolated = Quaternion.slerp(qPrev, qCur, 1f + t)
+            val euler = qExtrapolated.toEulerDegrees()
+
+            return HeadTransform(
+                pitch = euler.pitch,
+                yaw = euler.yaw,
+                roll = euler.roll,
+                positionX = cur.positionX + (cur.positionX - prev.positionX) * t,
+                positionY = cur.positionY + (cur.positionY - prev.positionY) * t,
+                positionZ = cur.positionZ + (cur.positionZ - prev.positionZ) * t,
+                // Don't interpolate the raw matrix — consumers use Euler angles.
+                transformMatrix = cur.transformMatrix,
+            )
+        }
     }
 }

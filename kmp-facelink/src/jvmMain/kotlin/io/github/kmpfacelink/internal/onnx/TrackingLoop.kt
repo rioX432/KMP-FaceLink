@@ -3,7 +3,6 @@ package io.github.kmpfacelink.internal.onnx
 import io.github.kmpfacelink.model.FaceLandmark
 import io.github.kmpfacelink.model.FaceTrackingData
 import io.github.kmpfacelink.model.TrackedFace
-import io.github.kmpfacelink.model.emptyBlendShapeData
 import io.github.kmpfacelink.util.FaceLinkLogger
 import io.github.kmpfacelink.util.GazeEstimator
 import kotlinx.coroutines.delay
@@ -25,27 +24,48 @@ internal suspend fun OnnxFaceTracker.runTrackingLoop() {
     val lm = getLandmarkInference() ?: return
     val frameW = cam.frameWidth
     val frameH = cam.frameHeight
+    val stats = InferenceLatencyStats()
 
     while (coroutineContext.isActive) {
         try {
             val frame = cam.grab() ?: continue
             val image = ImagePreprocessor.frameToBufferedImage(frame) ?: continue
-
-            val detectionInput = ImagePreprocessor.preprocessForDetection(image, DETECTION_SIZE)
-            val faces = det.detect(detectionInput, frameW, frameH)
-
-            val trackingData = if (faces.isNotEmpty()) {
-                processDetectedFace(faces.first(), image, lm, frameW, frameH)
-            } else {
-                FaceTrackingData.notTracking(System.currentTimeMillis())
-            }
-            emitTrackingData(trackingData)
+            processFrame(image, det, lm, frameW, frameH, stats)
         } catch (expected: Exception) {
             if (expected is kotlinx.coroutines.CancellationException) throw expected
             FaceLinkLogger.w(TAG, "Frame processing error: ${expected.message}")
         }
         delay(FRAME_DELAY_MS)
     }
+}
+
+private suspend fun OnnxFaceTracker.processFrame(
+    image: java.awt.image.BufferedImage,
+    det: FaceDetector,
+    lm: LandmarkInference,
+    frameW: Int,
+    frameH: Int,
+    stats: InferenceLatencyStats,
+) {
+    val inferenceStart = System.nanoTime()
+    val detectionInput = ImagePreprocessor.preprocessForDetection(image, DETECTION_SIZE)
+
+    val detectStart = System.nanoTime()
+    val faces = det.detect(detectionInput, frameW, frameH)
+    val detectNs = System.nanoTime() - detectStart
+
+    if (faces.isEmpty()) {
+        emitTrackingData(FaceTrackingData.notTracking(System.currentTimeMillis()))
+        return
+    }
+
+    val landmarkStart = System.nanoTime()
+    val trackingData = processDetectedFace(faces.first(), image, lm, frameW, frameH)
+    val landmarkNs = System.nanoTime() - landmarkStart
+    val inferenceNs = System.nanoTime() - inferenceStart
+
+    stats.record(detectNs, landmarkNs, inferenceNs)
+    emitTrackingData(trackingData)
 }
 
 private fun processDetectedFace(

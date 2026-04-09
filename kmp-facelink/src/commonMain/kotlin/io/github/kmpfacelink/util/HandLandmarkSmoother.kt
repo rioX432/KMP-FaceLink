@@ -35,8 +35,9 @@ internal fun SmoothingConfig.createHandSmoother(): HandLandmarkSmoother? = when 
     is SmoothingConfig.None -> null
     is SmoothingConfig.Ema -> HandEmaFilter(alpha)
     is SmoothingConfig.OneEuro -> HandOneEuroFilter(minCutoff, beta, dCutoff)
-    // CategoryAware and NeuroPredictive are blend-shape-specific; fall back to no smoothing
+    // CategoryAware, NeuroPredictive, and Kalman are blend-shape-specific; fall back to no smoothing
     is SmoothingConfig.CategoryAware,
     is SmoothingConfig.NeuroPredictive,
+    is SmoothingConfig.Kalman,
     -> null
 }

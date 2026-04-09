@@ -348,6 +348,47 @@ public sealed class SmoothingConfig {
             public const val MIN_NEURO_WINDOW_SIZE: Int = 2
         }
     }
+
+    /**
+     * 1D Kalman filter with constant-velocity model for blend shape smoothing.
+     *
+     * Maintains per-blend-shape state (position + velocity) and a 2x2 covariance
+     * matrix. Provides optional multi-frame prediction by iterating the state
+     * transition forward.
+     *
+     * @param processNoise Process noise covariance (Q). Controls how much the filter
+     *        trusts the motion model versus the measurements. Higher values make the
+     *        filter more responsive but less smooth. Default: 0.001.
+     * @param measurementNoise Measurement noise covariance (R). Controls how much
+     *        the filter trusts the raw observations. Higher values produce heavier
+     *        smoothing. Default: 0.1.
+     * @param predictionFrames Number of extra state-transition steps to project the
+     *        estimate forward after the Kalman update. Useful for reducing perceived
+     *        latency. 0 means no look-ahead. Default: 0.
+     */
+    public data class Kalman(
+        val processNoise: Float = DEFAULT_PROCESS_NOISE,
+        val measurementNoise: Float = DEFAULT_MEASUREMENT_NOISE,
+        val predictionFrames: Int = 0,
+    ) : SmoothingConfig() {
+        init {
+            require(processNoise > 0f) { "processNoise must be positive, was $processNoise" }
+            require(measurementNoise > 0f) {
+                "measurementNoise must be positive, was $measurementNoise"
+            }
+            require(predictionFrames >= 0) {
+                "predictionFrames must be non-negative, was $predictionFrames"
+            }
+        }
+
+        public companion object {
+            /** Default process noise covariance. */
+            public const val DEFAULT_PROCESS_NOISE: Float = 0.001f
+
+            /** Default measurement noise covariance. */
+            public const val DEFAULT_MEASUREMENT_NOISE: Float = 0.1f
+        }
+    }
 }
 
 /**

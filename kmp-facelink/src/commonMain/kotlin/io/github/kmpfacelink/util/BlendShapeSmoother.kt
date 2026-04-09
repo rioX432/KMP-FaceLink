@@ -37,4 +37,5 @@ internal fun SmoothingConfig.createFaceSmoother(): BlendShapeSmoother? = when (t
     is SmoothingConfig.OneEuro -> OneEuroFilter(minCutoff, beta, dCutoff, predictionMs)
     is SmoothingConfig.CategoryAware -> CategoryAwareSmoother(this)
     is SmoothingConfig.NeuroPredictive -> NeuroPredictorSmoother(windowSize)
+    is SmoothingConfig.Kalman -> KalmanBlendShapeSmoother(processNoise, measurementNoise, predictionFrames)
 }

@@ -31,6 +31,20 @@ class OnnxModelLoaderTest {
         }
     }
 
+    @Test
+    fun isArm64HostReturnsBooleanWithoutCrashing() {
+        // Verifies the function reads os.arch without throwing.
+        // Actual value depends on the host running the test.
+        val result = OnnxModelLoader.isArm64Host()
+        val arch = System.getProperty("os.arch") ?: ""
+        val expected = arch.equals("aarch64", ignoreCase = true) ||
+            arch.equals("arm64", ignoreCase = true)
+        assertTrue(
+            result == expected,
+            "isArm64Host()=$result but os.arch=$arch (expected=$expected)",
+        )
+    }
+
     companion object {
         private const val MIN_THREADS = 2
         private const val MAX_THREADS = 4

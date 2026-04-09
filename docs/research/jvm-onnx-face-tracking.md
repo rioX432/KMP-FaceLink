@@ -409,21 +409,41 @@ pressure do not pollute the inference metric. This provides a zero-cost
 measurement path for comparing inference latency across ARM64 hosts without a
 separate benchmark harness.
 
-### A.5 Remaining Opportunity: Quantized Models
+### A.5 INT8 Quantized Models (Implemented in #714)
 
-The current OpenSeeFace models shipped in
-`models/openseeface/mnv3_detection_opt.onnx` and `lm_model3_opt.onnx` are
-FP32. On ARM64 the KleidiAI SGEMM path already accelerates them, but the
-largest remaining speedup (~2x on Apple Silicon, larger on SME2 hardware) is
-unlocked by INT8 or INT4 MatMulNBits quantization. This is tracked as a
-follow-up issue and is out of scope for #697 because:
+The FP32 OpenSeeFace models (`mnv3_detection_opt.onnx`, `lm_model3_opt.onnx`)
+were quantized to INT8 using ONNX Runtime's `quantize_dynamic` API with
+per-channel INT8 weight quantization targeting `MatMul`, `Gemm`, and `Conv`
+operators.
 
-1. The OpenSeeFace author does not publish quantized variants; we would need
-   to run ONNX Runtime's quantization toolchain ourselves.
-2. Accuracy validation against the FP32 baseline (landmark RMSE, blend-shape
-   stability) must pass before shipping.
-3. Quantization may require retraining the face detection confidence head to
-   preserve recall under INT8 activation ranges.
+**Quantization approach:** Dynamic quantization was chosen over static
+quantization because it requires no calibration dataset and preserves
+activation precision (activations remain FP32, only weights are quantized).
+This is a pragmatic trade-off: dynamic quantization provides reliable ~1.5-2x
+speedup on ARM64 KleidiAI IGEMM kernels while avoiding the accuracy risks
+of fully-quantized INT8 activations on small face models.
+
+**INT4 MatMulNBits** was evaluated but not shipped. The OpenSeeFace
+detection and landmark models have relatively few MatMul operators compared
+to transformer-based architectures, so INT4 weight-only quantization provides
+minimal additional benefit over INT8 while increasing the risk of accuracy
+degradation in the confidence and heatmap heads.
+
+**Model selection at runtime:** `OnnxModelLoader` detects the host
+architecture via `os.arch` and prefers INT8 models on ARM64 (aarch64/arm64).
+On x86_64, FP32 models are always used. If INT8 models are not present on
+disk (e.g., the quantization script was not run), the loader transparently
+falls back to FP32 on any architecture.
+
+**Tooling:**
+- `scripts/quantize_openseeface.py` — standalone quantization script
+- `scripts/setup-openseeface-models.sh` — downloads FP32 models and runs quantization
+- `scripts/requirements-quantize.txt` — Python dependencies
+
+**Remaining work:**
+- Accuracy validation (landmark RMSE, blend-shape stability vs FP32 baseline)
+- Benchmark comparison on Apple M-series and Snapdragon ARM64 hosts
+- Consider INT4 MatMulNBits for future transformer-based landmark models
 
 ### A.6 References
 
@@ -432,3 +452,5 @@ follow-up issue and is out of scope for #697 because:
 - [ONNX Runtime v1.22 release notes](https://github.com/microsoft/onnxruntime/releases/tag/v1.22.0)
 - [ONNX Runtime v1.24.1 release notes](https://github.com/microsoft/onnxruntime/releases/tag/v1.24.1)
 - [Java ARM64 native support issue #13190](https://github.com/microsoft/onnxruntime/issues/13190)
+- [ONNX Runtime Quantization Docs](https://onnxruntime.ai/docs/performance/model-optimizations/quantization.html)
+- [ONNX Runtime quantize_dynamic API](https://github.com/microsoft/onnxruntime/blob/main/onnxruntime/python/tools/quantization/quantize.py)

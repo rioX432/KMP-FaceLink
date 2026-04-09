@@ -1,8 +1,9 @@
 package io.github.kmpfacelink.stream.webrtc
 
+import io.github.kmpfacelink.stream.ConnectionState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.StateFlow
 
 /**
  * Transport abstraction for sending and receiving binary tracking data.
@@ -20,8 +21,8 @@ public interface DataChannelTransport {
     /** Whether the transport is currently connected and able to send data. */
     public val isConnected: Boolean
 
-    /** Observable connection state changes (true = connected, false = disconnected). */
-    public val connectionState: SharedFlow<Boolean>
+    /** Observable connection state changes. */
+    public val connectionState: StateFlow<ConnectionState>
 
     /**
      * Opens the transport connection.

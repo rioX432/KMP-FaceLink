@@ -1,5 +1,6 @@
 package io.github.kmpfacelink.stream
 
+import io.github.kmpfacelink.api.Releasable
 import io.github.kmpfacelink.util.FaceLinkLogger
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.websocket.WebSockets
@@ -10,9 +11,14 @@ import io.ktor.websocket.close
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlin.concurrent.atomics.AtomicBoolean
+import kotlin.concurrent.atomics.ExperimentalAtomicApi
 
 /**
  * Shared WebSocket connection lifecycle management.
@@ -25,19 +31,35 @@ import kotlinx.coroutines.sync.withLock
  * Subclasses override hooks ([onConnected], [onDisconnected],
  * [onConnectionFailed], [onFrame]) to plug in their specific behavior.
  *
+ * All subclasses automatically implement [Releasable] with thread-safe
+ * atomic CAS on [released]. Override [release] to add custom cleanup
+ * but always call `super.release()`.
+ *
  * @param url WebSocket URL to connect to
  * @param httpClient Optional pre-configured Ktor [HttpClient].
  *        If null, a default client with WebSocket support is created.
  * @param tag Logging tag for this client
  */
+@OptIn(ExperimentalAtomicApi::class)
 public abstract class BaseWebSocketClient(
     private val url: String,
     httpClient: HttpClient? = null,
     private val tag: String,
-) {
+) : Releasable {
     protected val mutex: Mutex = Mutex()
     private var session: WebSocketSession? = null
     private var connectionJob: Job? = null
+
+    /** Atomic flag ensuring [release] runs at most once. */
+    protected val released: AtomicBoolean = AtomicBoolean(false)
+
+    /** Mutable connection state. Subclasses may update this directly. */
+    protected val mutableConnectionState: MutableStateFlow<ConnectionState> =
+        MutableStateFlow(ConnectionState.DISCONNECTED)
+
+    /** Observable connection state for this client. */
+    public val connectionState: StateFlow<ConnectionState> =
+        mutableConnectionState.asStateFlow()
 
     protected val client: HttpClient = httpClient ?: HttpClient {
         install(WebSockets)
@@ -65,6 +87,7 @@ public abstract class BaseWebSocketClient(
      */
     public suspend fun connect(scope: CoroutineScope) {
         connectionJob?.cancel()
+        mutableConnectionState.value = ConnectionState.CONNECTING
         onConnecting()
         connectionJob = scope.launch { establishConnection() }
     }
@@ -79,18 +102,25 @@ public abstract class BaseWebSocketClient(
             session?.close()
             session = null
         }
+        mutableConnectionState.value = ConnectionState.DISCONNECTED
         onDisconnected()
     }
 
     /**
-     * Cancels the connection job without suspending.
+     * Releases all resources held by this client.
      *
-     * Use this from non-suspending cleanup methods (e.g. [Releasable.release]).
-     * Note: this bypasses the mutex, so the session reference may briefly be stale.
+     * Uses atomic CAS to ensure cleanup runs exactly once, even when
+     * called concurrently from multiple threads. Safe to call multiple
+     * times. Subclasses should override and call `super.release()`.
      */
-    protected fun cancelConnection() {
+    public override fun release() {
+        if (!released.compareAndSet(expectedValue = false, newValue = true)) return
         connectionJob?.cancel()
         connectionJob = null
+        mutableConnectionState.value = ConnectionState.DISCONNECTED
+        if (ownsClient) {
+            client.close()
+        }
     }
 
     /**
@@ -157,6 +187,7 @@ public abstract class BaseWebSocketClient(
         try {
             client.webSocket(urlString = resolveUrl()) {
                 mutex.withLock { session = this }
+                mutableConnectionState.value = ConnectionState.CONNECTED
                 onConnected(this)
                 receiveLoop(this)
             }
@@ -164,6 +195,7 @@ public abstract class BaseWebSocketClient(
             throw e
         } catch (@Suppress("TooGenericExceptionCaught") e: Exception) {
             mutex.withLock { session = null }
+            mutableConnectionState.value = ConnectionState.DISCONNECTED
             FaceLinkLogger.w(tag, "Connection failed (${e::class.simpleName}): ${e.message}")
             onConnectionFailed(e)
         }
@@ -175,6 +207,7 @@ public abstract class BaseWebSocketClient(
         }
         // Connection closed by remote
         mutex.withLock { session = null }
+        mutableConnectionState.value = ConnectionState.DISCONNECTED
         onDisconnected()
     }
 }

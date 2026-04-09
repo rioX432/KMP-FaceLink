@@ -1,6 +1,5 @@
 package io.github.kmpfacelink.stream.webrtc
 
-import io.github.kmpfacelink.api.Releasable
 import io.github.kmpfacelink.stream.BaseWebSocketClient
 import io.github.kmpfacelink.util.FaceLinkLogger
 import io.ktor.client.HttpClient
@@ -43,14 +42,12 @@ import kotlinx.serialization.json.Json
 public class WebRtcSignalingClient(
     url: String,
     httpClient: HttpClient? = null,
-) : BaseWebSocketClient(url, httpClient, TAG), Releasable {
+) : BaseWebSocketClient(url, httpClient, TAG) {
 
     private val json = Json {
         encodeDefaults = false
         ignoreUnknownKeys = true
     }
-
-    private var released = false
 
     private val _messages = MutableSharedFlow<SignalingMessage>(
         extraBufferCapacity = MESSAGE_BUFFER_CAPACITY,
@@ -75,21 +72,6 @@ public class WebRtcSignalingClient(
         check(currentSession != null) { "Signaling client is not connected" }
         val payload = json.encodeToString(SignalingMessage.serializer(), message)
         currentSession.outgoing.send(Frame.Text(payload))
-    }
-
-    /**
-     * Releases all resources held by this client.
-     *
-     * Cancels any active connection and closes the HTTP client if it was
-     * created internally. Safe to call multiple times.
-     */
-    public override fun release() {
-        if (released) return
-        released = true
-        cancelConnection()
-        if (ownsClient) {
-            client.close()
-        }
     }
 
     override suspend fun onFrame(frame: Frame) {

@@ -37,7 +37,7 @@ class LiveKitTrackingSenderTest {
         assertFalse(publisher.isConnected)
         assertEquals(
             LiveKitConnectionState.DISCONNECTED,
-            publisher.connectionState.value,
+            publisher.liveKitConnectionState.value,
         )
     }
 }

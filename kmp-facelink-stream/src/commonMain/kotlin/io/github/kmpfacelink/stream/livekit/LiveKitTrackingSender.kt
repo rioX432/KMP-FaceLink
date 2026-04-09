@@ -15,6 +15,8 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlin.concurrent.atomics.AtomicBoolean
+import kotlin.concurrent.atomics.ExperimentalAtomicApi
 
 /**
  * High-level sender that bridges tracking flows to a LiveKit room.
@@ -40,12 +42,14 @@ import kotlinx.coroutines.sync.withLock
  * @param publisher Optional publisher instance. If null, a default
  *        [LiveKitDataChannelPublisher] is created from [config].
  */
+@OptIn(ExperimentalAtomicApi::class)
 public class LiveKitTrackingSender(
     private val config: LiveKitBridgeConfig,
     private val publisher: LiveKitDataChannelPublisher =
         LiveKitDataChannelPublisher(config),
 ) : Releasable {
 
+    private val released = AtomicBoolean(false)
     private val mutex = Mutex()
     private var faceJob: Job? = null
     private var handJob: Job? = null
@@ -55,7 +59,7 @@ public class LiveKitTrackingSender(
 
     /** Observable connection state of the underlying publisher. */
     public val connectionState: StateFlow<LiveKitConnectionState>
-        get() = publisher.connectionState
+        get() = publisher.liveKitConnectionState
 
     /**
      * Connects to the LiveKit room and starts collecting from tracking
@@ -102,13 +106,15 @@ public class LiveKitTrackingSender(
     /**
      * Releases all resources held by this sender.
      *
-     * Stops any active collection and publishing, and disconnects
-     * from the LiveKit room. Safe to call multiple times.
+     * Uses atomic CAS to ensure cleanup runs exactly once. Stops any
+     * active collection and publishing, and releases the underlying
+     * publisher. Safe to call multiple times and from any thread.
      *
      * Note: this method blocks the calling thread because [Releasable]
      * is a synchronous interface. Prefer [stop] from a coroutine.
      */
     public override fun release() {
+        if (!released.compareAndSet(expectedValue = false, newValue = true)) return
         faceJob?.cancel()
         handJob?.cancel()
         publishJob?.cancel()
@@ -117,6 +123,7 @@ public class LiveKitTrackingSender(
         publishJob = null
         latestFaceData = null
         latestHandData = null
+        publisher.release()
     }
 
     private suspend fun CoroutineScope.publishLoop() {

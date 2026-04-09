@@ -1,15 +1,14 @@
 package io.github.kmpfacelink.stream.webrtc
 
 import io.github.kmpfacelink.stream.BaseWebSocketClient
+import io.github.kmpfacelink.stream.ConnectionState
 import io.ktor.client.HttpClient
 import io.ktor.websocket.Frame
-import io.ktor.websocket.WebSocketSession
 import io.ktor.websocket.readBytes
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 
 /**
@@ -29,11 +28,6 @@ public class WebSocketTransport(
     httpClient: HttpClient? = null,
 ) : BaseWebSocketClient(url, httpClient, TAG), DataChannelTransport {
 
-    private val _connectionState = MutableSharedFlow<Boolean>(
-        replay = 1,
-        onBufferOverflow = BufferOverflow.DROP_OLDEST,
-    )
-
     private val _incoming = MutableSharedFlow<ByteArray>(
         extraBufferCapacity = INCOMING_BUFFER_CAPACITY,
         onBufferOverflow = BufferOverflow.DROP_OLDEST,
@@ -41,8 +35,6 @@ public class WebSocketTransport(
 
     override val isConnected: Boolean
         get() = isSessionActive
-
-    override val connectionState: SharedFlow<Boolean> = _connectionState.asSharedFlow()
 
     override val incoming: Flow<ByteArray> = _incoming.asSharedFlow()
 
@@ -53,21 +45,9 @@ public class WebSocketTransport(
             throw e
         } catch (@Suppress("TooGenericExceptionCaught") e: Exception) {
             clearSession()
-            _connectionState.emit(false)
+            mutableConnectionState.value = ConnectionState.DISCONNECTED
             throw e
         }
-    }
-
-    override suspend fun onConnected(ws: WebSocketSession) {
-        _connectionState.emit(true)
-    }
-
-    override suspend fun onDisconnected() {
-        _connectionState.emit(false)
-    }
-
-    override suspend fun onConnectionFailed(error: Exception) {
-        _connectionState.emit(false)
     }
 
     override suspend fun onFrame(frame: Frame) {

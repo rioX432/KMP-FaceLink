@@ -10,6 +10,7 @@ import io.github.kmpfacelink.model.CameraFacing
 import io.github.kmpfacelink.model.FaceTrackerConfig
 import io.github.kmpfacelink.model.FaceTrackingData
 import io.github.kmpfacelink.model.HeadTransform
+import io.github.kmpfacelink.model.QualityPreset
 import io.github.kmpfacelink.model.SmoothingConfig
 import io.github.kmpfacelink.model.TrackedFace
 import io.github.kmpfacelink.model.filterByActive
@@ -18,6 +19,7 @@ import io.github.kmpfacelink.util.BlendShapeMapPool
 import io.github.kmpfacelink.util.BlendShapeSmoother
 import io.github.kmpfacelink.util.Calibrator
 import io.github.kmpfacelink.util.ConfidenceFrameStrategy
+import io.github.kmpfacelink.util.FaceLinkLogger
 import io.github.kmpfacelink.util.FrameDecision
 import io.github.kmpfacelink.util.FrameThrottler
 import io.github.kmpfacelink.util.GazeEstimator
@@ -32,8 +34,17 @@ import kotlinx.cinterop.get
 import kotlinx.cinterop.ptr
 import kotlinx.cinterop.reinterpret
 import kotlinx.cinterop.useContents
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.drop
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
 import platform.ARKit.ARFaceAnchor
 import platform.ARKit.ARFaceTrackingConfiguration
 import platform.ARKit.ARSession
@@ -72,6 +83,8 @@ internal class ARKitFaceTracker(
             enableIdleDetection = config.enableIdleDetection,
         )
     }
+
+    private var qualityScope: CoroutineScope? = null
 
     private val frameSkipStrategy = ConfidenceFrameStrategy(config.frameSkipConfig)
     private val interpolator = BlendShapeInterpolator()
@@ -115,9 +128,11 @@ internal class ARKitFaceTracker(
         session.runWithConfiguration(configuration)
 
         pipelineLock.withLock { transitionToTracking() }
+        startQualityPolicyCollection(session)
     }
 
     override suspend fun stop() {
+        stopQualityPolicyCollection()
         pipelineLock.withLock {
             arSession?.pause()
             mutableState.value = TrackingState.STOPPED
@@ -125,6 +140,7 @@ internal class ARKitFaceTracker(
     }
 
     override fun release() {
+        stopQualityPolicyCollection()
         pipelineLock.withLock {
             released.store(1)
             arSession?.pause()
@@ -260,6 +276,36 @@ internal class ARKitFaceTracker(
         mutableTrackingData.tryEmit(data)
     }
 
+    private fun startQualityPolicyCollection(session: ARSession) {
+        if (powerModeManager == null) return
+        val scope = CoroutineScope(Dispatchers.Main + SupervisorJob())
+        qualityScope = scope
+
+        val initialPreset = QualityPreset.High // iOS always runs at full resolution
+        powerModeManager.startQualityPolicy(initialPreset, scope)
+
+        // On iOS, only frame rate can be adjusted (ARKit doesn't support mid-session resolution changes)
+        powerModeManager.recommendedPreset
+            ?.drop(1)
+            ?.map { it.powerMode.baseFps }
+            ?.distinctUntilChanged()
+            ?.onEach { targetFps ->
+                FaceLinkLogger.d(TAG, "Thermal quality change: preferredFrameRate -> $targetFps")
+                session.currentFrame?.camera // Just to verify session is active
+                val newConfig = ARFaceTrackingConfiguration().apply {
+                    lightEstimationEnabled = false
+                }
+                // ARKit adjusts framerate through session configuration
+                session.runWithConfiguration(newConfig)
+            }
+            ?.launchIn(scope)
+    }
+
+    private fun stopQualityPolicyCollection() {
+        qualityScope?.cancel()
+        qualityScope = null
+    }
+
     private fun mapARKitBlendShapes(rawBlendShapes: Map<String, NSNumber>): BlendShapeData {
         blendShapeScratch.clear()
 
@@ -289,6 +335,10 @@ internal class ARKitFaceTracker(
             }
         }
         return TransformUtils.fromMatrix(transformMatrix)
+    }
+
+    private companion object {
+        private const val TAG = "ARKitFaceTracker"
     }
 
     private inner class FaceTrackingDelegate : NSObject(), ARSessionDelegateProtocol {

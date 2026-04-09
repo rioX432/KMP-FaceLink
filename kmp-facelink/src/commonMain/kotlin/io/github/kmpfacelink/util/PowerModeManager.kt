@@ -2,8 +2,13 @@ package io.github.kmpfacelink.util
 
 import io.github.kmpfacelink.model.InferenceDelegate
 import io.github.kmpfacelink.model.PowerMode
+import io.github.kmpfacelink.model.QualityPreset
 import io.github.kmpfacelink.model.ThermalState
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlin.concurrent.atomics.AtomicLong
 import kotlin.concurrent.atomics.ExperimentalAtomicApi
 
@@ -33,6 +38,8 @@ internal class PowerModeManager(
 ) {
     private val lastProcessedMs = AtomicLong(-1_000_000L)
     private val idleDetector = if (enableIdleDetection) IdleDetector() else null
+    private var qualityPolicy: QualityPolicy? = null
+    private var thermalCollectJob: Job? = null
 
     /**
      * The effective power mode after battery-level auto-downgrade.
@@ -68,6 +75,31 @@ internal class PowerModeManager(
 
     /** Current thermal state. */
     val thermalState: StateFlow<ThermalState> get() = thermalMonitor.thermalState
+
+    /**
+     * The recommended [QualityPreset] based on thermal state with hysteresis.
+     * Returns null if [startQualityPolicy] has not been called.
+     */
+    val recommendedPreset: StateFlow<QualityPreset>?
+        get() = qualityPolicy?.recommendedPreset
+
+    /**
+     * Starts the quality policy that reacts to thermal state changes and
+     * produces [recommendedPreset] values with hysteresis.
+     *
+     * Must be called after construction with a [CoroutineScope] that lives
+     * as long as the tracker session.
+     *
+     * @param initialPreset The quality preset the session started with.
+     * @param scope Coroutine scope for thermal collection and hysteresis delays.
+     */
+    fun startQualityPolicy(initialPreset: QualityPreset, scope: CoroutineScope) {
+        val policy = QualityPolicy(initialPreset, scope)
+        qualityPolicy = policy
+        thermalCollectJob = thermalMonitor.thermalState
+            .onEach { policy.onThermalStateChanged(it) }
+            .launchIn(scope)
+    }
 
     /**
      * Returns true if this frame should be processed, false if it should be skipped.
@@ -133,6 +165,10 @@ internal class PowerModeManager(
 
     /** Releases resources held by the manager. */
     fun release() {
+        thermalCollectJob?.cancel()
+        thermalCollectJob = null
+        qualityPolicy?.cancel()
+        qualityPolicy = null
         idleDetector?.reset()
     }
 

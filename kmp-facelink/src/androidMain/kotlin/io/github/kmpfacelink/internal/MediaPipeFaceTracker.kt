@@ -11,16 +11,25 @@ import io.github.kmpfacelink.api.TrackingState
 import io.github.kmpfacelink.model.CameraFacing
 import io.github.kmpfacelink.model.FaceTrackerConfig
 import io.github.kmpfacelink.model.FaceTrackingData
+import io.github.kmpfacelink.model.QualityPreset
 import io.github.kmpfacelink.model.SmoothingConfig
 import io.github.kmpfacelink.util.FaceLinkLogger
 import io.github.kmpfacelink.util.FrameThrottler
 import io.github.kmpfacelink.util.GazeEstimator
 import io.github.kmpfacelink.util.PowerModeManager
 import io.github.kmpfacelink.util.withLock
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.drop
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.withContext
 import java.util.concurrent.ExecutionException
 import java.util.concurrent.Executors
@@ -28,6 +37,7 @@ import java.util.concurrent.RejectedExecutionException
 import java.util.concurrent.TimeUnit
 import kotlin.concurrent.atomics.ExperimentalAtomicApi
 
+@Suppress("TooManyFunctions") // Interface overrides + thermal quality policy helpers
 @OptIn(ExperimentalAtomicApi::class)
 internal class MediaPipeFaceTracker(
     private val platformContext: PlatformContext,
@@ -54,6 +64,15 @@ internal class MediaPipeFaceTracker(
             enableIdleDetection = config.enableIdleDetection,
         )
     }
+
+    private var qualityScope: CoroutineScope? = null
+    private var qualityCollectJob: Job? = null
+
+    @Volatile
+    internal var currentAnalysisWidth: Int = config.analysisWidth
+
+    @Volatile
+    internal var currentAnalysisHeight: Int = config.analysisHeight
 
     private val resultProcessor = FaceResultProcessor(
         config = config,
@@ -103,6 +122,7 @@ internal class MediaPipeFaceTracker(
             faceLandmarker = FaceLandmarkerFactory.create(platformContext, config, ::onFaceLandmarkerResult)
             startCamera()
             pipelineLock.withLock { transitionToTracking() }
+            startQualityPolicyCollection()
         } catch (e: kotlinx.coroutines.CancellationException) {
             throw e
         } catch (e: Exception) {
@@ -115,6 +135,7 @@ internal class MediaPipeFaceTracker(
     }
 
     override suspend fun stop() {
+        stopQualityPolicyCollection()
         var landmarkerToClose: FaceLandmarker? = null
         pipelineLock.withLock {
             mutableState.value = TrackingState.STOPPED
@@ -144,6 +165,7 @@ internal class MediaPipeFaceTracker(
     }
 
     override fun release() {
+        stopQualityPolicyCollection()
         var landmarkerToClose: FaceLandmarker? = null
         pipelineLock.withLock {
             released.store(1)
@@ -192,8 +214,8 @@ internal class MediaPipeFaceTracker(
         cameraPipeline.startCamera(
             config = CameraStartConfig(
                 cameraFacing = currentCameraFacing,
-                analysisWidth = config.analysisWidth,
-                analysisHeight = config.analysisHeight,
+                analysisWidth = currentAnalysisWidth,
+                analysisHeight = currentAnalysisHeight,
                 surfaceProvider = previewSurfaceProvider,
             ),
             onSharedFrame = ::processSharedFrame,
@@ -305,6 +327,56 @@ internal class MediaPipeFaceTracker(
         powerModeManager.shouldDisableEnhancer()
     } else {
         frameThrottler.shouldDisableEnhancer(thermalMonitor.thermalState.value)
+    }
+
+    private fun startQualityPolicyCollection() {
+        if (powerModeManager == null) return
+        val scope = CoroutineScope(Dispatchers.Main.immediate + SupervisorJob())
+        qualityScope = scope
+
+        val initialPreset = resolveInitialPreset()
+        powerModeManager.startQualityPolicy(initialPreset, scope)
+
+        qualityCollectJob = powerModeManager.recommendedPreset
+            ?.drop(1) // skip initial value — already applied
+            ?.distinctUntilChanged()
+            ?.onEach { preset -> applyPresetChange(preset) }
+            ?.launchIn(scope)
+    }
+
+    private fun stopQualityPolicyCollection() {
+        qualityCollectJob?.cancel()
+        qualityCollectJob = null
+        qualityScope?.cancel()
+        qualityScope = null
+    }
+
+    @Suppress("MagicNumber")
+    private fun resolveInitialPreset(): QualityPreset = when {
+        config.analysisWidth <= QualityPreset.Low.analysisWidth &&
+            config.analysisHeight <= QualityPreset.Low.analysisHeight -> QualityPreset.Low
+        config.analysisWidth <= QualityPreset.Medium.analysisWidth &&
+            config.analysisHeight <= QualityPreset.Medium.analysisHeight -> QualityPreset.Medium
+        else -> QualityPreset.High
+    }
+
+    private suspend fun applyPresetChange(preset: QualityPreset) {
+        val newWidth = preset.analysisWidth
+        val newHeight = preset.analysisHeight
+        if (newWidth == currentAnalysisWidth && newHeight == currentAnalysisHeight) return
+
+        FaceLinkLogger.d(
+            TAG,
+            "Thermal quality change: ${currentAnalysisWidth}x$currentAnalysisHeight -> ${newWidth}x$newHeight",
+        )
+        currentAnalysisWidth = newWidth
+        currentAnalysisHeight = newHeight
+
+        // Restart camera with new analysis resolution
+        if (mutableState.value == TrackingState.TRACKING) {
+            pipelineLock.withLock { cameraManager?.unbindAll() }
+            startCamera()
+        }
     }
 
     companion object {

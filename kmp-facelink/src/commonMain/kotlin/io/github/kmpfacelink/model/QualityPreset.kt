@@ -63,9 +63,11 @@ public sealed class QualityPreset {
      */
     public fun applyTo(base: FaceTrackerConfig = FaceTrackerConfig()): FaceTrackerConfig =
         base.copy(
-            powerMode = powerMode,
-            analysisWidth = analysisWidth,
-            analysisHeight = analysisHeight,
+            powerConfig = base.powerConfig.copy(powerMode = powerMode),
+            performanceConfig = base.performanceConfig.copy(
+                analysisWidth = analysisWidth,
+                analysisHeight = analysisHeight,
+            ),
         )
 
     /**

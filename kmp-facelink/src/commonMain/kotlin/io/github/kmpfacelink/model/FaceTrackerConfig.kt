@@ -17,6 +17,127 @@ public data class CalibrationConfig(
 )
 
 /**
+ * MediaPipe detection confidence thresholds and face count limit.
+ *
+ * Android (MediaPipe) only — confidence values have no effect on iOS (ARKit).
+ *
+ * @property minDetectionConfidence Minimum confidence score for face detection to be considered
+ *           successful. Must be in 0.0..1.0.
+ * @property minTrackingConfidence Minimum confidence score for face tracking to be considered
+ *           successful. Must be in 0.0..1.0.
+ * @property minPresenceConfidence Minimum confidence score for face presence to be considered
+ *           valid. Must be in 0.0..1.0.
+ * @property maxFaces Maximum number of faces to detect simultaneously (1–[FaceTrackerConfig.MAX_FACES]).
+ *           Android (MediaPipe): fully supported — up to [FaceTrackerConfig.MAX_FACES] faces tracked at once.
+ *           iOS (ARKit): ARKit only supports one face; values greater than 1 have no effect.
+ *           Default is 1 (single-face mode).
+ */
+public data class DetectionConfig(
+    val minDetectionConfidence: Float = DEFAULT_CONFIDENCE,
+    val minTrackingConfidence: Float = DEFAULT_CONFIDENCE,
+    val minPresenceConfidence: Float = DEFAULT_CONFIDENCE,
+    val maxFaces: Int = 1,
+) {
+    init {
+        require(maxFaces in 1..FaceTrackerConfig.MAX_FACES) {
+            "maxFaces must be in 1..${FaceTrackerConfig.MAX_FACES}, was $maxFaces"
+        }
+        require(minDetectionConfidence in 0f..1f) {
+            "minDetectionConfidence must be in 0.0..1.0, was $minDetectionConfidence"
+        }
+        require(minTrackingConfidence in 0f..1f) {
+            "minTrackingConfidence must be in 0.0..1.0, was $minTrackingConfidence"
+        }
+        require(minPresenceConfidence in 0f..1f) {
+            "minPresenceConfidence must be in 0.0..1.0, was $minPresenceConfidence"
+        }
+    }
+
+    public companion object {
+        /** Default MediaPipe confidence threshold. */
+        public const val DEFAULT_CONFIDENCE: Float = 0.5f
+    }
+}
+
+/**
+ * Power and thermal management configuration.
+ *
+ * @property thermalPolicy Policy controlling how the tracker adapts to thermal pressure.
+ *           Defaults to [ThermalPolicy.Disabled].
+ *           **Ignored when [powerMode] is set** — [PowerMode] provides a higher-level
+ *           abstraction that subsumes thermal policy.
+ * @property powerMode Power management profile controlling frame rate, thermal adaptation,
+ *           idle detection, and battery-aware downgrade. When non-null, overrides [thermalPolicy].
+ *           Defaults to null (legacy behavior using [thermalPolicy]).
+ * @property lowBatteryThreshold Battery level (0.0–1.0) at which the tracker auto-downgrades
+ *           the power mode by one step. Only effective when [powerMode] is set.
+ *           Defaults to 0.15 (15%).
+ * @property enableIdleDetection Whether to reduce frame rate when the face is stationary.
+ *           Only effective when [powerMode] is set. Defaults to true.
+ */
+public data class PowerConfig(
+    val thermalPolicy: ThermalPolicy = ThermalPolicy.Disabled,
+    val powerMode: PowerMode? = null,
+    val lowBatteryThreshold: Float = DEFAULT_LOW_BATTERY_THRESHOLD,
+    val enableIdleDetection: Boolean = true,
+) {
+    init {
+        require(lowBatteryThreshold in 0f..1f) {
+            "lowBatteryThreshold must be in 0.0..1.0, was $lowBatteryThreshold"
+        }
+    }
+
+    public companion object {
+        /** Default battery level at which power mode auto-downgrades (15%). */
+        public const val DEFAULT_LOW_BATTERY_THRESHOLD: Float = 0.15f
+    }
+}
+
+/**
+ * Performance and resource control configuration.
+ *
+ * @property analysisWidth Width of the camera analysis stream in pixels. Android only.
+ *           Lower values improve performance at the cost of accuracy. Defaults to 640.
+ * @property analysisHeight Height of the camera analysis stream in pixels. Android only.
+ *           Lower values improve performance at the cost of accuracy. Defaults to 480.
+ * @property inferenceDelegate Preferred hardware accelerator for ML model inference.
+ *           Android (MediaPipe) and Wasm/Web: controls GPU vs CPU delegate selection.
+ *           Has no effect on iOS (ARKit).
+ *           Defaults to [InferenceDelegate.AUTO] (GPU with CPU fallback).
+ * @property stopDrainDelayMs Milliseconds to wait after unbinding the camera before closing the
+ *           MediaPipe landmarker, allowing any in-flight async detection result to be delivered.
+ *           Android only.
+ * @property releaseTimeoutMs Maximum milliseconds to wait for the camera analysis executor to
+ *           terminate during [io.github.kmpfacelink.api.FaceTracker.release]. Android only.
+ */
+public data class PerformanceConfig(
+    val analysisWidth: Int = DEFAULT_ANALYSIS_WIDTH,
+    val analysisHeight: Int = DEFAULT_ANALYSIS_HEIGHT,
+    val inferenceDelegate: InferenceDelegate = InferenceDelegate.AUTO,
+    val stopDrainDelayMs: Long = DEFAULT_STOP_DRAIN_DELAY_MS,
+    val releaseTimeoutMs: Long = DEFAULT_RELEASE_TIMEOUT_MS,
+) {
+    init {
+        require(analysisWidth > 0) { "analysisWidth must be positive, was $analysisWidth" }
+        require(analysisHeight > 0) { "analysisHeight must be positive, was $analysisHeight" }
+    }
+
+    public companion object {
+        /** Default camera analysis stream width in pixels. */
+        public const val DEFAULT_ANALYSIS_WIDTH: Int = 640
+
+        /** Default camera analysis stream height in pixels. */
+        public const val DEFAULT_ANALYSIS_HEIGHT: Int = 480
+
+        /** Default stop-drain delay in milliseconds. */
+        public const val DEFAULT_STOP_DRAIN_DELAY_MS: Long = 100L
+
+        /** Default release timeout in milliseconds. */
+        public const val DEFAULT_RELEASE_TIMEOUT_MS: Long = 500L
+    }
+}
+
+/**
  * Configuration for [io.github.kmpfacelink.api.FaceTracker].
  *
  * @property smoothingConfig Smoothing filter configuration. Use [SmoothingConfig.None],
@@ -31,41 +152,11 @@ public data class CalibrationConfig(
  * @property modelAssetPath Path to the MediaPipe face landmarker model asset relative to the
  *           Android assets directory. Has no effect on iOS (ARKit). Override to use a custom or
  *           updated model bundle.
- * @property stopDrainDelayMs Milliseconds to wait after unbinding the camera before closing the
- *           MediaPipe landmarker, allowing any in-flight async detection result to be delivered.
- *           Android only.
- * @property releaseTimeoutMs Maximum milliseconds to wait for the camera analysis executor to
- *           terminate during [io.github.kmpfacelink.api.FaceTracker.release]. Android only.
- * @property maxFaces Maximum number of faces to detect simultaneously (1–[MAX_FACES]).
- *           Android (MediaPipe): fully supported — up to [MAX_FACES] faces tracked at once.
- *           iOS (ARKit): ARKit only supports one face; values greater than 1 have no effect.
- *           Default is 1 (single-face mode).
- * @property minDetectionConfidence Minimum confidence score for face detection to be considered
- *           successful. Android (MediaPipe) only — has no effect on iOS (ARKit). Must be in 0.0..1.0.
- * @property minTrackingConfidence Minimum confidence score for face tracking to be considered
- *           successful. Android (MediaPipe) only — has no effect on iOS (ARKit). Must be in 0.0..1.0.
- * @property minPresenceConfidence Minimum confidence score for face presence to be considered
- *           valid. Android (MediaPipe) only — has no effect on iOS (ARKit). Must be in 0.0..1.0.
- * @property thermalPolicy Policy controlling how the tracker adapts to thermal pressure.
- *           Defaults to [ThermalPolicy.Disabled].
- *           **Ignored when [powerMode] is set** — [PowerMode] provides a higher-level
- *           abstraction that subsumes thermal policy.
- * @property powerMode Power management profile controlling frame rate, thermal adaptation,
- *           idle detection, and battery-aware downgrade. When non-null, overrides [thermalPolicy].
- *           Defaults to null (legacy behavior using [thermalPolicy]).
- * @property lowBatteryThreshold Battery level (0.0–1.0) at which the tracker auto-downgrades
- *           the power mode by one step. Only effective when [powerMode] is set.
- *           Defaults to 0.15 (15%).
- * @property enableIdleDetection Whether to reduce frame rate when the face is stationary.
- *           Only effective when [powerMode] is set. Defaults to true.
- * @property inferenceDelegate Preferred hardware accelerator for ML model inference.
- *           Android (MediaPipe) and Wasm/Web: controls GPU vs CPU delegate selection.
- *           Has no effect on iOS (ARKit).
- *           Defaults to [InferenceDelegate.AUTO] (GPU with CPU fallback).
- * @property analysisWidth Width of the camera analysis stream in pixels. Android only.
- *           Lower values improve performance at the cost of accuracy. Defaults to 640.
- * @property analysisHeight Height of the camera analysis stream in pixels. Android only.
- *           Lower values improve performance at the cost of accuracy. Defaults to 480.
+ * @property detectionConfig Detection confidence thresholds and face count limit.
+ *           See [DetectionConfig].
+ * @property powerConfig Power and thermal management configuration. See [PowerConfig].
+ * @property performanceConfig Performance and resource control configuration.
+ *           See [PerformanceConfig].
  * @property frameSkipConfig Configuration for confidence-guided frame skipping.
  *           When enabled, the tracker evaluates per-frame confidence and movement delta to
  *           decide whether full detection is needed or lightweight interpolation can be used.
@@ -83,19 +174,9 @@ public data class FaceTrackerConfig(
     val calibrationConfig: CalibrationConfig = CalibrationConfig(),
     val cameraFacing: CameraFacing = CameraFacing.FRONT,
     val modelAssetPath: String = "models/face_landmarker_v2_with_blendshapes.task",
-    val stopDrainDelayMs: Long = 100L,
-    val releaseTimeoutMs: Long = 500L,
-    val maxFaces: Int = 1,
-    val minDetectionConfidence: Float = DEFAULT_CONFIDENCE,
-    val minTrackingConfidence: Float = DEFAULT_CONFIDENCE,
-    val minPresenceConfidence: Float = DEFAULT_CONFIDENCE,
-    val thermalPolicy: ThermalPolicy = ThermalPolicy.Disabled,
-    val powerMode: PowerMode? = null,
-    val lowBatteryThreshold: Float = DEFAULT_LOW_BATTERY_THRESHOLD,
-    val enableIdleDetection: Boolean = true,
-    val inferenceDelegate: InferenceDelegate = InferenceDelegate.AUTO,
-    val analysisWidth: Int = DEFAULT_ANALYSIS_WIDTH,
-    val analysisHeight: Int = DEFAULT_ANALYSIS_HEIGHT,
+    val detectionConfig: DetectionConfig = DetectionConfig(),
+    val powerConfig: PowerConfig = PowerConfig(),
+    val performanceConfig: PerformanceConfig = PerformanceConfig(),
     val frameSkipConfig: FrameSkipConfig = FrameSkipConfig(),
     val activeBlendShapes: Set<BlendShape> = ALL_BLEND_SHAPES,
 ) {
@@ -103,33 +184,65 @@ public data class FaceTrackerConfig(
         require(activeBlendShapes.isNotEmpty()) {
             "activeBlendShapes must not be empty"
         }
-        require(maxFaces in 1..MAX_FACES) {
-            "maxFaces must be in 1..$MAX_FACES, was $maxFaces"
-        }
-        require(minDetectionConfidence in 0f..1f) {
-            "minDetectionConfidence must be in 0.0..1.0, was $minDetectionConfidence"
-        }
-        require(minTrackingConfidence in 0f..1f) {
-            "minTrackingConfidence must be in 0.0..1.0, was $minTrackingConfidence"
-        }
-        require(minPresenceConfidence in 0f..1f) {
-            "minPresenceConfidence must be in 0.0..1.0, was $minPresenceConfidence"
-        }
-        require(lowBatteryThreshold in 0f..1f) {
-            "lowBatteryThreshold must be in 0.0..1.0, was $lowBatteryThreshold"
-        }
-        require(analysisWidth > 0) { "analysisWidth must be positive, was $analysisWidth" }
-        require(analysisHeight > 0) { "analysisHeight must be positive, was $analysisHeight" }
     }
+
+    // ── Convenience delegating accessors (backward compatibility) ──
+
+    /** @see DetectionConfig.maxFaces */
+    public val maxFaces: Int get() = detectionConfig.maxFaces
+
+    /** @see DetectionConfig.minDetectionConfidence */
+    public val minDetectionConfidence: Float get() = detectionConfig.minDetectionConfidence
+
+    /** @see DetectionConfig.minTrackingConfidence */
+    public val minTrackingConfidence: Float get() = detectionConfig.minTrackingConfidence
+
+    /** @see DetectionConfig.minPresenceConfidence */
+    public val minPresenceConfidence: Float get() = detectionConfig.minPresenceConfidence
+
+    /** @see PowerConfig.thermalPolicy */
+    public val thermalPolicy: ThermalPolicy get() = powerConfig.thermalPolicy
+
+    /** @see PowerConfig.powerMode */
+    public val powerMode: PowerMode? get() = powerConfig.powerMode
+
+    /** @see PowerConfig.lowBatteryThreshold */
+    public val lowBatteryThreshold: Float get() = powerConfig.lowBatteryThreshold
+
+    /** @see PowerConfig.enableIdleDetection */
+    public val enableIdleDetection: Boolean get() = powerConfig.enableIdleDetection
+
+    /** @see PerformanceConfig.analysisWidth */
+    public val analysisWidth: Int get() = performanceConfig.analysisWidth
+
+    /** @see PerformanceConfig.analysisHeight */
+    public val analysisHeight: Int get() = performanceConfig.analysisHeight
+
+    /** @see PerformanceConfig.inferenceDelegate */
+    public val inferenceDelegate: InferenceDelegate get() = performanceConfig.inferenceDelegate
+
+    /** @see PerformanceConfig.stopDrainDelayMs */
+    public val stopDrainDelayMs: Long get() = performanceConfig.stopDrainDelayMs
+
+    /** @see PerformanceConfig.releaseTimeoutMs */
+    public val releaseTimeoutMs: Long get() = performanceConfig.releaseTimeoutMs
 
     public companion object {
         /** Maximum number of faces that can be tracked simultaneously. */
         public const val MAX_FACES: Int = 4
 
         /** Default MediaPipe confidence threshold. */
+        @Deprecated(
+            "Use DetectionConfig.DEFAULT_CONFIDENCE instead",
+            ReplaceWith("DetectionConfig.DEFAULT_CONFIDENCE"),
+        )
         public const val DEFAULT_CONFIDENCE: Float = 0.5f
 
         /** Default battery level at which power mode auto-downgrades (15%). */
+        @Deprecated(
+            "Use PowerConfig.DEFAULT_LOW_BATTERY_THRESHOLD instead",
+            ReplaceWith("PowerConfig.DEFAULT_LOW_BATTERY_THRESHOLD"),
+        )
         public const val DEFAULT_LOW_BATTERY_THRESHOLD: Float = 0.15f
 
         /** Default camera analysis stream width in pixels. */

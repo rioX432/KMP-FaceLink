@@ -1,5 +1,6 @@
 package io.github.kmpfacelink
 
+import io.github.kmpfacelink.model.DetectionConfig
 import io.github.kmpfacelink.model.DeviceCapabilityProfile
 import io.github.kmpfacelink.model.DeviceTier
 import io.github.kmpfacelink.model.FaceTrackerConfig
@@ -51,8 +52,10 @@ class QualityPresetTest {
     fun applyToPreservesNonOverriddenFields() {
         val baseFloat = 0.9f
         val base = FaceTrackerConfig(
-            maxFaces = MAX_FACES_TEST,
-            minDetectionConfidence = baseFloat,
+            detectionConfig = DetectionConfig(
+                maxFaces = MAX_FACES_TEST,
+                minDetectionConfidence = baseFloat,
+            ),
         )
         val result = QualityPreset.Low.applyTo(base)
         assertEquals(MAX_FACES_TEST, result.maxFaces)

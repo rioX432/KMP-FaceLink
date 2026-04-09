@@ -4,7 +4,10 @@ import io.github.kmpfacelink.model.ALL_BLEND_SHAPES
 import io.github.kmpfacelink.model.BlendShape
 import io.github.kmpfacelink.model.CalibrationConfig
 import io.github.kmpfacelink.model.CameraFacing
+import io.github.kmpfacelink.model.DetectionConfig
 import io.github.kmpfacelink.model.FaceTrackerConfig
+import io.github.kmpfacelink.model.PerformanceConfig
+import io.github.kmpfacelink.model.PowerConfig
 import io.github.kmpfacelink.model.PowerMode
 import io.github.kmpfacelink.model.SmoothingConfig
 import kotlin.test.Test
@@ -86,7 +89,9 @@ class FaceTrackerConfigTest {
     @Test
     fun maxFacesAcceptsValidRange() {
         for (n in 1..FaceTrackerConfig.MAX_FACES) {
-            val config = FaceTrackerConfig(maxFaces = n)
+            val config = FaceTrackerConfig(
+                detectionConfig = DetectionConfig(maxFaces = n),
+            )
             assertEquals(n, config.maxFaces)
         }
     }
@@ -94,7 +99,7 @@ class FaceTrackerConfigTest {
     @Test
     fun maxFacesRejectsZero() {
         try {
-            FaceTrackerConfig(maxFaces = 0)
+            DetectionConfig(maxFaces = 0)
             fail("Expected IllegalArgumentException for maxFaces = 0")
         } catch (e: IllegalArgumentException) {
             assertTrue(checkNotNull(e.message).contains("maxFaces"))
@@ -104,7 +109,7 @@ class FaceTrackerConfigTest {
     @Test
     fun maxFacesRejectsValueAboveMax() {
         try {
-            FaceTrackerConfig(maxFaces = FaceTrackerConfig.MAX_FACES + 1)
+            DetectionConfig(maxFaces = FaceTrackerConfig.MAX_FACES + 1)
             fail("Expected IllegalArgumentException for maxFaces > MAX_FACES")
         } catch (e: IllegalArgumentException) {
             assertTrue(checkNotNull(e.message).contains("maxFaces"))
@@ -124,7 +129,9 @@ class FaceTrackerConfigTest {
 
     @Test
     fun powerModeCanBeSet() {
-        val config = FaceTrackerConfig(powerMode = PowerMode.BALANCED)
+        val config = FaceTrackerConfig(
+            powerConfig = PowerConfig(powerMode = PowerMode.BALANCED),
+        )
         assertEquals(PowerMode.BALANCED, config.powerMode)
     }
 
@@ -137,7 +144,7 @@ class FaceTrackerConfigTest {
     @Test
     fun lowBatteryThresholdRejectsNegative() {
         try {
-            FaceTrackerConfig(lowBatteryThreshold = -0.1f)
+            PowerConfig(lowBatteryThreshold = -0.1f)
             fail("Expected IllegalArgumentException")
         } catch (e: IllegalArgumentException) {
             assertTrue(checkNotNull(e.message).contains("lowBatteryThreshold"))
@@ -147,7 +154,7 @@ class FaceTrackerConfigTest {
     @Test
     fun lowBatteryThresholdRejectsAboveOne() {
         try {
-            FaceTrackerConfig(lowBatteryThreshold = 1.1f)
+            PowerConfig(lowBatteryThreshold = 1.1f)
             fail("Expected IllegalArgumentException")
         } catch (e: IllegalArgumentException) {
             assertTrue(checkNotNull(e.message).contains("lowBatteryThreshold"))
@@ -162,7 +169,9 @@ class FaceTrackerConfigTest {
 
     @Test
     fun enableIdleDetectionCanBeDisabled() {
-        val config = FaceTrackerConfig(enableIdleDetection = false)
+        val config = FaceTrackerConfig(
+            powerConfig = PowerConfig(enableIdleDetection = false),
+        )
         assertFalse(config.enableIdleDetection)
     }
 
@@ -187,6 +196,43 @@ class FaceTrackerConfigTest {
         } catch (e: IllegalArgumentException) {
             assertTrue(checkNotNull(e.message).contains("activeBlendShapes"))
         }
+    }
+
+    @Test
+    fun nestedDetectionConfigAccessedViaConvenience() {
+        val detection = DetectionConfig(
+            minDetectionConfidence = 0.8f,
+            maxFaces = 3,
+        )
+        val config = FaceTrackerConfig(detectionConfig = detection)
+        assertEquals(0.8f, config.minDetectionConfidence)
+        assertEquals(3, config.maxFaces)
+    }
+
+    @Test
+    fun nestedPowerConfigAccessedViaConvenience() {
+        val power = PowerConfig(
+            powerMode = PowerMode.HIGH,
+            lowBatteryThreshold = 0.2f,
+        )
+        val config = FaceTrackerConfig(powerConfig = power)
+        assertEquals(PowerMode.HIGH, config.powerMode)
+        assertEquals(0.2f, config.lowBatteryThreshold)
+    }
+
+    @Test
+    fun nestedPerformanceConfigAccessedViaConvenience() {
+        val perf = PerformanceConfig(
+            analysisWidth = 320,
+            analysisHeight = 240,
+            stopDrainDelayMs = 200L,
+            releaseTimeoutMs = 1000L,
+        )
+        val config = FaceTrackerConfig(performanceConfig = perf)
+        assertEquals(320, config.analysisWidth)
+        assertEquals(240, config.analysisHeight)
+        assertEquals(200L, config.stopDrainDelayMs)
+        assertEquals(1000L, config.releaseTimeoutMs)
     }
 }
 

@@ -5,6 +5,7 @@ import io.github.kmpfacelink.model.FaceTrackerConfig
 import io.github.kmpfacelink.model.HandTrackerConfig
 import io.github.kmpfacelink.model.HolisticTrackerConfig
 import io.github.kmpfacelink.model.InferenceDelegate
+import io.github.kmpfacelink.model.PerformanceConfig
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -35,34 +36,46 @@ class InferenceDelegateTest {
 
     @Test
     fun faceTrackerConfigAcceptsGpu() {
-        val config = FaceTrackerConfig(inferenceDelegate = InferenceDelegate.GPU)
+        val config = FaceTrackerConfig(
+            performanceConfig = PerformanceConfig(inferenceDelegate = InferenceDelegate.GPU),
+        )
         assertEquals(InferenceDelegate.GPU, config.inferenceDelegate)
     }
 
     @Test
     fun faceTrackerConfigAcceptsCpu() {
-        val config = FaceTrackerConfig(inferenceDelegate = InferenceDelegate.CPU)
+        val config = FaceTrackerConfig(
+            performanceConfig = PerformanceConfig(inferenceDelegate = InferenceDelegate.CPU),
+        )
         assertEquals(InferenceDelegate.CPU, config.inferenceDelegate)
     }
 
     @Test
     fun faceTrackerConfigAcceptsNpu() {
-        val config = FaceTrackerConfig(inferenceDelegate = InferenceDelegate.NPU)
+        val config = FaceTrackerConfig(
+            performanceConfig = PerformanceConfig(inferenceDelegate = InferenceDelegate.NPU),
+        )
         assertEquals(InferenceDelegate.NPU, config.inferenceDelegate)
     }
 
     @Test
     fun faceTrackerConfigAcceptsNnapi() {
         @Suppress("DEPRECATION")
-        val config = FaceTrackerConfig(inferenceDelegate = InferenceDelegate.NNAPI)
+        val config = FaceTrackerConfig(
+            performanceConfig = PerformanceConfig(inferenceDelegate = InferenceDelegate.NNAPI),
+        )
         @Suppress("DEPRECATION")
         assertEquals(InferenceDelegate.NNAPI, config.inferenceDelegate)
     }
 
     @Test
     fun faceTrackerConfigPreservedOnCopy() {
-        val original = FaceTrackerConfig(inferenceDelegate = InferenceDelegate.GPU)
-        val copy = original.copy(maxFaces = 2)
+        val original = FaceTrackerConfig(
+            performanceConfig = PerformanceConfig(inferenceDelegate = InferenceDelegate.GPU),
+        )
+        val copy = original.copy(
+            detectionConfig = original.detectionConfig.copy(maxFaces = 2),
+        )
         assertEquals(InferenceDelegate.GPU, copy.inferenceDelegate)
         assertEquals(2, copy.maxFaces)
     }

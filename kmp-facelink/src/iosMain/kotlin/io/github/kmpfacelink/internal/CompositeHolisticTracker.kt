@@ -45,7 +45,13 @@ internal class CompositeHolisticTracker(
         }
 
     private val faceTracker = if (config.enableFace) {
-        ARKitFaceTracker(config.faceConfig.copy(thermalPolicy = config.thermalPolicy))
+        ARKitFaceTracker(
+            config.faceConfig.copy(
+                powerConfig = config.faceConfig.powerConfig.copy(
+                    thermalPolicy = config.thermalPolicy,
+                ),
+            ),
+        )
     } else {
         null
     }

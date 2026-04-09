@@ -1,5 +1,6 @@
 package io.github.kmpfacelink.util
 
+import io.github.kmpfacelink.model.InferenceDelegate
 import io.github.kmpfacelink.model.PowerMode
 import io.github.kmpfacelink.model.ThermalState
 import kotlinx.coroutines.flow.StateFlow
@@ -18,6 +19,8 @@ private const val DEFAULT_LOW_BATTERY_THRESHOLD = 0.15f
  * @param batteryMonitor Source of battery level changes.
  * @param lowBatteryThreshold Battery level (0.0–1.0) at which auto-downgrade occurs.
  * @param enableIdleDetection Whether idle face detection reduces frame rate.
+ * @param npuAvailable Whether the device has an NPU capable of ML inference.
+ *        Used by [recommendedDelegate] to suggest power-efficient delegate choices.
  */
 @OptIn(ExperimentalAtomicApi::class)
 internal class PowerModeManager(
@@ -26,6 +29,7 @@ internal class PowerModeManager(
     private val batteryMonitor: BatteryMonitor,
     private val lowBatteryThreshold: Float = DEFAULT_LOW_BATTERY_THRESHOLD,
     private val enableIdleDetection: Boolean = true,
+    private val npuAvailable: Boolean = false,
 ) {
     private val lastProcessedMs = AtomicLong(-1_000_000L)
     private val idleDetector = if (enableIdleDetection) IdleDetector() else null
@@ -102,6 +106,31 @@ internal class PowerModeManager(
         return thermalMonitor.thermalState.value.ordinal >= ThermalState.SERIOUS.ordinal
     }
 
+    /**
+     * Returns the recommended [InferenceDelegate] based on NPU availability,
+     * current power mode, and thermal state.
+     *
+     * NPU is preferred when available and power efficiency matters:
+     * - [PowerMode.LOW_POWER]: NPU (most power-efficient, 3-5x over GPU)
+     * - [PowerMode.BALANCED]: NPU (good efficiency without sacrificing quality)
+     * - [PowerMode.HIGH] at [ThermalState.SERIOUS]+: NPU (less heat than GPU)
+     * - [PowerMode.HIGH] at nominal thermal: GPU (maximum throughput)
+     *
+     * When no NPU is available, falls back to GPU (or CPU if thermal is critical
+     * and effective mode has been downgraded to LOW_POWER).
+     *
+     * Note: The MediaPipe NPU delegate is not yet functional. This method
+     * expresses the *intent* so that when NPU inference becomes available,
+     * the power-aware routing is already in place.
+     */
+    fun recommendedDelegate(): InferenceDelegate {
+        return recommendDelegate(
+            effectiveMode,
+            thermalMonitor.thermalState.value,
+            npuAvailable,
+        )
+    }
+
     /** Releases resources held by the manager. */
     fun release() {
         idleDetector?.reset()
@@ -116,6 +145,36 @@ internal class PowerModeManager(
         private const val BALANCED_FAIR_DENOM = 6
         private const val TWO_THIRDS_NUMER = 2
         private const val TWO_THIRDS_DENOM = 3
+
+        /**
+         * Determines the recommended [InferenceDelegate] based on power mode,
+         * thermal state, and NPU availability.
+         *
+         * When [npuAvailable] is true:
+         * - LOW_POWER / BALANCED: always NPU (power efficiency priority)
+         * - HIGH + SERIOUS/CRITICAL thermal: NPU (reduces heat generation)
+         * - HIGH + NOMINAL/FAIR thermal: GPU (maximum throughput)
+         *
+         * When [npuAvailable] is false:
+         * - Always GPU (AUTO behavior — GPU with CPU fallback)
+         */
+        internal fun recommendDelegate(
+            mode: PowerMode,
+            thermal: ThermalState,
+            npuAvailable: Boolean,
+        ): InferenceDelegate {
+            if (!npuAvailable) return InferenceDelegate.AUTO
+
+            return when (mode) {
+                PowerMode.LOW_POWER -> InferenceDelegate.NPU
+                PowerMode.BALANCED -> InferenceDelegate.NPU
+                PowerMode.HIGH -> if (thermal.ordinal >= ThermalState.SERIOUS.ordinal) {
+                    InferenceDelegate.NPU
+                } else {
+                    InferenceDelegate.GPU
+                }
+            }
+        }
 
         internal fun downgradeMode(mode: PowerMode): PowerMode = when (mode) {
             PowerMode.HIGH -> PowerMode.BALANCED

@@ -245,13 +245,16 @@ For VTuber streaming sessions lasting hours, NPU's power efficiency is the prima
 2. **Monitor LiteRT GA** expected at Google I/O May 2026
 3. **Track MediaPipe GitHub issue #5744** for NPU roadmap updates
 
-### 7.2 Phase 1: NPU Capability Detection + Config (Low Effort)
+### 7.2 Phase 1: NPU Capability Detection + Config (Low Effort) — DONE
 
-Same as previously documented:
-- Add `NpuCapabilityDetector` for QNN/NeuroPilot runtime detection
-- Add `InferenceDelegate` enum (`AUTO`, `CPU`, `GPU`, `NPU`) to tracker configs
-- Update `PowerModeManager` to recommend NPU in `LOW_POWER`/`BALANCED` modes
-- No actual NPU inference yet
+Implemented in #692:
+- ~~Add `NpuCapabilityDetector` for QNN/NeuroPilot runtime detection~~ Already exists as `NpuVendorDetector` + `HardwareCapabilityDetector`
+- ~~Add `InferenceDelegate` enum~~ Already exists with `AUTO`, `CPU`, `GPU`, `NPU`, `NNAPI`
+- `HardwareCapabilityDetector.Capabilities.hasNpuCapability` convenience property added
+- `PowerModeManager.recommendedDelegate()` returns NPU-aware delegate recommendation based on power mode, thermal state, and NPU availability
+- `PowerModeManager.recommendDelegate()` companion function for testable static logic
+- `DelegateResolver.resolveNpu()` enhanced with vendor-specific readiness logging
+- No actual NPU inference yet — MediaPipe NPU delegate still pending
 
 ### 7.3 Phase 2: Adopt MediaPipe NPU Delegate OR Begin LiteRT Pipeline
 

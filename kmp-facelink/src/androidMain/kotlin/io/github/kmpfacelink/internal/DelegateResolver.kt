@@ -2,6 +2,7 @@ package io.github.kmpfacelink.internal
 
 import com.google.mediapipe.tasks.core.Delegate
 import io.github.kmpfacelink.model.InferenceDelegate
+import io.github.kmpfacelink.model.NpuVendor
 import io.github.kmpfacelink.util.FaceLinkLogger
 
 private const val TAG = "DelegateResolver"
@@ -18,9 +19,10 @@ internal object DelegateResolver {
     /**
      * Returns an ordered fallback chain of [Delegate] values for the given [InferenceDelegate].
      *
-     * - [InferenceDelegate.AUTO] / [InferenceDelegate.GPU]: GPU → CPU
-     * - [InferenceDelegate.NPU]: GPU → CPU (NPU delegate pending MediaPipe support)
-     * - [InferenceDelegate.NNAPI]: GPU → CPU (deprecated)
+     * - [InferenceDelegate.AUTO] / [InferenceDelegate.GPU]: GPU -> CPU
+     * - [InferenceDelegate.NPU]: logs NPU readiness, then GPU -> CPU
+     *   (NPU delegate pending MediaPipe support — will be prepended when available)
+     * - [InferenceDelegate.NNAPI]: GPU -> CPU (deprecated)
      * - [InferenceDelegate.CPU]: CPU only
      */
     fun resolve(preference: InferenceDelegate): List<Delegate> {
@@ -35,7 +37,7 @@ internal object DelegateResolver {
                 FaceLinkLogger.w(
                     TAG,
                     "NNAPI delegate is deprecated (Android 15+). Use NPU instead. " +
-                        "Falling back to GPU → CPU.",
+                        "Falling back to GPU -> CPU.",
                 )
                 listOf(Delegate.GPU, Delegate.CPU)
             }
@@ -45,18 +47,31 @@ internal object DelegateResolver {
     /**
      * Resolves the NPU delegate fallback chain.
      *
-     * MediaPipe Tasks Vision does not yet expose an NPU delegate value in its
-     * [Delegate] enum. When MediaPipe adds NPU support, this method will be
-     * updated to include the NPU delegate at the head of the chain.
-     * Until then, NPU preference falls back to GPU → CPU.
+     * Detects the device's NPU vendor and logs readiness status. MediaPipe Tasks
+     * Vision does not yet expose an NPU delegate value in its [Delegate] enum.
+     * When MediaPipe adds NPU support (expected mid-2026), this method will
+     * prepend the NPU delegate at the head of the chain.
+     *
+     * Until then, NPU preference falls back to GPU -> CPU, but the vendor
+     * detection confirms whether the device *would* benefit from NPU once
+     * the delegate becomes available.
      */
     private fun resolveNpu(): List<Delegate> {
         val vendor = NpuVendorDetector.detect()
-        FaceLinkLogger.d(
-            TAG,
-            "NPU requested (vendor=$vendor). MediaPipe NPU delegate not yet available; " +
-                "falling back to GPU → CPU.",
-        )
+        if (vendor != NpuVendor.NONE) {
+            FaceLinkLogger.d(
+                TAG,
+                "NPU requested — $vendor NPU detected. " +
+                    "MediaPipe NPU delegate not yet available; using GPU -> CPU. " +
+                    "NPU will be used automatically when MediaPipe ships the delegate.",
+            )
+        } else {
+            FaceLinkLogger.w(
+                TAG,
+                "NPU requested but no supported NPU vendor detected. " +
+                    "Falling back to GPU -> CPU.",
+            )
+        }
         // NPU delegate will be prepended when MediaPipe exposes Delegate.NPU
         // for supported vendors (Qualcomm QNN, MediaTek NeuroPilot).
         return listOf(Delegate.GPU, Delegate.CPU)

@@ -1,0 +1,77 @@
+{
+  "name": "react-native-kmp-facelink",
+  "version": "0.1.0",
+  "description": "Real-time face and hand tracking for React Native via KMP-FaceLink. Provides ARKit-compatible 52 blend shapes and hand landmarks at 60fps using a zero-copy binary polling model.",
+  "main": "lib/commonjs/index.js",
+  "module": "lib/module/index.js",
+  "types": "lib/typescript/src/index.d.ts",
+  "react-native": "src/index.ts",
+  "source": "src/index.ts",
+  "files": [
+    "src",
+    "lib",
+    "android",
+    "ios",
+    "react-native-kmp-facelink.podspec",
+    "!**/__tests__",
+    "!**/__fixtures__",
+    "!**/__mocks__",
+    "!android/build",
+    "!ios/build"
+  ],
+  "scripts": {
+    "typescript": "tsc --noEmit",
+    "build": "bob build"
+  },
+  "keywords": [
+    "react-native",
+    "face-tracking",
+    "hand-tracking",
+    "blend-shapes",
+    "arkit",
+    "mediapipe",
+    "kmp",
+    "kotlin-multiplatform",
+    "vtuber",
+    "live2d",
+    "avatar"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/rioX432/KMP-FaceLink.git",
+    "directory": "react-native-kmp-facelink"
+  },
+  "author": "KMP-FaceLink contributors",
+  "license": "Apache-2.0",
+  "homepage": "https://github.com/rioX432/KMP-FaceLink#readme",
+  "peerDependencies": {
+    "react": ">=18.0.0",
+    "react-native": ">=0.82.0"
+  },
+  "devDependencies": {
+    "@types/react": "^18.0.0",
+    "react": "^18.0.0",
+    "react-native": "^0.83.0",
+    "react-native-builder-bob": "^0.35.0",
+    "typescript": "^5.0.0"
+  },
+  "codegenConfig": {
+    "name": "RNFaceLinkSpec",
+    "type": "modules",
+    "jsSrcsDir": "src"
+  },
+  "react-native-builder-bob": {
+    "source": "src",
+    "output": "lib",
+    "targets": [
+      "commonjs",
+      "module",
+      [
+        "typescript",
+        {
+          "project": "tsconfig.build.json"
+        }
+      ]
+    ]
+  }
+}

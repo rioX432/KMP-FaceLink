@@ -1,6 +1,7 @@
 package io.github.kmpfacelink
 
 import io.github.kmpfacelink.model.BlendShape
+import io.github.kmpfacelink.model.InferenceDelegate
 import io.github.kmpfacelink.model.PowerMode
 import io.github.kmpfacelink.model.ThermalState
 import io.github.kmpfacelink.util.BatteryMonitor
@@ -199,5 +200,80 @@ class PowerModeManagerTest {
     @Test
     fun computeThermalAdjustedFpsLowPowerNominal() {
         assertEquals(15, PowerModeManager.computeThermalAdjustedFps(PowerMode.LOW_POWER, ThermalState.NOMINAL))
+    }
+
+    // ── recommendDelegate tests ──
+
+    @Test
+    fun recommendDelegateNoNpuReturnsAuto() {
+        assertEquals(
+            InferenceDelegate.AUTO,
+            PowerModeManager.recommendDelegate(PowerMode.BALANCED, ThermalState.NOMINAL, npuAvailable = false),
+        )
+    }
+
+    @Test
+    fun recommendDelegateLowPowerWithNpuReturnsNpu() {
+        assertEquals(
+            InferenceDelegate.NPU,
+            PowerModeManager.recommendDelegate(PowerMode.LOW_POWER, ThermalState.NOMINAL, npuAvailable = true),
+        )
+    }
+
+    @Test
+    fun recommendDelegateBalancedWithNpuReturnsNpu() {
+        assertEquals(
+            InferenceDelegate.NPU,
+            PowerModeManager.recommendDelegate(PowerMode.BALANCED, ThermalState.NOMINAL, npuAvailable = true),
+        )
+    }
+
+    @Test
+    fun recommendDelegateHighNominalWithNpuReturnsGpu() {
+        assertEquals(
+            InferenceDelegate.GPU,
+            PowerModeManager.recommendDelegate(PowerMode.HIGH, ThermalState.NOMINAL, npuAvailable = true),
+        )
+    }
+
+    @Test
+    fun recommendDelegateHighSeriousWithNpuReturnsNpu() {
+        assertEquals(
+            InferenceDelegate.NPU,
+            PowerModeManager.recommendDelegate(PowerMode.HIGH, ThermalState.SERIOUS, npuAvailable = true),
+        )
+    }
+
+    @Test
+    fun recommendDelegateHighCriticalWithNpuReturnsNpu() {
+        assertEquals(
+            InferenceDelegate.NPU,
+            PowerModeManager.recommendDelegate(PowerMode.HIGH, ThermalState.CRITICAL, npuAvailable = true),
+        )
+    }
+
+    @Test
+    fun recommendDelegateHighFairWithNpuReturnsGpu() {
+        assertEquals(
+            InferenceDelegate.GPU,
+            PowerModeManager.recommendDelegate(PowerMode.HIGH, ThermalState.FAIR, npuAvailable = true),
+        )
+    }
+
+    @Test
+    fun recommendedDelegateInstanceMethod() {
+        val manager = PowerModeManager(
+            powerMode = PowerMode.BALANCED,
+            thermalMonitor = thermal,
+            batteryMonitor = battery,
+            npuAvailable = true,
+        )
+        assertEquals(InferenceDelegate.NPU, manager.recommendedDelegate())
+    }
+
+    @Test
+    fun recommendedDelegateWithoutNpu() {
+        val manager = createManager(mode = PowerMode.BALANCED)
+        assertEquals(InferenceDelegate.AUTO, manager.recommendedDelegate())
     }
 }

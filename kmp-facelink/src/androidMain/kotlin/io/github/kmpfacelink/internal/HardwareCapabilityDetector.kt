@@ -44,7 +44,15 @@ internal object HardwareCapabilityDetector {
         @Deprecated("NNAPI is deprecated in Android 15 (API 35)")
         val nnapiAvailable: Boolean,
         val androidApiLevel: Int,
-    )
+    ) {
+        /**
+         * Whether a supported NPU vendor (Qualcomm QNN or MediaTek NeuroPilot) was detected.
+         *
+         * Note: This indicates hardware capability only. The MediaPipe NPU delegate is not
+         * yet functional, so NPU inference currently falls back to GPU -> CPU.
+         */
+        val hasNpuCapability: Boolean get() = npuVendor != NpuVendor.NONE
+    }
 
     /**
      * Detects hardware capabilities for the current device.

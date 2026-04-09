@@ -30,7 +30,13 @@ import io.github.kmpfacelink.stream.writeLong
  */
 public object DataChannelMessage {
 
-    /** Magic byte identifying a DataChannel tracking message. */
+    /**
+     * Magic byte identifying a DataChannel tracking message.
+     *
+     * `0xFC` stands for **F**aceLink **C**hannel. Receivers should check this byte
+     * first to distinguish FaceLink tracking messages from other DataChannel traffic
+     * on shared connections.
+     */
     internal const val MAGIC: Byte = 0xFC.toByte()
 
     /** Current envelope version. */

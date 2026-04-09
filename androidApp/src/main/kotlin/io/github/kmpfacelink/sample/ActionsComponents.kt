@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -23,7 +24,6 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import io.github.kmpfacelink.actions.emotion.Emotion
 import io.github.kmpfacelink.actions.emotion.EmotionResult
 import io.github.kmpfacelink.actions.record.TrackingSession
@@ -35,7 +35,7 @@ internal fun EmotionBars(result: EmotionResult?) {
         Text(
             text = "No emotion data",
             color = SampleColors.TextTertiary,
-            fontSize = 11.sp,
+            style = MaterialTheme.typography.labelSmall,
         )
         return
     }
@@ -57,8 +57,7 @@ internal fun EmotionBars(result: EmotionResult?) {
             Text(
                 text = emotion.name,
                 color = if (isDominant) SampleColors.BarLow else SampleColors.TextTertiary,
-                fontSize = 10.sp,
-                fontFamily = FontFamily.Monospace,
+                style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Monospace),
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
                 modifier = Modifier
@@ -107,8 +106,7 @@ internal fun TriggerLeds(activeTriggers: List<String>) {
                 Text(
                     text = name,
                     color = SampleColors.TextTertiary,
-                    fontSize = 9.sp,
-                    fontFamily = FontFamily.Monospace,
+                    style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Monospace),
                 )
             }
         }
@@ -138,8 +136,7 @@ internal fun RecordingControls(
             Text(
                 text = "${s.frameCount} frames, ${s.durationMs}ms, %.1f fps".format(s.averageFps),
                 color = SampleColors.TextSecondary,
-                fontSize = 11.sp,
-                fontFamily = FontFamily.Monospace,
+                style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Monospace),
             )
         }
     }

@@ -132,7 +132,12 @@ public class ActionSystem : Releasable {
      * need a future frame to advance). Refactoring to eliminate breaks would
      * obscure the state-machine semantics.
      */
-    @Suppress("LoopWithTooManyJumpStatements") // State-machine loop — breaks are phase exit points
+    // Suppress justified: the do-while loop implements a state machine where each `break`
+    // is a deliberate phase-exit point (ACTIVE and COOLDOWN need a future frame to advance).
+    // Extracting a sealed-class state pattern was evaluated but rejected because it would
+    // split the same-frame phase-progression logic across multiple classes, obscuring the
+    // invariant that IDLE->PENDING->ACTIVE can collapse into a single frame when holdTimeMs=0.
+    @Suppress("LoopWithTooManyJumpStatements")
     private fun processBinding(
         binding: ActionBinding,
         state: TriggerState,

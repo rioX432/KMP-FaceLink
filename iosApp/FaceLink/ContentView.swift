@@ -73,6 +73,8 @@ struct ModeChip: View {
                 )
                 .frame(minHeight: 44)
         }
+        .accessibilityLabel("\(title) mode")
+        .accessibilityAddTraits(isSelected ? .isSelected : [])
     }
 }
 

@@ -231,20 +231,6 @@ public data class FaceTrackerConfig(
         /** Maximum number of faces that can be tracked simultaneously. */
         public const val MAX_FACES: Int = 4
 
-        /** Default MediaPipe confidence threshold. */
-        @Deprecated(
-            "Use DetectionConfig.DEFAULT_CONFIDENCE instead",
-            ReplaceWith("DetectionConfig.DEFAULT_CONFIDENCE"),
-        )
-        public const val DEFAULT_CONFIDENCE: Float = 0.5f
-
-        /** Default battery level at which power mode auto-downgrades (15%). */
-        @Deprecated(
-            "Use PowerConfig.DEFAULT_LOW_BATTERY_THRESHOLD instead",
-            ReplaceWith("PowerConfig.DEFAULT_LOW_BATTERY_THRESHOLD"),
-        )
-        public const val DEFAULT_LOW_BATTERY_THRESHOLD: Float = 0.15f
-
         /** Default camera analysis stream width in pixels. */
         public const val DEFAULT_ANALYSIS_WIDTH: Int = 640
 

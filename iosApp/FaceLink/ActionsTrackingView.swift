@@ -96,6 +96,7 @@ struct EmotionBarsView: View {
                 HStack(spacing: 4) {
                     Text(emotion)
                         .font(.system(.caption2, design: .monospaced))
+                        .dynamicTypeSize(...DynamicTypeSize.accessibility1)
                         .foregroundStyle(isDominant ? .green : .secondary)
                         .lineLimit(1)
                         .truncationMode(.tail)
@@ -134,6 +135,7 @@ struct TriggerLedsView: View {
                         .frame(width: ledSize, height: ledSize)
                     Text(name)
                         .font(.system(.caption2, design: .monospaced))
+                        .dynamicTypeSize(...DynamicTypeSize.accessibility1)
                         .foregroundStyle(.secondary)
                         .lineLimit(1)
                         .truncationMode(.tail)
@@ -167,6 +169,7 @@ struct RecordingControlsView: View {
                 if let info = sessionInfo {
                     Text(info)
                         .font(.system(.caption2, design: .monospaced))
+                        .dynamicTypeSize(...DynamicTypeSize.accessibility1)
                         .foregroundStyle(.secondary)
                         .lineLimit(2)
                         .truncationMode(.tail)

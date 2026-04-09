@@ -1,9 +1,6 @@
 package io.github.kmpfacelink.sample.ui
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -41,15 +38,17 @@ public fun FaceTrackingScreen(
     val trackingData by trackingDataState.collectAsState()
     val errorMessage by faceTracker.errorMessage.collectAsState()
 
-    Box(modifier = Modifier.fillMaxSize()) {
-        FaceCameraPreview(
-            faceTracker = faceTracker,
-            modifier = Modifier.fillMaxSize(),
-        )
-
-        LandmarkOverlayLayer(trackingData)
-
-        Column(modifier = Modifier.fillMaxSize()) {
+    TrackingScreenScaffold(
+        currentMode = TrackingMode.FACE,
+        onModeChange = onModeChange,
+        camera = {
+            FaceCameraPreview(
+                faceTracker = faceTracker,
+                modifier = Modifier.fillMaxSize(),
+            )
+        },
+        overlay = { LandmarkOverlayLayer(trackingData) },
+        topContent = {
             TopBar(
                 state = state,
                 headTransform = trackingData?.headTransform,
@@ -59,20 +58,18 @@ public fun FaceTrackingScreen(
             if (state == TrackingState.ERROR) {
                 FaceErrorBanner(errorMessage)
             }
-            ModeToggle(currentMode = TrackingMode.FACE, onModeChange = onModeChange)
             SmoothingFilterChips(faceTracker = faceTracker)
             StreamingToggle()
-
-            Spacer(modifier = Modifier.weight(1f))
-
+        },
+        bottomContent = {
             BlendShapeBars(
                 trackingData = trackingData,
                 modifier = Modifier
                     .fillMaxWidth()
                     .windowInsetsPadding(WindowInsets.navigationBars),
             )
-        }
-    }
+        },
+    )
 }
 
 @Composable

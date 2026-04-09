@@ -44,6 +44,7 @@ struct HolisticTrackingView: View {
                 // Summary info
                 Text(viewModel.summaryText)
                     .font(.system(.body, design: .monospaced))
+                    .dynamicTypeSize(...DynamicTypeSize.accessibility1)
                     .lineLimit(1)
                     .truncationMode(.tail)
                     .padding(.horizontal, 16)
@@ -71,6 +72,7 @@ struct ModalityDot: View {
     var body: some View {
         Text(label)
             .font(.system(.caption, design: .monospaced).weight(.bold))
+            .dynamicTypeSize(...DynamicTypeSize.accessibility1)
             .foregroundStyle(active ? .green : .gray)
     }
 }

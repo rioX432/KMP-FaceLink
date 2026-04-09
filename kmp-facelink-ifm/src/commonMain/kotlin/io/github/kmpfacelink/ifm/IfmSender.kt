@@ -35,7 +35,7 @@ import kotlinx.coroutines.launch
 public class IfmSender(
     private val config: IfmConfig = IfmConfig(),
 ) : Releasable {
-    private val socket = UdpSocket()
+    private var socket = UdpSocket()
     private var collectJob: Job? = null
 
     /**
@@ -52,6 +52,7 @@ public class IfmSender(
         scope: CoroutineScope,
     ) {
         stop()
+        socket = UdpSocket()
         collectJob = scope.launch {
             trackingFlow.collect { data ->
                 if (data.isTracking) {
@@ -87,9 +88,9 @@ public class IfmSender(
      * Stops collecting tracking data and releases the UDP socket.
      */
     public fun stop() {
+        socket.close()
         collectJob?.cancel()
         collectJob = null
-        socket.close()
     }
 
     /**

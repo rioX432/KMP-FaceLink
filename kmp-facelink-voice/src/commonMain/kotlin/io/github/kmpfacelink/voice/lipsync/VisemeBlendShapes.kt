@@ -10,6 +10,10 @@ import io.github.kmpfacelink.model.BlendShape
  */
 public object VisemeBlendShapes {
 
+    // Blend shape weight scale (0.0–1.0) tuned for natural VTuber mouth animation.
+    // Lower values (MINIMAL/SUBTLE) drive secondary mouth shapes (e.g. lip press),
+    // while higher values (STRONG/HIGH) drive dominant shapes (e.g. jaw open for "AA").
+    // Weights are derived from the TalkingHead project's viseme-to-blend-shape mapping.
     private const val WEIGHT_MINIMAL = 0.1f
     private const val WEIGHT_SUBTLE = 0.15f
     private const val WEIGHT_LOW = 0.2f

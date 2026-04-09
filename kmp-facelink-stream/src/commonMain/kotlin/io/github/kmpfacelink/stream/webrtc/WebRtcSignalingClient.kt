@@ -1,24 +1,16 @@
 package io.github.kmpfacelink.stream.webrtc
 
 import io.github.kmpfacelink.api.Releasable
+import io.github.kmpfacelink.stream.BaseWebSocketClient
 import io.github.kmpfacelink.util.FaceLinkLogger
 import io.ktor.client.HttpClient
-import io.ktor.client.plugins.websocket.WebSockets
-import io.ktor.client.plugins.websocket.webSocket
 import io.ktor.websocket.Frame
-import io.ktor.websocket.WebSocketSession
-import io.ktor.websocket.close
 import io.ktor.websocket.readText
 import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.json.Json
 
 /**
@@ -49,22 +41,15 @@ import kotlinx.serialization.json.Json
  * @param httpClient Optional pre-configured Ktor [HttpClient]
  */
 public class WebRtcSignalingClient(
-    private val url: String,
+    url: String,
     httpClient: HttpClient? = null,
-) : Releasable {
+) : BaseWebSocketClient(url, httpClient, TAG), Releasable {
+
     private val json = Json {
         encodeDefaults = false
         ignoreUnknownKeys = true
     }
 
-    private val mutex = Mutex()
-    private var session: WebSocketSession? = null
-    private var connectionJob: Job? = null
-
-    private val client: HttpClient = httpClient ?: HttpClient {
-        install(WebSockets)
-    }
-    private val ownsClient: Boolean = httpClient == null
     private var released = false
 
     private val _messages = MutableSharedFlow<SignalingMessage>(
@@ -77,17 +62,7 @@ public class WebRtcSignalingClient(
 
     /** Whether the signaling WebSocket is currently connected. */
     public val isConnected: Boolean
-        get() = session != null
-
-    /**
-     * Opens the signaling WebSocket connection.
-     *
-     * @param scope Coroutine scope for the connection lifecycle
-     */
-    public suspend fun connect(scope: CoroutineScope) {
-        connectionJob?.cancel()
-        connectionJob = scope.launch { establishConnection() }
-    }
+        get() = isSessionActive
 
     /**
      * Sends a signaling message to the remote peer.
@@ -96,22 +71,10 @@ public class WebRtcSignalingClient(
      * @throws IllegalStateException if the client is not connected
      */
     public suspend fun send(message: SignalingMessage) {
-        val currentSession = mutex.withLock { session }
+        val currentSession = acquireSession()
         check(currentSession != null) { "Signaling client is not connected" }
         val payload = json.encodeToString(SignalingMessage.serializer(), message)
         currentSession.outgoing.send(Frame.Text(payload))
-    }
-
-    /**
-     * Closes the signaling WebSocket connection.
-     */
-    public suspend fun disconnect() {
-        connectionJob?.cancel()
-        connectionJob = null
-        mutex.withLock {
-            session?.close()
-            session = null
-        }
     }
 
     /**
@@ -123,35 +86,16 @@ public class WebRtcSignalingClient(
     public override fun release() {
         if (released) return
         released = true
-        connectionJob?.cancel()
-        connectionJob = null
-        session = null
+        cancelConnection()
         if (ownsClient) {
             client.close()
         }
     }
 
-    private suspend fun establishConnection() {
-        try {
-            client.webSocket(urlString = url) {
-                mutex.withLock { session = this }
-                receiveLoop(this)
-            }
-        } catch (e: CancellationException) {
-            throw e
-        } catch (@Suppress("TooGenericExceptionCaught") e: Exception) {
-            mutex.withLock { session = null }
-            FaceLinkLogger.w(TAG, "Connection failed (${e::class.simpleName}): ${e.message}")
+    override suspend fun onFrame(frame: Frame) {
+        if (frame is Frame.Text) {
+            parseAndEmit(frame.readText())
         }
-    }
-
-    private suspend fun receiveLoop(ws: WebSocketSession) {
-        for (frame in ws.incoming) {
-            if (frame is Frame.Text) {
-                parseAndEmit(frame.readText())
-            }
-        }
-        mutex.withLock { session = null }
     }
 
     private suspend fun parseAndEmit(text: String) {

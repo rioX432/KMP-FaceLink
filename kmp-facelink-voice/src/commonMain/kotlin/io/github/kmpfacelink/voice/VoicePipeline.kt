@@ -2,7 +2,7 @@ package io.github.kmpfacelink.voice
 
 import io.github.kmpfacelink.api.Releasable
 import io.github.kmpfacelink.model.BlendShape
-import io.github.kmpfacelink.util.FaceLinkLogger
+import io.github.kmpfacelink.util.releaseSafely
 import io.github.kmpfacelink.voice.asr.AsrEngine
 import io.github.kmpfacelink.voice.asr.TranscriptionResult
 import io.github.kmpfacelink.voice.asr.internal.AsrEngineFactory
@@ -204,15 +204,11 @@ public class VoicePipeline(
         // or stopListening successfully, so nulling the field here is safe without the mutex.
         scope.cancel()
         transcriptionCollectorJob = null
-        runCatching { tts.release() }.onFailure { FaceLinkLogger.w(TAG, "Failed to release TtsEngine", it) }
-        runCatching { lipSync.release() }.onFailure { FaceLinkLogger.w(TAG, "Failed to release LipSyncEngine", it) }
-        runCatching { asr?.release() }.onFailure { FaceLinkLogger.w(TAG, "Failed to release AsrEngine", it) }
-        runCatching { audioRecorder?.release() }.onFailure {
-            FaceLinkLogger.w(TAG, "Failed to release AudioRecorder", it)
-        }
-        runCatching { audioPlayer?.release() }.onFailure {
-            FaceLinkLogger.w(TAG, "Failed to release AudioPlayer", it)
-        }
+        tts.releaseSafely(TAG, "TtsEngine")
+        lipSync.releaseSafely(TAG, "LipSyncEngine")
+        asr.releaseSafely(TAG, "AsrEngine")
+        audioRecorder.releaseSafely(TAG, "AudioRecorder")
+        audioPlayer.releaseSafely(TAG, "AudioPlayer")
     }
 
     /** Alias for [release] — allows use in try-with-resources / [use] blocks. */

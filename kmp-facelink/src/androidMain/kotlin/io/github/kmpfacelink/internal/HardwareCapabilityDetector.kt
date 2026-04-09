@@ -14,7 +14,11 @@ import io.github.kmpfacelink.util.FaceLinkLogger
 private const val TAG = "HardwareCapabilityDetector"
 private const val GLES_MAJOR_VERSION_FOR_COMPUTE = 3
 private const val GLES_MINOR_VERSION_FOR_COMPUTE = 1
+
+// EGL 1.5 spec §3.7.1 — context creation attributes
 private const val EGL_CONTEXT_CLIENT_VERSION = 0x3098
+
+// EGL 1.5 spec §3.5.3 — pbuffer surface size attributes
 private const val EGL_SURFACE_WIDTH = 0x3057
 private const val EGL_SURFACE_HEIGHT = 0x3058
 private const val EGL_PBUFFER_SIZE = 1

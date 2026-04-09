@@ -129,6 +129,7 @@ struct VoiceTrackingView: View {
                                 .font(.system(.caption2, design: .monospaced))
                                 .foregroundStyle(.secondary)
                                 .frame(minWidth: 100, alignment: .leading)
+                                .dynamicTypeSize(...DynamicTypeSize.accessibility1)
                             GeometryReader { geo in
                                 ZStack(alignment: .leading) {
                                     Rectangle().fill(Color(.separator))

@@ -2,12 +2,15 @@ package io.github.kmpfacelink.vts
 
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.websocket.WebSockets
+import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
 class VtsClientTest {
+
+    // --- Construction ---
 
     @Test
     fun constructWithDefaultConfig() {
@@ -40,11 +43,34 @@ class VtsClientTest {
         httpClient.close()
     }
 
+    // --- Initial state ---
+
     @Test
     fun initialStateIsDisconnected() {
         val client = VtsClient()
         assertFalse(client.isConnected)
     }
+
+    // --- disconnect() without prior connect ---
+
+    @Test
+    fun disconnectWithoutConnectDoesNotThrow() = runTest {
+        val client = VtsClient()
+        // Should complete without throwing
+        client.disconnect()
+        assertFalse(client.isConnected)
+    }
+
+    @Test
+    fun disconnectCalledMultipleTimesIsIdempotent() = runTest {
+        val client = VtsClient()
+        repeat(MULTI_DISCONNECT_COUNT) {
+            client.disconnect()
+        }
+        assertFalse(client.isConnected)
+    }
+
+    // --- release() semantics ---
 
     @Test
     fun releaseOnFreshClient() {
@@ -73,6 +99,17 @@ class VtsClientTest {
     }
 
     @Test
+    fun releaseAfterDisconnectDoesNotThrow() = runTest {
+        val client = VtsClient()
+        client.disconnect()
+        // Should be a no-op after a prior disconnect
+        client.release()
+        assertFalse(client.isConnected)
+    }
+
+    // --- External HttpClient ownership ---
+
+    @Test
     fun releaseWithExternalClientDoesNotCloseIt() {
         val httpClient = HttpClient { install(WebSockets) }
         val client = VtsClient(httpClient = httpClient)
@@ -83,11 +120,88 @@ class VtsClientTest {
     }
 
     @Test
+    fun disconnectWithExternalClientDoesNotCloseIt() = runTest {
+        val httpClient = HttpClient { install(WebSockets) }
+        val client = VtsClient(httpClient = httpClient)
+        client.disconnect()
+        // httpClient should still be usable after VtsClient disconnect
+        assertTrue(httpClient.engine.config.toString().isNotEmpty())
+        httpClient.close()
+    }
+
+    // --- isConnected ---
+
+    @Test
     fun isConnectedReturnsFalseAfterRelease() {
         val client = VtsClient()
         client.release()
         assertFalse(client.isConnected)
     }
+
+    @Test
+    fun isConnectedReturnsFalseAfterDisconnectWithoutConnect() = runTest {
+        val client = VtsClient()
+        client.disconnect()
+        assertFalse(client.isConnected)
+    }
+
+    // --- Config values are accepted ---
+
+    @Test
+    fun minValidPortIsAccepted() {
+        val config = VtsConfig(
+            port = 1,
+            pluginName = "TestPlugin",
+            pluginDeveloper = "TestDev",
+        )
+        val client = VtsClient(config)
+        assertFalse(client.isConnected)
+    }
+
+    @Test
+    fun maxValidPortIsAccepted() {
+        val config = VtsConfig(
+            port = 65535,
+            pluginName = "TestPlugin",
+            pluginDeveloper = "TestDev",
+        )
+        val client = VtsClient(config)
+        assertFalse(client.isConnected)
+    }
+
+    @Test
+    fun nullAuthTokenIsAccepted() {
+        val config = VtsConfig(
+            pluginName = "TestPlugin",
+            pluginDeveloper = "TestDev",
+            authToken = null,
+        )
+        val client = VtsClient(config)
+        assertFalse(client.isConnected)
+    }
+
+    @Test
+    fun nonNullAuthTokenIsAccepted() {
+        val config = VtsConfig(
+            pluginName = "TestPlugin",
+            pluginDeveloper = "TestDev",
+            authToken = "my-saved-token",
+        )
+        val client = VtsClient(config)
+        assertFalse(client.isConnected)
+    }
+
+    @Test
+    fun pluginIconIsAccepted() {
+        val config = VtsConfig(
+            pluginName = "TestPlugin",
+            pluginDeveloper = "TestDev",
+            pluginIcon = "base64encodedpng",
+        )
+        val client = VtsClient(config)
+        assertFalse(client.isConnected)
+    }
 }
 
 private const val MULTI_RELEASE_COUNT = 10
+private const val MULTI_DISCONNECT_COUNT = 5

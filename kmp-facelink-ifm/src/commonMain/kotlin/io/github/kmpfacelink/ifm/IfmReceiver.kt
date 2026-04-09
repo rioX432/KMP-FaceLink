@@ -86,9 +86,9 @@ public class IfmReceiver(
      * Can be restarted by calling [start] again.
      */
     public fun stop() {
+        socket.close()
         listenJob?.cancel()
         listenJob = null
-        socket.close()
     }
 
     /**

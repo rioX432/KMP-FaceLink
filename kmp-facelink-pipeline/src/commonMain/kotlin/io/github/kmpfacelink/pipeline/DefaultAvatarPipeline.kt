@@ -7,7 +7,7 @@ import io.github.kmpfacelink.pipeline.expression.ExpressionBlender
 import io.github.kmpfacelink.pipeline.expression.TextSentimentAnalyzer
 import io.github.kmpfacelink.pipeline.internal.StreamingCoordinator
 import io.github.kmpfacelink.pipeline.internal.TextOnlyProcessor
-import io.github.kmpfacelink.util.FaceLinkLogger
+import io.github.kmpfacelink.util.releaseSafely
 import io.github.kmpfacelink.voice.asr.AsrEngine
 import io.github.kmpfacelink.voice.lipsync.LipSyncEngine
 import io.github.kmpfacelink.voice.tts.TtsEngine
@@ -123,9 +123,9 @@ public class DefaultAvatarPipeline(
         // Cancel the scope to clean up any leaked coroutines.
         // If the scope was externally provided, the caller should not reuse it after release().
         scope.cancel()
-        runCatching { llmClient.release() }.onFailure { FaceLinkLogger.w(TAG, "Failed to release LlmClient", it) }
-        runCatching { ttsEngine?.release() }.onFailure { FaceLinkLogger.w(TAG, "Failed to release TtsEngine", it) }
-        runCatching { asrEngine?.release() }.onFailure { FaceLinkLogger.w(TAG, "Failed to release AsrEngine", it) }
+        llmClient.releaseSafely(TAG, "LlmClient")
+        ttsEngine.releaseSafely(TAG, "TtsEngine")
+        asrEngine.releaseSafely(TAG, "AsrEngine")
     }
 
     private suspend fun collectAsrAndProcess(asr: AsrEngine) {

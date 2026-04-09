@@ -38,6 +38,9 @@ internal enum class LiteRtBackend {
  * @param backend Hardware acceleration backend to use
  * @param cacheDir Directory for LiteRT-LM compiled shader/kernel caches
  */
+// Scaffold: `backend` and `cacheDir` are unused until the
+// com.google.ai.edge.litertlm:litertlm-android dependency is added.
+// They will be wired into EngineConfig — see litert-lm.md §6.1.
 @Suppress("UnusedPrivateProperty")
 internal class LiteRtLmEngine(
     private val backend: LiteRtBackend = LiteRtBackend.GPU,

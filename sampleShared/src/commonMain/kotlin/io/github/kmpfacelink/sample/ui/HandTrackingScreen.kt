@@ -1,10 +1,8 @@
 package io.github.kmpfacelink.sample.ui
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -50,15 +48,17 @@ public fun HandTrackingScreen(
     val errorMessage by handTracker.errorMessage.collectAsState()
     val isTracking = state == TrackingState.TRACKING
 
-    Box(modifier = Modifier.fillMaxSize()) {
-        HandCameraPreview(
-            handTracker = handTracker,
-            modifier = Modifier.fillMaxSize(),
-        )
-
-        HandOverlayLayer(trackingData)
-
-        Column(modifier = Modifier.fillMaxSize()) {
+    TrackingScreenScaffold(
+        currentMode = TrackingMode.HAND,
+        onModeChange = onModeChange,
+        camera = {
+            HandCameraPreview(
+                handTracker = handTracker,
+                modifier = Modifier.fillMaxSize(),
+            )
+        },
+        overlay = { HandOverlayLayer(trackingData) },
+        topContent = {
             HandTopBar(
                 state = state,
                 trackingData = trackingData,
@@ -69,13 +69,11 @@ public fun HandTrackingScreen(
             if (state == TrackingState.ERROR) {
                 ErrorBanner(errorMessage)
             }
-            ModeToggle(currentMode = TrackingMode.HAND, onModeChange = onModeChange)
-
-            Spacer(modifier = Modifier.weight(1f))
-
+        },
+        bottomContent = {
             HandBottomBar(trackingData)
-        }
-    }
+        },
+    )
 }
 
 @Composable

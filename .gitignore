@@ -21,6 +21,9 @@ progress.txt
 # MediaPipe model files (downloaded at build time)
 *.task
 
+# ONNX model files (FP32 originals + quantized variants)
+*.onnx
+
 # whisper.cpp source and build artifacts (downloaded via scripts/setup-whisper-ios.sh)
 /whisper.cpp/
 /whisper/

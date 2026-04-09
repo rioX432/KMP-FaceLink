@@ -65,4 +65,9 @@ Unified face, hand & body tracking SDK for Kotlin Multiplatform — one API, bot
 
 Full API documentation is available at **[rioX432.github.io/KMP-FaceLink](https://rioX432.github.io/KMP-FaceLink/)**, generated with [Dokka](https://github.com/Kotlin/dokka) and deployed automatically on each release.
 
+### LLM-Friendly Docs
+
+- [`llms.txt`](llms.txt) — Concise project overview optimized for LLM context windows ([llmstxt.org](https://llmstxt.org/) format)
+- [`llms-full.txt`](llms-full.txt) — Detailed API reference with all module signatures and usage examples
+
 ## [Changelog](CHANGELOG.md)

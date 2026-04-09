@@ -1,0 +1,445 @@
+# KMP-FaceLink
+
+> Unified face, hand, and body tracking SDK for Kotlin Multiplatform. One API across Android (MediaPipe + CameraX), iOS (ARKit + Vision), JVM/Desktop (ONNX Runtime), and Wasm (MediaPipe JS). Provides 52 ARKit-compatible blend shapes, head transform, hand landmarks, gesture classification, and body pose estimation via a reactive Kotlin Flow API.
+
+KMP-FaceLink is an MIT-licensed open-source library published as `io.github.rioX432:kmp-facelink` on Maven Central. It is designed to be modular: import only the modules you need.
+
+## Platform Support
+
+| Platform | Face Tracking | Hand Tracking | Body Tracking | Engine |
+|----------|--------------|---------------|---------------|--------|
+| Android (SDK 24+) | MediaPipe Face Landmarker | MediaPipe Hand Landmarker | MediaPipe Pose Landmarker | CameraX |
+| iOS (17.0+) | ARKit (TrueDepth camera) | Vision (VNDetectHumanHandPoseRequest) | Vision (VNDetectHumanBodyPoseRequest) | AVCaptureSession |
+| JVM/Desktop | ONNX Runtime (OpenSeeFace) | ONNX Runtime | ONNX Runtime | Webcam via JavaCV |
+| Wasm/JS | MediaPipe JS interop | Stub (no-op) | Stub (no-op) | Browser WebAssembly GC |
+
+## Core Module: kmp-facelink
+
+### Factory Functions
+
+```kotlin
+// Package: io.github.kmpfacelink.api
+fun createFaceTracker(context: PlatformContext, config: FaceTrackerConfig = FaceTrackerConfig()): FaceTracker
+fun createHandTracker(context: PlatformContext, config: HandTrackerConfig = HandTrackerConfig()): HandTracker
+fun createBodyTracker(context: PlatformContext, config: BodyTrackerConfig = BodyTrackerConfig()): BodyTracker
+fun createHolisticTracker(context: PlatformContext, config: HolisticTrackerConfig): HolisticTracker
+```
+
+### FaceTracker Interface
+
+```kotlin
+interface FaceTracker : Releasable {
+    val trackingData: Flow<FaceTrackingData>
+    val state: StateFlow<TrackingState>
+    val errorMessage: StateFlow<String?>
+    suspend fun start()
+    suspend fun stop()
+    fun release()
+    fun resetCalibration()
+    fun updateSmoothing(config: SmoothingConfig)
+    suspend fun switchCamera(facing: CameraFacing)
+}
+```
+
+HandTracker and BodyTracker follow the same pattern with their respective data types.
+
+### TrackingState Enum
+
+```kotlin
+enum class TrackingState { IDLE, STARTING, TRACKING, STOPPED, ERROR, RELEASED }
+```
+
+### FaceTrackingData
+
+```kotlin
+data class FaceTrackingData(
+    val blendShapes: BlendShapeData,        // Map of 52 ARKit blend shape values (0.0-1.0)
+    val headTransform: HeadTransform,       // 6DoF head position and rotation
+    val gazeData: GazeData?,                // Eye gaze direction (nullable)
+    val landmarks: List<FaceLandmark>,      // 478 points (Android/MediaPipe), empty (iOS/ARKit)
+    val sourceImageWidth: Int,
+    val sourceImageHeight: Int,
+    val timestampMs: Long,
+    val isTracking: Boolean,
+    val faces: List<TrackedFace>,           // Multi-face tracking support
+    val thermalState: ThermalState,
+)
+```
+
+### HandTrackingData
+
+```kotlin
+data class HandTrackingData(
+    val hands: List<TrackedHand>,           // Per-hand landmarks + gesture + handedness
+    val timestampMs: Long,
+    val isTracking: Boolean,
+)
+```
+
+### BodyTrackingData
+
+```kotlin
+data class BodyTrackingData(
+    val bodies: List<TrackedBody>,          // Body pose landmarks (33 keypoints)
+    val timestampMs: Long,
+    val isTracking: Boolean,
+)
+```
+
+### BlendShape Enum (52 ARKit-compatible values)
+
+Eyes (14): EYE_BLINK_LEFT, EYE_BLINK_RIGHT, EYE_LOOK_DOWN_LEFT, EYE_LOOK_DOWN_RIGHT, EYE_LOOK_IN_LEFT, EYE_LOOK_IN_RIGHT, EYE_LOOK_OUT_LEFT, EYE_LOOK_OUT_RIGHT, EYE_LOOK_UP_LEFT, EYE_LOOK_UP_RIGHT, EYE_SQUINT_LEFT, EYE_SQUINT_RIGHT, EYE_WIDE_LEFT, EYE_WIDE_RIGHT
+
+Jaw (4): JAW_FORWARD, JAW_LEFT, JAW_RIGHT, JAW_OPEN
+
+Mouth (15): MOUTH_CLOSE, MOUTH_FUNNEL, MOUTH_PUCKER, MOUTH_LEFT, MOUTH_RIGHT, MOUTH_SMILE_LEFT, MOUTH_SMILE_RIGHT, MOUTH_FROWN_LEFT, MOUTH_FROWN_RIGHT, MOUTH_DIMPLE_LEFT, MOUTH_DIMPLE_RIGHT, MOUTH_STRETCH_LEFT, MOUTH_STRETCH_RIGHT, MOUTH_ROLL_LOWER, MOUTH_ROLL_UPPER
+
+More mouth (4): MOUTH_SHRUG_LOWER, MOUTH_SHRUG_UPPER, MOUTH_PRESS_LEFT, MOUTH_PRESS_RIGHT
+
+Lips (6): MOUTH_LOWER_DOWN_LEFT, MOUTH_LOWER_DOWN_RIGHT, MOUTH_UPPER_UP_LEFT, MOUTH_UPPER_UP_RIGHT, MOUTH_SMILE_LEFT, MOUTH_SMILE_RIGHT
+
+Brow (4): BROW_DOWN_LEFT, BROW_DOWN_RIGHT, BROW_INNER_UP, BROW_OUTER_UP_LEFT, BROW_OUTER_UP_RIGHT
+
+Nose (2): NOSE_SNEER_LEFT, NOSE_SNEER_RIGHT
+
+Cheek (3): CHEEK_PUFF, CHEEK_SQUINT_LEFT, CHEEK_SQUINT_RIGHT
+
+Tongue (1): TONGUE_OUT
+
+### SmoothingConfig
+
+```kotlin
+sealed class SmoothingConfig {
+    object None : SmoothingConfig()
+    data class Ema(val alpha: Float = 0.5f) : SmoothingConfig()
+    data class OneEuro(val minCutoff: Float = 1.0f, val beta: Float = 0.007f, val dCutoff: Float = 1.0f) : SmoothingConfig()
+    data class CategoryAware(...) : SmoothingConfig()  // Per-region OneEuro tuning
+}
+```
+
+### FaceTrackerConfig
+
+```kotlin
+data class FaceTrackerConfig(
+    val smoothingConfig: SmoothingConfig = SmoothingConfig.Ema(alpha = 0.5f),
+    val cameraFacing: CameraFacing = CameraFacing.FRONT,
+    val maxFaces: Int = 1,                              // 1-4 simultaneous faces
+    val powerMode: PowerMode? = null,                   // Performance, Balanced, PowerSaver
+    val enhancerConfig: BlendShapeEnhancerConfig = ..., // Geometric enhancement (Android)
+)
+```
+
+### PlatformContext
+
+```kotlin
+// Android
+PlatformContext(context: Context, lifecycleOwner: LifecycleOwner)
+
+// iOS
+PlatformContext()  // No parameters needed
+
+// JVM
+PlatformContext()
+
+// Wasm
+PlatformContext()
+```
+
+## Avatar Module: kmp-facelink-avatar
+
+Maps tracking data to avatar engine parameters.
+
+### Live2D Mapping
+
+```kotlin
+val mapper = Live2DParameterMapper()
+faceTracker.trackingData.collect { data ->
+    val params: Map<String, Float> = mapper.map(data)
+    // Keys: ParamAngleX, ParamAngleY, ParamAngleZ, ParamEyeLOpen, ParamEyeROpen,
+    //        ParamMouthOpenY, ParamMouthForm, ParamBrowLY, ParamBrowRY,
+    //        ParamEyeBallX, ParamEyeBallY, ParamCheek, ...
+}
+```
+
+### VRM Mapping
+
+```kotlin
+val vrmMapper = VrmParameterMapper(version = VrmVersion.V1_0)
+faceTracker.trackingData.collect { data ->
+    val expressions: Map<String, Float> = vrmMapper.map(data)
+    // Keys: happy, angry, sad, relaxed, surprised, lookLeft, lookRight, ...
+}
+```
+
+## Actions Module: kmp-facelink-actions
+
+### ActionSystem
+
+```kotlin
+val actionSystem = ActionSystem()
+
+// Gesture trigger
+actionSystem.register(
+    ActionBinding(
+        trigger = GestureTrigger(gesture = HandGesture.VICTORY, holdTimeMs = 500),
+        cooldownMs = 1000,
+    )
+)
+
+// Expression trigger
+actionSystem.register(
+    ActionBinding(
+        trigger = ExpressionTrigger(blendShape = BlendShape.EYE_BLINK_LEFT, threshold = 0.8f),
+    )
+)
+
+// Collect events
+actionSystem.events.collect { event -> println("Action: ${event.bindingId}") }
+
+// Feed data
+faceTracker.trackingData.collect { actionSystem.processFace(it) }
+handTracker.trackingData.collect { actionSystem.processHand(it) }
+```
+
+### EmotionClassifier
+
+```kotlin
+val classifier = EmotionClassifier()
+faceTracker.trackingData.collect { data ->
+    val result: EmotionResult = classifier.classify(data.blendShapes)
+    // result.emotion (e.g., "happy"), result.confidence (e.g., 0.87)
+}
+```
+
+### HandGesture Enum
+
+VICTORY, THUMB_UP, THUMB_DOWN, OPEN_PALM, CLOSED_FIST, POINTING_UP, NONE
+
+## Voice Module: kmp-facelink-voice (Experimental)
+
+```kotlin
+val voicePipeline = VoicePipeline(config)
+
+// TTS with lip sync
+voicePipeline.speak("Hello!").collect { lipSyncFrame ->
+    // lipSyncFrame.blendShapes — mouth shapes synchronized to audio
+}
+
+// ASR
+voicePipeline.startListening()
+voicePipeline.transcriptions.collect { text -> println("User said: $text") }
+```
+
+Backends: ASR via Whisper (on-device whisper.cpp), TTS via OpenAI TTS / ElevenLabs / Voicevox (on-device).
+
+## LLM Module: kmp-facelink-llm (Experimental)
+
+```kotlin
+// Cloud
+val client = LlmClient.create(LlmConfig.OpenAi(apiKey = "sk-...", model = "gpt-4o-mini"))
+
+// On-device
+val onDevice = LlmClient.create(LlmConfig.OnDevice(modelId = "gemma-3n-e2b-int4"))
+
+// Hybrid routing (simple -> on-device, complex -> cloud)
+val hybrid = LlmClient.create(
+    LlmConfig.Hybrid(
+        onDeviceConfig = LlmConfig.OnDevice(modelId = "gemma-3n-e2b-int4"),
+        cloudConfig = LlmConfig.OpenAi(apiKey = "sk-..."),
+        routingStrategy = RoutingStrategy.Auto(complexityThreshold = 0.5f),
+    )
+)
+
+// Streaming chat
+val history = ConversationHistory()
+history.addUser("Hello!")
+client.chat(history).collect { token -> print(token) }
+```
+
+## Pipeline Module: kmp-facelink-pipeline (Experimental)
+
+Orchestrates: ASR -> LLM -> TTS -> LipSync -> Expression.
+
+```kotlin
+val pipeline = buildAvatarPipeline {
+    llm(LlmConfig.OpenAi(apiKey = "sk-...", model = "gpt-4o-mini"))
+    persona(PersonaConfig(name = "Ai", systemPrompt = "You are a friendly assistant"))
+    ttsEngine(myTtsEngine)
+    lipSyncEngine(myLipSyncEngine)
+    expressionBlendRatio(0.7f)
+}
+
+pipeline.start()
+pipeline.listen()  // Voice input mode: ASR -> LLM -> TTS -> lip sync
+pipeline.processText("Tell me a joke")  // Text input mode
+
+pipeline.output.collect { frame ->
+    // frame.blendShapes — combined tracking + lip sync + emotion
+    // frame.audioChunk — TTS audio to play
+    // frame.text — LLM response text
+}
+```
+
+## VMC Module: kmp-facelink-vmc
+
+VMC Protocol (OSC over UDP) for VRM apps.
+
+```kotlin
+// Send
+val sender = VmcSender(VmcConfig(host = "192.168.1.100", port = 39539))
+sender.start(faceTracker.trackingData, coroutineScope)
+
+// Receive
+val receiver = VmcReceiver(VmcConfig(port = 39539))
+receiver.start(coroutineScope)
+receiver.messages.collect { message -> /* handle */ }
+```
+
+## IFM Module: kmp-facelink-ifm
+
+iFacialMocap protocol output, compatible with VTube Studio as a MeowFace replacement.
+
+## Stream Module: kmp-facelink-stream (Experimental)
+
+WebSocket streaming server for phone-as-tracker use cases. JVM only.
+
+## VTS Module: kmp-facelink-vts
+
+Direct VTube Studio Plugin API integration via WebSocket.
+
+## Common Use Cases
+
+### VTuber Avatar Driving
+
+```kotlin
+val tracker = createFaceTracker(context, FaceTrackerConfig())
+val mapper = Live2DParameterMapper()
+tracker.start()
+tracker.trackingData.collect { data ->
+    val params = mapper.map(data)
+    live2dModel.setParameterValues(params)
+}
+```
+
+### Phone as Wireless Tracker
+
+```kotlin
+val tracker = createFaceTracker(context)
+val sender = VmcSender(VmcConfig(host = "192.168.1.100"))
+sender.start(tracker.trackingData, scope)
+```
+
+### AI Avatar Chatbot
+
+```kotlin
+val pipeline = buildAvatarPipeline {
+    llm(LlmConfig.Hybrid(
+        onDeviceConfig = LlmConfig.OnDevice(modelId = "gemma-3n-e2b-int4"),
+        cloudConfig = LlmConfig.OpenAi(apiKey = "sk-..."),
+        routingStrategy = RoutingStrategy.Auto(complexityThreshold = 0.5f),
+    ))
+    persona(PersonaConfig(name = "Assistant"))
+}
+pipeline.start()
+pipeline.listen()
+pipeline.output.collect { frame -> /* render avatar + play audio */ }
+```
+
+### Gesture-Controlled Actions
+
+```kotlin
+val actions = ActionSystem()
+actions.register(
+    ActionBinding(trigger = GestureTrigger(HandGesture.THUMB_UP, holdTimeMs = 300))
+)
+actions.events.collect { event -> /* handle */ }
+handTracker.trackingData.collect { actions.processHand(it) }
+```
+
+## Dependency Setup
+
+### Gradle (Android / KMP)
+
+```kotlin
+// build.gradle.kts
+dependencies {
+    implementation("io.github.rioX432:kmp-facelink:0.1.0")
+    implementation("io.github.rioX432:kmp-facelink-avatar:0.1.0")   // optional
+    implementation("io.github.rioX432:kmp-facelink-actions:0.1.0")  // optional
+}
+```
+
+### Swift Package Manager (iOS)
+
+```swift
+// Package.swift
+dependencies: [
+    .package(url: "https://github.com/rioX432/KMP-FaceLink", from: "0.1.0"),
+]
+```
+
+SPM products: KMPFaceLink, KMPFaceLinkAvatar, KMPFaceLinkActions, KMPFaceLinkVoice, KMPFaceLinkLlm, KMPFaceLinkPipeline, KMPFaceLinkNetworking, KMPFaceLinkVMC, KMPFaceLinkIFM.
+
+## Android Requirements
+
+- Min SDK 24
+- CAMERA permission (runtime request required)
+- MediaPipe model files in `assets/models/` (face_landmarker_v2_with_blendshapes.task, hand_landmarker.task)
+- PlatformContext requires both Context and LifecycleOwner
+
+## iOS Requirements
+
+- iOS 17.0+, Xcode 16+
+- NSCameraUsageDescription in Info.plist
+- TrueDepth front camera (face tracking only)
+- arkit in UIRequiredDeviceCapabilities
+- SKIE bridges Kotlin Flow to Swift AsyncSequence (for await syntax)
+- K/N adds "do" prefix to init-prefixed functions (e.g., initKoin -> doInitKoin), but SKIE generates async extensions without the prefix
+
+## iOS Swift Usage Example
+
+```swift
+import KMPFaceLink
+
+let tracker = FaceTrackerFactoryKt.createFaceTracker(
+    platformContext: PlatformContext(),
+    config: FaceTrackerConfig()
+)
+
+Task {
+    try? await tracker.start()
+    for await data in tracker.trackingData {
+        if data.isTracking {
+            let jawOpen = data.blendShapes[BlendShape.jawOpen] ?? 0
+        }
+    }
+}
+```
+
+## Tech Stack
+
+| Layer | Technology |
+|-------|-----------|
+| Shared (KMP) | Kotlin Coroutines, Kotlin Flow, Ktor Client |
+| Android | MediaPipe, CameraX, Jetpack Compose |
+| iOS | ARKit, Vision, SwiftUI |
+| JVM/Desktop | ONNX Runtime, JavaCV |
+| Wasm | MediaPipe JS interop, WebAssembly GC |
+| Interop | SKIE (Swift-Kotlin Flow bridging) |
+
+## Repository Structure
+
+- `kmp-facelink/` — Core library (commonMain, androidMain, iosMain, jvmMain, wasmJsMain)
+- `kmp-facelink-avatar/` — Avatar parameter mapping module
+- `kmp-facelink-actions/` — Action and gesture trigger module
+- `kmp-facelink-voice/` — Voice (ASR/TTS/LipSync) module
+- `kmp-facelink-llm/` — LLM streaming module
+- `kmp-facelink-pipeline/` — AI avatar pipeline module
+- `kmp-facelink-networking/` — Shared networking utilities
+- `kmp-facelink-vmc/` — VMC Protocol module
+- `kmp-facelink-ifm/` — iFacialMocap protocol module
+- `kmp-facelink-stream/` — WebSocket streaming module
+- `kmp-facelink-vts/` — VTube Studio integration module
+- `androidApp/` — Android sample app
+- `iosApp/` — iOS sample app (XcodeGen from project.yml)
+- `docs/` — Documentation

@@ -27,3 +27,15 @@ internal external interface JsCategory : JsAny
 
 /** Opaque handle to a single normalized landmark. */
 internal external interface JsNormalizedLandmark : JsAny
+
+/** Opaque handle to a JS HandLandmarker instance. */
+internal external interface JsHandLandmarker : JsAny
+
+/** Opaque handle to a HandLandmarkerResult from detectForVideo. */
+internal external interface JsHandLandmarkerResult : JsAny
+
+/** Opaque handle to a JS PoseLandmarker instance. */
+internal external interface JsPoseLandmarker : JsAny
+
+/** Opaque handle to a PoseLandmarkerResult from detectForVideo. */
+internal external interface JsPoseLandmarkerResult : JsAny

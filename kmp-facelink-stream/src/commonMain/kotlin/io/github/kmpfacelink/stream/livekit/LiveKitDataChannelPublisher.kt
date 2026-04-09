@@ -1,6 +1,7 @@
 package io.github.kmpfacelink.stream.livekit
 
 import io.github.kmpfacelink.stream.BaseWebSocketClient
+import io.github.kmpfacelink.stream.ConnectionState
 import io.github.kmpfacelink.stream.StreamFrame
 import io.github.kmpfacelink.util.FaceLinkLogger
 import io.ktor.client.HttpClient
@@ -37,17 +38,23 @@ public class LiveKitDataChannelPublisher(
     private val json = Json { encodeDefaults = false }
     private var reconnectAttempts = 0
 
-    private val _connectionState = MutableStateFlow(LiveKitConnectionState.DISCONNECTED)
+    private val _liveKitConnectionState =
+        MutableStateFlow(LiveKitConnectionState.DISCONNECTED)
 
-    /** Observable connection state. */
-    public val connectionState: StateFlow<LiveKitConnectionState> =
-        _connectionState.asStateFlow()
+    /**
+     * Observable LiveKit-specific connection state.
+     *
+     * Includes [LiveKitConnectionState.RECONNECTING] in addition to the
+     * common [ConnectionState] values exposed by [connectionState].
+     */
+    public val liveKitConnectionState: StateFlow<LiveKitConnectionState> =
+        _liveKitConnectionState.asStateFlow()
 
     override val isConnected: Boolean
-        get() = _connectionState.value == LiveKitConnectionState.CONNECTED
+        get() = _liveKitConnectionState.value == LiveKitConnectionState.CONNECTED
 
     override suspend fun onConnecting() {
-        _connectionState.value = LiveKitConnectionState.CONNECTING
+        _liveKitConnectionState.value = LiveKitConnectionState.CONNECTING
     }
 
     override suspend fun publish(frame: StreamFrame) {
@@ -66,15 +73,16 @@ public class LiveKitDataChannelPublisher(
     override suspend fun disconnect() {
         super.disconnect()
         reconnectAttempts = 0
+        _liveKitConnectionState.value = LiveKitConnectionState.DISCONNECTED
     }
 
     override suspend fun onConnected(ws: WebSocketSession) {
         reconnectAttempts = 0
-        _connectionState.value = LiveKitConnectionState.CONNECTED
+        _liveKitConnectionState.value = LiveKitConnectionState.CONNECTED
     }
 
     override suspend fun onDisconnected() {
-        _connectionState.value = LiveKitConnectionState.DISCONNECTED
+        _liveKitConnectionState.value = LiveKitConnectionState.DISCONNECTED
     }
 
     override suspend fun onConnectionFailed(error: Exception) {
@@ -85,11 +93,11 @@ public class LiveKitDataChannelPublisher(
 
     private suspend fun attemptReconnect() {
         if (reconnectAttempts >= config.maxReconnectAttempts) {
-            _connectionState.value = LiveKitConnectionState.DISCONNECTED
+            _liveKitConnectionState.value = LiveKitConnectionState.DISCONNECTED
             return
         }
         reconnectAttempts++
-        _connectionState.value = LiveKitConnectionState.RECONNECTING
+        _liveKitConnectionState.value = LiveKitConnectionState.RECONNECTING
         delay(config.reconnectDelayMs)
         establishConnection()
     }
@@ -97,7 +105,8 @@ public class LiveKitDataChannelPublisher(
     private suspend fun handleSendFailure(error: Exception) {
         FaceLinkLogger.w(TAG, "Send failed (${error::class.simpleName}): ${error.message}")
         clearSession()
-        _connectionState.value = LiveKitConnectionState.DISCONNECTED
+        _liveKitConnectionState.value = LiveKitConnectionState.DISCONNECTED
+        mutableConnectionState.value = ConnectionState.DISCONNECTED
     }
 
     private companion object {

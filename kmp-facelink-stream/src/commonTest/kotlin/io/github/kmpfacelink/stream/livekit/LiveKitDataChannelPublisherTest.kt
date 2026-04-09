@@ -62,7 +62,7 @@ class LiveKitDataChannelPublisherTest {
 
         assertEquals(
             LiveKitConnectionState.DISCONNECTED,
-            publisher.connectionState.value,
+            publisher.liveKitConnectionState.value,
         )
     }
 }

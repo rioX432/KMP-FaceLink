@@ -29,6 +29,8 @@ kotlin {
             implementation(compose.material3)
             implementation(compose.ui)
             implementation(project(":kmp-facelink"))
+            implementation(project(":kmp-facelink-vmc"))
+            implementation(project(":kmp-facelink-ifm"))
         }
 
         androidMain.dependencies {

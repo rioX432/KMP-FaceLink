@@ -16,8 +16,11 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
@@ -25,8 +28,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import io.github.kmpfacelink.api.FaceTracker
 import io.github.kmpfacelink.api.TrackingState
+import io.github.kmpfacelink.ifm.IfmSender
 import io.github.kmpfacelink.model.FaceTrackingData
+import io.github.kmpfacelink.vmc.VmcSender
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.filterNotNull
 
 /**
  * Shared face tracking screen used on both Android and iOS.
@@ -70,7 +76,7 @@ public fun FaceTrackingScreen(
                 FaceErrorBanner(errorMessage, onRetry = onStartClick)
             }
             SmoothingFilterChips(faceTracker = faceTracker)
-            StreamingToggle()
+            StreamingControls(trackingDataState = trackingDataState)
         },
         bottomContent = {
             BlendShapeBars(
@@ -79,6 +85,30 @@ public fun FaceTrackingScreen(
                     .fillMaxWidth()
                     .windowInsetsPadding(WindowInsets.navigationBars),
             )
+        },
+    )
+}
+
+@Composable
+private fun StreamingControls(trackingDataState: StateFlow<FaceTrackingData?>) {
+    val scope = rememberCoroutineScope()
+    val vmcSender = remember { VmcSender() }
+    val ifmSender = remember { IfmSender() }
+    val trackingFlow = remember(trackingDataState) { trackingDataState.filterNotNull() }
+
+    DisposableEffect(Unit) {
+        onDispose {
+            vmcSender.release()
+            ifmSender.release()
+        }
+    }
+
+    StreamingToggle(
+        onVmcToggle = { enabled ->
+            if (enabled) vmcSender.start(trackingFlow, scope) else vmcSender.stop()
+        },
+        onIfmToggle = { enabled ->
+            if (enabled) ifmSender.start(trackingFlow, scope) else ifmSender.stop()
         },
     )
 }

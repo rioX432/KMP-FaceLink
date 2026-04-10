@@ -24,8 +24,8 @@ import androidx.compose.ui.unit.sp
 /**
  * Toggle chips for enabling/disabling VMC and iFacialMocap protocol output.
  *
- * This is a UI-only placeholder; actual streaming integration requires
- * wiring to the kmp-facelink-vmc / kmp-facelink-ifm modules.
+ * When toggled on, the callbacks start the corresponding sender
+ * (kmp-facelink-vmc / kmp-facelink-ifm) with the current tracking data flow.
  */
 @Composable
 public fun StreamingToggle(

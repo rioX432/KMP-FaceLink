@@ -26,9 +26,9 @@ private const val EGL_PBUFFER_SIZE = 1
 /**
  * Detects hardware capabilities relevant to ML inference acceleration on Android.
  *
- * This detector checks for GPU compute shader support (OpenGL ES 3.1+),
- * NPU vendor availability, and NNAPI availability, which are prerequisites
- * for MediaPipe GPU, NPU, and NNAPI delegates.
+ * This detector checks for GPU compute shader support (OpenGL ES 3.1+)
+ * and NPU vendor availability, which are prerequisites for MediaPipe GPU
+ * and NPU delegates.
  */
 internal object HardwareCapabilityDetector {
 
@@ -38,15 +38,11 @@ internal object HardwareCapabilityDetector {
      * @property gpuComputeSupported Whether the device supports OpenGL ES 3.1+ compute shaders,
      *           required by MediaPipe's GPU delegate.
      * @property npuVendor The detected NPU vendor (Qualcomm QNN, MediaTek NeuroPilot, or none).
-     * @property nnapiAvailable Whether the Android NNAPI is available on this device.
-     *           Deprecated: NNAPI is deprecated starting in Android 15 (API 35).
      * @property androidApiLevel The device's Android API level.
      */
     data class Capabilities(
         val gpuComputeSupported: Boolean,
         val npuVendor: NpuVendor,
-        @Deprecated("NNAPI is deprecated in Android 15 (API 35)")
-        val nnapiAvailable: Boolean,
         val androidApiLevel: Int,
     ) {
         /**
@@ -67,18 +63,15 @@ internal object HardwareCapabilityDetector {
     fun detect(@Suppress("UNUSED_PARAMETER") context: Context): Capabilities {
         val gpuSupported = checkGpuComputeSupport()
         val npuVendor = NpuVendorDetector.detect()
-        val nnapiAvailable = checkNnapiAvailability()
 
         FaceLinkLogger.d(
             TAG,
-            "Capabilities: GPU=$gpuSupported, NPU=$npuVendor, " +
-                "NNAPI=$nnapiAvailable, API=${Build.VERSION.SDK_INT}",
+            "Capabilities: GPU=$gpuSupported, NPU=$npuVendor, API=${Build.VERSION.SDK_INT}",
         )
 
         return Capabilities(
             gpuComputeSupported = gpuSupported,
             npuVendor = npuVendor,
-            nnapiAvailable = nnapiAvailable,
             androidApiLevel = Build.VERSION.SDK_INT,
         )
     }
@@ -195,10 +188,5 @@ internal object HardwareCapabilityDetector {
         if (context != EGL14.EGL_NO_CONTEXT) EGL14.eglDestroyContext(display, context)
         if (surface != EGL14.EGL_NO_SURFACE) EGL14.eglDestroySurface(display, surface)
         EGL14.eglTerminate(display)
-    }
-
-    /** NNAPI is available on Android 8.1 (API 27) and later. */
-    private fun checkNnapiAvailability(): Boolean {
-        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1
     }
 }

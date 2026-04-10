@@ -10,12 +10,12 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
-private const val EXPECTED_ENTRY_COUNT = 5
+private const val EXPECTED_ENTRY_COUNT = 4
 
 class InferenceDelegateTest {
 
     @Test
-    fun hasFiveEntries() {
+    fun hasFourEntries() {
         assertEquals(EXPECTED_ENTRY_COUNT, InferenceDelegate.entries.size)
     }
 
@@ -25,7 +25,6 @@ class InferenceDelegateTest {
         assertEquals(InferenceDelegate.CPU, InferenceDelegate.valueOf("CPU"))
         assertEquals(InferenceDelegate.GPU, InferenceDelegate.valueOf("GPU"))
         assertEquals(InferenceDelegate.NPU, InferenceDelegate.valueOf("NPU"))
-        assertEquals(InferenceDelegate.NNAPI, InferenceDelegate.valueOf("NNAPI"))
     }
 
     @Test
@@ -56,16 +55,6 @@ class InferenceDelegateTest {
             performanceConfig = PerformanceConfig(inferenceDelegate = InferenceDelegate.NPU),
         )
         assertEquals(InferenceDelegate.NPU, config.inferenceDelegate)
-    }
-
-    @Test
-    fun faceTrackerConfigAcceptsNnapi() {
-        @Suppress("DEPRECATION")
-        val config = FaceTrackerConfig(
-            performanceConfig = PerformanceConfig(inferenceDelegate = InferenceDelegate.NNAPI),
-        )
-        @Suppress("DEPRECATION")
-        assertEquals(InferenceDelegate.NNAPI, config.inferenceDelegate)
     }
 
     @Test

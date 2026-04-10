@@ -22,7 +22,6 @@ internal object DelegateResolver {
      * - [InferenceDelegate.AUTO] / [InferenceDelegate.GPU]: GPU -> CPU
      * - [InferenceDelegate.NPU]: logs NPU readiness, then GPU -> CPU
      *   (NPU delegate pending MediaPipe support — will be prepended when available)
-     * - [InferenceDelegate.NNAPI]: GPU -> CPU (deprecated)
      * - [InferenceDelegate.CPU]: CPU only
      */
     fun resolve(preference: InferenceDelegate): List<Delegate> {
@@ -31,16 +30,6 @@ internal object DelegateResolver {
             InferenceDelegate.GPU -> listOf(Delegate.GPU, Delegate.CPU)
             InferenceDelegate.CPU -> listOf(Delegate.CPU)
             InferenceDelegate.NPU -> resolveNpu()
-            @Suppress("DEPRECATION")
-            InferenceDelegate.NNAPI
-            -> {
-                FaceLinkLogger.w(
-                    TAG,
-                    "NNAPI delegate is deprecated (Android 15+). Use NPU instead. " +
-                        "Falling back to GPU -> CPU.",
-                )
-                listOf(Delegate.GPU, Delegate.CPU)
-            }
         }
     }
 

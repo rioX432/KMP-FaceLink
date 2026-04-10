@@ -15,7 +15,7 @@ package io.github.kmpfacelink.model
  * Wasm/Web (MediaPipe JS): [AUTO] and [GPU] probe for WebGPU (Chrome 113+,
  *   Safari 26+, Firefox 141+) then WebGL 2.0, passing the "GPU" delegate to
  *   MediaPipe Tasks Vision. Falls back to CPU when no GPU backend is available.
- *   [CPU] forces CPU-only inference. [NPU] and [NNAPI] behave like [AUTO].
+ *   [CPU] forces CPU-only inference. [NPU] behaves like [AUTO].
  */
 public enum class InferenceDelegate {
     /**
@@ -55,16 +55,4 @@ public enum class InferenceDelegate {
      * This option has no effect on iOS.
      */
     NPU,
-
-    /**
-     * Prefer Android NNAPI delegate.
-     *
-     * @see NPU for the recommended replacement using LiteRT vendor delegates.
-     */
-    @Deprecated(
-        message = "NNAPI is deprecated in Android 15 (API 35). Use NPU for vendor-specific " +
-            "NPU acceleration, or AUTO/GPU instead.",
-        replaceWith = ReplaceWith("NPU"),
-    )
-    NNAPI,
 }

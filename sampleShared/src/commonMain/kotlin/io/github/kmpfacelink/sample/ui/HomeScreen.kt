@@ -148,9 +148,9 @@ private fun FeatureCard(
         }
         Spacer(modifier = Modifier.width(TEXT_CHEVRON_SPACING))
         Text(
-            text = ">",
+            text = "\u203A",
             color = SampleColors.TextTertiary,
-            fontSize = 18.sp,
+            fontSize = 20.sp,
         )
     }
 }

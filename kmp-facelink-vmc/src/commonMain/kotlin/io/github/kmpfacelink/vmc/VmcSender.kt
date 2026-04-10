@@ -7,6 +7,8 @@ import io.github.kmpfacelink.model.HeadTransform
 import io.github.kmpfacelink.networking.UdpSocket
 import io.github.kmpfacelink.networking.currentTimeMs
 import io.github.kmpfacelink.util.FaceLinkLogger
+import io.github.kmpfacelink.util.PlatformLock
+import io.github.kmpfacelink.util.withLock
 import io.github.kmpfacelink.vmc.osc.OscEncoder
 import io.github.kmpfacelink.vmc.osc.OscMessage
 import kotlinx.coroutines.CoroutineScope
@@ -68,6 +70,7 @@ import kotlinx.coroutines.launch
 public class VmcSender(
     private val config: VmcConfig = VmcConfig(),
 ) : Releasable {
+    private val socketLock = PlatformLock()
     private var socket = UdpSocket()
     private var collectJob: Job? = null
     private var startTimeMs: Long = 0L
@@ -86,7 +89,7 @@ public class VmcSender(
         scope: CoroutineScope,
     ) {
         stop()
-        socket = UdpSocket()
+        socketLock.withLock { socket = UdpSocket() }
         startTimeMs = currentTimeMs()
         collectJob = scope.launch {
             try {
@@ -124,7 +127,7 @@ public class VmcSender(
         headParamKeys: VmcHeadParamKeys = VmcHeadParamKeys.VRM_1_0,
     ) {
         stop()
-        socket = UdpSocket()
+        socketLock.withLock { socket = UdpSocket() }
         startTimeMs = currentTimeMs()
         collectJob = scope.launch {
             try {
@@ -184,7 +187,7 @@ public class VmcSender(
      * Can be restarted by calling [start] or [startWithExpressions] again.
      */
     public fun stop() {
-        socket.close()
+        socketLock.withLock { socket.close() }
         collectJob?.cancel()
         collectJob = null
     }
@@ -238,13 +241,15 @@ public class VmcSender(
     }
 
     private fun sendMessages(messages: List<OscMessage>) {
-        if (config.sendBundles) {
-            val bundleBytes = OscEncoder.encodeBundle(messages)
-            socket.send(bundleBytes, config.host, config.port)
-        } else {
-            for (message in messages) {
-                val bytes = OscEncoder.encode(message)
-                socket.send(bytes, config.host, config.port)
+        socketLock.withLock {
+            if (config.sendBundles) {
+                val bundleBytes = OscEncoder.encodeBundle(messages)
+                socket.send(bundleBytes, config.host, config.port)
+            } else {
+                for (message in messages) {
+                    val bytes = OscEncoder.encode(message)
+                    socket.send(bytes, config.host, config.port)
+                }
             }
         }
     }

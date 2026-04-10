@@ -6,6 +6,8 @@ import io.github.kmpfacelink.model.FaceTrackingData
 import io.github.kmpfacelink.model.GazeData
 import io.github.kmpfacelink.model.HeadTransform
 import io.github.kmpfacelink.networking.UdpSocket
+import io.github.kmpfacelink.util.PlatformLock
+import io.github.kmpfacelink.util.withLock
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.Flow
@@ -35,6 +37,7 @@ import kotlinx.coroutines.launch
 public class IfmSender(
     private val config: IfmConfig = IfmConfig(),
 ) : Releasable {
+    private val socketLock = PlatformLock()
     private var socket = UdpSocket()
     private var collectJob: Job? = null
 
@@ -52,7 +55,7 @@ public class IfmSender(
         scope: CoroutineScope,
     ) {
         stop()
-        socket = UdpSocket()
+        socketLock.withLock { socket = UdpSocket() }
         collectJob = scope.launch {
             trackingFlow.collect { data ->
                 if (data.isTracking) {
@@ -81,14 +84,14 @@ public class IfmSender(
             dataVersion = config.dataVersion,
         )
         val bytes = message.encodeToByteArray()
-        socket.send(bytes, config.host, config.port)
+        socketLock.withLock { socket.send(bytes, config.host, config.port) }
     }
 
     /**
      * Stops collecting tracking data and releases the UDP socket.
      */
     public fun stop() {
-        socket.close()
+        socketLock.withLock { socket.close() }
         collectJob?.cancel()
         collectJob = null
     }

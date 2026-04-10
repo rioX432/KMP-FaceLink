@@ -19,6 +19,7 @@ import io.github.kmpfacelink.model.SmoothingConfig
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 
@@ -28,6 +29,7 @@ private const val TAG = "TrackingStateHolder"
  * Manages tracker instances, state flows, and tracking lifecycle.
  * Extracted from MainActivity to separate tracking logic from UI.
  */
+@Suppress("TooManyFunctions")
 internal class TrackingStateHolder(
     platformContext: PlatformContext,
     private val scope: CoroutineScope,
@@ -166,29 +168,24 @@ internal class TrackingStateHolder(
     }
 
     private suspend fun startFaceTracking() {
-        faceCollectorJob = scope.launch {
-            faceTracker.trackingData.collect { data ->
-                faceTrackingDataState.value = data
-            }
-        }
+        faceCollectorJob = launchTrackerCollection(faceTracker.trackingData, faceTrackingDataState)
         faceTracker.start()
     }
 
     private suspend fun startHandTracking() {
-        handCollectorJob = scope.launch {
-            handTracker.trackingData.collect { data ->
-                handTrackingDataState.value = data
-            }
-        }
+        handCollectorJob = launchTrackerCollection(handTracker.trackingData, handTrackingDataState)
         handTracker.start()
     }
 
     private suspend fun startHolisticTracking() {
-        holisticCollectorJob = scope.launch {
-            holisticTracker.trackingData.collect { data ->
-                holisticTrackingDataState.value = data
-            }
-        }
+        holisticCollectorJob = launchTrackerCollection(holisticTracker.trackingData, holisticTrackingDataState)
         holisticTracker.start()
+    }
+
+    private fun <T> launchTrackerCollection(
+        trackingFlow: Flow<T>,
+        state: MutableStateFlow<T?>,
+    ): Job = scope.launch {
+        trackingFlow.collect { state.value = it }
     }
 }

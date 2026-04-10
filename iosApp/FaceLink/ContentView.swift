@@ -64,6 +64,7 @@ struct ModeChip: View {
         Button(action: action) {
             Text(title)
                 .font(.caption.weight(.medium))
+                .dynamicTypeSize(...DynamicTypeSize.accessibility1)
                 .foregroundStyle(.primary)
                 .padding(.horizontal, 12)
                 .padding(.vertical, 6)

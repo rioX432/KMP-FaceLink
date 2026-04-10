@@ -92,19 +92,23 @@ internal abstract class BaseVisionTracker<T>(
         }
 
         try {
-            if (sharedVisionSession != null) {
-                sharedVisionSession.addFrameHandler(::processVideoFrame)
-            } else {
-                if (captureSession == null) {
-                    setupCaptureSession()
-                }
-                captureSession?.startRunning()
-            }
+            startCaptureOrAttachSession()
             pipelineLock.withLock { transitionToTracking() }
         } catch (e: Exception) {
             setError(e.message ?: e.toString())
             throw e
         }
+    }
+
+    private fun startCaptureOrAttachSession() {
+        if (sharedVisionSession != null) {
+            sharedVisionSession.addFrameHandler(::processVideoFrame)
+            return
+        }
+        if (captureSession == null) {
+            setupCaptureSession()
+        }
+        captureSession?.startRunning()
     }
 
     internal suspend fun performStop() {

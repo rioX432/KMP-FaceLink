@@ -3,6 +3,8 @@ package io.github.kmpfacelink.vmc
 import io.github.kmpfacelink.api.Releasable
 import io.github.kmpfacelink.networking.UdpSocket
 import io.github.kmpfacelink.util.FaceLinkLogger
+import io.github.kmpfacelink.util.PlatformLock
+import io.github.kmpfacelink.util.withLock
 import io.github.kmpfacelink.vmc.osc.OscDecoder
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
@@ -55,6 +57,7 @@ import kotlinx.coroutines.launch
 public class VmcReceiver(
     private val port: Int = VmcConfig.DEFAULT_MARIONETTE_PORT,
 ) : Releasable {
+    private val socketLock = PlatformLock()
     private var socket = UdpSocket()
     private var listenJob: Job? = null
     private val _receivedData = MutableSharedFlow<VmcReceivedData>(extraBufferCapacity = 1)
@@ -75,8 +78,9 @@ public class VmcReceiver(
      */
     public fun start(scope: CoroutineScope) {
         stop()
-        socket = UdpSocket()
-        socket.bind(port)
+        val newSocket = UdpSocket()
+        newSocket.bind(port)
+        socketLock.withLock { socket = newSocket }
         listenJob = scope.launch {
             receiveLoop()
         }
@@ -92,7 +96,7 @@ public class VmcReceiver(
      * Can be restarted by calling [start] again.
      */
     public fun stop() {
-        socket.close()
+        socketLock.withLock { socket.close() }
         listenJob?.cancel()
         listenJob = null
     }
@@ -114,7 +118,8 @@ public class VmcReceiver(
                 if (backoffMs > 0L) {
                     delay(backoffMs)
                 }
-                val packetData = socket.receive()
+                val currentSocket = socketLock.withLock { socket }
+                val packetData = currentSocket.receive()
                 val messages = OscDecoder.decode(packetData)
                 val parsed = VmcMessageParser.parse(messages)
                 _receivedData.tryEmit(parsed)

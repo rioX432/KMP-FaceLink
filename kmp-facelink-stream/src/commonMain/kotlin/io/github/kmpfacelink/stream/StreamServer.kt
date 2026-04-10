@@ -93,15 +93,19 @@ public class StreamServer(
 
     /**
      * Stops the WebSocket server and disconnects all clients.
+     *
+     * Session cleanup is handled by [handleClientSession]'s finally block when
+     * [serverJob] is cancelled. We cannot acquire the coroutine [Mutex] here
+     * (non-suspend context), so [_clientCount] is set to 0 atomically as a
+     * best-effort signal. A brief window exists where [removeSession] may emit
+     * a stale non-zero count before the finally blocks complete — this is
+     * acceptable because [sendToSession] already handles closed-session errors.
      */
     public fun stop() {
         engine?.stop()
         engine = null
         serverJob?.cancel()
         serverJob = null
-        // Sessions are cleaned up by handleClientSession's finally block when
-        // serverJob is cancelled. Avoid clearing the list without mutex here
-        // to prevent a data race with concurrent sendFrame/handleClientSession.
         _clientCount.store(0)
         _connectionCount.tryEmit(0)
     }

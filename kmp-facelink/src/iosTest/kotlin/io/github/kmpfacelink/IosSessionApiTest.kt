@@ -33,7 +33,7 @@ class IosSessionApiTest {
 
     @Test
     fun getARSessionReturnsNullForCustomImplementation() {
-        val tracker = FakeFaceTracker()
+        val tracker = IosTestFakeFaceTracker()
         assertNull(tracker.getARSession())
     }
 
@@ -41,7 +41,7 @@ class IosSessionApiTest {
 
     @Test
     fun getCaptureSessionReturnsNullForCustomImplementation() {
-        val tracker = FakeHandTracker()
+        val tracker = IosTestFakeHandTracker()
         assertNull(tracker.getCaptureSession())
     }
 
@@ -49,20 +49,20 @@ class IosSessionApiTest {
 
     @Test
     fun holisticGetARSessionReturnsNullForCustomImplementation() {
-        val tracker = FakeHolisticTracker()
+        val tracker = IosTestFakeHolisticTracker()
         assertNull(tracker.getARSession())
     }
 
     @Test
     fun holisticGetCaptureSessionReturnsNullForCustomImplementation() {
-        val tracker = FakeHolisticTracker()
+        val tracker = IosTestFakeHolisticTracker()
         assertNull(tracker.getCaptureSession())
     }
 }
 
 // -- Fake implementations for testing --
 
-private class FakeFaceTracker : FaceTracker {
+private class IosTestFakeFaceTracker : FaceTracker {
     override val trackingData: Flow<FaceTrackingData> = emptyFlow()
     override val state: StateFlow<TrackingState> = MutableStateFlow(TrackingState.IDLE)
     override val errorMessage: StateFlow<String?> = MutableStateFlow(null)
@@ -75,7 +75,7 @@ private class FakeFaceTracker : FaceTracker {
     override suspend fun switchCamera(facing: CameraFacing) = Unit
 }
 
-private class FakeHandTracker : HandTracker {
+private class IosTestFakeHandTracker : HandTracker {
     override val trackingData: Flow<HandTrackingData> = emptyFlow()
     override val state: StateFlow<TrackingState> = MutableStateFlow(TrackingState.IDLE)
     override val errorMessage: StateFlow<String?> = MutableStateFlow(null)
@@ -88,7 +88,7 @@ private class FakeHandTracker : HandTracker {
     override suspend fun switchCamera(facing: CameraFacing) = Unit
 }
 
-private class FakeHolisticTracker : HolisticTracker {
+private class IosTestFakeHolisticTracker : HolisticTracker {
     override val trackingData: Flow<HolisticTrackingData> = emptyFlow()
     override val state: StateFlow<TrackingState> = MutableStateFlow(TrackingState.IDLE)
     override val errorMessage: StateFlow<String?> = MutableStateFlow(null)

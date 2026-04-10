@@ -13,20 +13,21 @@ import io.github.kmpfacelink.model.BlendShapeData
  * Architecture: 2 sequential blocks (trend + seasonality), each with FC(input->32)->ReLU->FC(32->output).
  * Residual connection between blocks. Total: ~1,200 parameters, sub-1ms inference.
  *
- * **Note**: Ships with placeholder (Xavier-initialized) weights. For production quality,
- * train weights on blend shape time-series data. See docs/research/neuro-predictor-smoothing.md.
+ * Ships with default weights that implement an exponentially-weighted moving average (EWA).
+ * For optimized performance, train custom weights on blend shape time-series data using
+ * tools/train_neuro_weights.py. See docs/research/neuro-predictor-smoothing.md.
  *
  * Reference: Shao et al., "N-euro Predictor: A Neural Network Approach for Smoothing and
  * Predicting Motion Trajectory", Proc. ACM IMWUT 2023.
  *
  * @param windowSize Number of past frames to keep in the lookback buffer (W).
  *        The network input size is windowSize + 1 (current frame included).
- * @param weights Pre-trained or placeholder model weights. If null, creates Xavier-initialized
- *        placeholder weights for the given window size.
+ * @param weights Model weights. Defaults to hand-crafted EWA weights; supply trained weights
+ *        for production-quality smoothing.
  */
 internal class NeuroPredictorSmoother(
     private val windowSize: Int = DEFAULT_WINDOW_SIZE,
-    private val weights: NeuroPredictorWeights = createPlaceholderWeights(windowSize + 1),
+    private val weights: NeuroPredictorWeights = createDefaultWeights(windowSize + 1),
 ) : BlendShapeSmoother {
 
     private val inputSize = windowSize + 1

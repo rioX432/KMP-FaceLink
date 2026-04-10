@@ -1,7 +1,5 @@
 package io.github.kmpfacelink.util
 
-import kotlin.math.sqrt
-
 /**
  * Weight matrices for a single N-BEATS block (trend or seasonality).
  *
@@ -50,71 +48,107 @@ internal data class NeuroPredictorWeights(
 )
 
 /**
- * Creates placeholder weights using Xavier uniform initialization.
+ * Creates default weights that implement an exponentially-weighted moving average (EWA).
  *
- * These are NOT trained weights -- they serve as a structural placeholder so the
- * forward pass can execute. Real weights should come from training on blend shape
- * time-series data. See docs/research/neuro-predictor-smoothing.md for training details.
+ * Block 1 (trend): FC1 passes each input element through to a dedicated hidden unit
+ * (identity mapping, ReLU-safe for blend shape values in [0,1]). FC2 maps the hidden
+ * layer to: backcast = input reconstruction, forecast = exponentially-weighted average
+ * favoring recent frames (decay factor [DEFAULT_EWA_ALPHA]).
  *
- * Xavier uniform: U(-limit, limit) where limit = sqrt(6 / (fan_in + fan_out))
+ * Block 2 (seasonality): All zeros. Since Block 1's backcast reconstructs the input,
+ * the residual is ~0 and Block 2 contributes nothing. Trained weights would capture
+ * periodic patterns here.
+ *
+ * The net effect is a functional smoother comparable to a basic EMA filter. For
+ * production-quality smoothing, train optimized weights using tools/train_neuro_weights.py.
+ * See docs/research/neuro-predictor-smoothing.md for details.
  *
  * @param inputSize Lookback window size + 1 (number of input frames).
  * @param hiddenSize Number of hidden units per FC layer (default: 32).
  * @param forecastSize Number of forecast steps (default: 1 for real-time smoothing).
- * @param seed Random seed for reproducible initialization.
  */
-internal fun createPlaceholderWeights(
+internal fun createDefaultWeights(
     inputSize: Int,
     hiddenSize: Int = NEURO_HIDDEN_SIZE,
     forecastSize: Int = NEURO_FORECAST_SIZE,
-    seed: Long = NEURO_DEFAULT_SEED,
 ): NeuroPredictorWeights {
     val outputSize = inputSize + forecastSize
-    val rng = SimpleRng(seed)
 
     return NeuroPredictorWeights(
-        trendBlock = createBlockWeights(inputSize, hiddenSize, outputSize, rng),
-        seasonalityBlock = createBlockWeights(inputSize, hiddenSize, outputSize, rng),
-    )
-}
-
-private fun createBlockWeights(
-    inputSize: Int,
-    hiddenSize: Int,
-    outputSize: Int,
-    rng: SimpleRng,
-): BlockWeights {
-    val fc1Limit = sqrt(6.0f / (inputSize + hiddenSize))
-    val fc2Limit = sqrt(6.0f / (hiddenSize + outputSize))
-
-    return BlockWeights(
-        fc1Weight = FloatArray(hiddenSize * inputSize) { rng.nextUniform(-fc1Limit, fc1Limit) },
-        fc1Bias = FloatArray(hiddenSize),
-        fc2Weight = FloatArray(outputSize * hiddenSize) { rng.nextUniform(-fc2Limit, fc2Limit) },
-        fc2Bias = FloatArray(outputSize),
+        trendBlock = createEwaTrendBlock(inputSize, hiddenSize, outputSize),
+        seasonalityBlock = createZeroBlock(inputSize, hiddenSize, outputSize),
     )
 }
 
 /**
- * Simple deterministic PRNG for reproducible weight initialization.
- * Uses a linear congruential generator (same constants as java.util.Random).
+ * Creates trend block weights that implement an exponentially-weighted average.
+ *
+ * FC1 (inputSize -> hiddenSize): Identity mapping -- hidden[i] = x[i] for i < inputSize.
+ * FC2 (hiddenSize -> outputSize):
+ *   - Backcast rows [0, inputSize): identity from hidden[i] (reconstructs input).
+ *   - Forecast rows [inputSize, outputSize): EWA with [DEFAULT_EWA_ALPHA] decay.
  */
-internal class SimpleRng(seed: Long) {
-    private var state: Long = (seed xor LCG_MULTIPLIER) and LCG_MASK
-
-    fun nextUniform(min: Float, max: Float): Float {
-        state = (state * LCG_MULTIPLIER + LCG_INCREMENT) and LCG_MASK
-        val fraction = (state ushr LCG_SHIFT).toFloat() / LCG_DIVISOR
-        return min + fraction * (max - min)
+private fun createEwaTrendBlock(
+    inputSize: Int,
+    hiddenSize: Int,
+    outputSize: Int,
+): BlockWeights {
+    // FC1: identity mapping -- hidden[i] = ReLU(1.0 * x[i]) = x[i] for x[i] >= 0
+    val fc1Weight = FloatArray(hiddenSize * inputSize)
+    for (i in 0 until minOf(inputSize, hiddenSize)) {
+        fc1Weight[i * inputSize + i] = 1f
     }
 
-    private companion object {
-        private const val LCG_MULTIPLIER = 0x5DEECE66DL
-        private const val LCG_INCREMENT = 0xBL
-        private const val LCG_MASK = (1L shl 48) - 1
-        private const val LCG_SHIFT = 24
-        private const val LCG_DIVISOR = (1 shl 24).toFloat()
+    // FC2: backcast = identity, forecast = EWA
+    val fc2Weight = FloatArray(outputSize * hiddenSize)
+
+    // Backcast rows: identity from hidden
+    for (i in 0 until inputSize) {
+        fc2Weight[i * hiddenSize + i] = 1f
     }
+
+    // Forecast rows: exponentially-weighted average
+    val ewaWeights = computeEwaWeights(inputSize)
+    for (f in 0 until (outputSize - inputSize)) {
+        val row = inputSize + f
+        for (j in 0 until inputSize) {
+            fc2Weight[row * hiddenSize + j] = ewaWeights[j]
+        }
+    }
+
+    return BlockWeights(
+        fc1Weight = fc1Weight,
+        fc1Bias = FloatArray(hiddenSize),
+        fc2Weight = fc2Weight,
+        fc2Bias = FloatArray(outputSize),
+    )
+}
+
+/** Creates a block with all-zero weights (contributes nothing to the output). */
+private fun createZeroBlock(
+    inputSize: Int,
+    hiddenSize: Int,
+    outputSize: Int,
+): BlockWeights = BlockWeights(
+    fc1Weight = FloatArray(hiddenSize * inputSize),
+    fc1Bias = FloatArray(hiddenSize),
+    fc2Weight = FloatArray(outputSize * hiddenSize),
+    fc2Bias = FloatArray(outputSize),
+)
+
+/**
+ * Computes normalized exponential weights: w[i] = alpha^(n-1-i) / sum.
+ * Earlier indices (older frames) get lower weight; the last index (most recent) gets highest.
+ */
+private fun computeEwaWeights(size: Int): FloatArray {
+    val raw = FloatArray(size) { i ->
+        var result = 1f
+        val exp = size - 1 - i
+        repeat(exp) { result *= DEFAULT_EWA_ALPHA }
+        result
+    }
+    val sum = raw.sum()
+    return FloatArray(size) { raw[it] / sum }
 }
 
 /** Default hidden layer size for N-euro Predictor blocks. */
@@ -123,5 +157,5 @@ internal const val NEURO_HIDDEN_SIZE: Int = 32
 /** Default forecast horizon (1 step ahead for real-time smoothing). */
 internal const val NEURO_FORECAST_SIZE: Int = 1
 
-/** Default random seed for placeholder weight initialization. */
-internal const val NEURO_DEFAULT_SEED: Long = 42L
+/** Exponential decay factor for default EWA weights. Higher = more weight on recent frames. */
+private const val DEFAULT_EWA_ALPHA: Float = 0.6f

@@ -7,7 +7,7 @@ import io.github.kmpfacelink.util.NEURO_FORECAST_SIZE
 import io.github.kmpfacelink.util.NEURO_HIDDEN_SIZE
 import io.github.kmpfacelink.util.NeuroPredictorSmoother
 import io.github.kmpfacelink.util.NeuroPredictorWeights
-import io.github.kmpfacelink.util.createPlaceholderWeights
+import io.github.kmpfacelink.util.createDefaultWeights
 import io.github.kmpfacelink.util.matVecMul
 import io.github.kmpfacelink.util.matVecMulRelu
 import kotlin.math.abs
@@ -117,12 +117,12 @@ class NeuroPredictorSmootherTest {
         assertApprox(6f, out[0]) // 2+3+1 = 6, positive so passes through
     }
 
-    // --- Placeholder weights tests ---
+    // --- Default weights tests ---
 
     @Test
-    fun placeholderWeightsHaveCorrectDimensions() {
+    fun defaultWeightsHaveCorrectDimensions() {
         val inputSize = 9
-        val weights = createPlaceholderWeights(inputSize)
+        val weights = createDefaultWeights(inputSize)
         val outputSize = inputSize + NEURO_FORECAST_SIZE
 
         // Block 1 (trend)
@@ -131,7 +131,7 @@ class NeuroPredictorSmootherTest {
         assertEquals(outputSize * NEURO_HIDDEN_SIZE, weights.trendBlock.fc2Weight.size)
         assertEquals(outputSize, weights.trendBlock.fc2Bias.size)
 
-        // Block 2 (seasonality)
+        // Block 2 (seasonality) -- all zeros
         assertEquals(NEURO_HIDDEN_SIZE * inputSize, weights.seasonalityBlock.fc1Weight.size)
         assertEquals(NEURO_HIDDEN_SIZE, weights.seasonalityBlock.fc1Bias.size)
         assertEquals(outputSize * NEURO_HIDDEN_SIZE, weights.seasonalityBlock.fc2Weight.size)
@@ -139,18 +139,20 @@ class NeuroPredictorSmootherTest {
     }
 
     @Test
-    fun placeholderWeightsAreDeterministic() {
-        val w1 = createPlaceholderWeights(9, seed = 123L)
-        val w2 = createPlaceholderWeights(9, seed = 123L)
+    fun defaultWeightsAreDeterministic() {
+        val w1 = createDefaultWeights(9)
+        val w2 = createDefaultWeights(9)
         assertTrue(w1.trendBlock.fc1Weight.contentEquals(w2.trendBlock.fc1Weight))
         assertTrue(w1.seasonalityBlock.fc2Weight.contentEquals(w2.seasonalityBlock.fc2Weight))
     }
 
     @Test
-    fun differentSeedsProduceDifferentWeights() {
-        val w1 = createPlaceholderWeights(9, seed = 1L)
-        val w2 = createPlaceholderWeights(9, seed = 2L)
-        assertFalse(w1.trendBlock.fc1Weight.contentEquals(w2.trendBlock.fc1Weight))
+    fun seasonalityBlockIsAllZeros() {
+        val weights = createDefaultWeights(9)
+        assertTrue(weights.seasonalityBlock.fc1Weight.all { it == 0f })
+        assertTrue(weights.seasonalityBlock.fc1Bias.all { it == 0f })
+        assertTrue(weights.seasonalityBlock.fc2Weight.all { it == 0f })
+        assertTrue(weights.seasonalityBlock.fc2Bias.all { it == 0f })
     }
 
     // --- Forward pass tests ---
@@ -181,7 +183,7 @@ class NeuroPredictorSmootherTest {
 
         // 5th frame should go through the network
         val result = smoother.smooth(mapOf(BlendShape.JAW_OPEN to 0.5f), 132L)
-        // With placeholder weights, output will differ from input but should be a valid float
+        // With default EWA weights and constant input, output should be near the input
         val output = result.getValue(BlendShape.JAW_OPEN)
         assertTrue(output in 0f..1f, "Output should be clamped to [0,1]: $output")
     }
@@ -279,6 +281,41 @@ class NeuroPredictorSmootherTest {
         val output = result.getValue(BlendShape.JAW_OPEN)
         // With identity-like weights and constant input, output should be near the input
         assertApprox(constValue, output, epsilon = 0.1f)
+    }
+
+    // --- EWA behavior tests ---
+
+    @Test
+    fun constantInputProducesNearConstantOutput() {
+        val smoother = NeuroPredictorSmoother(windowSize = 4)
+        val constValue = 0.6f
+
+        // Fill buffer + several extra frames
+        for (i in 0..9) {
+            smoother.smooth(mapOf(BlendShape.JAW_OPEN to constValue), i * 33L)
+        }
+
+        val result = smoother.smooth(mapOf(BlendShape.JAW_OPEN to constValue), 330L)
+        val output = result.getValue(BlendShape.JAW_OPEN)
+        // EWA of constant values = that constant
+        assertApprox(constValue, output, epsilon = 0.05f)
+    }
+
+    @Test
+    fun ewaOutputTracksTrendWithSmoothing() {
+        val smoother = NeuroPredictorSmoother(windowSize = 4)
+
+        // Feed increasing ramp: 0.1, 0.2, 0.3, ..., 0.9
+        val values = (1..9).map { it * 0.1f }
+        var lastOutput = 0f
+        for ((i, v) in values.withIndex()) {
+            val result = smoother.smooth(mapOf(BlendShape.JAW_OPEN to v), i * 33L)
+            lastOutput = result.getValue(BlendShape.JAW_OPEN)
+        }
+
+        // After the ramp, output should be close to recent values (not stuck at 0 or 1)
+        assertTrue(lastOutput > 0.3f, "Output should track the upward trend: $lastOutput")
+        assertTrue(lastOutput < 1.0f, "Output should be within valid range: $lastOutput")
     }
 
     /**

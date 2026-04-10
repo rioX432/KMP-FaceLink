@@ -33,9 +33,11 @@ struct HomeView: View {
             Text("KMP-FaceLink")
                 .font(.largeTitle.bold())
                 .foregroundStyle(.primary)
+                .dynamicTypeSize(...DynamicTypeSize.accessibility3)
             Text("Cross-platform face, hand & body tracking SDK")
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
+                .dynamicTypeSize(...DynamicTypeSize.accessibility1)
         }
         .padding(.horizontal, 20)
         .padding(.top, 16)
@@ -72,7 +74,7 @@ private struct FeatureCard: View {
                 Text(icon)
                     .font(.title)
                     .frame(width: iconSize, height: iconSize)
-                    .accessibilityLabel(title)
+                    .accessibilityHidden(true)
 
                 VStack(alignment: .leading, spacing: 2) {
                     Text(title)
@@ -93,5 +95,6 @@ private struct FeatureCard: View {
             .padding(16)
             .background(Color(.secondarySystemBackground), in: RoundedRectangle(cornerRadius: 12))
         }
+        .accessibilityLabel("\(title). \(description)")
     }
 }

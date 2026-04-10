@@ -142,6 +142,7 @@ internal class VisionBodyTracker(
                 error = null,
             )
         } catch (_: Exception) {
+            // Vision request can fail due to invalid pixel buffer or resource pressure
             mutableTrackingData.tryEmit(BodyTrackingData.notTracking(timestampMs))
             return null
         }

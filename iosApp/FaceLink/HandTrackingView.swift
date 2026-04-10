@@ -54,6 +54,8 @@ struct HandTrackingView: View {
                     }
                 }
                 .buttonStyle(TrackingButtonStyle(isTracking: viewModel.isTracking))
+                .accessibilityLabel(viewModel.isTracking ? "Stop hand tracking" : "Start hand tracking")
+                .accessibilityHint("Double tap to toggle hand tracking")
                 .padding(.bottom)
             }
 

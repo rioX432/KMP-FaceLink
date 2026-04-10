@@ -5,6 +5,8 @@ import io.github.kmpfacelink.model.FaceTrackingData
 import io.github.kmpfacelink.networking.UdpSocket
 import io.github.kmpfacelink.networking.currentTimeMs
 import io.github.kmpfacelink.util.FaceLinkLogger
+import io.github.kmpfacelink.util.PlatformLock
+import io.github.kmpfacelink.util.withLock
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -38,6 +40,7 @@ import kotlinx.coroutines.launch
 public class IfmReceiver(
     private val port: Int = IfmConfig.DEFAULT_PORT,
 ) : Releasable {
+    private val socketLock = PlatformLock()
     private var socket = UdpSocket()
     private var listenJob: Job? = null
     private val _trackingData = MutableSharedFlow<FaceTrackingData>(extraBufferCapacity = 1)
@@ -58,8 +61,9 @@ public class IfmReceiver(
      */
     public fun start(scope: CoroutineScope) {
         stop()
-        socket = UdpSocket()
-        socket.bind(port)
+        val newSocket = UdpSocket()
+        newSocket.bind(port)
+        socketLock.withLock { socket = newSocket }
         listenJob = scope.launch {
             receiveLoop()
         }
@@ -77,7 +81,7 @@ public class IfmReceiver(
         devicePort: Int = IfmConfig.DEFAULT_PORT,
     ) {
         val handshakeBytes = HANDSHAKE_STRING.encodeToByteArray()
-        socket.send(handshakeBytes, deviceHost, devicePort)
+        socketLock.withLock { socket.send(handshakeBytes, deviceHost, devicePort) }
     }
 
     /**
@@ -86,7 +90,7 @@ public class IfmReceiver(
      * Can be restarted by calling [start] again.
      */
     public fun stop() {
-        socket.close()
+        socketLock.withLock { socket.close() }
         listenJob?.cancel()
         listenJob = null
     }
@@ -97,7 +101,7 @@ public class IfmReceiver(
      * Stops listening and closes the UDP socket.
      * Safe to call multiple times.
      */
-    override fun release() {
+    public override fun release() {
         stop()
     }
 
@@ -109,7 +113,8 @@ public class IfmReceiver(
                 if (backoffMs > 0L) {
                     delay(backoffMs)
                 }
-                val packetData = socket.receive()
+                val currentSocket = socketLock.withLock { socket }
+                val packetData = currentSocket.receive()
                 backoffMs = processPacket(packetData, backoffMs)
             } catch (expected: IllegalStateException) {
                 if (!isActive) return

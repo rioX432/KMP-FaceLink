@@ -50,6 +50,7 @@ internal class CacheMetadataStore(private val cacheDir: String) {
         return try {
             json.decodeFromString<CacheMetadata>(text)
         } catch (_: SerializationException) {
+            // Corrupted or schema-incompatible cache metadata — reset to defaults
             CacheMetadata()
         }
     }

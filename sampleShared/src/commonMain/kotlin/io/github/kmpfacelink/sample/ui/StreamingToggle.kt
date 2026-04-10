@@ -47,7 +47,7 @@ public fun StreamingToggle(
         Text(
             text = "Stream:",
             color = SampleColors.TextSecondary,
-            fontSize = 11.sp,
+            fontSize = 12.sp,
             fontWeight = FontWeight.Bold,
         )
         val vmcState = if (vmcEnabled) "enabled" else "disabled"
@@ -60,7 +60,7 @@ public fun StreamingToggle(
             modifier = Modifier.semantics {
                 contentDescription = "VMC streaming, $vmcState"
             },
-            label = { Text("VMC", fontSize = 11.sp) },
+            label = { Text("VMC", fontSize = 12.sp) },
             colors = streamingChipColors(),
         )
         val ifmState = if (ifmEnabled) "enabled" else "disabled"
@@ -73,7 +73,7 @@ public fun StreamingToggle(
             modifier = Modifier.semantics {
                 contentDescription = "iFacialMocap streaming, $ifmState"
             },
-            label = { Text("iFacialMocap", fontSize = 11.sp) },
+            label = { Text("iFacialMocap", fontSize = 12.sp) },
             colors = streamingChipColors(),
         )
     }

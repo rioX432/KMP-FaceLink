@@ -108,6 +108,7 @@ internal object VisionBodyLandmarkMapper3D {
         val point = try {
             observation.recognizedPointForJointName(visionJoint, null)
         } catch (_: Exception) {
+            // Vision framework may throw for unsupported joints on some devices
             null
         } ?: return null
 

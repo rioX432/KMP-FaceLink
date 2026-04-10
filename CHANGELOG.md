@@ -7,6 +7,26 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- WebNN device probing with NPU/GPU/CPU fallback (f9885ab)
+- Neural lip sync engine infrastructure with mel spectrogram pipeline (9b797ef)
+- WebGPU/WebGL GPU delegate detection and fallback for Wasm face tracking (e3e6f2c)
+- NPU delegate with vendor detection for Qualcomm/MediaTek chipsets (879961d)
+- LiveKit tracking data bridge with connection state and high-level sender (4b5c512)
+- iOS 26 hand pose model revision auto-selection and config (be8bd9f)
+- iOS MLX inference engine stub and shared `OnDeviceLlmClient` in commonMain (fc1797f)
+- FaceLink Studio design document: market analysis, architecture, MVP scope, monetization (a46044f)
+- Research docs: WebNN capability detection (d5c7fdc), GCN blendshape retargeting (62a5dfb), KMP camera libraries evaluation (d02ed9b)
+- Shared C bridge and React Native wrapper package for #696 (69a2435)
+- Wasm hand/body tracking via MediaPipe HandLandmarker and PoseLandmarker JS (68bc00b)
+- LLM-friendly documentation: `llms.txt` and `llms-full.txt` (1996ae6)
+- 1D Kalman blend shape smoother with multi-frame prediction (b1b3cd2)
+- Runtime thermal quality downgrade with hysteresis (22a49b9)
+- INT8 quantization tooling and ARM64-aware model selection for OpenSeeFace (664b6d8)
+- NPU-aware delegate recommendation and readiness detection (#692) (837517f)
+- Device-adaptive `QualityPreset` with capability-based auto-selection (#695) (4a231e3)
+- `BinaryFrameCodec` test coverage (#665) (0234a07)
+- `VtsAuthenticator` test coverage (c1cef9a)
+- Research docs: Gemini Nano expression enhancement (#703), beauty filters/AR effects (#702), WebRTC DataChannel (#700), ultra-lightweight gesture model (#699), REFEL emotion recognition (#698), competitive analysis (7578b4f, 4841286, ae2d9de, ea49961, 9af5504, 21a94fc)
 - Gemma 4 E2B/E4B as on-device LLM options with `supportsNativeAudio` and `audioCapableModels` (6ba104c)
 - LiteRT-LM dual-backend scaffold: `ModelFormat`, `OnDeviceBackend`, `LiteRtLmEngine` stub (65b75af)
 - IFM receiver lifecycle, VMC integration, and VTS reconnection tests (296617c)
@@ -118,6 +138,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - `enhancerConfig` Android-only clarification in KDoc (48634ee)
 
 ### Changed
+- Replace placeholder Xavier weights with functional EWA defaults in `NeuroPredictorSmoother` (0674b35)
+- Extract common tracker lifecycle into base classes (a26b400)
+- Implement `Releasable` interface for protocol/networking classes (30a215f)
+- Update RN/Flutter wrapper research with latest ecosystem data and VTuber prioritization (d1e2db5)
+- Upgrade dependencies: Kotlin 2.3.10, AGP 9.1, Gradle 9.4.1, Ktor 3.4 (1ed014d)
+- Split `FaceTrackerConfig` into `DetectionConfig`, `PowerConfig`, and `PerformanceConfig` (#675) (ab920b0)
+- Extract `BaseWebSocketClient` to deduplicate WebSocket lifecycle across 3 clients (609cdd1)
+- Standardize release/connection-state patterns across stream clients (#677) (d1d3bfd)
+- Replace Euler lerp with quaternion slerp and add smoothness metric (#694) (0620634)
+- Tune ONNX Runtime CPU EP and add ARM64 latency tracking (#697) (7bbea7b)
+- Decompose `VtsClient` into `VtsAuthenticator` and `VtsParameterInjector` (16e067f)
+- Replace unsafe `!!` with `requireNotNull` in `ModelRegistry` and `DefaultAvatarPipeline` (6f6c16c)
+- Replace placeholder checksums with nullable `sha256Checksum` (daeb52b)
 - Stabilize vmc, ifm, vts modules from Experimental to Stable (296617c)
 - Raise hybrid routing `complexityThreshold` from 0.5 to 0.6 for Gemma 4 quality (6ba104c)
 - Prefer Gemma 4 E2B/E4B over Gemma 3n in RAM-based model selection (6ba104c)
@@ -191,6 +224,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Improve calibration with warmup and exponential decay (e60209e)
 
 ### Fixed
+- 35 audit findings: resource leaks, data races, UX, tech debt (1b918dc)
+- Audit findings: socket races, UX, tech debt, and accessibility (7c9d5ba)
+- Audit findings: socket leaks, test coverage, UX, and tech debt cleanup (7dec526)
+- Audit issues: TOCTOU race, exception handling, logging, a11y, tests (c6b0f78)
+- iOS K/N test failures: scheduler, timing, precision; bump heap to 4G (8e65bf4)
+- Build errors: visibility, expect/actual, K/N compatibility, missing deps (fb2342d)
+- `VmcSender`/`VmcReceiver` socket race on `stop()` (0d9b8b1)
+- `VoicePipeline` transcriptionCollectorJob race: guard with listenerMutex (4cbd275)
+- #668: Add `@Synchronized` to Android send/receive, lock iOS send with NSLock (ee85122)
+- `release()` scope race: cancel scope after `engine.unload()` completes (f5543ea)
 - IFM silent exception swallowing: add error logging and generic exception handling (296617c)
 - IFM socket recreation on `start()` for clean reconnection after drops (296617c)
 - VTS `MockVtsServer` shutdown port leak by saving `EmbeddedServer` reference (296617c)
@@ -234,6 +277,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Test: update expected map size after merge (321996c)
 
 ### Removed
+- Deprecated NNAPI delegate enum entry and all references (b42e4ee)
 - Deprecated smoother factory functions and `@Suppress` annotations (9f04611)
 - Unused `MEDIAPIPE_HAND_MODEL_VERSION` constant (a47a8d1)
 - Dependabot configuration (3a3d7e7)
@@ -242,6 +286,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - OSS artifacts: license, contributing guide, public CI, changelog, roadmap (ae1c71b)
 
 ### Infrastructure
+- Ignore build artifacts and tooling working dirs (48b7984)
 - Kover test coverage reporting to CI (dfc3b1d)
 - `validateModuleDependencies` Gradle task to enforce architecture rules (a55d3e2)
 - Firebase Test Lab CI workflow and instrumented smoke tests (69f52e7)

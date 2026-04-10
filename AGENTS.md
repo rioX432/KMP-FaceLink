@@ -53,7 +53,8 @@ Each library module follows this pattern:
 ```
 
 Modules with platform code: `kmp-facelink` (android/ios/jvm/wasmJs), `kmp-facelink-networking` (android/ios), `kmp-facelink-voice` (android/ios), `kmp-facelink-llm` (android/ios)
-Pure common modules: `kmp-facelink-avatar`, `kmp-facelink-actions`, `kmp-facelink-pipeline`, `kmp-facelink-vmc`, `kmp-facelink-ifm`
+Pure common modules: `kmp-facelink-pipeline`, `kmp-facelink-vmc`, `kmp-facelink-ifm`
+Wasm-enabled common modules: `kmp-facelink-avatar`, `kmp-facelink-actions` (commonMain + wasmJsMain)
 JVM-only modules: `kmp-facelink-stream`, `kmp-facelink-vts` (JVM target only, no Android/iOS)
 Wasm modules: `kmp-facelink`, `kmp-facelink-avatar`, `kmp-facelink-actions` include `wasmJs` target (face tracking functional via MediaPipe JS interop; hand/body tracking are no-op stubs; mapping/actions are fully functional)
 Note: `kmp-facelink` has `jvmMain` (ONNX Runtime + JavaCV) and `nonMobileMain` (shared no-op stubs for JVM + Wasm) source sets.
@@ -83,14 +84,14 @@ Note: `kmp-facelink-llm` includes platform-specific inference engines (llama.cpp
 
 ### Tech Stack
 
-- **Kotlin 2.2.0** — KMP with `explicitApi()` on all modules
-- **Android**: MediaPipe 0.10.33, CameraX 1.5.3, Compose
+- **Kotlin 2.3.10** — KMP with `explicitApi()` on all modules
+- **Android**: MediaPipe 0.10.33, CameraX 1.6.0, Compose
 - **iOS**: ARKit, Vision framework, SwiftUI
-- **Networking**: Ktor 3.1.1 (OkHttp on Android, Darwin on iOS)
-- **Serialization**: kotlinx-serialization-json 1.8.1
+- **Networking**: Ktor 3.4.0 (OkHttp on Android, Darwin on iOS)
+- **Serialization**: kotlinx-serialization-json 1.9.0
 - **Coroutines**: kotlinx-coroutines 1.10.2
 - **Interop**: SKIE 0.10.10 (Swift-Kotlin Flow bridging)
-- **Build**: AGP 8.8.2, Detekt 1.23.8, Dokka 2.1.0
+- **Build**: AGP 9.1.0, Detekt 1.23.8, Dokka 2.1.0
 - **On-device AI**: llama.cpp (Android JNI), LiteRT-LM scaffold (Android GPU/NPU), Apple Foundation Models (iOS 26+)
 
 ### Platform Implementations

@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/rioX432/KMP-FaceLink/actions/workflows/ci.yml/badge.svg)](https://github.com/rioX432/KMP-FaceLink/actions/workflows/ci.yml)
 [![Maven Central](https://img.shields.io/maven-central/v/io.github.rioX432/kmp-facelink)](https://central.sonatype.com/namespace/io.github.rioX432)
-[![Kotlin](https://img.shields.io/badge/Kotlin-2.2.0-7F52FF.svg?logo=kotlin)](https://kotlinlang.org)
+[![Kotlin](https://img.shields.io/badge/Kotlin-2.3.10-7F52FF.svg?logo=kotlin)](https://kotlinlang.org)
 [![Platforms](https://img.shields.io/badge/Platforms-Android%20%7C%20iOS%20%7C%20JVM%20%7C%20Wasm-blue)](https://kotlinlang.org/docs/multiplatform.html)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![API Docs](https://img.shields.io/badge/API%20Docs-Dokka-blue)](https://rioX432.github.io/KMP-FaceLink/)

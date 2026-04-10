@@ -98,7 +98,6 @@ internal class MediaPipeWasmHandTracker(
         InferenceDelegate.CPU -> GpuBackend.NONE
         InferenceDelegate.GPU, InferenceDelegate.AUTO,
         InferenceDelegate.NPU,
-        @Suppress("DEPRECATION") InferenceDelegate.NNAPI,
         -> WebGpuCapability.detect()
     }
 

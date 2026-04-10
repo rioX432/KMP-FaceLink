@@ -83,6 +83,16 @@ private val DarkColorScheme = SampleColorScheme(
     chipSelected = Color.White.copy(alpha = 0.35f),
 )
 
+/**
+ * Light color scheme — WCAG AA validated (4.5:1 minimum for normal text).
+ *
+ * Key contrast ratios (text on background / surface):
+ * - textPrimary  (#1A1A1A)           on background (#F5F5F5): 15.4:1  | on surface (#FFF): 16.6:1
+ * - textSecondary (#1A1A1A @ 80%)    on background:            8.7:1  | on surface:         9.2:1
+ * - textTertiary  (#1A1A1A @ 65%)    on background:            5.2:1  | on surface:         5.4:1
+ * - textPrimary on chipDefault  (bg): 13.4:1  | on chipDefault  (surface): 14.6:1
+ * - textPrimary on chipSelected (bg): 11.4:1  | on chipSelected (surface): 12.3:1
+ */
 private val LightColorScheme = SampleColorScheme(
     background = Color(0xFFF5F5F5),
     surface = Color.White,
@@ -90,7 +100,7 @@ private val LightColorScheme = SampleColorScheme(
     overlayLight = Color.White.copy(alpha = 0.7f),
     textPrimary = Color(0xFF1A1A1A),
     textSecondary = Color(0xFF1A1A1A).copy(alpha = 0.8f),
-    textTertiary = Color(0xFF1A1A1A).copy(alpha = 0.6f),
+    textTertiary = Color(0xFF1A1A1A).copy(alpha = 0.65f),
     chipDefault = Color.Black.copy(alpha = 0.08f),
     chipSelected = Color.Black.copy(alpha = 0.18f),
 )

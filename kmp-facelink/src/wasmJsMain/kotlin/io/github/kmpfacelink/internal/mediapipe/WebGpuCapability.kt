@@ -101,25 +101,38 @@ internal object WebGpuCapability {
     /**
      * Probes the browser for WebNN API availability and returns the best device type.
      *
-     * WebNN can target NPU, GPU, or CPU backends for ML inference. This method checks
-     * API presence only — it does not create an ML context or run inference.
-     *
-     * As of April 2026, WebNN is only available in Chromium 146+. This detection is
-     * provided as a scaffold for future integration when broader browser support lands.
+     * Attempts to create an MLContext with each device type in priority order:
+     * NPU → GPU → CPU. The first successful creation wins. If all fail or the
+     * WebNN API is absent, returns [WebNnDeviceType.UNAVAILABLE].
      *
      * @return the best available [WebNnDeviceType], or [WebNnDeviceType.UNAVAILABLE]
      */
-    fun detectWebNn(): WebNnDeviceType {
+    suspend fun detectWebNn(): WebNnDeviceType {
         if (!isWebNnAvailable()) {
             FaceLinkLogger.d(TAG, "WebNN API not available in this browser")
             return WebNnDeviceType.UNAVAILABLE
         }
-        FaceLinkLogger.d(TAG, "WebNN API detected — NPU/GPU/CPU inference possible")
-        // TODO: When WebNN is production-ready, probe for specific device types
-        //  by attempting MLContext creation with deviceType: "npu", "gpu", "cpu".
-        //  For now, just report API presence without probing device availability.
-        return WebNnDeviceType.CPU
+        FaceLinkLogger.d(TAG, "WebNN API detected, probing device types...")
+        return tryWebNnDevice("npu", WebNnDeviceType.NPU)
+            ?: tryWebNnDevice("gpu", WebNnDeviceType.GPU)
+            ?: tryWebNnDevice("cpu", WebNnDeviceType.CPU)
+            ?: WebNnDeviceType.UNAVAILABLE.also {
+                FaceLinkLogger.w(TAG, "WebNN API present but no device type available")
+            }
     }
+
+    private suspend fun tryWebNnDevice(
+        jsDeviceType: String,
+        result: WebNnDeviceType,
+    ): WebNnDeviceType? =
+        try {
+            awaitJsPromise<JsAny?>(createMlContext(jsDeviceType))
+            FaceLinkLogger.d(TAG, "WebNN device available: $jsDeviceType")
+            result
+        } catch (@Suppress("TooGenericExceptionCaught") e: Throwable) {
+            FaceLinkLogger.d(TAG, "WebNN device unavailable: $jsDeviceType")
+            null
+        }
 
     private const val TAG = "WebGpuCapability"
     private const val DELEGATE_GPU = "GPU"
@@ -148,10 +161,15 @@ private fun isWebGl2Available(): Boolean =
 
 /**
  * Checks whether the WebNN API is present (`navigator.ml` exists).
- *
- * This only checks for API presence, not whether a specific device type (NPU/GPU)
- * is available. Device probing requires creating an MLContext which is deferred
- * until WebNN reaches broader browser support.
  */
 private fun isWebNnAvailable(): Boolean =
     js("(typeof navigator !== 'undefined' && navigator.ml != null)")
+
+/**
+ * Creates a WebNN MLContext with the specified device type.
+ *
+ * @param deviceType one of "npu", "gpu", or "cpu"
+ * @return Promise resolving to an MLContext or rejecting if the device is unavailable
+ */
+private fun createMlContext(deviceType: String): Promise<JsAny?> =
+    js("navigator.ml.createContext({ deviceType: deviceType })")

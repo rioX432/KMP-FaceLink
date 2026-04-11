@@ -2,6 +2,15 @@
 
 Strictly follow the rules in [AGENTS.md](./AGENTS.md).
 
+## Core Values
+
+1. **高精度なフェイス・ハンド・モーショントラッキング** — ネイティブプラットフォーム機能（ARKit/MediaPipe）を活用し、正確で滑らかな追跡を提供
+2. **VTuber配信を盛り上げる体験** — トラッキングデータを活用したエフェクト・演出機能で、配信者と視聴者の体験を強化
+3. **KMP統一APIでVTuberアプリ開発を簡単に** — Android/iOSのトラッキング→アバター→配信まで、単一コードベースで実装可能
+
+## Won't Do
+- **クラウドLLMフォールバック** — LLMモジュールはローカルLLM（Gemma 3n / Apple Foundation Models）のみ。クラウドAPI連携は範囲外。VTuberアプリ側で必要なら自前で実装すべき
+
 ## Think Twice
 
 Before acting, always pause and reconsider. Re-read the requirements, re-check your assumptions, and verify your approach is correct before writing any code.

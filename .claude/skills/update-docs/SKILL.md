@@ -1,49 +1,53 @@
 ---
 name: update-docs
-description: "Audit and update project docs — AGENTS.md from module structure, CHANGELOG.md from git history, README sync"
-argument-hint: "[target: all | agents | changelog | readme]"
+description: "Audit and update project docs — ARCHITECTURE.md, CHANGELOG.md, README cross-references, and missing OSS docs"
+argument-hint: "[target: all | architecture | changelog | readme | oss]"
 user-invocable: true
 disable-model-invocation: true
 allowed-tools:
   - Bash(git log:*)
   - Bash(git tag:*)
   - Bash(git show:*)
+  - Bash(git diff:*)
+  - Bash(ls *)
   - Glob
   - Grep
   - Read
   - Edit
   - Write
-  - Task
+  - Agent
   - TaskCreate
   - TaskUpdate
   - TaskList
+  - TaskGet
   - AskUserQuestion
-  - mcp__codex__codex
-  - mcp__codex__codex-reply
 ---
 
 # /update-docs — Documentation Audit & Update
 
-Sync KMP-FaceLink documentation with current implementation state.
+Sync project documentation with implementation state. Reads project structure, git history, and existing docs to find and fix gaps.
 
-**Target:** "$ARGUMENTS" (all | agents | changelog | readme — default: all)
+**Arguments:** "$ARGUMENTS"
 
 ---
 
 ## Phase 0: Parse Arguments
 
-- `agents` → update AGENTS.md only (module table, API table)
+Parse `$ARGUMENTS` (case-insensitive):
+- `architecture` → update ARCHITECTURE.md only
 - `changelog` → generate/update CHANGELOG.md only
-- `readme` → update README.md only
+- `readme` → update README cross-references only
+- `oss` → create missing OSS docs (SECURITY.md, CONTRIBUTING.md) + add README links
 - `all` or empty → run all phases
 
-If argument is empty or unrecognized, use `AskUserQuestion`:
+If `$ARGUMENTS` is empty or unrecognized, use `AskUserQuestion`:
 
 **Q: Which documents should be updated?**
-- All documents (agents + changelog + readme) *(Recommended)*
-- AGENTS.md — fix outdated module structure or API table
+- All documents (architecture + changelog + readme + oss) *(Recommended)*
+- ARCHITECTURE.md — fix outdated module/directory structure
 - CHANGELOG.md — generate from git history
-- README.md — update features and links
+- README.md — update cross-references and features
+- OSS docs — create SECURITY.md, add README links
 
 ---
 
@@ -53,74 +57,81 @@ Create tasks based on selected scope:
 
 | Subject | When |
 |---------|------|
-| "Gather: module structure + docs + git history (parallel scan)" | always |
-| "Update AGENTS.md — module table + API table" | agents or all |
-| "Generate/update CHANGELOG.md" | changelog or all |
-| "Update README.md" | readme or all |
-| "Verify internal links" | always |
+| "Gather: project structure + docs + git history (parallel scan)" | always |
+| "Update ARCHITECTURE.md" | target = architecture or all |
+| "Generate/update CHANGELOG.md" | target = changelog or all |
+| "Update README.md" | target = readme or all |
+| "Create missing OSS docs" | target = oss or all |
+| "Verify internal links" | target = all (or whenever files are modified) |
 
 ---
 
-## Phase 2: Parallel Information Gathering
+## Phase 1b: Parallel Information Gathering
 
-Mark gather task `in_progress`. Launch **3 Task subagents in parallel** (`subagent_type: "Explore"`, `model: "haiku"`).
-
----
-
-### Subagent A: Module Structure Scanner
-
-```
-Scan KMP-FaceLink module structure.
-
-Root: /Users/rio/workspace/projects/KMP-FaceLink/
-
-1. Read settings.gradle.kts — list all included modules
-2. For each module, read its build.gradle.kts to find:
-   - Which source sets exist (commonMain, androidMain, iosMain, commonTest)
-   - Stability (check if described as Experimental/Stable in AGENTS.md)
-3. For each module's commonMain, identify public API entry points:
-   - Top-level public classes and interfaces
-4. Read AGENTS.md — extract current module table and API table
-
-Return:
-{
-  "modules": [
-    {
-      "name": "kmp-facelink",
-      "gradlePath": ":kmp-facelink",
-      "sourceSets": ["commonMain", "androidMain", "iosMain", "commonTest"],
-      "stability": "Stable",
-      "purpose": "Core tracking (face, hand, body)",
-      "publicEntryPoints": ["FaceTracker", "HandTracker", "BodyTracker", "HolisticTracker"]
-    }
-  ],
-  "agentsModuleTable": "copy of current module table from AGENTS.md",
-  "agentsApiTable": "copy of current Key Public APIs table from AGENTS.md"
-}
-```
+Mark gathering task `in_progress`. Launch **4 Explore subagents in parallel** (model: haiku).
 
 ---
 
-### Subagent B: Docs Scanner
+### Subagent A: Project Structure Scanner
 
 ```
-Scan documentation in KMP-FaceLink.
+Scan the project directory structure to understand the codebase layout.
 
-Root: /Users/rio/workspace/projects/KMP-FaceLink/
+Root: {project root — derive from git rev-parse --show-toplevel}
 
-1. Use Glob to find all *.md files
-2. Read README.md — extract Features section and any links
-3. Check if CHANGELOG.md exists
-4. Read AGENTS.md — check module table and API table are up to date
-5. Check if all modules listed in AGENTS.md still exist as directories
+## What to find:
 
-Return:
-{
-  "allDocs": ["README.md", "AGENTS.md", "CLAUDE.md", ...],
-  "changelogExists": true/false,
-  "readmeFeaturesBullets": ["- bullet 1", "- bullet 2", ...],
-  "agentsModuleNames": ["kmp-facelink", "kmp-facelink-avatar", ...]
-}
+### 1. Top-level directory inventory
+List all top-level directories and their purpose (infer from names and contents).
+
+### 2. Source code structure
+Find the primary source directories and their organization:
+- Look for src/, lib/, app/, packages/, modules/, feature/, core/ patterns
+- For each major directory, list subdirectories (1-2 levels deep)
+- Note the primary language(s) (check file extensions)
+
+### 3. Build system
+Identify the build system and its configuration:
+- Package managers: package.json, Cargo.toml, go.mod, build.gradle.kts, pyproject.toml, etc.
+- Monorepo tools: nx.json, turbo.json, lerna.json, settings.gradle.kts, Cargo workspace
+- If monorepo: list all packages/modules with their names
+
+### 4. Configuration files
+List notable config files: CI workflows, Docker, linting, formatting, etc.
+
+Return a structured summary of the project layout.
+```
+
+---
+
+### Subagent B: Existing Docs Scanner
+
+```
+Scan all documentation files in the project.
+
+Root: {project root}
+
+## What to find:
+
+### 1. Document inventory
+Use Glob to find all *.md files in: root, docs/, .github/.
+For each file, record: path, first heading (title), approximate line count.
+
+### 2. Document content summary
+For each of these files (if they exist), read and summarize key sections:
+- README.md — Features/description section, links section
+- docs/ARCHITECTURE.md or ARCHITECTURE.md — structure section
+- CONTRIBUTING.md or docs/CONTRIBUTING.md — first 10 lines
+- CHANGELOG.md — latest version entry
+
+### 3. Internal link inventory
+For README.md, extract ALL markdown links (pattern: `[text](path)`).
+For each link: text, target path, whether it's a relative link.
+
+### 4. Missing standard files
+Check existence of: CHANGELOG.md, SECURITY.md, CONTRIBUTING.md, LICENSE
+
+Return a structured summary including: allDocs, missingFiles, readmeLinks, existing doc summaries.
 ```
 
 ---
@@ -130,64 +141,143 @@ Return:
 ```
 Scan git history for CHANGELOG generation.
 
-Root: /Users/rio/workspace/projects/KMP-FaceLink/
+Root: {project root}
 
-1. Run: git tag --sort=-version:refname | head -5
-2. If tag exists: git log {latest_tag}..HEAD --pretty=format:"%H|%s|%as" --no-merges
-   If no tags: git log --pretty=format:"%H|%s|%as" --no-merges | head -100
-3. Classify each commit subject:
-   - Added: new feature, new module, "add", "implement", "support"
-   - Changed: update, refactor, improve, bump, migrate
-   - Fixed: fix, bug, crash, error, broken, wrong
-   - Removed: remove, delete, drop
-   - Infrastructure: CI, lint, detekt, build, gradle, workflow
+## What to find:
 
-Return:
-{
-  "latestTag": "v1.0.0" or null,
-  "commits": [
-    {
-      "hash": "abc1234",
-      "subject": "Add iOS Whisper.cpp cinterop (#108)",
-      "date": "2026-02-01",
-      "category": "Added"
-    }
-  ]
-}
+### 1. Latest git tags
+Run: git tag --sort=-version:refname | head -10
+If no tags, note "no tags — will use full history".
+
+### 2. Commits since last tag (or recent 100 if no tags)
+If tag exists:
+  git log {latest_tag}..HEAD --pretty=format:"%H|%s|%as|%an" --no-merges
+If no tag:
+  git log --pretty=format:"%H|%s|%as|%an" --no-merges | head -100
+
+### 3. Classify each commit
+For each commit subject, classify into:
+- Added: new feature, "add", "implement", "support", "introduce"
+- Changed: update, refactor, improve, bump, migrate, rename
+- Fixed: fix, bug, crash, error, broken, revert
+- Removed: remove, delete, drop, clean
+- Infrastructure: CI, lint, build, workflow, docker, deps
+
+### 4. Tagged releases
+For each tag found, get the tag date:
+  git log -1 --format="%as" {tag}
+
+Return: latestTag, classified commits, tag list with dates.
 ```
 
 ---
 
-## Phase 3: Gap Analysis
+### Subagent D: Feature Inventory Scanner
 
-Mark gather task `completed`.
+```
+Inventory the project's implemented features by examining the source code.
 
-Consolidate results:
-- Modules in settings.gradle.kts not reflected in AGENTS.md module table
-- Public APIs not in AGENTS.md Key Public APIs table
-- Module stability mismatch (Experimental marked as Stable, etc.)
-- Features not mentioned in README.md
-- Unlogged commits since last tag
+Root: {project root}
 
-Present gap summary with `AskUserQuestion`:
+## What to find:
 
-**Q: Proceed with updates?**
-- Yes, update everything found *(Recommended)*
-- Let me review first (show full diff preview)
-- Skip specific section
+### 1. Entry points and main modules
+Find main application entry points (main.py, index.ts, App.kt, main.go, etc.).
+List the primary features/screens/routes/commands exposed.
+
+### 2. API surface (if applicable)
+Grep for route/endpoint definitions, CLI commands, or exported modules.
+
+### 3. Notable integrations
+Grep for: database, auth, API client, websocket, queue, cache, storage patterns.
+List external service integrations found.
+
+### 4. README-claimed features vs actual
+Read README.md's features section. For each claimed feature, verify it exists in code.
+Note any features found in code but NOT mentioned in README.
+
+Return: list of implemented features, integrations, and any README gaps.
+```
 
 ---
 
-## Phase 4: Update AGENTS.md
+## Phase 2: Gap Analysis
 
-*(Skip if target ≠ agents, all)*
+Mark gathering task `completed`.
+
+Consolidate results from all subagents and identify gaps:
+
+### Architecture gaps (compare A vs B)
+- Directories/modules in the actual project (Subagent A) NOT reflected in ARCHITECTURE.md (Subagent B)
+- Outdated paths or descriptions in ARCHITECTURE.md
+
+### CHANGELOG gaps (from C)
+- Does CHANGELOG.md exist?
+- How many unlogged commits since last tag/entry?
+
+### README gaps (compare B vs D)
+- Features found in code (Subagent D) NOT listed in README Features section
+- Broken or missing internal links
+
+### OSS gaps (from B)
+- Which standard files (SECURITY.md, CONTRIBUTING.md, LICENSE) are missing?
+
+---
+
+## Phase 3: Confirm Scope
+
+Present gap analysis to user with `AskUserQuestion`:
+
+```
+Gap Analysis Results:
+
+Architecture: [N outdated/missing entries in ARCHITECTURE.md]
+CHANGELOG: [exists / missing — N unlogged commits]
+README Features: [N implemented features not listed]
+OSS docs: [list missing files]
+```
+
+**Q: Proceed with these updates?**
+- Yes, update everything found above *(Recommended)*
+- Let me review first (show details)
+- Skip specific section (specify which)
+
+---
+
+## Phase 4: Update ARCHITECTURE.md
+
+*(Skip if target = changelog, readme, or oss)*
 
 Mark task `in_progress`.
 
-1. Build updated module table from Subagent A results
-2. Build updated Key Public APIs table if new entry points were found
-3. Read AGENTS.md first to find exact section boundaries
-4. Use `Edit` to replace only the changed sections — do NOT rewrite the whole file
+### 4a. Build updated structure
+
+Using Subagent A results, construct/update the project structure tree. Match the style already used in ARCHITECTURE.md (if it exists). If no ARCHITECTURE.md exists, create one with this structure:
+
+```markdown
+# Architecture
+
+## Project Structure
+
+```
+project-root/
+├── {dir}/    # {description}
+├── {dir}/    # {description}
+└── ...
+```
+
+## Key Design Decisions
+
+{Extract from existing docs or leave as TODO for user}
+```
+
+### 4b. Update existing sections
+
+If ARCHITECTURE.md already exists:
+- Read the file first
+- Use `Edit` to update only the outdated sections (structure tree, module descriptions)
+- Preserve sections that are still accurate (design decisions, diagrams, etc.)
+- Do NOT rewrite sections that haven't changed
 
 Mark task `completed`.
 
@@ -195,23 +285,31 @@ Mark task `completed`.
 
 ## Phase 5: Generate/Update CHANGELOG.md
 
-*(Skip if target ≠ changelog, all)*
+*(Skip if target = architecture, readme, or oss)*
 
 Mark task `in_progress`.
 
-### Format: Keep a Changelog 1.1.0
+### 5a. Check existing CHANGELOG
+
+If exists: read to find the latest version/entry recorded.
+If not: create from scratch.
+
+### 5b. Write CHANGELOG.md
+
+Format: [Keep a Changelog 1.1.0](https://keepachangelog.com/en/1.1.0/)
 
 ```markdown
 # Changelog
 
 All notable changes to this project will be documented in this file.
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
 ### Added
-- {subject} ({short_hash})
+- {commit subject} ({short hash})
 
 ### Changed
 - ...
@@ -219,19 +317,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ### Fixed
 - ...
 
-### Removed
-- ...
-
 ### Infrastructure
-- {CI/lint/build changes}
+- ...
 ```
 
 Rules:
-- Group commits by category
-- Use commit subject as-is, append `({short_hash})`
-- Skip merge commits (already filtered by `--no-merges`)
+- Group commits by category (Added, Changed, Fixed, Removed, Infrastructure)
+- Use commit subject as-is, appended with `({short_hash})`
+- Skip merge commits
 - Infrastructure category goes last
-- If tag exists, create a section for each tagged version
+- If tags exist, create a section for each tagged version with its date
+- Filter out commits already in the existing CHANGELOG
 
 Mark task `completed`.
 
@@ -239,50 +335,119 @@ Mark task `completed`.
 
 ## Phase 6: Update README.md
 
-*(Skip if target ≠ readme, all)*
+*(Skip if target = architecture, changelog, or oss)*
 
 Mark task `in_progress`.
 
-1. Identify modules/features not mentioned in README Features section (from gap analysis)
-2. Add missing module descriptions as bullet points
-3. Add CHANGELOG.md link if missing and file exists
+### 6a. Determine missing features
+
+From Subagent D, identify features implemented in code but not listed in README.
+
+### 6b. Update Features section
+
+Add missing feature descriptions to the Features section. Keep existing content unchanged.
+
+### 6c. Add doc links
+
+If CHANGELOG.md exists (or was just created) and not already linked in README:
+```markdown
+## Changelog
+See [CHANGELOG.md](CHANGELOG.md) for a full list of changes.
+```
+
+If SECURITY.md exists (or was just created) and not already linked:
+```markdown
+For security issues, see [SECURITY.md](SECURITY.md).
+```
+
+### 6d. Mirror in localized README (if exists)
+
+Check for `README.ja.md`, `README.ko.md`, etc. If found, apply equivalent changes (translated headings, same link paths).
+
+Use `Edit` for targeted replacements. Read files before editing.
 
 Mark task `completed`.
 
 ---
 
-## Phase 7: Verify Internal Links
+## Phase 7: Create Missing OSS Docs
 
-Check all relative links in modified files resolve to existing files.
-Flag any broken links in the final report.
+*(Skip if target = architecture, changelog, or readme)*
+
+Mark task `in_progress`.
+
+### SECURITY.md (if missing)
+
+Adapt to the project's context (web app, CLI tool, library, mobile app):
+
+```markdown
+# Security Policy
+
+## Supported Versions
+
+| Version | Supported |
+|---------|-----------|
+| Latest  | ✅        |
+| Older   | ❌        |
+
+## Reporting a Vulnerability
+
+Please **do not** open a public GitHub Issue for security vulnerabilities.
+
+Report via [GitHub Security Advisories]({repo_url}/security/advisories/new):
+
+1. Go to the Security tab → Advisories → "Report a vulnerability"
+2. Describe the vulnerability, steps to reproduce, and potential impact
+3. We aim to respond within 7 days
+```
+
+Derive `{repo_url}` from `git remote get-url origin`.
+
+### CONTRIBUTING.md (if missing and project has >5 contributors or is public)
+
+Only suggest creation — do NOT auto-create without user confirmation, as contribution guidelines are opinionated.
+
+Mark task `completed`.
 
 ---
 
-## Phase 8: Summary Report
+## Phase 8: Verify Internal Links
 
-Mark all tasks `completed`.
+*(Always run when any file was modified)*
+
+For each modified doc file, extract all relative markdown links `[text](path)` and verify the target file exists using `ls`.
+
+Report any broken links. If the target was supposed to be created in this run but wasn't, note as error.
+
+---
+
+## Phase 9: Summary Report
+
+Mark all remaining tasks `completed`.
 
 ```
 ## /update-docs Complete
 
-Target: {all | agents | changelog | readme}
+Target: {all | architecture | changelog | readme | oss}
 
 ### Files Modified
 | File | Action |
 |------|--------|
-| AGENTS.md | Updated module table (N changes) |
-| CHANGELOG.md | Created ({N} commits) / Updated |
-| README.md | Added {N} features |
+| {path} | {Created / Updated — brief description} |
 
-### Gap Analysis
+### Gap Analysis Results
 | Area | Before | After |
 |------|--------|-------|
-| Missing modules in AGENTS | N | 0 |
-| Unlogged commits | N | 0 |
-| README missing features | N | 0 |
+| Architecture outdated entries | {N} | 0 |
+| Unlogged commits | {N} | 0 |
+| README missing features | {N} | 0 |
+| Missing OSS files | {N} | 0 |
 
 ### Internal Links
-All {N} verified links: ✓
+All {N} verified links: ✓ (or list broken ones)
+
+### Skipped
+{Any phases skipped and reason}
 ```
 
 ---
@@ -291,8 +456,12 @@ All {N} verified links: ✓
 
 | Situation | Action |
 |-----------|--------|
-| Subagent returns no data | Read settings.gradle.kts directly |
-| No git tags | Log all commits as [Unreleased] |
-| CHANGELOG.md up to date | Note "already current", skip |
-| Edit fails (pattern not found) | Read file again, retry with correct pattern |
-| AGENTS.md section not found | Ask user before rewriting whole section |
+| Subagent returns no data | Fallback: read project root directly |
+| ARCHITECTURE.md doesn't exist | Create new one from scratch |
+| git log returns nothing | Note "no commits to log", skip CHANGELOG |
+| Feature exists but can't determine if shipped | Mark as "likely implemented", let user confirm |
+| CHANGELOG.md already up to date | Note "already current", skip |
+| SECURITY.md already exists | Skip creation, note in report |
+| Edit tool fails (pattern not found) | Read file again, retry with correct pattern |
+| No README.md exists | Skip README update phase, note in report |
+| Localized README out of sync | Only update links section, flag content sync as manual task |

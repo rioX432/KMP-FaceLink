@@ -66,22 +66,22 @@ class ConfigurationTest {
     @Test
     fun faceTrackerConfigDefaultAnalysisDimensions() {
         val config = FaceTrackerConfig()
-        assertEquals(FaceTrackerConfig.DEFAULT_ANALYSIS_WIDTH, config.analysisWidth)
-        assertEquals(FaceTrackerConfig.DEFAULT_ANALYSIS_HEIGHT, config.analysisHeight)
+        assertEquals(FaceTrackerConfig.DEFAULT_ANALYSIS_WIDTH, config.performanceConfig.analysisWidth)
+        assertEquals(FaceTrackerConfig.DEFAULT_ANALYSIS_HEIGHT, config.performanceConfig.analysisHeight)
     }
 
     @Test
     fun faceTrackerConfigDefaultDetectionConfidence() {
         val config = FaceTrackerConfig()
-        assertEquals(DetectionConfig.DEFAULT_CONFIDENCE, config.minDetectionConfidence, 0f)
-        assertEquals(DetectionConfig.DEFAULT_CONFIDENCE, config.minTrackingConfidence, 0f)
-        assertEquals(DetectionConfig.DEFAULT_CONFIDENCE, config.minPresenceConfidence, 0f)
+        assertEquals(DetectionConfig.DEFAULT_CONFIDENCE, config.detectionConfig.minDetectionConfidence, 0f)
+        assertEquals(DetectionConfig.DEFAULT_CONFIDENCE, config.detectionConfig.minTrackingConfidence, 0f)
+        assertEquals(DetectionConfig.DEFAULT_CONFIDENCE, config.detectionConfig.minPresenceConfidence, 0f)
     }
 
     @Test
     fun faceTrackerConfigDefaultMaxFaces() {
         val config = FaceTrackerConfig()
-        assertEquals(1, config.maxFaces)
+        assertEquals(1, config.detectionConfig.maxFaces)
     }
 
     // -- FaceTrackerConfig custom values --
@@ -99,9 +99,9 @@ class ConfigurationTest {
         )
         assertTrue(config.smoothingConfig is SmoothingConfig.None)
         assertEquals(CameraFacing.BACK, config.cameraFacing)
-        assertEquals(320, config.analysisWidth)
-        assertEquals(240, config.analysisHeight)
-        assertEquals(InferenceDelegate.CPU, config.inferenceDelegate)
+        assertEquals(320, config.performanceConfig.analysisWidth)
+        assertEquals(240, config.performanceConfig.analysisHeight)
+        assertEquals(InferenceDelegate.CPU, config.performanceConfig.inferenceDelegate)
     }
 
     @Test
@@ -111,7 +111,7 @@ class ConfigurationTest {
         assertEquals(CameraFacing.BACK, modified.cameraFacing)
         // Other fields should remain unchanged
         assertEquals(original.smoothingConfig, modified.smoothingConfig)
-        assertEquals(original.analysisWidth, modified.analysisWidth)
+        assertEquals(original.performanceConfig.analysisWidth, modified.performanceConfig.analysisWidth)
     }
 
     // -- HandTrackerConfig --
@@ -215,9 +215,9 @@ class ConfigurationTest {
     fun qualityPresetApplyToProducesCorrectConfig() {
         val preset = QualityPreset.Medium
         val config = preset.applyTo()
-        assertEquals(preset.analysisWidth, config.analysisWidth)
-        assertEquals(preset.analysisHeight, config.analysisHeight)
-        assertEquals(preset.powerMode, config.powerMode)
+        assertEquals(preset.analysisWidth, config.performanceConfig.analysisWidth)
+        assertEquals(preset.analysisHeight, config.performanceConfig.analysisHeight)
+        assertEquals(preset.powerMode, config.powerConfig.powerMode)
     }
 
     // -- DeviceCapabilityDetector --

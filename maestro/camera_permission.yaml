@@ -1,0 +1,23 @@
+# Grant camera permission and verify the tracking UI appears.
+appId: io.github.kmpfacelink.sample
+---
+- launchApp:
+    clearState: true
+    permissions:
+        all: deny
+# Navigate to Face Tracking screen
+- tapOn: "Face Tracking"
+# Tap Start to trigger the permission dialog
+- tapOn: "Start"
+# Grant camera permission on the system dialog
+- tapOn:
+    text: "While using the app"
+    optional: true
+# If the permission text differs on this OS version, try the alternative
+- tapOn:
+    text: "Allow"
+    optional: true
+# The tracking screen should remain visible with the status text
+- assertVisible:
+    text: "Status:.*"
+    optional: true

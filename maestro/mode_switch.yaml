@@ -1,0 +1,28 @@
+# Switch between tracking modes via feature cards and mode chips.
+appId: io.github.kmpfacelink.sample
+---
+- launchApp:
+    clearState: true
+- assertVisible: "KMP-FaceLink"
+
+# Navigate to Face Tracking from home
+- tapOn: "Face Tracking"
+- assertVisible: "Start"
+# Verify FACE chip is visible in mode toggle
+- assertVisible: "FACE"
+
+# Switch to Hand via mode chip
+- tapOn: "HAND"
+- assertVisible: "Tap Start to begin hand tracking"
+
+# Switch to Holistic via mode chip
+- tapOn: "HOLISTIC"
+- assertVisible: "Start"
+
+# Switch to Actions via mode chip
+- tapOn: "ACTIONS"
+- assertVisible: "Start"
+
+# Switch to Voice via mode chip
+- tapOn: "VOICE"
+- assertVisible: "Voice"

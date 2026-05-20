@@ -373,6 +373,157 @@ Task {
 - Heavy processing (avatar mapping, action system evaluation) is fine to keep on the background emission thread.
 - `StateFlow.value` reads are thread-safe and can be accessed from any thread without dispatching.
 
+## Error Recovery
+
+All trackers share the same `TrackingState` lifecycle. When something goes wrong, the state transitions to `ERROR` and `errorMessage` contains a platform-specific description.
+
+### State Transition Diagram
+
+```
+                  ┌──────────────────────────────────┐
+                  │                                  │
+                  v                                  │
+IDLE ──start()──> STARTING ──success──> TRACKING ──stop()──> STOPPED
+                     │                     │                    │
+                   failure           runtime failure          start()
+                     │                     │                    │
+                     v                     v                    v
+                   ERROR <─────────────  ERROR              STARTING
+                     │
+                   start()
+                     │
+                     v
+                  STARTING ──success──> TRACKING
+                     │
+                   failure
+                     │
+                     v
+                   ERROR (cycle continues)
+
+Any state ──release()──> RELEASED (terminal)
+```
+
+### Valid Operations per State
+
+| State | `start()` | `stop()` | `release()` | `updateSmoothing()` | `resetSmoothing()` | `switchCamera()` |
+|-------|-----------|----------|-------------|---------------------|-------------------|-----------------|
+| IDLE | Yes | No-op | Yes | Yes | Yes | Yes |
+| STARTING | No-op | Yes | Yes | Yes | Yes | Yes |
+| TRACKING | No-op | Yes | Yes | Yes | Yes | Yes |
+| STOPPED | Yes | No-op | Yes | Yes | Yes | Yes |
+| ERROR | **Yes** | No-op | Yes | Yes | Yes | Yes |
+| RELEASED | Throws `IllegalStateException` | Throws | -- | Throws | Throws | Throws |
+
+### Error Categories
+
+Errors fall into two categories based on whether retrying `start()` can succeed.
+
+#### Recoverable (retry may succeed)
+
+These are transient conditions that may resolve on their own:
+
+| Error | Platform | Typical `errorMessage` | Recovery |
+|-------|----------|----------------------|----------|
+| Camera in use by another app | Android/iOS | `"CameraX binding failed..."` / ARKit session error | Wait for the other app to release the camera, then call `start()` |
+| Temporary permission denial | Android | `"No front camera available"` (after permission revoke) | Request permission again, then call `start()` |
+| ARKit session interruption | iOS | ARKit `NSError.localizedDescription` | ARKit session may recover after interruption ends; call `start()` |
+
+#### Fatal (must recreate tracker)
+
+These indicate a permanent condition that retrying cannot fix:
+
+| Error | Platform | Typical `errorMessage` | Recovery |
+|-------|----------|----------------------|----------|
+| No camera hardware | Android | `"No front camera available"` | Cannot recover on this device |
+| No TrueDepth camera | iOS | `"ARFaceTracking is not supported on this device"` | Cannot recover; device lacks hardware |
+| MediaPipe model load failure | Android | `"Failed to create FaceLandmarker..."` | Check model assets are bundled correctly; app bug |
+| Platform not supported | JVM/Wasm | `"Face tracking is not yet implemented on this platform"` | No native implementation available |
+
+> **Distinguishing recoverable from fatal:** There is no programmatic flag. Use the `errorMessage` content and the device context to decide. A practical approach: allow a fixed number of retries with exponential backoff, then show the user an error UI with the message.
+
+### Recovery Patterns
+
+#### Kotlin (Android / Shared)
+
+```kotlin
+// Observe state and show error UI with retry
+lifecycleScope.launch {
+    tracker.state.collect { state ->
+        when (state) {
+            TrackingState.ERROR -> {
+                val message = tracker.errorMessage.value
+                showErrorBanner(message, onRetry = {
+                    lifecycleScope.launch { tracker.start() }
+                })
+            }
+            TrackingState.TRACKING -> hideErrorBanner()
+            else -> { /* handle other states */ }
+        }
+    }
+}
+
+// Retry with exponential backoff
+suspend fun startWithRetry(tracker: FaceTracker, maxRetries: Int = 3) {
+    var attempt = 0
+    while (attempt < maxRetries) {
+        try {
+            tracker.start()
+            return // Success
+        } catch (e: UnsupportedOperationException) {
+            throw e // Fatal — no point retrying
+        } catch (e: Exception) {
+            attempt++
+            if (attempt >= maxRetries) throw e
+            delay(1000L * (1 shl (attempt - 1))) // 1s, 2s, 4s
+        }
+    }
+}
+```
+
+#### Swift (iOS)
+
+```swift
+// Observe state and retry
+func observeTracker() {
+    trackingTask = Task {
+        for await state in tracker.state {
+            await MainActor.run {
+                switch state {
+                case .error:
+                    let message = tracker.errorMessage.value ?? "Unknown error"
+                    self.showError(message)
+                case .tracking:
+                    self.hideError()
+                default:
+                    break
+                }
+            }
+        }
+    }
+}
+
+// Retry with backoff
+func startWithRetry(maxRetries: Int = 3) async throws {
+    for attempt in 0..<maxRetries {
+        do {
+            try await tracker.start()
+            return // Success
+        } catch is UnsupportedOperationException {
+            throw error // Fatal — no point retrying
+        } catch {
+            if attempt == maxRetries - 1 { throw error }
+            try await Task.sleep(nanoseconds: UInt64(pow(2.0, Double(attempt))) * 1_000_000_000)
+        }
+    }
+}
+```
+
+### Important Notes
+
+- **`start()` throws on error.** When `start()` fails, it both sets `state` to `ERROR` and throws the exception. Callers should use `try`/`catch` if they want to handle the error inline, or observe `state` for reactive error handling.
+- **`errorMessage` is not cleared on retry.** After a failed `start()`, `errorMessage` retains the last error description even if a subsequent `start()` succeeds. Use `state` (not `errorMessage == null`) to determine the current condition.
+- **`release()` is always safe.** It can be called from any state, including ERROR, and transitions to RELEASED. After releasing, create a new tracker instance to continue.
+
 ## Smoothing Filters
 
 All trackers support runtime-configurable smoothing:

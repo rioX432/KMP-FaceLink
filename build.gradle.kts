@@ -34,6 +34,7 @@ val publishableModules = setOf(
     "kmp-facelink-ifm",
     "kmp-facelink-stream",
     "kmp-facelink-vts",
+    "kmp-facelink-bom",
 )
 
 val pomDescriptions = mapOf(
@@ -48,6 +49,7 @@ val pomDescriptions = mapOf(
     "kmp-facelink-ifm" to "iFacialMocap protocol output for KMP-FaceLink",
     "kmp-facelink-stream" to "WebSocket streaming server for KMP-FaceLink phone-as-tracker use case",
     "kmp-facelink-vts" to "VTube Studio Plugin API integration for KMP-FaceLink",
+    "kmp-facelink-bom" to "Bill of Materials for KMP-FaceLink multi-module version alignment",
 )
 
 val detektFormatting = libs.detekt.formatting

@@ -6,7 +6,21 @@ Add KMP-FaceLink to your project via Maven Central (Android/JVM) or Swift Packag
 
 ## Android / Kotlin Multiplatform (Gradle)
 
-### Version Catalog (recommended)
+### BOM (recommended)
+
+Use the Bill of Materials to align all module versions automatically. You only specify the version once:
+
+```kotlin
+dependencies {
+    implementation(platform("io.github.rioX432:kmp-facelink-bom:0.1.0"))
+    implementation("io.github.rioX432:kmp-facelink")          // No version needed
+    implementation("io.github.rioX432:kmp-facelink-avatar")   // No version needed
+    implementation("io.github.rioX432:kmp-facelink-actions")  // No version needed
+    // Add other modules as needed
+}
+```
+
+### Version Catalog + BOM
 
 Add to `gradle/libs.versions.toml`:
 
@@ -15,22 +29,24 @@ Add to `gradle/libs.versions.toml`:
 kmp-facelink = "0.1.0"
 
 [libraries]
-kmp-facelink = { module = "io.github.rioX432:kmp-facelink", version.ref = "kmp-facelink" }
-kmp-facelink-avatar = { module = "io.github.rioX432:kmp-facelink-avatar", version.ref = "kmp-facelink" }
-kmp-facelink-actions = { module = "io.github.rioX432:kmp-facelink-actions", version.ref = "kmp-facelink" }
-kmp-facelink-voice = { module = "io.github.rioX432:kmp-facelink-voice", version.ref = "kmp-facelink" }
-kmp-facelink-llm = { module = "io.github.rioX432:kmp-facelink-llm", version.ref = "kmp-facelink" }
-kmp-facelink-pipeline = { module = "io.github.rioX432:kmp-facelink-pipeline", version.ref = "kmp-facelink" }
-kmp-facelink-vmc = { module = "io.github.rioX432:kmp-facelink-vmc", version.ref = "kmp-facelink" }
-kmp-facelink-ifm = { module = "io.github.rioX432:kmp-facelink-ifm", version.ref = "kmp-facelink" }
-kmp-facelink-stream = { module = "io.github.rioX432:kmp-facelink-stream", version.ref = "kmp-facelink" }
-kmp-facelink-vts = { module = "io.github.rioX432:kmp-facelink-vts", version.ref = "kmp-facelink" }
+kmp-facelink-bom = { module = "io.github.rioX432:kmp-facelink-bom", version.ref = "kmp-facelink" }
+kmp-facelink = { module = "io.github.rioX432:kmp-facelink" }
+kmp-facelink-avatar = { module = "io.github.rioX432:kmp-facelink-avatar" }
+kmp-facelink-actions = { module = "io.github.rioX432:kmp-facelink-actions" }
+kmp-facelink-voice = { module = "io.github.rioX432:kmp-facelink-voice" }
+kmp-facelink-llm = { module = "io.github.rioX432:kmp-facelink-llm" }
+kmp-facelink-pipeline = { module = "io.github.rioX432:kmp-facelink-pipeline" }
+kmp-facelink-vmc = { module = "io.github.rioX432:kmp-facelink-vmc" }
+kmp-facelink-ifm = { module = "io.github.rioX432:kmp-facelink-ifm" }
+kmp-facelink-stream = { module = "io.github.rioX432:kmp-facelink-stream" }
+kmp-facelink-vts = { module = "io.github.rioX432:kmp-facelink-vts" }
 ```
 
 Then in your module's `build.gradle.kts`:
 
 ```kotlin
 dependencies {
+    implementation(platform(libs.kmp.facelink.bom))
     implementation(libs.kmp.facelink)          // Core tracking
     implementation(libs.kmp.facelink.avatar)   // Live2D/VRM mapping
     implementation(libs.kmp.facelink.actions)  // Gesture triggers
@@ -38,7 +54,7 @@ dependencies {
 }
 ```
 
-### Direct Dependency
+### Direct Dependency (without BOM)
 
 ```kotlin
 dependencies {
@@ -97,6 +113,7 @@ targets: [
 
 | Module | Maven Artifact | SPM Product | Description |
 |--------|---------------|-------------|-------------|
+| BOM | `kmp-facelink-bom` | -- | Version alignment for all modules |
 | Core | `kmp-facelink` | `KMPFaceLink` | Face, hand, and body tracking |
 | Avatar | `kmp-facelink-avatar` | `KMPFaceLinkAvatar` | Live2D and VRM parameter mapping |
 | Actions | `kmp-facelink-actions` | `KMPFaceLinkActions` | Gesture and expression triggers |

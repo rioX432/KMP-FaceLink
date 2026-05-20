@@ -16,6 +16,7 @@ The publishing pipeline is fully automated via GitHub Actions (`.github/workflow
 
 | Module | Maven Artifact | SPM Product |
 |--------|---------------|-------------|
+| `kmp-facelink-bom` | `io.github.rioX432:kmp-facelink-bom` | -- (Maven BOM) |
 | `kmp-facelink` | `io.github.rioX432:kmp-facelink` | `KMPFaceLink` |
 | `kmp-facelink-avatar` | `io.github.rioX432:kmp-facelink-avatar` | `KMPFaceLinkAvatar` |
 | `kmp-facelink-actions` | `io.github.rioX432:kmp-facelink-actions` | `KMPFaceLinkActions` |
@@ -27,6 +28,8 @@ The publishing pipeline is fully automated via GitHub Actions (`.github/workflow
 | `kmp-facelink-ifm` | `io.github.rioX432:kmp-facelink-ifm` | `KMPFaceLinkIFM` |
 | `kmp-facelink-stream` | `io.github.rioX432:kmp-facelink-stream` | -- (JVM only) |
 | `kmp-facelink-vts` | `io.github.rioX432:kmp-facelink-vts` | -- (JVM only) |
+
+The BOM (`kmp-facelink-bom`) is a `java-platform` module that manages versions for all 11 library modules. Consumers can import the BOM via `platform()` and omit version numbers on individual modules. See [Quick Start Integration](quick-start-integration.md) for usage examples.
 
 ## First-Time Setup Checklist
 

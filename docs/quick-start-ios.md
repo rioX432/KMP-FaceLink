@@ -332,3 +332,4 @@ above — it gives you explicit control over the full lifecycle.
 
 - [API Overview](api-overview.md) for all modules and use cases
 - [Android Quick Start](quick-start-android.md) for the Android integration
+- [Troubleshooting](troubleshooting.md) for common integration issues

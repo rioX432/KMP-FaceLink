@@ -153,3 +153,4 @@ lifecycleScope.launch {
 
 - [API Overview](api-overview.md) for all modules and use cases
 - [iOS Quick Start](quick-start-ios.md) for the iOS integration
+- [Troubleshooting](troubleshooting.md) for common integration issues

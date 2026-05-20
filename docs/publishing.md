@@ -96,13 +96,14 @@ The workflow will:
 1. Publish all modules to Maven Central staging, then close and release the staging repository
 2. Build XCFrameworks for each iOS module
 3. Create a GitHub Release with XCFramework zips and checksums
-4. Update `Package.swift` checksums (uploaded as a workflow artifact -- must be committed manually or via a follow-up automation)
+4. Update `Package.swift` checksums and commit to `master` automatically
 5. Deploy Dokka documentation to GitHub Pages
 
 ### 5. Verify
 
 - [ ] Check [Maven Central](https://central.sonatype.com/namespace/io.github.rioX432) for the published artifacts (may take 15-30 minutes to sync)
 - [ ] Check the GitHub Release page for XCFramework downloads
+- [ ] Verify `Package.swift` checksums were updated by the release workflow (check the auto-commit on `master`)
 - [ ] Verify SPM resolution by adding the package in a fresh Xcode project
 - [ ] Check API docs at https://rioX432.github.io/KMP-FaceLink/
 
@@ -165,9 +166,39 @@ Sonatype's validation rules may reject the staging repository. Common reasons:
 
 Check the staging repository at https://s01.oss.sonatype.org/#stagingRepositories for detailed error messages.
 
-### Package.swift checksums
+### Package.swift Checksum Management
 
-The release workflow generates updated checksums but uploads them as a workflow artifact. After the release:
-1. Download the `Package-swift` artifact from the workflow run
-2. Commit the updated `Package.swift` to the repository
-3. Consider adding automation to push this commit automatically
+`Package.swift` in the repository contains `CHECKSUM_PLACEHOLDER` values for all binary XCFramework targets. **This is intentional.** The placeholders are replaced with real SHA-256 checksums during the release workflow.
+
+**How it works:**
+
+1. The release workflow builds each XCFramework and zips it
+2. `sha256sum` computes checksums for all zip files
+3. `scripts/update-package-swift.py` replaces placeholders (or previous checksums) and the version string in `Package.swift`
+4. The workflow commits the updated `Package.swift` back to `master`
+
+The script handles both fresh placeholders and re-runs (already-replaced checksums), so it is idempotent.
+
+**Modules covered** (9 XCFrameworks):
+
+`KMPFaceLink`, `KMPFaceLinkAvatar`, `KMPFaceLinkActions`, `KMPFaceLinkVoice`, `KMPFaceLinkLlm`, `KMPFaceLinkPipeline`, `KMPFaceLinkNetworking`, `KMPFaceLinkVMC`, `KMPFaceLinkIFM`
+
+**Manual checksum update (for local testing):**
+
+```bash
+# Build the XCFramework
+./gradlew :kmp-facelink:assembleKMPFaceLinkXCFramework
+
+# Zip and compute checksum
+cd kmp-facelink/build/XCFrameworks/release
+zip -r KMPFaceLink.xcframework.zip KMPFaceLink.xcframework
+shasum -a 256 KMPFaceLink.xcframework.zip
+
+# Replace the checksum in Package.swift manually, or use the script:
+echo "<checksum>  KMPFaceLink.xcframework.zip" > checksums.txt
+python3 scripts/update-package-swift.py Package.swift checksums.txt v0.1.0-local
+```
+
+**If the auto-commit fails:**
+
+The workflow uses `github-actions[bot]` to push the commit. If branch protection rules block the push, download the `Package-swift` artifact from the workflow run and commit it manually.

@@ -5,7 +5,7 @@ plugins {
 
 android {
     namespace = "io.github.kmpfacelink.sample"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "io.github.kmpfacelink.sample"
@@ -110,4 +110,5 @@ dependencies {
     androidTestImplementation(libs.androidx.test.runner)
     androidTestImplementation(libs.androidx.test.junit)
     androidTestImplementation(libs.mediapipe.tasks.vision)
+    androidTestImplementation(libs.kotlinx.coroutines.test)
 }

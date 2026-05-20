@@ -21,7 +21,7 @@ kotlin {
 
     androidLibrary {
         namespace = "io.github.kmpfacelink.avatar"
-        compileSdk = 35
+        compileSdk = 36
         minSdk = 24
     }
 

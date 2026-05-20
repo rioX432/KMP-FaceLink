@@ -8,7 +8,7 @@ plugins {
 kotlin {
     androidLibrary {
         namespace = "io.github.kmpfacelink.sample.shared"
-        compileSdk = 35
+        compileSdk = 36
         minSdk = 24
     }
 

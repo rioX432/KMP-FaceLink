@@ -41,18 +41,14 @@ Common integration issues and their solutions. For platform-specific setup, see 
 
 **Solution:**
 
-Download the required model files:
+See [Quick Start: Android — Model Setup](quick-start-android.md#2-model-setup) for the full guide including Gradle download tasks, manual download commands, and all three model URLs.
+
+Quick fix for face tracking only:
 
 ```bash
 mkdir -p app/src/main/assets/models
-
-# Face tracking
 curl -L -o app/src/main/assets/models/face_landmarker_v2_with_blendshapes.task \
   "https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/latest/face_landmarker.task"
-
-# Hand tracking (if using HandTracker or HolisticTracker with enableHands)
-curl -L -o app/src/main/assets/models/hand_landmarker.task \
-  "https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/latest/hand_landmarker.task"
 ```
 
 If you use a custom `modelAssetPath` in `FaceTrackerConfig`, ensure the path matches the actual file location relative to `assets/`.

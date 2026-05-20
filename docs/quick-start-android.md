@@ -17,22 +17,120 @@ dependencies {
 
 > **Note:** KMP-FaceLink is not yet published to Maven Central. Until the first release, build locally with `./gradlew publishToMavenLocal` and add `mavenLocal()` to your `repositories` block. See [Publishing](publishing.md) for details.
 
-## 2. Download the MediaPipe Model
+## 2. Model Setup
 
-The face tracker requires a MediaPipe Face Landmarker model. Download it into `src/main/assets/models/`:
+KMP-FaceLink on Android uses MediaPipe for on-device inference. Each tracker type requires a corresponding `.task` model file bundled in your app's `src/main/assets/models/` directory.
+
+### Model Overview
+
+| Model | File | Size (approx) | Used by | Download URL |
+|-------|------|---------------|---------|-------------|
+| Face Landmarker | `face_landmarker_v2_with_blendshapes.task` | ~5 MB | `FaceTracker`, `HolisticTracker` (face) | [face_landmarker (float16)][url-face] |
+| Hand Landmarker | `hand_landmarker.task` | ~12 MB | `HandTracker`, `HolisticTracker` (hands) | [hand_landmarker (float16)][url-hand] |
+| Pose Landmarker Lite | `pose_landmarker_lite.task` | ~8 MB | `BodyTracker`, `HolisticTracker` (body) | [pose_landmarker_lite (float16)][url-pose] |
+
+[url-face]: https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/latest/face_landmarker.task
+[url-hand]: https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/latest/hand_landmarker.task
+[url-pose]: https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/latest/pose_landmarker_lite.task
+
+> **Only download models you actually use.** If your app only needs face tracking, you only need `face_landmarker_v2_with_blendshapes.task` (~5 MB). All three models together add ~25 MB to your APK.
+
+### Option A: Gradle Download Task (Recommended)
+
+Add download tasks to your module's `build.gradle.kts` to automatically fetch models at build time. This is the pattern used by the sample app:
+
+```kotlin
+val downloadFaceLandmarkerModel by tasks.registering {
+    val modelDir = layout.projectDirectory.dir("src/main/assets/models")
+    val modelFile = modelDir.file("face_landmarker_v2_with_blendshapes.task")
+
+    outputs.file(modelFile)
+    doLast {
+        modelDir.asFile.mkdirs()
+        if (!modelFile.asFile.exists()) {
+            val url = "https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/latest/face_landmarker.task"
+            logger.lifecycle("Downloading MediaPipe face landmarker model...")
+            ant.invokeMethod("get", mapOf("src" to url, "dest" to modelFile.asFile))
+        }
+    }
+}
+
+val downloadHandLandmarkerModel by tasks.registering {
+    val modelDir = layout.projectDirectory.dir("src/main/assets/models")
+    val modelFile = modelDir.file("hand_landmarker.task")
+
+    outputs.file(modelFile)
+    doLast {
+        modelDir.asFile.mkdirs()
+        if (!modelFile.asFile.exists()) {
+            val url = "https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/latest/hand_landmarker.task"
+            logger.lifecycle("Downloading MediaPipe hand landmarker model...")
+            ant.invokeMethod("get", mapOf("src" to url, "dest" to modelFile.asFile))
+        }
+    }
+}
+
+val downloadPoseLandmarkerModel by tasks.registering {
+    val modelDir = layout.projectDirectory.dir("src/main/assets/models")
+    val modelFile = modelDir.file("pose_landmarker_lite.task")
+
+    outputs.file(modelFile)
+    doLast {
+        modelDir.asFile.mkdirs()
+        if (!modelFile.asFile.exists()) {
+            val url = "https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/latest/pose_landmarker_lite.task"
+            logger.lifecycle("Downloading MediaPipe pose landmarker model...")
+            ant.invokeMethod("get", mapOf("src" to url, "dest" to modelFile.asFile))
+        }
+    }
+}
+
+// Wire to preBuild — only include the models you need
+tasks.named("preBuild") {
+    dependsOn(downloadFaceLandmarkerModel)
+    // dependsOn(downloadHandLandmarkerModel)
+    // dependsOn(downloadPoseLandmarkerModel)
+}
+```
+
+Models are only downloaded once (the task checks for existing files). Add the `models/` directory to `.gitignore` to avoid committing large binaries:
+
+```gitignore
+# MediaPipe model files (downloaded at build time)
+**/src/main/assets/models/*.task
+```
+
+### Option B: Manual Download
+
+Download the model files directly with `curl`:
 
 ```bash
 mkdir -p app/src/main/assets/models
+
+# Face tracking (required for FaceTracker)
 curl -L -o app/src/main/assets/models/face_landmarker_v2_with_blendshapes.task \
   "https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/latest/face_landmarker.task"
-```
 
-For hand tracking, also download:
-
-```bash
+# Hand tracking (required for HandTracker)
 curl -L -o app/src/main/assets/models/hand_landmarker.task \
   "https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/latest/hand_landmarker.task"
+
+# Body tracking (required for BodyTracker)
+curl -L -o app/src/main/assets/models/pose_landmarker_lite.task \
+  "https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/latest/pose_landmarker_lite.task"
 ```
+
+### APK Size Impact
+
+All three models together add approximately **25 MB** to your APK. Strategies to manage this:
+
+- **Include only the models you need.** Face-only tracking adds ~5 MB, which is acceptable for most apps.
+- **Use Android App Bundle (AAB).** When publishing to the Play Store, AAB format ensures users only download assets relevant to their device. Model files in `assets/` are included in the base module by default.
+- **Consider on-demand delivery.** For apps where tracking is an optional feature, you can use [Play Asset Delivery](https://developer.android.com/guide/playcore/asset-delivery) to download models at runtime rather than bundling them in the initial install.
+
+### Model Version Compatibility
+
+The current library version is tested with MediaPipe Tasks Vision **0.10.33** and the `float16/latest` model variants linked above. Using a different model version or precision variant may cause initialization failures or degraded accuracy. If you pin a specific model version instead of `latest`, ensure it is compatible with the `com.google.mediapipe:tasks-vision` version in your dependency tree.
 
 ## 3. Add Permissions
 

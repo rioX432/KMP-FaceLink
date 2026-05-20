@@ -2,6 +2,8 @@
 
 Add KMP-FaceLink to your project via Maven Central (Android/JVM) or Swift Package Manager (iOS).
 
+> **Note:** KMP-FaceLink is not yet published to Maven Central or SPM. The publishing infrastructure (Gradle signing, Sonatype nexus-publish, GitHub Actions release workflow, SPM binary targets) is fully configured and will activate on the first `v*` tag push. Until then, build locally with `./gradlew publishToMavenLocal` and add `mavenLocal()` to your repositories. See [Publishing](publishing.md) for the full release checklist.
+
 ## Android / Kotlin Multiplatform (Gradle)
 
 ### Version Catalog (recommended)

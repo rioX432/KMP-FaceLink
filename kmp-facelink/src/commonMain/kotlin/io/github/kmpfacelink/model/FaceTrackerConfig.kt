@@ -140,6 +140,14 @@ public data class PerformanceConfig(
 /**
  * Configuration for [io.github.kmpfacelink.api.FaceTracker].
  *
+ * Settings are organized into nested config objects by concern:
+ * - [detectionConfig] — confidence thresholds and face count limit
+ * - [powerConfig] — power and thermal management
+ * - [performanceConfig] — analysis resolution and resource control
+ *
+ * Always access settings through these nested objects (e.g. `detectionConfig.maxFaces`)
+ * rather than the deprecated top-level convenience accessors.
+ *
  * @property smoothingConfig Smoothing filter configuration. Use [SmoothingConfig.None],
  *           [SmoothingConfig.Ema], or [SmoothingConfig.OneEuro].
  * @property enhancerConfig Blend shape enhancer configuration for improving low-accuracy
@@ -186,45 +194,110 @@ public data class FaceTrackerConfig(
         }
     }
 
-    // ── Convenience delegating accessors (backward compatibility) ──
+    // ── Deprecated delegating accessors (use nested config objects instead) ──
 
     /** @see DetectionConfig.maxFaces */
+    @Deprecated(
+        message = "Use detectionConfig.maxFaces instead",
+        replaceWith = ReplaceWith("detectionConfig.maxFaces"),
+        level = DeprecationLevel.WARNING,
+    )
     public val maxFaces: Int get() = detectionConfig.maxFaces
 
     /** @see DetectionConfig.minDetectionConfidence */
+    @Deprecated(
+        message = "Use detectionConfig.minDetectionConfidence instead",
+        replaceWith = ReplaceWith("detectionConfig.minDetectionConfidence"),
+        level = DeprecationLevel.WARNING,
+    )
     public val minDetectionConfidence: Float get() = detectionConfig.minDetectionConfidence
 
     /** @see DetectionConfig.minTrackingConfidence */
+    @Deprecated(
+        message = "Use detectionConfig.minTrackingConfidence instead",
+        replaceWith = ReplaceWith("detectionConfig.minTrackingConfidence"),
+        level = DeprecationLevel.WARNING,
+    )
     public val minTrackingConfidence: Float get() = detectionConfig.minTrackingConfidence
 
     /** @see DetectionConfig.minPresenceConfidence */
+    @Deprecated(
+        message = "Use detectionConfig.minPresenceConfidence instead",
+        replaceWith = ReplaceWith("detectionConfig.minPresenceConfidence"),
+        level = DeprecationLevel.WARNING,
+    )
     public val minPresenceConfidence: Float get() = detectionConfig.minPresenceConfidence
 
     /** @see PowerConfig.thermalPolicy */
+    @Deprecated(
+        message = "Use powerConfig.thermalPolicy instead",
+        replaceWith = ReplaceWith("powerConfig.thermalPolicy"),
+        level = DeprecationLevel.WARNING,
+    )
     public val thermalPolicy: ThermalPolicy get() = powerConfig.thermalPolicy
 
     /** @see PowerConfig.powerMode */
+    @Deprecated(
+        message = "Use powerConfig.powerMode instead",
+        replaceWith = ReplaceWith("powerConfig.powerMode"),
+        level = DeprecationLevel.WARNING,
+    )
     public val powerMode: PowerMode? get() = powerConfig.powerMode
 
     /** @see PowerConfig.lowBatteryThreshold */
+    @Deprecated(
+        message = "Use powerConfig.lowBatteryThreshold instead",
+        replaceWith = ReplaceWith("powerConfig.lowBatteryThreshold"),
+        level = DeprecationLevel.WARNING,
+    )
     public val lowBatteryThreshold: Float get() = powerConfig.lowBatteryThreshold
 
     /** @see PowerConfig.enableIdleDetection */
+    @Deprecated(
+        message = "Use powerConfig.enableIdleDetection instead",
+        replaceWith = ReplaceWith("powerConfig.enableIdleDetection"),
+        level = DeprecationLevel.WARNING,
+    )
     public val enableIdleDetection: Boolean get() = powerConfig.enableIdleDetection
 
     /** @see PerformanceConfig.analysisWidth */
+    @Deprecated(
+        message = "Use performanceConfig.analysisWidth instead",
+        replaceWith = ReplaceWith("performanceConfig.analysisWidth"),
+        level = DeprecationLevel.WARNING,
+    )
     public val analysisWidth: Int get() = performanceConfig.analysisWidth
 
     /** @see PerformanceConfig.analysisHeight */
+    @Deprecated(
+        message = "Use performanceConfig.analysisHeight instead",
+        replaceWith = ReplaceWith("performanceConfig.analysisHeight"),
+        level = DeprecationLevel.WARNING,
+    )
     public val analysisHeight: Int get() = performanceConfig.analysisHeight
 
     /** @see PerformanceConfig.inferenceDelegate */
+    @Deprecated(
+        message = "Use performanceConfig.inferenceDelegate instead",
+        replaceWith = ReplaceWith("performanceConfig.inferenceDelegate"),
+        level = DeprecationLevel.WARNING,
+    )
     public val inferenceDelegate: InferenceDelegate get() = performanceConfig.inferenceDelegate
 
     /** @see PerformanceConfig.stopDrainDelayMs */
+    @Deprecated(
+        message = "Use performanceConfig.stopDrainDelayMs instead",
+        replaceWith = ReplaceWith("performanceConfig.stopDrainDelayMs"),
+        level = DeprecationLevel.WARNING,
+    )
     public val stopDrainDelayMs: Long get() = performanceConfig.stopDrainDelayMs
 
     /** @see PerformanceConfig.releaseTimeoutMs */
+    @Deprecated(
+        message = "Use performanceConfig.releaseTimeoutMs instead",
+        replaceWith = ReplaceWith("performanceConfig.releaseTimeoutMs"),
+        level = DeprecationLevel.WARNING,
+    )
     public val releaseTimeoutMs: Long get() = performanceConfig.releaseTimeoutMs
 
     public companion object {

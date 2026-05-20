@@ -47,17 +47,37 @@ public interface HolisticTracker : Releasable {
     /**
      * Stream of combined tracking data from all enabled modalities.
      * Emits whenever any enabled tracker produces a new frame.
+     *
+     * **Threading:** This Flow emits on a platform-specific background thread
+     * (Android: CameraX executor thread, iOS: ARKit/Vision session delegate thread).
+     * Consumers **must** switch to the Main dispatcher before updating UI:
+     *
+     * ```kotlin
+     * tracker.trackingData
+     *     .flowOn(Dispatchers.Default) // process on background
+     *     .collect { data ->
+     *         withContext(Dispatchers.Main) {
+     *             // update UI here
+     *         }
+     *     }
+     * ```
      */
     public val trackingData: Flow<HolisticTrackingData>
 
     /**
      * Current tracking state.
      * Reports [TrackingState.TRACKING] when any enabled modality is actively tracking.
+     *
+     * **Threading:** Emits on a background thread. Use `Dispatchers.Main` when
+     * binding to UI components.
      */
     public val state: StateFlow<TrackingState>
 
     /**
      * Human-readable error message when [state] is [TrackingState.ERROR], null otherwise.
+     *
+     * **Threading:** Emits on a background thread. Use `Dispatchers.Main` when
+     * binding to UI components.
      */
     public val errorMessage: StateFlow<String?>
 

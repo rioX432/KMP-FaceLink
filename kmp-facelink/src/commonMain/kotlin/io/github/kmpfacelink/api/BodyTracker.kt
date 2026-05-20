@@ -67,12 +67,26 @@ public interface BodyTracker : Releasable {
     public suspend fun start()
 
     /**
-     * Stop body tracking. Can be restarted with [start].
+     * Stop body tracking and release the camera session.
+     * Can be restarted with [start].
+     *
+     * **iOS lifecycle note:** On iOS, you **must** cancel any Swift `Task` that
+     * collects [trackingData] or [state] **before** calling this method. Failing
+     * to do so leaves an orphaned Task collecting from a stopped tracker and may
+     * prevent the camera from being released. See the
+     * [iOS Lifecycle Management](https://github.com/rioX432/KMP-FaceLink/blob/master/docs/quick-start-ios.md#ios-lifecycle-management)
+     * section for the full required sequence.
      */
     public suspend fun stop()
 
     /**
      * Release all resources. The tracker cannot be used after this.
+     *
+     * **iOS lifecycle note:** Call this in your ViewModel's `deinit` to free
+     * native resources (AVCaptureSession, buffers). Omitting this call causes
+     * resource leaks across create/destroy cycles. See the
+     * [iOS Lifecycle Management](https://github.com/rioX432/KMP-FaceLink/blob/master/docs/quick-start-ios.md#ios-lifecycle-management)
+     * section for the full required sequence.
      */
     public override fun release()
 

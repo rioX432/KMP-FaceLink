@@ -166,6 +166,15 @@ internal class CompositeHolisticTracker(
         }
     }
 
+    override fun resetSmoothing() {
+        pipelineLock.withLock {
+            check(released.load() == 0) { "Cannot reset smoothing on a released tracker" }
+            faceTracker?.resetSmoothing()
+            handTracker?.resetSmoothing()
+            bodyTracker?.resetSmoothing()
+        }
+    }
+
     override suspend fun switchCamera(facing: CameraFacing) {
         pipelineLock.withLock {
             check(released.load() == 0) { "Cannot switch camera on a released tracker" }

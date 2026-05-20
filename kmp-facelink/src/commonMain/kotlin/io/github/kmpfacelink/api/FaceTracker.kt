@@ -17,9 +17,9 @@ import kotlinx.coroutines.flow.StateFlow
  *
  * - [trackingData] and [state] are safe to collect from any thread.
  * - [start] and [stop] are suspend functions intended to be called from the main thread.
- * - [updateSmoothing], [resetCalibration], and [release] are thread-safe and can be called
- *   from any thread. Internally, the processing pipeline and mutation methods share a single
- *   lock to ensure data consistency.
+ * - [updateSmoothing], [resetSmoothing], [resetCalibration], and [release] are thread-safe
+ *   and can be called from any thread. Internally, the processing pipeline and mutation
+ *   methods share a single lock to ensure data consistency.
  * - Calling any method after [release] throws [IllegalStateException].
  *
  * ## Related modules
@@ -101,6 +101,14 @@ public interface FaceTracker : Releasable {
     /**
      * Reset calibration data to defaults.
      *
+     * This also resets the smoother state, since calibrated data feeds the smoother.
+     * If you only want to reset the smoother without losing calibration baselines,
+     * use [resetSmoothing] instead.
+     *
+     * Note: This method is specific to [FaceTracker] because only face tracking
+     * uses calibration (baseline blend shape range estimation). [HandTracker] and
+     * [BodyTracker] operate on raw landmark positions that do not require calibration.
+     *
      * @throws IllegalStateException if called after [release]
      */
     public fun resetCalibration()
@@ -112,6 +120,17 @@ public interface FaceTracker : Releasable {
      * @throws IllegalStateException if called after [release]
      */
     public fun updateSmoothing(config: SmoothingConfig)
+
+    /**
+     * Reset smoother internal state without changing the smoothing algorithm.
+     *
+     * Clears accumulated filter state (e.g. EMA history, One Euro filter state),
+     * useful after tracking loss or scene change. Unlike [resetCalibration], this
+     * does not affect calibration baselines.
+     *
+     * @throws IllegalStateException if called after [release]
+     */
+    public fun resetSmoothing()
 
     /**
      * Switch to a different camera at runtime.

@@ -234,6 +234,11 @@ internal class MediaPipeWasmFaceTracker(
         // No calibration state in Wasm tracker yet
     }
 
+    override fun resetSmoothing() {
+        checkNotReleased("resetSmoothing")
+        // No smoothing state in Wasm face tracker yet
+    }
+
     override fun updateSmoothing(config: SmoothingConfig) {
         checkNotReleased("updateSmoothing")
         // Smoothing not yet implemented for Wasm tracker

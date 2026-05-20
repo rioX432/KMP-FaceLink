@@ -129,6 +129,15 @@ class FaceTrackerContractTest {
     }
 
     @Test
+    fun resetSmoothingAfterReleaseThrows() {
+        val tracker = createTracker()
+        tracker.release()
+        assertFailsWith<IllegalStateException> {
+            tracker.resetSmoothing()
+        }
+    }
+
+    @Test
     fun switchCameraAfterReleaseThrows() = runTest {
         val tracker = createTracker()
         tracker.release()
@@ -171,6 +180,10 @@ private class FakeFaceTracker : FaceTracker {
     }
 
     override fun resetCalibration() {
+        checkNotReleased()
+    }
+
+    override fun resetSmoothing() {
         checkNotReleased()
     }
 

@@ -19,7 +19,7 @@ import kotlinx.coroutines.flow.StateFlow
  *
  * - [trackingData] and [state] are safe to collect from any thread.
  * - [start] and [stop] are suspend functions intended to be called from the main thread.
- * - [updateSmoothing] and [release] are thread-safe and can be called from any thread.
+ * - [updateSmoothing], [resetSmoothing], and [release] are thread-safe and can be called from any thread.
  * - Calling any method after [release] throws [IllegalStateException].
  *
  * ## Modality configuration
@@ -111,6 +111,16 @@ public interface HolisticTracker : Releasable {
      * @throws IllegalStateException if called after [release]
      */
     public fun updateSmoothing(config: SmoothingConfig)
+
+    /**
+     * Reset smoother internal state for all enabled modalities.
+     *
+     * Clears accumulated filter state (e.g. EMA history, One Euro filter state),
+     * useful after tracking loss or scene change.
+     *
+     * @throws IllegalStateException if called after [release]
+     */
+    public fun resetSmoothing()
 
     /**
      * Switch to a different camera at runtime for all enabled modalities.

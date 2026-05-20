@@ -91,6 +91,11 @@ internal class FaceResultProcessor(
     }
 
     /** Must be called with [pipelineLock] already held. */
+    fun resetSmoothing() {
+        smoother?.reset()
+    }
+
+    /** Must be called with [pipelineLock] already held. */
     fun updateSmoothing(smoothingConfig: SmoothingConfig) {
         smoother = smoothingConfig.createFaceSmoother()
     }

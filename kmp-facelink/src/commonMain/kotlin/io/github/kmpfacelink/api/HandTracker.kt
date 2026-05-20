@@ -17,7 +17,7 @@ import kotlinx.coroutines.flow.StateFlow
  *
  * - [trackingData] and [state] are safe to collect from any thread.
  * - [start] and [stop] are suspend functions intended to be called from the main thread.
- * - [updateSmoothing] and [release] are thread-safe and can be called from any thread.
+ * - [updateSmoothing], [resetSmoothing], and [release] are thread-safe and can be called from any thread.
  * - Calling any method after [release] throws [IllegalStateException].
  */
 public interface HandTracker : Releasable {

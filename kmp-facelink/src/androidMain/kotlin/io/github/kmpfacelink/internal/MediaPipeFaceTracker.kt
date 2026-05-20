@@ -194,6 +194,13 @@ internal class MediaPipeFaceTracker(
         }
     }
 
+    override fun resetSmoothing() {
+        pipelineLock.withLock {
+            checkNotReleased("reset smoothing")
+            resultProcessor.resetSmoothing()
+        }
+    }
+
     override fun updateSmoothing(config: SmoothingConfig) {
         pipelineLock.withLock {
             checkNotReleased("update smoothing")

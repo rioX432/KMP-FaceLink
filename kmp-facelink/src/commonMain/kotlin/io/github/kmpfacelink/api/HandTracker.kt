@@ -25,16 +25,36 @@ public interface HandTracker : Releasable {
     /**
      * Stream of hand tracking data, emitted for each processed frame.
      * Emits [HandTrackingData.notTracking] when no hands are detected.
+     *
+     * **Threading:** This Flow emits on a platform-specific background thread
+     * (Android: CameraX executor thread, iOS: AVCaptureSession delegate thread).
+     * Consumers **must** switch to the Main dispatcher before updating UI:
+     *
+     * ```kotlin
+     * tracker.trackingData
+     *     .flowOn(Dispatchers.Default) // process on background
+     *     .collect { data ->
+     *         withContext(Dispatchers.Main) {
+     *             // update UI here
+     *         }
+     *     }
+     * ```
      */
     public val trackingData: Flow<HandTrackingData>
 
     /**
      * Current tracking state.
+     *
+     * **Threading:** Emits on a background thread. Use `Dispatchers.Main` when
+     * binding to UI components.
      */
     public val state: StateFlow<TrackingState>
 
     /**
      * Human-readable error message when [state] is [TrackingState.ERROR], null otherwise.
+     *
+     * **Threading:** Emits on a background thread. Use `Dispatchers.Main` when
+     * binding to UI components.
      */
     public val errorMessage: StateFlow<String?>
 

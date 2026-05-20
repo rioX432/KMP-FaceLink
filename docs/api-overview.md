@@ -316,6 +316,63 @@ actions.events.collect { event ->
 handTracker.trackingData.collect { actions.processHand(it) }
 ```
 
+## Threading Model
+
+All tracker Flows (`trackingData`, `state`, `errorMessage`) emit on **platform-specific background threads**, not the Main/UI thread. This applies to every tracker type: `FaceTracker`, `HandTracker`, `BodyTracker`, and `HolisticTracker`.
+
+### Platform Details
+
+| Platform | Emission Thread | Reason |
+|----------|----------------|--------|
+| Android | CameraX background executor | MediaPipe inference runs on a dedicated executor to avoid blocking the UI thread |
+| iOS | ARKit session delegate thread / AVCaptureSession output queue | ARKit and Vision callbacks arrive on their own serial dispatch queues |
+
+### Safe Collection for UI Updates
+
+Consumers must switch to the Main dispatcher before touching UI components.
+
+**Kotlin (Android / Shared)**
+
+```kotlin
+// Option 1: withContext inside collect
+lifecycleScope.launch {
+    tracker.trackingData.collect { data ->
+        // Process data on the background thread
+        val params = mapper.map(data)
+        withContext(Dispatchers.Main) {
+            // Update UI on the Main thread
+            viewModel.updateParams(params)
+        }
+    }
+}
+
+// Option 2: flowOn + stateIn for Compose
+val uiState = tracker.trackingData
+    .map { mapper.map(it) }
+    .stateIn(viewModelScope, SharingStarted.WhileSubscribed(), emptyMap())
+// Compose collectAsState() observes on Main automatically
+```
+
+**Swift (iOS)**
+
+```swift
+// SKIE bridges Flow to AsyncSequence automatically
+Task {
+    for await data in tracker.trackingData {
+        // Dispatch to MainActor for UI updates
+        await MainActor.run {
+            self.blendShapes = data.blendShapes
+        }
+    }
+}
+```
+
+### Rules of Thumb
+
+- **Never** call UIKit/SwiftUI/Compose UI APIs directly inside a `collect {}` block without switching to Main first.
+- Heavy processing (avatar mapping, action system evaluation) is fine to keep on the background emission thread.
+- `StateFlow.value` reads are thread-safe and can be accessed from any thread without dispatching.
+
 ## Smoothing Filters
 
 All trackers support runtime-configurable smoothing:

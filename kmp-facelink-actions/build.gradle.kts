@@ -21,7 +21,7 @@ kotlin {
 
     androidLibrary {
         namespace = "io.github.kmpfacelink.actions"
-        compileSdk = 35
+        compileSdk = 36
         minSdk = 24
     }
 

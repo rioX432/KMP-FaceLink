@@ -95,12 +95,26 @@ public interface HolisticTracker : Releasable {
     public suspend fun start()
 
     /**
-     * Stop holistic tracking. Can be restarted with [start].
+     * Stop holistic tracking and release all camera sessions.
+     * Can be restarted with [start].
+     *
+     * **iOS lifecycle note:** On iOS, you **must** cancel any Swift `Task` that
+     * collects [trackingData] or [state] **before** calling this method. Failing
+     * to do so leaves orphaned Tasks collecting from a stopped tracker and may
+     * prevent the camera from being released. See the
+     * [iOS Lifecycle Management](https://github.com/rioX432/KMP-FaceLink/blob/master/docs/quick-start-ios.md#ios-lifecycle-management)
+     * section for the full required sequence.
      */
     public suspend fun stop()
 
     /**
      * Release all resources. The tracker cannot be used after this.
+     *
+     * **iOS lifecycle note:** Call this in your ViewModel's `deinit` to free
+     * native resources (ARKit session, AVCaptureSession, buffers). Omitting
+     * this call causes resource leaks across create/destroy cycles. See the
+     * [iOS Lifecycle Management](https://github.com/rioX432/KMP-FaceLink/blob/master/docs/quick-start-ios.md#ios-lifecycle-management)
+     * section for the full required sequence.
      */
     public override fun release()
 

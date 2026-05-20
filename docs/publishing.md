@@ -1,0 +1,170 @@
+# Publishing
+
+This document describes how to publish KMP-FaceLink to Maven Central (Android/JVM/Wasm) and GitHub Releases + SPM (iOS).
+
+## Architecture Overview
+
+The publishing pipeline is fully automated via GitHub Actions (`.github/workflows/release.yml`). Pushing a `v*` tag triggers:
+
+1. **Maven Central** — all 11 library modules are published to Sonatype OSSRH, then the staging repository is closed and released.
+2. **XCFramework builds** — each iOS-capable module is built into a release XCFramework and zipped.
+3. **GitHub Release** — XCFramework zips are attached to the release with SHA-256 checksums.
+4. **Package.swift update** — `scripts/update-package-swift.py` rewrites checksums in `Package.swift` so SPM consumers get the correct binaries.
+5. **Dokka docs** — API documentation is generated and deployed to GitHub Pages.
+
+### Published Modules
+
+| Module | Maven Artifact | SPM Product |
+|--------|---------------|-------------|
+| `kmp-facelink` | `io.github.rioX432:kmp-facelink` | `KMPFaceLink` |
+| `kmp-facelink-avatar` | `io.github.rioX432:kmp-facelink-avatar` | `KMPFaceLinkAvatar` |
+| `kmp-facelink-actions` | `io.github.rioX432:kmp-facelink-actions` | `KMPFaceLinkActions` |
+| `kmp-facelink-voice` | `io.github.rioX432:kmp-facelink-voice` | `KMPFaceLinkVoice` |
+| `kmp-facelink-llm` | `io.github.rioX432:kmp-facelink-llm` | `KMPFaceLinkLlm` |
+| `kmp-facelink-pipeline` | `io.github.rioX432:kmp-facelink-pipeline` | `KMPFaceLinkPipeline` |
+| `kmp-facelink-networking` | `io.github.rioX432:kmp-facelink-networking` | `KMPFaceLinkNetworking` |
+| `kmp-facelink-vmc` | `io.github.rioX432:kmp-facelink-vmc` | `KMPFaceLinkVMC` |
+| `kmp-facelink-ifm` | `io.github.rioX432:kmp-facelink-ifm` | `KMPFaceLinkIFM` |
+| `kmp-facelink-stream` | `io.github.rioX432:kmp-facelink-stream` | -- (JVM only) |
+| `kmp-facelink-vts` | `io.github.rioX432:kmp-facelink-vts` | -- (JVM only) |
+
+## First-Time Setup Checklist
+
+Before the first release, the repository owner must complete these one-time steps:
+
+### 1. Sonatype OSSRH Account
+
+- [ ] Register at [Sonatype OSSRH](https://s01.oss.sonatype.org/) (or [central.sonatype.com](https://central.sonatype.com/) for the new Central Portal)
+- [ ] Create a new project ticket for the `io.github.rioX432` namespace (or verify domain ownership via the new Central Portal flow)
+- [ ] Wait for namespace approval
+
+### 2. GPG Signing Key
+
+- [ ] Generate a GPG key: `gpg --full-generate-key` (RSA 4096, no expiry or long expiry)
+- [ ] Export the key ID: `gpg --list-keys --keyid-format long`
+- [ ] Export the private key in ASCII armor: `gpg --export-secret-keys --armor <KEY_ID>`
+- [ ] Publish the public key to a keyserver: `gpg --keyserver keyserver.ubuntu.com --send-keys <KEY_ID>`
+
+### 3. GitHub Secrets
+
+Add these secrets to the repository (Settings > Secrets and variables > Actions):
+
+| Secret | Description |
+|--------|-------------|
+| `OSSRH_USERNAME` | Sonatype OSSRH username |
+| `OSSRH_PASSWORD` | Sonatype OSSRH password (or token) |
+| `GPG_KEY_ID` | Last 8 characters of the GPG key fingerprint |
+| `GPG_KEY` | Full ASCII-armored private key (output of `gpg --export-secret-keys --armor`) |
+| `GPG_PASSPHRASE` | Passphrase for the GPG key |
+
+### 4. GitHub Pages
+
+- [ ] Enable GitHub Pages in repository settings (Settings > Pages > Source: GitHub Actions)
+
+## Releasing a Version
+
+### 1. Update the version
+
+Edit `gradle.properties`:
+
+```properties
+VERSION_NAME=0.1.0
+```
+
+### 2. Update CHANGELOG.md
+
+Add a section for the new version with a summary of changes.
+
+### 3. Commit and tag
+
+```bash
+git add gradle.properties CHANGELOG.md
+git commit -m "Release v0.1.0"
+git tag v0.1.0
+git push origin master --tags
+```
+
+### 4. Monitor the release
+
+The `v0.1.0` tag push triggers the Release workflow. Monitor progress at:
+`https://github.com/rioX432/KMP-FaceLink/actions/workflows/release.yml`
+
+The workflow will:
+1. Publish all modules to Maven Central staging, then close and release the staging repository
+2. Build XCFrameworks for each iOS module
+3. Create a GitHub Release with XCFramework zips and checksums
+4. Update `Package.swift` checksums (uploaded as a workflow artifact -- must be committed manually or via a follow-up automation)
+5. Deploy Dokka documentation to GitHub Pages
+
+### 5. Verify
+
+- [ ] Check [Maven Central](https://central.sonatype.com/namespace/io.github.rioX432) for the published artifacts (may take 15-30 minutes to sync)
+- [ ] Check the GitHub Release page for XCFramework downloads
+- [ ] Verify SPM resolution by adding the package in a fresh Xcode project
+- [ ] Check API docs at https://rioX432.github.io/KMP-FaceLink/
+
+## Local Development
+
+To test the publishing configuration locally without actually publishing:
+
+```bash
+# Publish all modules to the local Maven repository (~/.m2/repository/)
+./gradlew publishToMavenLocal
+
+# Verify the artifacts were created
+ls ~/.m2/repository/io/github/rioX432/kmp-facelink/
+```
+
+Then in your consuming project, add `mavenLocal()` to the repositories block:
+
+```kotlin
+repositories {
+    mavenLocal()
+    mavenCentral()
+}
+```
+
+## Configuration Reference
+
+### Gradle Properties (`gradle.properties`)
+
+| Property | Value | Purpose |
+|----------|-------|---------|
+| `GROUP` | `io.github.rioX432` | Maven group ID |
+| `VERSION_NAME` | `0.1.0` | Artifact version |
+| `POM_URL` | GitHub repo URL | POM project URL |
+| `POM_SCM_URL` | GitHub repo URL | Source control URL |
+| `POM_SCM_CONNECTION` | `scm:git:git://...` | Read-only SCM connection |
+| `POM_SCM_DEV_CONNECTION` | `scm:git:ssh://...` | Developer SCM connection |
+| `POM_LICENCE_NAME` | `MIT License` | License name |
+| `POM_LICENCE_URL` | MIT URL | License URL |
+| `POM_DEVELOPER_ID` | `rioX432` | Developer identifier |
+| `POM_DEVELOPER_NAME` | `rioX432` | Developer display name |
+
+### Environment Variables (CI)
+
+| Variable | Source | Purpose |
+|----------|--------|---------|
+| `OSSRH_USERNAME` | GitHub Secret | Sonatype authentication |
+| `OSSRH_PASSWORD` | GitHub Secret | Sonatype authentication |
+| `GPG_KEY_ID` | GitHub Secret | Signing key identifier |
+| `GPG_KEY` | GitHub Secret | ASCII-armored private key |
+| `GPG_PASSPHRASE` | GitHub Secret | Key passphrase |
+
+## Troubleshooting
+
+### Staging repository fails to close
+
+Sonatype's validation rules may reject the staging repository. Common reasons:
+- Missing POM metadata (description, SCM, license, developer) -- already configured in `build.gradle.kts`
+- Missing source or javadoc JARs -- javadoc JAR is configured; KMP generates source JARs automatically
+- Signature verification failure -- ensure the GPG public key is published to a keyserver
+
+Check the staging repository at https://s01.oss.sonatype.org/#stagingRepositories for detailed error messages.
+
+### Package.swift checksums
+
+The release workflow generates updated checksums but uploads them as a workflow artifact. After the release:
+1. Download the `Package-swift` artifact from the workflow run
+2. Commit the updated `Package.swift` to the repository
+3. Consider adding automation to push this commit automatically

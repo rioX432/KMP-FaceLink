@@ -4,7 +4,7 @@ Get face tracking running on iOS with SwiftUI.
 
 ## 1. Add the Framework
 
-KMP-FaceLink produces an XCFramework. Until SPM publishing is set up, integrate via a local framework build.
+KMP-FaceLink produces an XCFramework distributed via Swift Package Manager (SPM). The `Package.swift` at the repository root references binary XCFrameworks attached to each GitHub release. Until the first release is published, integrate via a local framework build.
 
 ### Option A: XcodeGen (recommended for sample projects)
 

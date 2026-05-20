@@ -15,7 +15,7 @@ dependencies {
 }
 ```
 
-> **Note:** KMP-FaceLink is not yet published to Maven Central. For now, use the library as a local project dependency or Git submodule.
+> **Note:** KMP-FaceLink is not yet published to Maven Central. Until the first release, build locally with `./gradlew publishToMavenLocal` and add `mavenLocal()` to your `repositories` block. See [Publishing](publishing.md) for details.
 
 ## 2. Download the MediaPipe Model
 

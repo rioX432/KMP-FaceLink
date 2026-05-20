@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [v0.2.0] — 2026-05-20
+
 ### Added
 - WebNN device probing with NPU/GPU/CPU fallback (f9885ab)
 - Neural lip sync engine infrastructure with mel spectrogram pipeline (9b797ef)
@@ -75,6 +77,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Unit tests for `VoicePipeline` TTS provider configurations (487f1f1)
 - KDoc for `TokenCounter` accuracy limitation, `VmcConfig` DEFAULT_HOST, blend shape solver tuning constants (89b50e8, 7d12646, da99f87)
 - Research docs: N-euro Predictor, JVM ONNX tracking, iOS 19 Vision migration, RN/Flutter wrappers, visionOS spatial computing (e947353, 4b7588b, 631ea65, 620f914, 5107438)
+- MediaPipe model distribution guide with download options and APK size impact (#824)
 - Maven Central + SPM publishing infrastructure and release workflow (dfb9220)
 - VMC Protocol module (`kmp-facelink-vmc`) for VTuber ecosystem interop (e5837aa)
 - iFacialMocap protocol output module (`kmp-facelink-ifm`) (c1948c0)
@@ -286,6 +289,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - OSS artifacts: license, contributing guide, public CI, changelog, roadmap (ae1c71b)
 
 ### Infrastructure
+- Bundle consumer ProGuard rules in all Android library modules (#820)
+- Add binary compatibility validator with initial API dumps for all modules (#821)
+- Add Android platform unit tests for mappers, delegate resolver, bitmap pool (#822)
+- Fix Package.swift checksum auto-commit in release workflow (#823)
+- Add iOS Vision tracker detection pipeline tests (#825)
+- Add error scenario, state transition, config validation, and input edge case tests (#826)
+- Create migration guide template (#827)
 - Ignore build artifacts and tooling working dirs (48b7984)
 - Kover test coverage reporting to CI (dfc3b1d)
 - `validateModuleDependencies` Gradle task to enforce architecture rules (a55d3e2)

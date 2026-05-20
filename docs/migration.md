@@ -51,8 +51,6 @@ implementation("io.github.rioX432:kmp-facelink-newmodule")
 
 ## 0.1.0 → 0.2.0
 
-> Placeholder — replace with actual changes when 0.2.0 is released.
-
 ### Breaking Changes
 
 - **[core]** `FaceTrackerConfig` split into `DetectionConfig`, `PowerConfig`, and `PerformanceConfig`
@@ -89,7 +87,7 @@ implementation(platform("io.github.rioX432:kmp-facelink-bom:0.2.0"))
 
 ### Notes
 
-- This is a placeholder entry. Update with actual breaking changes before release.
+- Consumer ProGuard rules are now bundled in library modules. If you have manual ProGuard rules for KMP-FaceLink dependencies, you can remove them.
 
 ---
 

@@ -71,7 +71,7 @@ Add these secrets to the repository (Settings > Secrets and variables > Actions)
 Edit `gradle.properties`:
 
 ```properties
-VERSION_NAME=0.1.0
+VERSION_NAME=X.Y.Z
 ```
 
 ### 2. Update CHANGELOG.md
@@ -88,14 +88,14 @@ If this release contains breaking changes, deprecated API removals, or new requi
 
 ```bash
 git add gradle.properties CHANGELOG.md docs/migration.md
-git commit -m "Release v0.1.0"
-git tag v0.1.0
+git commit -m "Release vX.Y.Z"
+git tag vX.Y.Z
 git push origin master --tags
 ```
 
 ### 5. Monitor the release
 
-The `v0.1.0` tag push triggers the Release workflow. Monitor progress at:
+The `vX.Y.Z` tag push triggers the Release workflow. Monitor progress at:
 `https://github.com/rioX432/KMP-FaceLink/actions/workflows/release.yml`
 
 The workflow will:
@@ -202,7 +202,7 @@ shasum -a 256 KMPFaceLink.xcframework.zip
 
 # Replace the checksum in Package.swift manually, or use the script:
 echo "<checksum>  KMPFaceLink.xcframework.zip" > checksums.txt
-python3 scripts/update-package-swift.py Package.swift checksums.txt v0.1.0-local
+python3 scripts/update-package-swift.py Package.swift checksums.txt vX.Y.Z-local
 ```
 
 **If the auto-commit fails:**

@@ -22,6 +22,7 @@ kover = "0.9.8"
 androidxTestCore = "1.6.1"
 androidxTestRunner = "1.6.2"
 androidxTestJunit = "1.2.1"
+binaryCompatibilityValidator = "0.18.1"
 onnxruntime = "1.24.2"
 javacv = "1.5.11"
 opencv = "4.10.0-1.5.11"
@@ -81,3 +82,4 @@ kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", versi
 compose-multiplatform = { id = "org.jetbrains.compose", version.ref = "composeMultiplatform" }
 nexus-publish = { id = "io.github.gradle-nexus.publish-plugin", version.ref = "nexusPublish" }
 kover = { id = "org.jetbrains.kotlinx.kover", version.ref = "kover" }
+binary-compatibility-validator = { id = "org.jetbrains.kotlinx.binary-compatibility-validator", version.ref = "binaryCompatibilityValidator" }

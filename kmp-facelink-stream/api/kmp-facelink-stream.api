@@ -1,0 +1,699 @@
+public abstract class io/github/kmpfacelink/stream/BaseWebSocketClient : io/github/kmpfacelink/api/Releasable {
+	public fun <init> (Ljava/lang/String;Lio/ktor/client/HttpClient;Ljava/lang/String;)V
+	public synthetic fun <init> (Ljava/lang/String;Lio/ktor/client/HttpClient;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	protected final fun acquireSession (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	protected final fun clearSession (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun connect (Lkotlinx/coroutines/CoroutineScope;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun disconnect (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	protected final fun establishConnection (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	protected final fun getClient ()Lio/ktor/client/HttpClient;
+	public final fun getConnectionState ()Lkotlinx/coroutines/flow/StateFlow;
+	protected final fun getMutableConnectionState ()Lkotlinx/coroutines/flow/MutableStateFlow;
+	protected final fun getMutex ()Lkotlinx/coroutines/sync/Mutex;
+	protected final fun getOwnsClient ()Z
+	protected final fun getReleased ()Ljava/util/concurrent/atomic/AtomicBoolean;
+	public final fun isSessionActive ()Z
+	protected fun onConnected (Lio/ktor/websocket/WebSocketSession;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	protected fun onConnecting (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	protected fun onConnectionFailed (Ljava/lang/Exception;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	protected fun onDisconnected (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	protected fun onFrame (Lio/ktor/websocket/Frame;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun release ()V
+	protected fun resolveUrl ()Ljava/lang/String;
+	protected final fun sendFrame (Lio/ktor/websocket/Frame;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class io/github/kmpfacelink/stream/ConnectionState : java/lang/Enum {
+	public static final field CONNECTED Lio/github/kmpfacelink/stream/ConnectionState;
+	public static final field CONNECTING Lio/github/kmpfacelink/stream/ConnectionState;
+	public static final field DISCONNECTED Lio/github/kmpfacelink/stream/ConnectionState;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lio/github/kmpfacelink/stream/ConnectionState;
+	public static fun values ()[Lio/github/kmpfacelink/stream/ConnectionState;
+}
+
+public final class io/github/kmpfacelink/stream/FaceFrame {
+	public static final field Companion Lio/github/kmpfacelink/stream/FaceFrame$Companion;
+	public fun <init> (Ljava/util/Map;Lio/github/kmpfacelink/stream/HeadPose;)V
+	public final fun component1 ()Ljava/util/Map;
+	public final fun component2 ()Lio/github/kmpfacelink/stream/HeadPose;
+	public final fun copy (Ljava/util/Map;Lio/github/kmpfacelink/stream/HeadPose;)Lio/github/kmpfacelink/stream/FaceFrame;
+	public static synthetic fun copy$default (Lio/github/kmpfacelink/stream/FaceFrame;Ljava/util/Map;Lio/github/kmpfacelink/stream/HeadPose;ILjava/lang/Object;)Lio/github/kmpfacelink/stream/FaceFrame;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getBlendShapes ()Ljava/util/Map;
+	public final fun getHead ()Lio/github/kmpfacelink/stream/HeadPose;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class io/github/kmpfacelink/stream/FaceFrame$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lio/github/kmpfacelink/stream/FaceFrame$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lio/github/kmpfacelink/stream/FaceFrame;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lio/github/kmpfacelink/stream/FaceFrame;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class io/github/kmpfacelink/stream/FaceFrame$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class io/github/kmpfacelink/stream/HandFrame {
+	public static final field Companion Lio/github/kmpfacelink/stream/HandFrame$Companion;
+	public fun <init> (Ljava/lang/String;Ljava/util/List;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/util/List;
+	public final fun copy (Ljava/lang/String;Ljava/util/List;)Lio/github/kmpfacelink/stream/HandFrame;
+	public static synthetic fun copy$default (Lio/github/kmpfacelink/stream/HandFrame;Ljava/lang/String;Ljava/util/List;ILjava/lang/Object;)Lio/github/kmpfacelink/stream/HandFrame;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getLandmarks ()Ljava/util/List;
+	public final fun getSide ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class io/github/kmpfacelink/stream/HandFrame$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lio/github/kmpfacelink/stream/HandFrame$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lio/github/kmpfacelink/stream/HandFrame;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lio/github/kmpfacelink/stream/HandFrame;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class io/github/kmpfacelink/stream/HandFrame$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class io/github/kmpfacelink/stream/HeadPose {
+	public static final field Companion Lio/github/kmpfacelink/stream/HeadPose$Companion;
+	public fun <init> (FFFFFF)V
+	public synthetic fun <init> (FFFFFFILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()F
+	public final fun component2 ()F
+	public final fun component3 ()F
+	public final fun component4 ()F
+	public final fun component5 ()F
+	public final fun component6 ()F
+	public final fun copy (FFFFFF)Lio/github/kmpfacelink/stream/HeadPose;
+	public static synthetic fun copy$default (Lio/github/kmpfacelink/stream/HeadPose;FFFFFFILjava/lang/Object;)Lio/github/kmpfacelink/stream/HeadPose;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getPitch ()F
+	public final fun getRoll ()F
+	public final fun getX ()F
+	public final fun getY ()F
+	public final fun getYaw ()F
+	public final fun getZ ()F
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class io/github/kmpfacelink/stream/HeadPose$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lio/github/kmpfacelink/stream/HeadPose$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lio/github/kmpfacelink/stream/HeadPose;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lio/github/kmpfacelink/stream/HeadPose;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class io/github/kmpfacelink/stream/HeadPose$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class io/github/kmpfacelink/stream/StreamConfig {
+	public static final field Companion Lio/github/kmpfacelink/stream/StreamConfig$Companion;
+	public static final field DEFAULT_FPS I
+	public static final field DEFAULT_HOST Ljava/lang/String;
+	public static final field DEFAULT_PING_INTERVAL_MS J
+	public static final field DEFAULT_PORT I
+	public static final field DEFAULT_TIMEOUT_MS J
+	public static final field MAX_FPS I
+	public fun <init> ()V
+	public fun <init> (Ljava/lang/String;IILio/github/kmpfacelink/stream/StreamFormat;JJ)V
+	public synthetic fun <init> (Ljava/lang/String;IILio/github/kmpfacelink/stream/StreamFormat;JJILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()I
+	public final fun component3 ()I
+	public final fun component4 ()Lio/github/kmpfacelink/stream/StreamFormat;
+	public final fun component5 ()J
+	public final fun component6 ()J
+	public final fun copy (Ljava/lang/String;IILio/github/kmpfacelink/stream/StreamFormat;JJ)Lio/github/kmpfacelink/stream/StreamConfig;
+	public static synthetic fun copy$default (Lio/github/kmpfacelink/stream/StreamConfig;Ljava/lang/String;IILio/github/kmpfacelink/stream/StreamFormat;JJILjava/lang/Object;)Lio/github/kmpfacelink/stream/StreamConfig;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getFormat ()Lio/github/kmpfacelink/stream/StreamFormat;
+	public final fun getHost ()Ljava/lang/String;
+	public final fun getPingIntervalMs ()J
+	public final fun getPort ()I
+	public final fun getTargetFps ()I
+	public final fun getTimeoutMs ()J
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/github/kmpfacelink/stream/StreamConfig$Companion {
+}
+
+public final class io/github/kmpfacelink/stream/StreamFormat : java/lang/Enum {
+	public static final field BINARY Lio/github/kmpfacelink/stream/StreamFormat;
+	public static final field JSON Lio/github/kmpfacelink/stream/StreamFormat;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lio/github/kmpfacelink/stream/StreamFormat;
+	public static fun values ()[Lio/github/kmpfacelink/stream/StreamFormat;
+}
+
+public final class io/github/kmpfacelink/stream/StreamFrame {
+	public static final field Companion Lio/github/kmpfacelink/stream/StreamFrame$Companion;
+	public static final field FRAME_TYPE_TRACKING Ljava/lang/String;
+	public fun <init> (Ljava/lang/String;JLio/github/kmpfacelink/stream/FaceFrame;Ljava/util/List;)V
+	public synthetic fun <init> (Ljava/lang/String;JLio/github/kmpfacelink/stream/FaceFrame;Ljava/util/List;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()J
+	public final fun component3 ()Lio/github/kmpfacelink/stream/FaceFrame;
+	public final fun component4 ()Ljava/util/List;
+	public final fun copy (Ljava/lang/String;JLio/github/kmpfacelink/stream/FaceFrame;Ljava/util/List;)Lio/github/kmpfacelink/stream/StreamFrame;
+	public static synthetic fun copy$default (Lio/github/kmpfacelink/stream/StreamFrame;Ljava/lang/String;JLio/github/kmpfacelink/stream/FaceFrame;Ljava/util/List;ILjava/lang/Object;)Lio/github/kmpfacelink/stream/StreamFrame;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getFace ()Lio/github/kmpfacelink/stream/FaceFrame;
+	public final fun getHands ()Ljava/util/List;
+	public final fun getTimestampMs ()J
+	public final fun getType ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class io/github/kmpfacelink/stream/StreamFrame$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lio/github/kmpfacelink/stream/StreamFrame$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lio/github/kmpfacelink/stream/StreamFrame;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lio/github/kmpfacelink/stream/StreamFrame;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class io/github/kmpfacelink/stream/StreamFrame$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class io/github/kmpfacelink/stream/StreamFrameKt {
+	public static final fun buildStreamFrame (Lio/github/kmpfacelink/model/FaceTrackingData;Lio/github/kmpfacelink/model/HandTrackingData;J)Lio/github/kmpfacelink/stream/StreamFrame;
+	public static final fun toBlendShapeData (Lio/github/kmpfacelink/stream/FaceFrame;)Ljava/util/Map;
+}
+
+public final class io/github/kmpfacelink/stream/StreamSender : io/github/kmpfacelink/api/Releasable {
+	public fun <init> (Lio/github/kmpfacelink/stream/StreamServer;Lio/github/kmpfacelink/stream/StreamConfig;)V
+	public synthetic fun <init> (Lio/github/kmpfacelink/stream/StreamServer;Lio/github/kmpfacelink/stream/StreamConfig;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun release ()V
+	public final fun start (Lkotlinx/coroutines/flow/Flow;Lkotlinx/coroutines/flow/Flow;Lkotlinx/coroutines/CoroutineScope;)V
+	public static synthetic fun start$default (Lio/github/kmpfacelink/stream/StreamSender;Lkotlinx/coroutines/flow/Flow;Lkotlinx/coroutines/flow/Flow;Lkotlinx/coroutines/CoroutineScope;ILjava/lang/Object;)V
+	public final fun stop ()V
+}
+
+public final class io/github/kmpfacelink/stream/StreamServer : io/github/kmpfacelink/api/Releasable {
+	public fun <init> ()V
+	public fun <init> (Lio/github/kmpfacelink/stream/StreamConfig;)V
+	public synthetic fun <init> (Lio/github/kmpfacelink/stream/StreamConfig;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun getClientCount ()I
+	public final fun getConnectionCount ()Lkotlinx/coroutines/flow/SharedFlow;
+	public final fun isRunning ()Z
+	public fun release ()V
+	public final fun sendFrame (Lio/github/kmpfacelink/stream/StreamFrame;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun start (Lkotlinx/coroutines/CoroutineScope;)V
+	public final fun stop ()V
+}
+
+public final class io/github/kmpfacelink/stream/livekit/LiveKitBlendShapeOrder {
+	public static final field COUNT I
+	public static final field INSTANCE Lio/github/kmpfacelink/stream/livekit/LiveKitBlendShapeOrder;
+	public final fun getOrderedNames ()Ljava/util/List;
+	public final fun indexOf (Ljava/lang/String;)I
+}
+
+public final class io/github/kmpfacelink/stream/livekit/LiveKitBridgeConfig {
+	public static final field Companion Lio/github/kmpfacelink/stream/livekit/LiveKitBridgeConfig$Companion;
+	public static final field DEFAULT_DATA_CHANNEL_LABEL Ljava/lang/String;
+	public static final field DEFAULT_MAX_RECONNECT_ATTEMPTS I
+	public static final field DEFAULT_PARTICIPANT_IDENTITY Ljava/lang/String;
+	public static final field DEFAULT_PUBLISH_RATE_HZ I
+	public static final field DEFAULT_RECONNECT_DELAY_MS J
+	public static final field MAX_PUBLISH_RATE_HZ I
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/lang/String;Ljava/lang/String;JI)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/lang/String;Ljava/lang/String;JIILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun component4 ()I
+	public final fun component5 ()Ljava/lang/String;
+	public final fun component6 ()Ljava/lang/String;
+	public final fun component7 ()J
+	public final fun component8 ()I
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/lang/String;Ljava/lang/String;JI)Lio/github/kmpfacelink/stream/livekit/LiveKitBridgeConfig;
+	public static synthetic fun copy$default (Lio/github/kmpfacelink/stream/livekit/LiveKitBridgeConfig;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/lang/String;Ljava/lang/String;JIILjava/lang/Object;)Lio/github/kmpfacelink/stream/livekit/LiveKitBridgeConfig;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getDataChannelLabel ()Ljava/lang/String;
+	public final fun getMaxReconnectAttempts ()I
+	public final fun getParticipantIdentity ()Ljava/lang/String;
+	public final fun getPublishRateHz ()I
+	public final fun getReconnectDelayMs ()J
+	public final fun getRoomName ()Ljava/lang/String;
+	public final fun getServerUrl ()Ljava/lang/String;
+	public final fun getToken ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/github/kmpfacelink/stream/livekit/LiveKitBridgeConfig$Companion {
+}
+
+public final class io/github/kmpfacelink/stream/livekit/LiveKitConnectionState : java/lang/Enum {
+	public static final field CONNECTED Lio/github/kmpfacelink/stream/livekit/LiveKitConnectionState;
+	public static final field CONNECTING Lio/github/kmpfacelink/stream/livekit/LiveKitConnectionState;
+	public static final field DISCONNECTED Lio/github/kmpfacelink/stream/livekit/LiveKitConnectionState;
+	public static final field RECONNECTING Lio/github/kmpfacelink/stream/livekit/LiveKitConnectionState;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lio/github/kmpfacelink/stream/livekit/LiveKitConnectionState;
+	public static fun values ()[Lio/github/kmpfacelink/stream/livekit/LiveKitConnectionState;
+}
+
+public final class io/github/kmpfacelink/stream/livekit/LiveKitDataChannelPublisher : io/github/kmpfacelink/stream/BaseWebSocketClient, io/github/kmpfacelink/stream/livekit/TrackingDataPublisher {
+	public fun <init> (Lio/github/kmpfacelink/stream/livekit/LiveKitBridgeConfig;Lio/ktor/client/HttpClient;)V
+	public synthetic fun <init> (Lio/github/kmpfacelink/stream/livekit/LiveKitBridgeConfig;Lio/ktor/client/HttpClient;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun disconnect (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun getLiveKitConnectionState ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun isConnected ()Z
+	public fun publish (Lio/github/kmpfacelink/stream/StreamFrame;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class io/github/kmpfacelink/stream/livekit/LiveKitFaceData {
+	public static final field Companion Lio/github/kmpfacelink/stream/livekit/LiveKitFaceData$Companion;
+	public fun <init> (Ljava/util/List;Ljava/util/List;)V
+	public final fun component1 ()Ljava/util/List;
+	public final fun component2 ()Ljava/util/List;
+	public final fun copy (Ljava/util/List;Ljava/util/List;)Lio/github/kmpfacelink/stream/livekit/LiveKitFaceData;
+	public static synthetic fun copy$default (Lio/github/kmpfacelink/stream/livekit/LiveKitFaceData;Ljava/util/List;Ljava/util/List;ILjava/lang/Object;)Lio/github/kmpfacelink/stream/livekit/LiveKitFaceData;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getBlendShapes ()Ljava/util/List;
+	public final fun getHeadPose ()Ljava/util/List;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class io/github/kmpfacelink/stream/livekit/LiveKitFaceData$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lio/github/kmpfacelink/stream/livekit/LiveKitFaceData$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lio/github/kmpfacelink/stream/livekit/LiveKitFaceData;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lio/github/kmpfacelink/stream/livekit/LiveKitFaceData;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class io/github/kmpfacelink/stream/livekit/LiveKitFaceData$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class io/github/kmpfacelink/stream/livekit/LiveKitHandData {
+	public static final field Companion Lio/github/kmpfacelink/stream/livekit/LiveKitHandData$Companion;
+	public fun <init> (Ljava/lang/String;Ljava/util/List;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/util/List;
+	public final fun copy (Ljava/lang/String;Ljava/util/List;)Lio/github/kmpfacelink/stream/livekit/LiveKitHandData;
+	public static synthetic fun copy$default (Lio/github/kmpfacelink/stream/livekit/LiveKitHandData;Ljava/lang/String;Ljava/util/List;ILjava/lang/Object;)Lio/github/kmpfacelink/stream/livekit/LiveKitHandData;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getLandmarks ()Ljava/util/List;
+	public final fun getSide ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class io/github/kmpfacelink/stream/livekit/LiveKitHandData$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lio/github/kmpfacelink/stream/livekit/LiveKitHandData$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lio/github/kmpfacelink/stream/livekit/LiveKitHandData;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lio/github/kmpfacelink/stream/livekit/LiveKitHandData;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class io/github/kmpfacelink/stream/livekit/LiveKitHandData$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class io/github/kmpfacelink/stream/livekit/LiveKitTrackingMessage {
+	public static final field Companion Lio/github/kmpfacelink/stream/livekit/LiveKitTrackingMessage$Companion;
+	public static final field MESSAGE_TYPE_TRACKING Ljava/lang/String;
+	public static final field PROTOCOL_VERSION I
+	public fun <init> (ILjava/lang/String;JLjava/lang/String;Lio/github/kmpfacelink/stream/livekit/LiveKitFaceData;Ljava/util/List;)V
+	public synthetic fun <init> (ILjava/lang/String;JLjava/lang/String;Lio/github/kmpfacelink/stream/livekit/LiveKitFaceData;Ljava/util/List;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()I
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()J
+	public final fun component4 ()Ljava/lang/String;
+	public final fun component5 ()Lio/github/kmpfacelink/stream/livekit/LiveKitFaceData;
+	public final fun component6 ()Ljava/util/List;
+	public final fun copy (ILjava/lang/String;JLjava/lang/String;Lio/github/kmpfacelink/stream/livekit/LiveKitFaceData;Ljava/util/List;)Lio/github/kmpfacelink/stream/livekit/LiveKitTrackingMessage;
+	public static synthetic fun copy$default (Lio/github/kmpfacelink/stream/livekit/LiveKitTrackingMessage;ILjava/lang/String;JLjava/lang/String;Lio/github/kmpfacelink/stream/livekit/LiveKitFaceData;Ljava/util/List;ILjava/lang/Object;)Lio/github/kmpfacelink/stream/livekit/LiveKitTrackingMessage;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getFace ()Lio/github/kmpfacelink/stream/livekit/LiveKitFaceData;
+	public final fun getHands ()Ljava/util/List;
+	public final fun getSource ()Ljava/lang/String;
+	public final fun getTimestampMs ()J
+	public final fun getType ()Ljava/lang/String;
+	public final fun getVersion ()I
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class io/github/kmpfacelink/stream/livekit/LiveKitTrackingMessage$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lio/github/kmpfacelink/stream/livekit/LiveKitTrackingMessage$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lio/github/kmpfacelink/stream/livekit/LiveKitTrackingMessage;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lio/github/kmpfacelink/stream/livekit/LiveKitTrackingMessage;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class io/github/kmpfacelink/stream/livekit/LiveKitTrackingMessage$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class io/github/kmpfacelink/stream/livekit/LiveKitTrackingMessageKt {
+	public static final fun toLiveKitMessage (Lio/github/kmpfacelink/stream/StreamFrame;Ljava/lang/String;)Lio/github/kmpfacelink/stream/livekit/LiveKitTrackingMessage;
+}
+
+public final class io/github/kmpfacelink/stream/livekit/LiveKitTrackingSender : io/github/kmpfacelink/api/Releasable {
+	public fun <init> (Lio/github/kmpfacelink/stream/livekit/LiveKitBridgeConfig;Lio/github/kmpfacelink/stream/livekit/LiveKitDataChannelPublisher;)V
+	public synthetic fun <init> (Lio/github/kmpfacelink/stream/livekit/LiveKitBridgeConfig;Lio/github/kmpfacelink/stream/livekit/LiveKitDataChannelPublisher;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun getConnectionState ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun release ()V
+	public final fun start (Lkotlinx/coroutines/flow/Flow;Lkotlinx/coroutines/flow/Flow;Lkotlinx/coroutines/CoroutineScope;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun start$default (Lio/github/kmpfacelink/stream/livekit/LiveKitTrackingSender;Lkotlinx/coroutines/flow/Flow;Lkotlinx/coroutines/flow/Flow;Lkotlinx/coroutines/CoroutineScope;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public final fun stop (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public abstract interface class io/github/kmpfacelink/stream/livekit/TrackingDataPublisher {
+	public abstract fun connect (Lkotlinx/coroutines/CoroutineScope;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun disconnect (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun isConnected ()Z
+	public abstract fun publish (Lio/github/kmpfacelink/stream/StreamFrame;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class io/github/kmpfacelink/stream/webrtc/DataChannelConfig {
+	public static final field Companion Lio/github/kmpfacelink/stream/webrtc/DataChannelConfig$Companion;
+	public static final field DEFAULT_LABEL Ljava/lang/String;
+	public fun <init> ()V
+	public fun <init> (Ljava/lang/String;ZLjava/lang/Integer;Ljava/lang/Integer;Ljava/lang/String;)V
+	public synthetic fun <init> (Ljava/lang/String;ZLjava/lang/Integer;Ljava/lang/Integer;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Z
+	public final fun component3 ()Ljava/lang/Integer;
+	public final fun component4 ()Ljava/lang/Integer;
+	public final fun component5 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;ZLjava/lang/Integer;Ljava/lang/Integer;Ljava/lang/String;)Lio/github/kmpfacelink/stream/webrtc/DataChannelConfig;
+	public static synthetic fun copy$default (Lio/github/kmpfacelink/stream/webrtc/DataChannelConfig;Ljava/lang/String;ZLjava/lang/Integer;Ljava/lang/Integer;Ljava/lang/String;ILjava/lang/Object;)Lio/github/kmpfacelink/stream/webrtc/DataChannelConfig;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getLabel ()Ljava/lang/String;
+	public final fun getMaxPacketLifeTimeMs ()Ljava/lang/Integer;
+	public final fun getMaxRetransmits ()Ljava/lang/Integer;
+	public final fun getOrdered ()Z
+	public final fun getProtocol ()Ljava/lang/String;
+	public fun hashCode ()I
+	public final fun isUnreliable ()Z
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class io/github/kmpfacelink/stream/webrtc/DataChannelConfig$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lio/github/kmpfacelink/stream/webrtc/DataChannelConfig$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lio/github/kmpfacelink/stream/webrtc/DataChannelConfig;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lio/github/kmpfacelink/stream/webrtc/DataChannelConfig;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class io/github/kmpfacelink/stream/webrtc/DataChannelConfig$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class io/github/kmpfacelink/stream/webrtc/DataChannelMessage {
+	public static final field HEADER_SIZE I
+	public static final field INSTANCE Lio/github/kmpfacelink/stream/webrtc/DataChannelMessage;
+	public final fun decode ([B)Lio/github/kmpfacelink/stream/webrtc/DecodedMessage;
+	public final fun encode (Lio/github/kmpfacelink/stream/StreamFrame;IJ)[B
+}
+
+public abstract interface class io/github/kmpfacelink/stream/webrtc/DataChannelTransport {
+	public abstract fun connect (Lkotlinx/coroutines/CoroutineScope;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun disconnect (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun getConnectionState ()Lkotlinx/coroutines/flow/StateFlow;
+	public abstract fun getIncoming ()Lkotlinx/coroutines/flow/Flow;
+	public abstract fun isConnected ()Z
+	public abstract fun send ([BLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class io/github/kmpfacelink/stream/webrtc/DecodedMessage {
+	public fun <init> (IJLio/github/kmpfacelink/stream/StreamFrame;)V
+	public final fun component1 ()I
+	public final fun component2 ()J
+	public final fun component3 ()Lio/github/kmpfacelink/stream/StreamFrame;
+	public final fun copy (IJLio/github/kmpfacelink/stream/StreamFrame;)Lio/github/kmpfacelink/stream/webrtc/DecodedMessage;
+	public static synthetic fun copy$default (Lio/github/kmpfacelink/stream/webrtc/DecodedMessage;IJLio/github/kmpfacelink/stream/StreamFrame;ILjava/lang/Object;)Lio/github/kmpfacelink/stream/webrtc/DecodedMessage;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getFrame ()Lio/github/kmpfacelink/stream/StreamFrame;
+	public final fun getSendTimeNs ()J
+	public final fun getSequenceNumber ()I
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/github/kmpfacelink/stream/webrtc/IceServer {
+	public static final field Companion Lio/github/kmpfacelink/stream/webrtc/IceServer$Companion;
+	public fun <init> (Ljava/util/List;Ljava/lang/String;Ljava/lang/String;)V
+	public synthetic fun <init> (Ljava/util/List;Ljava/lang/String;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/util/List;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun copy (Ljava/util/List;Ljava/lang/String;Ljava/lang/String;)Lio/github/kmpfacelink/stream/webrtc/IceServer;
+	public static synthetic fun copy$default (Lio/github/kmpfacelink/stream/webrtc/IceServer;Ljava/util/List;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Lio/github/kmpfacelink/stream/webrtc/IceServer;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getCredential ()Ljava/lang/String;
+	public final fun getUrls ()Ljava/util/List;
+	public final fun getUsername ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class io/github/kmpfacelink/stream/webrtc/IceServer$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lio/github/kmpfacelink/stream/webrtc/IceServer$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lio/github/kmpfacelink/stream/webrtc/IceServer;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lio/github/kmpfacelink/stream/webrtc/IceServer;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class io/github/kmpfacelink/stream/webrtc/IceServer$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public abstract class io/github/kmpfacelink/stream/webrtc/SignalingMessage {
+	public static final field Companion Lio/github/kmpfacelink/stream/webrtc/SignalingMessage$Companion;
+	public synthetic fun <init> (ILkotlinx/serialization/internal/SerializationConstructorMarker;)V
+	public static final synthetic fun write$Self (Lio/github/kmpfacelink/stream/webrtc/SignalingMessage;Lkotlinx/serialization/encoding/CompositeEncoder;Lkotlinx/serialization/descriptors/SerialDescriptor;)V
+}
+
+public final class io/github/kmpfacelink/stream/webrtc/SignalingMessage$Answer : io/github/kmpfacelink/stream/webrtc/SignalingMessage {
+	public static final field Companion Lio/github/kmpfacelink/stream/webrtc/SignalingMessage$Answer$Companion;
+	public fun <init> (Ljava/lang/String;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;)Lio/github/kmpfacelink/stream/webrtc/SignalingMessage$Answer;
+	public static synthetic fun copy$default (Lio/github/kmpfacelink/stream/webrtc/SignalingMessage$Answer;Ljava/lang/String;ILjava/lang/Object;)Lio/github/kmpfacelink/stream/webrtc/SignalingMessage$Answer;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getSdp ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class io/github/kmpfacelink/stream/webrtc/SignalingMessage$Answer$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lio/github/kmpfacelink/stream/webrtc/SignalingMessage$Answer$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lio/github/kmpfacelink/stream/webrtc/SignalingMessage$Answer;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lio/github/kmpfacelink/stream/webrtc/SignalingMessage$Answer;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class io/github/kmpfacelink/stream/webrtc/SignalingMessage$Answer$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class io/github/kmpfacelink/stream/webrtc/SignalingMessage$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class io/github/kmpfacelink/stream/webrtc/SignalingMessage$Error : io/github/kmpfacelink/stream/webrtc/SignalingMessage {
+	public static final field Companion Lio/github/kmpfacelink/stream/webrtc/SignalingMessage$Error$Companion;
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;)Lio/github/kmpfacelink/stream/webrtc/SignalingMessage$Error;
+	public static synthetic fun copy$default (Lio/github/kmpfacelink/stream/webrtc/SignalingMessage$Error;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Lio/github/kmpfacelink/stream/webrtc/SignalingMessage$Error;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getCode ()Ljava/lang/String;
+	public final fun getMessage ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class io/github/kmpfacelink/stream/webrtc/SignalingMessage$Error$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lio/github/kmpfacelink/stream/webrtc/SignalingMessage$Error$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lio/github/kmpfacelink/stream/webrtc/SignalingMessage$Error;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lio/github/kmpfacelink/stream/webrtc/SignalingMessage$Error;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class io/github/kmpfacelink/stream/webrtc/SignalingMessage$Error$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class io/github/kmpfacelink/stream/webrtc/SignalingMessage$IceCandidate : io/github/kmpfacelink/stream/webrtc/SignalingMessage {
+	public static final field Companion Lio/github/kmpfacelink/stream/webrtc/SignalingMessage$IceCandidate$Companion;
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/lang/Integer;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;)Lio/github/kmpfacelink/stream/webrtc/SignalingMessage$IceCandidate;
+	public static synthetic fun copy$default (Lio/github/kmpfacelink/stream/webrtc/SignalingMessage$IceCandidate;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;ILjava/lang/Object;)Lio/github/kmpfacelink/stream/webrtc/SignalingMessage$IceCandidate;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getCandidate ()Ljava/lang/String;
+	public final fun getSdpMLineIndex ()Ljava/lang/Integer;
+	public final fun getSdpMid ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class io/github/kmpfacelink/stream/webrtc/SignalingMessage$IceCandidate$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lio/github/kmpfacelink/stream/webrtc/SignalingMessage$IceCandidate$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lio/github/kmpfacelink/stream/webrtc/SignalingMessage$IceCandidate;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lio/github/kmpfacelink/stream/webrtc/SignalingMessage$IceCandidate;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class io/github/kmpfacelink/stream/webrtc/SignalingMessage$IceCandidate$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class io/github/kmpfacelink/stream/webrtc/SignalingMessage$IceGatheringComplete : io/github/kmpfacelink/stream/webrtc/SignalingMessage {
+	public static final field INSTANCE Lio/github/kmpfacelink/stream/webrtc/SignalingMessage$IceGatheringComplete;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/github/kmpfacelink/stream/webrtc/SignalingMessage$Offer : io/github/kmpfacelink/stream/webrtc/SignalingMessage {
+	public static final field Companion Lio/github/kmpfacelink/stream/webrtc/SignalingMessage$Offer$Companion;
+	public fun <init> (Ljava/lang/String;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;)Lio/github/kmpfacelink/stream/webrtc/SignalingMessage$Offer;
+	public static synthetic fun copy$default (Lio/github/kmpfacelink/stream/webrtc/SignalingMessage$Offer;Ljava/lang/String;ILjava/lang/Object;)Lio/github/kmpfacelink/stream/webrtc/SignalingMessage$Offer;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getSdp ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class io/github/kmpfacelink/stream/webrtc/SignalingMessage$Offer$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lio/github/kmpfacelink/stream/webrtc/SignalingMessage$Offer$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lio/github/kmpfacelink/stream/webrtc/SignalingMessage$Offer;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lio/github/kmpfacelink/stream/webrtc/SignalingMessage$Offer;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class io/github/kmpfacelink/stream/webrtc/SignalingMessage$Offer$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class io/github/kmpfacelink/stream/webrtc/WebRtcSignalingClient : io/github/kmpfacelink/stream/BaseWebSocketClient {
+	public static final field MESSAGE_BUFFER_CAPACITY I
+	public fun <init> (Ljava/lang/String;Lio/ktor/client/HttpClient;)V
+	public synthetic fun <init> (Ljava/lang/String;Lio/ktor/client/HttpClient;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun getMessages ()Lkotlinx/coroutines/flow/SharedFlow;
+	public final fun isConnected ()Z
+	public final fun send (Lio/github/kmpfacelink/stream/webrtc/SignalingMessage;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class io/github/kmpfacelink/stream/webrtc/WebRtcTransportConfig {
+	public static final field Companion Lio/github/kmpfacelink/stream/webrtc/WebRtcTransportConfig$Companion;
+	public fun <init> (Ljava/lang/String;Ljava/util/List;Lio/github/kmpfacelink/stream/webrtc/DataChannelConfig;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/util/List;Lio/github/kmpfacelink/stream/webrtc/DataChannelConfig;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/util/List;
+	public final fun component3 ()Lio/github/kmpfacelink/stream/webrtc/DataChannelConfig;
+	public final fun copy (Ljava/lang/String;Ljava/util/List;Lio/github/kmpfacelink/stream/webrtc/DataChannelConfig;)Lio/github/kmpfacelink/stream/webrtc/WebRtcTransportConfig;
+	public static synthetic fun copy$default (Lio/github/kmpfacelink/stream/webrtc/WebRtcTransportConfig;Ljava/lang/String;Ljava/util/List;Lio/github/kmpfacelink/stream/webrtc/DataChannelConfig;ILjava/lang/Object;)Lio/github/kmpfacelink/stream/webrtc/WebRtcTransportConfig;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getDataChannelConfig ()Lio/github/kmpfacelink/stream/webrtc/DataChannelConfig;
+	public final fun getIceServers ()Ljava/util/List;
+	public final fun getSignalingUrl ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class io/github/kmpfacelink/stream/webrtc/WebRtcTransportConfig$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lio/github/kmpfacelink/stream/webrtc/WebRtcTransportConfig$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lio/github/kmpfacelink/stream/webrtc/WebRtcTransportConfig;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lio/github/kmpfacelink/stream/webrtc/WebRtcTransportConfig;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class io/github/kmpfacelink/stream/webrtc/WebRtcTransportConfig$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class io/github/kmpfacelink/stream/webrtc/WebSocketTransport : io/github/kmpfacelink/stream/BaseWebSocketClient, io/github/kmpfacelink/stream/webrtc/DataChannelTransport {
+	public static final field INCOMING_BUFFER_CAPACITY I
+	public fun <init> (Ljava/lang/String;Lio/ktor/client/HttpClient;)V
+	public synthetic fun <init> (Ljava/lang/String;Lio/ktor/client/HttpClient;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun getIncoming ()Lkotlinx/coroutines/flow/Flow;
+	public fun isConnected ()Z
+	public fun send ([BLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+

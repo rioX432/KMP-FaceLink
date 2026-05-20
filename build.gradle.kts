@@ -9,6 +9,7 @@ plugins {
     alias(libs.plugins.dokka)
     alias(libs.plugins.nexus.publish)
     alias(libs.plugins.kover) apply false
+    alias(libs.plugins.binary.compatibility.validator)
 }
 
 nexusPublishing {
@@ -19,6 +20,18 @@ nexusPublishing {
             username.set(providers.environmentVariable("OSSRH_USERNAME"))
             password.set(providers.environmentVariable("OSSRH_PASSWORD"))
         }
+    }
+}
+
+apiValidation {
+    // Exclude sample apps (no public API to track)
+    ignoredProjects += listOf("androidApp", "sampleShared")
+    // Exclude BOM module (no code, only dependency constraints)
+    ignoredProjects += listOf("kmp-facelink-bom")
+
+    @OptIn(kotlinx.validation.ExperimentalBCVApi::class)
+    klib {
+        enabled = true
     }
 }
 

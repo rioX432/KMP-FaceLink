@@ -43,6 +43,10 @@ internal class NoOpFaceTracker : FaceTracker {
         // No-op
     }
 
+    override fun resetSmoothing() {
+        // No-op
+    }
+
     override fun updateSmoothing(config: SmoothingConfig) {
         // No-op
     }

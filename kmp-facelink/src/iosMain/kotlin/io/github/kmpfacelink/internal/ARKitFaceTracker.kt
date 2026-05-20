@@ -54,6 +54,7 @@ import platform.Foundation.NSNumber
 import platform.darwin.NSObject
 import kotlin.concurrent.atomics.ExperimentalAtomicApi
 
+@Suppress("TooManyFunctions") // Interface overrides + thermal quality policy helpers
 @OptIn(ExperimentalAtomicApi::class)
 internal class ARKitFaceTracker(
     private val config: FaceTrackerConfig,
@@ -157,6 +158,13 @@ internal class ARKitFaceTracker(
         pipelineLock.withLock {
             checkNotReleased("reset calibration")
             calibrator.reset()
+            smoother?.reset()
+        }
+    }
+
+    override fun resetSmoothing() {
+        pipelineLock.withLock {
+            checkNotReleased("reset smoothing")
             smoother?.reset()
         }
     }

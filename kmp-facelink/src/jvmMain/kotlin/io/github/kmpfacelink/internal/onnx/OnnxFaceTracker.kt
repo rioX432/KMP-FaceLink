@@ -95,6 +95,11 @@ internal class OnnxFaceTracker(
         // No calibration state in the ONNX tracker yet
     }
 
+    override fun resetSmoothing() {
+        checkNotReleased()
+        // No smoothing state in the ONNX tracker yet
+    }
+
     override fun updateSmoothing(config: SmoothingConfig) {
         checkNotReleased()
         // Smoothing is applied via the common BlendShapeSmoother in a future enhancement

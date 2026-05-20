@@ -71,6 +71,7 @@ private class IosTestFakeFaceTracker : FaceTracker {
     override suspend fun stop() = Unit
     override fun release() = Unit
     override fun resetCalibration() = Unit
+    override fun resetSmoothing() = Unit
     override fun updateSmoothing(config: SmoothingConfig) = Unit
     override suspend fun switchCamera(facing: CameraFacing) = Unit
 }
@@ -98,5 +99,6 @@ private class IosTestFakeHolisticTracker : HolisticTracker {
     override suspend fun stop() = Unit
     override fun release() = Unit
     override fun updateSmoothing(config: SmoothingConfig) = Unit
+    override fun resetSmoothing() = Unit
     override suspend fun switchCamera(facing: CameraFacing) = Unit
 }

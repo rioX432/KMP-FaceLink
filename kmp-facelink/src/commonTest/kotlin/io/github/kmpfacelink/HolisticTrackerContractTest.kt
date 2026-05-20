@@ -115,6 +115,15 @@ class HolisticTrackerContractTest {
     }
 
     @Test
+    fun resetSmoothingAfterReleaseThrows() {
+        val tracker = createTracker()
+        tracker.release()
+        assertFailsWith<IllegalStateException> {
+            tracker.resetSmoothing()
+        }
+    }
+
+    @Test
     fun switchCameraAfterReleaseThrows() = runTest {
         val tracker = createTracker()
         tracker.release()
@@ -151,6 +160,10 @@ private class FakeHolisticTracker(
     }
 
     override fun updateSmoothing(config: SmoothingConfig) {
+        checkNotReleased()
+    }
+
+    override fun resetSmoothing() {
         checkNotReleased()
     }
 

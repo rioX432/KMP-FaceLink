@@ -46,6 +46,10 @@ internal class NoOpHolisticTracker : HolisticTracker {
         // No-op
     }
 
+    override fun resetSmoothing() {
+        // No-op
+    }
+
     override suspend fun switchCamera(facing: CameraFacing) {
         // No-op
     }

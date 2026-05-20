@@ -54,6 +54,8 @@ Real-time face, hand, and body tracking with a unified API across platforms.
 | `createBodyTracker(context, config)` | Body pose landmarks (33 keypoints) |
 | `createHolisticTracker(context, config)` | Simultaneous face + hands + body with shared camera |
 
+**Android model setup:** The Android implementation uses MediaPipe models that must be bundled in your app's assets. See [Quick Start: Android — Model Setup](quick-start-android.md#2-model-setup) for download instructions and APK size guidance.
+
 All trackers follow the same pattern:
 
 ```kotlin

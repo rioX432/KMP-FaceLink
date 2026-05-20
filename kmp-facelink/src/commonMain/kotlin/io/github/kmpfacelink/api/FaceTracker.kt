@@ -74,6 +74,15 @@ public interface FaceTracker : Releasable {
     /**
      * Human-readable error message when [state] is [TrackingState.ERROR], null otherwise.
      *
+     * The message contains a platform-specific description of what went wrong:
+     * - Android: MediaPipe model loading failures, CameraX binding errors, or missing camera hardware.
+     * - iOS: ARKit session errors (`NSError.localizedDescription`), Vision framework failures,
+     *   or missing TrueDepth camera.
+     *
+     * This value is **not** automatically cleared when [start] is called again after an error.
+     * Consumers should rely on [state] transitions (ERROR -> STARTING -> TRACKING) rather than
+     * checking whether [errorMessage] is null.
+     *
      * **Threading:** Emits on a background thread. Use `Dispatchers.Main` when
      * binding to UI components.
      */
@@ -160,24 +169,55 @@ public interface FaceTracker : Releasable {
 }
 
 /**
- * Face tracker lifecycle state.
+ * Tracker lifecycle state.
+ *
+ * ## State transition diagram
+ *
+ * ```
+ * IDLE ──start()──> STARTING ──success──> TRACKING
+ *                       │                     │
+ *                     failure               stop()
+ *                       │                     │
+ *                       v                     v
+ *                     ERROR               STOPPED
+ *                       │                     │
+ *                     start()               start()
+ *                       │                     │
+ *                       v                     v
+ *                   STARTING             STARTING
+ *
+ * Any state ──release()──> RELEASED (terminal)
+ * ```
+ *
+ * ## Recovery rules
+ *
+ * - **ERROR**: Calling [FaceTracker.start] is allowed and transitions back to STARTING.
+ *   Whether the retry succeeds depends on the error cause: temporary failures (camera
+ *   in use by another app) may recover, while permanent failures (no camera hardware)
+ *   will transition to ERROR again.
+ * - **RELEASED**: Terminal state. All method calls throw [IllegalStateException].
+ *   Create a new tracker instance to continue tracking.
  */
 public enum class TrackingState {
-    /** Tracker created but not started */
+    /** Tracker created but not yet started. Transitions to [STARTING] on [FaceTracker.start]. */
     IDLE,
 
-    /** Starting camera and processing pipeline */
+    /** Camera and processing pipeline are initializing. Transitions to [TRACKING] on success or [ERROR] on failure. */
     STARTING,
 
-    /** Actively tracking */
+    /** Actively tracking. Transitions to [STOPPED] on [FaceTracker.stop] or [ERROR] on runtime failure. */
     TRACKING,
 
-    /** Stopped (can be restarted) */
+    /** Stopped by the caller. Transitions to [STARTING] on [FaceTracker.start]. */
     STOPPED,
 
-    /** Unrecoverable error occurred */
+    /**
+     * An error occurred during startup or tracking.
+     * Calling [FaceTracker.start] is permitted and transitions back to [STARTING].
+     * Check [FaceTracker.errorMessage] for a description of what went wrong.
+     */
     ERROR,
 
-    /** Resources released — tracker cannot be used */
+    /** Resources released. Terminal state — the tracker cannot be reused. */
     RELEASED,
 }

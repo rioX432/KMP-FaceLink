@@ -76,6 +76,14 @@ public interface HolisticTracker : Releasable {
     /**
      * Human-readable error message when [state] is [TrackingState.ERROR], null otherwise.
      *
+     * The message contains a platform-specific description of what went wrong. For
+     * holistic trackers this may include errors from any enabled modality (ARKit,
+     * MediaPipe, or Vision framework).
+     *
+     * This value is **not** automatically cleared when [start] is called again after an error.
+     * Consumers should rely on [state] transitions (ERROR -> STARTING -> TRACKING) rather than
+     * checking whether [errorMessage] is null.
+     *
      * **Threading:** Emits on a background thread. Use `Dispatchers.Main` when
      * binding to UI components.
      */

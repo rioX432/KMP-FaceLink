@@ -1,0 +1,117 @@
+// Klib ABI Dump
+// Targets: [iosArm64, iosSimulatorArm64]
+// Rendering settings:
+// - Signature version: 2
+// - Show manifest properties: true
+// - Show declarations: true
+
+// Library unique name: <io.github.rioX432:kmp-facelink-networking>
+final class io.github.kmpfacelink.networking.discovery/DiscoveredService { // io.github.kmpfacelink.networking.discovery/DiscoveredService|null[0]
+    constructor <init>(kotlin/String, kotlin/String, kotlin/String?, kotlin/Int) // io.github.kmpfacelink.networking.discovery/DiscoveredService.<init>|<init>(kotlin.String;kotlin.String;kotlin.String?;kotlin.Int){}[0]
+
+    final val host // io.github.kmpfacelink.networking.discovery/DiscoveredService.host|{}host[0]
+        final fun <get-host>(): kotlin/String? // io.github.kmpfacelink.networking.discovery/DiscoveredService.host.<get-host>|<get-host>(){}[0]
+    final val name // io.github.kmpfacelink.networking.discovery/DiscoveredService.name|{}name[0]
+        final fun <get-name>(): kotlin/String // io.github.kmpfacelink.networking.discovery/DiscoveredService.name.<get-name>|<get-name>(){}[0]
+    final val port // io.github.kmpfacelink.networking.discovery/DiscoveredService.port|{}port[0]
+        final fun <get-port>(): kotlin/Int // io.github.kmpfacelink.networking.discovery/DiscoveredService.port.<get-port>|<get-port>(){}[0]
+    final val type // io.github.kmpfacelink.networking.discovery/DiscoveredService.type|{}type[0]
+        final fun <get-type>(): kotlin/String // io.github.kmpfacelink.networking.discovery/DiscoveredService.type.<get-type>|<get-type>(){}[0]
+
+    final fun component1(): kotlin/String // io.github.kmpfacelink.networking.discovery/DiscoveredService.component1|component1(){}[0]
+    final fun component2(): kotlin/String // io.github.kmpfacelink.networking.discovery/DiscoveredService.component2|component2(){}[0]
+    final fun component3(): kotlin/String? // io.github.kmpfacelink.networking.discovery/DiscoveredService.component3|component3(){}[0]
+    final fun component4(): kotlin/Int // io.github.kmpfacelink.networking.discovery/DiscoveredService.component4|component4(){}[0]
+    final fun copy(kotlin/String = ..., kotlin/String = ..., kotlin/String? = ..., kotlin/Int = ...): io.github.kmpfacelink.networking.discovery/DiscoveredService // io.github.kmpfacelink.networking.discovery/DiscoveredService.copy|copy(kotlin.String;kotlin.String;kotlin.String?;kotlin.Int){}[0]
+    final fun equals(kotlin/Any?): kotlin/Boolean // io.github.kmpfacelink.networking.discovery/DiscoveredService.equals|equals(kotlin.Any?){}[0]
+    final fun hashCode(): kotlin/Int // io.github.kmpfacelink.networking.discovery/DiscoveredService.hashCode|hashCode(){}[0]
+    final fun toString(): kotlin/String // io.github.kmpfacelink.networking.discovery/DiscoveredService.toString|toString(){}[0]
+}
+
+final class io.github.kmpfacelink.networking.discovery/ServiceDiscovery { // io.github.kmpfacelink.networking.discovery/ServiceDiscovery|null[0]
+    constructor <init>() // io.github.kmpfacelink.networking.discovery/ServiceDiscovery.<init>|<init>(){}[0]
+
+    final val events // io.github.kmpfacelink.networking.discovery/ServiceDiscovery.events|{}events[0]
+        final fun <get-events>(): kotlinx.coroutines.flow/StateFlow<io.github.kmpfacelink.networking.discovery/DiscoveryEvent?> // io.github.kmpfacelink.networking.discovery/ServiceDiscovery.events.<get-events>|<get-events>(){}[0]
+    final val isDiscovering // io.github.kmpfacelink.networking.discovery/ServiceDiscovery.isDiscovering|{}isDiscovering[0]
+        final fun <get-isDiscovering>(): kotlinx.coroutines.flow/StateFlow<kotlin/Boolean> // io.github.kmpfacelink.networking.discovery/ServiceDiscovery.isDiscovering.<get-isDiscovering>|<get-isDiscovering>(){}[0]
+    final val services // io.github.kmpfacelink.networking.discovery/ServiceDiscovery.services|{}services[0]
+        final fun <get-services>(): kotlinx.coroutines.flow/StateFlow<kotlin.collections/List<io.github.kmpfacelink.networking.discovery/DiscoveredService>> // io.github.kmpfacelink.networking.discovery/ServiceDiscovery.services.<get-services>|<get-services>(){}[0]
+
+    final fun startDiscovery(kotlin/String) // io.github.kmpfacelink.networking.discovery/ServiceDiscovery.startDiscovery|startDiscovery(kotlin.String){}[0]
+    final fun startDiscoveryAll() // io.github.kmpfacelink.networking.discovery/ServiceDiscovery.startDiscoveryAll|startDiscoveryAll(){}[0]
+    final fun stopDiscovery() // io.github.kmpfacelink.networking.discovery/ServiceDiscovery.stopDiscovery|stopDiscovery(){}[0]
+}
+
+final class io.github.kmpfacelink.networking/UdpSocket { // io.github.kmpfacelink.networking/UdpSocket|null[0]
+    constructor <init>(kotlin/Int = ...) // io.github.kmpfacelink.networking/UdpSocket.<init>|<init>(kotlin.Int){}[0]
+
+    final fun bind(kotlin/Int) // io.github.kmpfacelink.networking/UdpSocket.bind|bind(kotlin.Int){}[0]
+    final fun close() // io.github.kmpfacelink.networking/UdpSocket.close|close(){}[0]
+    final fun receive(): kotlin/ByteArray // io.github.kmpfacelink.networking/UdpSocket.receive|receive(){}[0]
+    final fun send(kotlin/ByteArray, kotlin/String, kotlin/Int) // io.github.kmpfacelink.networking/UdpSocket.send|send(kotlin.ByteArray;kotlin.String;kotlin.Int){}[0]
+}
+
+sealed class io.github.kmpfacelink.networking.discovery/DiscoveryEvent { // io.github.kmpfacelink.networking.discovery/DiscoveryEvent|null[0]
+    final class Error : io.github.kmpfacelink.networking.discovery/DiscoveryEvent { // io.github.kmpfacelink.networking.discovery/DiscoveryEvent.Error|null[0]
+        constructor <init>(kotlin/String) // io.github.kmpfacelink.networking.discovery/DiscoveryEvent.Error.<init>|<init>(kotlin.String){}[0]
+
+        final val message // io.github.kmpfacelink.networking.discovery/DiscoveryEvent.Error.message|{}message[0]
+            final fun <get-message>(): kotlin/String // io.github.kmpfacelink.networking.discovery/DiscoveryEvent.Error.message.<get-message>|<get-message>(){}[0]
+
+        final fun component1(): kotlin/String // io.github.kmpfacelink.networking.discovery/DiscoveryEvent.Error.component1|component1(){}[0]
+        final fun copy(kotlin/String = ...): io.github.kmpfacelink.networking.discovery/DiscoveryEvent.Error // io.github.kmpfacelink.networking.discovery/DiscoveryEvent.Error.copy|copy(kotlin.String){}[0]
+        final fun equals(kotlin/Any?): kotlin/Boolean // io.github.kmpfacelink.networking.discovery/DiscoveryEvent.Error.equals|equals(kotlin.Any?){}[0]
+        final fun hashCode(): kotlin/Int // io.github.kmpfacelink.networking.discovery/DiscoveryEvent.Error.hashCode|hashCode(){}[0]
+        final fun toString(): kotlin/String // io.github.kmpfacelink.networking.discovery/DiscoveryEvent.Error.toString|toString(){}[0]
+    }
+
+    final class Found : io.github.kmpfacelink.networking.discovery/DiscoveryEvent { // io.github.kmpfacelink.networking.discovery/DiscoveryEvent.Found|null[0]
+        constructor <init>(io.github.kmpfacelink.networking.discovery/DiscoveredService) // io.github.kmpfacelink.networking.discovery/DiscoveryEvent.Found.<init>|<init>(io.github.kmpfacelink.networking.discovery.DiscoveredService){}[0]
+
+        final val service // io.github.kmpfacelink.networking.discovery/DiscoveryEvent.Found.service|{}service[0]
+            final fun <get-service>(): io.github.kmpfacelink.networking.discovery/DiscoveredService // io.github.kmpfacelink.networking.discovery/DiscoveryEvent.Found.service.<get-service>|<get-service>(){}[0]
+
+        final fun component1(): io.github.kmpfacelink.networking.discovery/DiscoveredService // io.github.kmpfacelink.networking.discovery/DiscoveryEvent.Found.component1|component1(){}[0]
+        final fun copy(io.github.kmpfacelink.networking.discovery/DiscoveredService = ...): io.github.kmpfacelink.networking.discovery/DiscoveryEvent.Found // io.github.kmpfacelink.networking.discovery/DiscoveryEvent.Found.copy|copy(io.github.kmpfacelink.networking.discovery.DiscoveredService){}[0]
+        final fun equals(kotlin/Any?): kotlin/Boolean // io.github.kmpfacelink.networking.discovery/DiscoveryEvent.Found.equals|equals(kotlin.Any?){}[0]
+        final fun hashCode(): kotlin/Int // io.github.kmpfacelink.networking.discovery/DiscoveryEvent.Found.hashCode|hashCode(){}[0]
+        final fun toString(): kotlin/String // io.github.kmpfacelink.networking.discovery/DiscoveryEvent.Found.toString|toString(){}[0]
+    }
+
+    final class Lost : io.github.kmpfacelink.networking.discovery/DiscoveryEvent { // io.github.kmpfacelink.networking.discovery/DiscoveryEvent.Lost|null[0]
+        constructor <init>(kotlin/String, kotlin/String) // io.github.kmpfacelink.networking.discovery/DiscoveryEvent.Lost.<init>|<init>(kotlin.String;kotlin.String){}[0]
+
+        final val name // io.github.kmpfacelink.networking.discovery/DiscoveryEvent.Lost.name|{}name[0]
+            final fun <get-name>(): kotlin/String // io.github.kmpfacelink.networking.discovery/DiscoveryEvent.Lost.name.<get-name>|<get-name>(){}[0]
+        final val type // io.github.kmpfacelink.networking.discovery/DiscoveryEvent.Lost.type|{}type[0]
+            final fun <get-type>(): kotlin/String // io.github.kmpfacelink.networking.discovery/DiscoveryEvent.Lost.type.<get-type>|<get-type>(){}[0]
+
+        final fun component1(): kotlin/String // io.github.kmpfacelink.networking.discovery/DiscoveryEvent.Lost.component1|component1(){}[0]
+        final fun component2(): kotlin/String // io.github.kmpfacelink.networking.discovery/DiscoveryEvent.Lost.component2|component2(){}[0]
+        final fun copy(kotlin/String = ..., kotlin/String = ...): io.github.kmpfacelink.networking.discovery/DiscoveryEvent.Lost // io.github.kmpfacelink.networking.discovery/DiscoveryEvent.Lost.copy|copy(kotlin.String;kotlin.String){}[0]
+        final fun equals(kotlin/Any?): kotlin/Boolean // io.github.kmpfacelink.networking.discovery/DiscoveryEvent.Lost.equals|equals(kotlin.Any?){}[0]
+        final fun hashCode(): kotlin/Int // io.github.kmpfacelink.networking.discovery/DiscoveryEvent.Lost.hashCode|hashCode(){}[0]
+        final fun toString(): kotlin/String // io.github.kmpfacelink.networking.discovery/DiscoveryEvent.Lost.toString|toString(){}[0]
+    }
+}
+
+final object io.github.kmpfacelink.networking.discovery/ServiceType { // io.github.kmpfacelink.networking.discovery/ServiceType|null[0]
+    final const val IFACIALMOCAP // io.github.kmpfacelink.networking.discovery/ServiceType.IFACIALMOCAP|{}IFACIALMOCAP[0]
+        final fun <get-IFACIALMOCAP>(): kotlin/String // io.github.kmpfacelink.networking.discovery/ServiceType.IFACIALMOCAP.<get-IFACIALMOCAP>|<get-IFACIALMOCAP>(){}[0]
+    final const val KMP_FACELINK // io.github.kmpfacelink.networking.discovery/ServiceType.KMP_FACELINK|{}KMP_FACELINK[0]
+        final fun <get-KMP_FACELINK>(): kotlin/String // io.github.kmpfacelink.networking.discovery/ServiceType.KMP_FACELINK.<get-KMP_FACELINK>|<get-KMP_FACELINK>(){}[0]
+    final const val VMC_PROTOCOL // io.github.kmpfacelink.networking.discovery/ServiceType.VMC_PROTOCOL|{}VMC_PROTOCOL[0]
+        final fun <get-VMC_PROTOCOL>(): kotlin/String // io.github.kmpfacelink.networking.discovery/ServiceType.VMC_PROTOCOL.<get-VMC_PROTOCOL>|<get-VMC_PROTOCOL>(){}[0]
+    final const val VTUBE_STUDIO // io.github.kmpfacelink.networking.discovery/ServiceType.VTUBE_STUDIO|{}VTUBE_STUDIO[0]
+        final fun <get-VTUBE_STUDIO>(): kotlin/String // io.github.kmpfacelink.networking.discovery/ServiceType.VTUBE_STUDIO.<get-VTUBE_STUDIO>|<get-VTUBE_STUDIO>(){}[0]
+
+    final val ALL // io.github.kmpfacelink.networking.discovery/ServiceType.ALL|{}ALL[0]
+        final fun <get-ALL>(): kotlin.collections/List<kotlin/String> // io.github.kmpfacelink.networking.discovery/ServiceType.ALL.<get-ALL>|<get-ALL>(){}[0]
+}
+
+final const val io.github.kmpfacelink.networking/DEFAULT_BUFFER_SIZE // io.github.kmpfacelink.networking/DEFAULT_BUFFER_SIZE|{}DEFAULT_BUFFER_SIZE[0]
+    final fun <get-DEFAULT_BUFFER_SIZE>(): kotlin/Int // io.github.kmpfacelink.networking/DEFAULT_BUFFER_SIZE.<get-DEFAULT_BUFFER_SIZE>|<get-DEFAULT_BUFFER_SIZE>(){}[0]
+
+final fun io.github.kmpfacelink.networking.http/platformHttpEngine(): io.ktor.client.engine/HttpClientEngineFactory<*> // io.github.kmpfacelink.networking.http/platformHttpEngine|platformHttpEngine(){}[0]
+final fun io.github.kmpfacelink.networking/currentTimeMs(): kotlin/Long // io.github.kmpfacelink.networking/currentTimeMs|currentTimeMs(){}[0]

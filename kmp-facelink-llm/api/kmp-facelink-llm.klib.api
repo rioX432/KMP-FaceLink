@@ -1,0 +1,512 @@
+// Klib ABI Dump
+// Targets: [iosArm64, iosSimulatorArm64]
+// Rendering settings:
+// - Signature version: 2
+// - Show manifest properties: true
+// - Show declarations: true
+
+// Library unique name: <io.github.rioX432:kmp-facelink-llm>
+final enum class io.github.kmpfacelink.llm/ModelFormat : kotlin/Enum<io.github.kmpfacelink.llm/ModelFormat> { // io.github.kmpfacelink.llm/ModelFormat|null[0]
+    enum entry GGUF // io.github.kmpfacelink.llm/ModelFormat.GGUF|null[0]
+    enum entry LITERT_LM // io.github.kmpfacelink.llm/ModelFormat.LITERT_LM|null[0]
+
+    final val entries // io.github.kmpfacelink.llm/ModelFormat.entries|#static{}entries[0]
+        final fun <get-entries>(): kotlin.enums/EnumEntries<io.github.kmpfacelink.llm/ModelFormat> // io.github.kmpfacelink.llm/ModelFormat.entries.<get-entries>|<get-entries>#static(){}[0]
+
+    final fun valueOf(kotlin/String): io.github.kmpfacelink.llm/ModelFormat // io.github.kmpfacelink.llm/ModelFormat.valueOf|valueOf#static(kotlin.String){}[0]
+    final fun values(): kotlin/Array<io.github.kmpfacelink.llm/ModelFormat> // io.github.kmpfacelink.llm/ModelFormat.values|values#static(){}[0]
+}
+
+final enum class io.github.kmpfacelink.llm/OnDeviceBackend : kotlin/Enum<io.github.kmpfacelink.llm/OnDeviceBackend> { // io.github.kmpfacelink.llm/OnDeviceBackend|null[0]
+    enum entry AUTO // io.github.kmpfacelink.llm/OnDeviceBackend.AUTO|null[0]
+    enum entry LITERT_LM // io.github.kmpfacelink.llm/OnDeviceBackend.LITERT_LM|null[0]
+    enum entry LLAMA_CPP // io.github.kmpfacelink.llm/OnDeviceBackend.LLAMA_CPP|null[0]
+
+    final val entries // io.github.kmpfacelink.llm/OnDeviceBackend.entries|#static{}entries[0]
+        final fun <get-entries>(): kotlin.enums/EnumEntries<io.github.kmpfacelink.llm/OnDeviceBackend> // io.github.kmpfacelink.llm/OnDeviceBackend.entries.<get-entries>|<get-entries>#static(){}[0]
+
+    final fun valueOf(kotlin/String): io.github.kmpfacelink.llm/OnDeviceBackend // io.github.kmpfacelink.llm/OnDeviceBackend.valueOf|valueOf#static(kotlin.String){}[0]
+    final fun values(): kotlin/Array<io.github.kmpfacelink.llm/OnDeviceBackend> // io.github.kmpfacelink.llm/OnDeviceBackend.values|values#static(){}[0]
+}
+
+final enum class io.github.kmpfacelink.llm/Quantization : kotlin/Enum<io.github.kmpfacelink.llm/Quantization> { // io.github.kmpfacelink.llm/Quantization|null[0]
+    enum entry FP16 // io.github.kmpfacelink.llm/Quantization.FP16|null[0]
+    enum entry INT4 // io.github.kmpfacelink.llm/Quantization.INT4|null[0]
+    enum entry INT8 // io.github.kmpfacelink.llm/Quantization.INT8|null[0]
+
+    final val entries // io.github.kmpfacelink.llm/Quantization.entries|#static{}entries[0]
+        final fun <get-entries>(): kotlin.enums/EnumEntries<io.github.kmpfacelink.llm/Quantization> // io.github.kmpfacelink.llm/Quantization.entries.<get-entries>|<get-entries>#static(){}[0]
+
+    final fun valueOf(kotlin/String): io.github.kmpfacelink.llm/Quantization // io.github.kmpfacelink.llm/Quantization.valueOf|valueOf#static(kotlin.String){}[0]
+    final fun values(): kotlin/Array<io.github.kmpfacelink.llm/Quantization> // io.github.kmpfacelink.llm/Quantization.values|values#static(){}[0]
+}
+
+abstract interface io.github.kmpfacelink.llm/FoundationModelsProvider { // io.github.kmpfacelink.llm/FoundationModelsProvider|null[0]
+    abstract fun isAvailable(): kotlin/Boolean // io.github.kmpfacelink.llm/FoundationModelsProvider.isAvailable|isAvailable(){}[0]
+    abstract fun streamResponse(kotlin/String, kotlin/String, kotlin/Int, kotlin/Double): kotlinx.coroutines.flow/Flow<kotlin/String> // io.github.kmpfacelink.llm/FoundationModelsProvider.streamResponse|streamResponse(kotlin.String;kotlin.String;kotlin.Int;kotlin.Double){}[0]
+    abstract suspend fun respond(kotlin/String, kotlin/String, kotlin/Int, kotlin/Double): kotlin/String // io.github.kmpfacelink.llm/FoundationModelsProvider.respond|respond(kotlin.String;kotlin.String;kotlin.Int;kotlin.Double){}[0]
+}
+
+abstract interface io.github.kmpfacelink.llm/InferenceEngine { // io.github.kmpfacelink.llm/InferenceEngine|null[0]
+    abstract val isLoaded // io.github.kmpfacelink.llm/InferenceEngine.isLoaded|{}isLoaded[0]
+        abstract fun <get-isLoaded>(): kotlin/Boolean // io.github.kmpfacelink.llm/InferenceEngine.isLoaded.<get-isLoaded>|<get-isLoaded>(){}[0]
+
+    abstract fun generate(kotlin/String, kotlin/Int, kotlin/Double): kotlinx.coroutines.flow/Flow<kotlin/String> // io.github.kmpfacelink.llm/InferenceEngine.generate|generate(kotlin.String;kotlin.Int;kotlin.Double){}[0]
+    abstract suspend fun load(kotlin/String) // io.github.kmpfacelink.llm/InferenceEngine.load|load(kotlin.String){}[0]
+    abstract suspend fun unload() // io.github.kmpfacelink.llm/InferenceEngine.unload|unload(){}[0]
+}
+
+abstract interface io.github.kmpfacelink.llm/LlmClient : io.github.kmpfacelink.api/Releasable { // io.github.kmpfacelink.llm/LlmClient|null[0]
+    abstract val state // io.github.kmpfacelink.llm/LlmClient.state|{}state[0]
+        abstract fun <get-state>(): kotlinx.coroutines.flow/StateFlow<io.github.kmpfacelink.llm/LlmState> // io.github.kmpfacelink.llm/LlmClient.state.<get-state>|<get-state>(){}[0]
+
+    abstract fun chat(io.github.kmpfacelink.llm/ConversationHistory): kotlinx.coroutines.flow/Flow<kotlin/String> // io.github.kmpfacelink.llm/LlmClient.chat|chat(io.github.kmpfacelink.llm.ConversationHistory){}[0]
+    abstract fun release() // io.github.kmpfacelink.llm/LlmClient.release|release(){}[0]
+    abstract suspend fun chatOnce(io.github.kmpfacelink.llm/ConversationHistory): kotlin/String // io.github.kmpfacelink.llm/LlmClient.chatOnce|chatOnce(io.github.kmpfacelink.llm.ConversationHistory){}[0]
+
+    final object Companion { // io.github.kmpfacelink.llm/LlmClient.Companion|null[0]
+        final fun create(io.github.kmpfacelink.llm/LlmConfig): io.github.kmpfacelink.llm/LlmClient // io.github.kmpfacelink.llm/LlmClient.Companion.create|create(io.github.kmpfacelink.llm.LlmConfig){}[0]
+    }
+}
+
+abstract interface io.github.kmpfacelink.llm/ModelManager { // io.github.kmpfacelink.llm/ModelManager|null[0]
+    abstract fun download(io.github.kmpfacelink.llm/ModelInfo): kotlinx.coroutines.flow/Flow<io.github.kmpfacelink.llm/DownloadProgress> // io.github.kmpfacelink.llm/ModelManager.download|download(io.github.kmpfacelink.llm.ModelInfo){}[0]
+    abstract suspend fun delete(kotlin/String): kotlin/Boolean // io.github.kmpfacelink.llm/ModelManager.delete|delete(kotlin.String){}[0]
+    abstract suspend fun getModelPath(kotlin/String): kotlin/String? // io.github.kmpfacelink.llm/ModelManager.getModelPath|getModelPath(kotlin.String){}[0]
+    abstract suspend fun isDownloaded(kotlin/String): kotlin/Boolean // io.github.kmpfacelink.llm/ModelManager.isDownloaded|isDownloaded(kotlin.String){}[0]
+    abstract suspend fun listCached(): kotlin.collections/List<kotlin/String> // io.github.kmpfacelink.llm/ModelManager.listCached|listCached(){}[0]
+}
+
+final class io.github.kmpfacelink.llm.benchmark/LlmBenchmarkResult { // io.github.kmpfacelink.llm.benchmark/LlmBenchmarkResult|null[0]
+    constructor <init>(kotlin/String, kotlin/Double, kotlin/Long, kotlin/Long, kotlin/Int, kotlin/Int, kotlin/Long, kotlin/String) // io.github.kmpfacelink.llm.benchmark/LlmBenchmarkResult.<init>|<init>(kotlin.String;kotlin.Double;kotlin.Long;kotlin.Long;kotlin.Int;kotlin.Int;kotlin.Long;kotlin.String){}[0]
+
+    final val completionTokens // io.github.kmpfacelink.llm.benchmark/LlmBenchmarkResult.completionTokens|{}completionTokens[0]
+        final fun <get-completionTokens>(): kotlin/Int // io.github.kmpfacelink.llm.benchmark/LlmBenchmarkResult.completionTokens.<get-completionTokens>|<get-completionTokens>(){}[0]
+    final val deviceInfo // io.github.kmpfacelink.llm.benchmark/LlmBenchmarkResult.deviceInfo|{}deviceInfo[0]
+        final fun <get-deviceInfo>(): kotlin/String // io.github.kmpfacelink.llm.benchmark/LlmBenchmarkResult.deviceInfo.<get-deviceInfo>|<get-deviceInfo>(){}[0]
+    final val firstTokenLatencyMs // io.github.kmpfacelink.llm.benchmark/LlmBenchmarkResult.firstTokenLatencyMs|{}firstTokenLatencyMs[0]
+        final fun <get-firstTokenLatencyMs>(): kotlin/Long // io.github.kmpfacelink.llm.benchmark/LlmBenchmarkResult.firstTokenLatencyMs.<get-firstTokenLatencyMs>|<get-firstTokenLatencyMs>(){}[0]
+    final val modelId // io.github.kmpfacelink.llm.benchmark/LlmBenchmarkResult.modelId|{}modelId[0]
+        final fun <get-modelId>(): kotlin/String // io.github.kmpfacelink.llm.benchmark/LlmBenchmarkResult.modelId.<get-modelId>|<get-modelId>(){}[0]
+    final val peakMemoryMb // io.github.kmpfacelink.llm.benchmark/LlmBenchmarkResult.peakMemoryMb|{}peakMemoryMb[0]
+        final fun <get-peakMemoryMb>(): kotlin/Long // io.github.kmpfacelink.llm.benchmark/LlmBenchmarkResult.peakMemoryMb.<get-peakMemoryMb>|<get-peakMemoryMb>(){}[0]
+    final val promptTokens // io.github.kmpfacelink.llm.benchmark/LlmBenchmarkResult.promptTokens|{}promptTokens[0]
+        final fun <get-promptTokens>(): kotlin/Int // io.github.kmpfacelink.llm.benchmark/LlmBenchmarkResult.promptTokens.<get-promptTokens>|<get-promptTokens>(){}[0]
+    final val tokensPerSecond // io.github.kmpfacelink.llm.benchmark/LlmBenchmarkResult.tokensPerSecond|{}tokensPerSecond[0]
+        final fun <get-tokensPerSecond>(): kotlin/Double // io.github.kmpfacelink.llm.benchmark/LlmBenchmarkResult.tokensPerSecond.<get-tokensPerSecond>|<get-tokensPerSecond>(){}[0]
+    final val totalGenerationMs // io.github.kmpfacelink.llm.benchmark/LlmBenchmarkResult.totalGenerationMs|{}totalGenerationMs[0]
+        final fun <get-totalGenerationMs>(): kotlin/Long // io.github.kmpfacelink.llm.benchmark/LlmBenchmarkResult.totalGenerationMs.<get-totalGenerationMs>|<get-totalGenerationMs>(){}[0]
+
+    final fun component1(): kotlin/String // io.github.kmpfacelink.llm.benchmark/LlmBenchmarkResult.component1|component1(){}[0]
+    final fun component2(): kotlin/Double // io.github.kmpfacelink.llm.benchmark/LlmBenchmarkResult.component2|component2(){}[0]
+    final fun component3(): kotlin/Long // io.github.kmpfacelink.llm.benchmark/LlmBenchmarkResult.component3|component3(){}[0]
+    final fun component4(): kotlin/Long // io.github.kmpfacelink.llm.benchmark/LlmBenchmarkResult.component4|component4(){}[0]
+    final fun component5(): kotlin/Int // io.github.kmpfacelink.llm.benchmark/LlmBenchmarkResult.component5|component5(){}[0]
+    final fun component6(): kotlin/Int // io.github.kmpfacelink.llm.benchmark/LlmBenchmarkResult.component6|component6(){}[0]
+    final fun component7(): kotlin/Long // io.github.kmpfacelink.llm.benchmark/LlmBenchmarkResult.component7|component7(){}[0]
+    final fun component8(): kotlin/String // io.github.kmpfacelink.llm.benchmark/LlmBenchmarkResult.component8|component8(){}[0]
+    final fun copy(kotlin/String = ..., kotlin/Double = ..., kotlin/Long = ..., kotlin/Long = ..., kotlin/Int = ..., kotlin/Int = ..., kotlin/Long = ..., kotlin/String = ...): io.github.kmpfacelink.llm.benchmark/LlmBenchmarkResult // io.github.kmpfacelink.llm.benchmark/LlmBenchmarkResult.copy|copy(kotlin.String;kotlin.Double;kotlin.Long;kotlin.Long;kotlin.Int;kotlin.Int;kotlin.Long;kotlin.String){}[0]
+    final fun equals(kotlin/Any?): kotlin/Boolean // io.github.kmpfacelink.llm.benchmark/LlmBenchmarkResult.equals|equals(kotlin.Any?){}[0]
+    final fun hashCode(): kotlin/Int // io.github.kmpfacelink.llm.benchmark/LlmBenchmarkResult.hashCode|hashCode(){}[0]
+    final fun toString(): kotlin/String // io.github.kmpfacelink.llm.benchmark/LlmBenchmarkResult.toString|toString(){}[0]
+}
+
+final class io.github.kmpfacelink.llm.benchmark/LlmBenchmarkRunner { // io.github.kmpfacelink.llm.benchmark/LlmBenchmarkRunner|null[0]
+    constructor <init>(io.github.kmpfacelink.llm/LlmClient, kotlin/String = ..., kotlin/String = ...) // io.github.kmpfacelink.llm.benchmark/LlmBenchmarkRunner.<init>|<init>(io.github.kmpfacelink.llm.LlmClient;kotlin.String;kotlin.String){}[0]
+
+    final suspend fun runBenchmark(kotlin.collections/List<kotlin/String>): kotlin.collections/List<io.github.kmpfacelink.llm.benchmark/LlmBenchmarkResult> // io.github.kmpfacelink.llm.benchmark/LlmBenchmarkRunner.runBenchmark|runBenchmark(kotlin.collections.List<kotlin.String>){}[0]
+}
+
+final class io.github.kmpfacelink.llm/ChatMessage { // io.github.kmpfacelink.llm/ChatMessage|null[0]
+    constructor <init>(io.github.kmpfacelink.llm/ChatMessage.Role, kotlin/String) // io.github.kmpfacelink.llm/ChatMessage.<init>|<init>(io.github.kmpfacelink.llm.ChatMessage.Role;kotlin.String){}[0]
+
+    final val content // io.github.kmpfacelink.llm/ChatMessage.content|{}content[0]
+        final fun <get-content>(): kotlin/String // io.github.kmpfacelink.llm/ChatMessage.content.<get-content>|<get-content>(){}[0]
+    final val role // io.github.kmpfacelink.llm/ChatMessage.role|{}role[0]
+        final fun <get-role>(): io.github.kmpfacelink.llm/ChatMessage.Role // io.github.kmpfacelink.llm/ChatMessage.role.<get-role>|<get-role>(){}[0]
+
+    final fun component1(): io.github.kmpfacelink.llm/ChatMessage.Role // io.github.kmpfacelink.llm/ChatMessage.component1|component1(){}[0]
+    final fun component2(): kotlin/String // io.github.kmpfacelink.llm/ChatMessage.component2|component2(){}[0]
+    final fun copy(io.github.kmpfacelink.llm/ChatMessage.Role = ..., kotlin/String = ...): io.github.kmpfacelink.llm/ChatMessage // io.github.kmpfacelink.llm/ChatMessage.copy|copy(io.github.kmpfacelink.llm.ChatMessage.Role;kotlin.String){}[0]
+    final fun equals(kotlin/Any?): kotlin/Boolean // io.github.kmpfacelink.llm/ChatMessage.equals|equals(kotlin.Any?){}[0]
+    final fun hashCode(): kotlin/Int // io.github.kmpfacelink.llm/ChatMessage.hashCode|hashCode(){}[0]
+    final fun toString(): kotlin/String // io.github.kmpfacelink.llm/ChatMessage.toString|toString(){}[0]
+
+    final enum class Role : kotlin/Enum<io.github.kmpfacelink.llm/ChatMessage.Role> { // io.github.kmpfacelink.llm/ChatMessage.Role|null[0]
+        enum entry Assistant // io.github.kmpfacelink.llm/ChatMessage.Role.Assistant|null[0]
+        enum entry System // io.github.kmpfacelink.llm/ChatMessage.Role.System|null[0]
+        enum entry User // io.github.kmpfacelink.llm/ChatMessage.Role.User|null[0]
+
+        final val entries // io.github.kmpfacelink.llm/ChatMessage.Role.entries|#static{}entries[0]
+            final fun <get-entries>(): kotlin.enums/EnumEntries<io.github.kmpfacelink.llm/ChatMessage.Role> // io.github.kmpfacelink.llm/ChatMessage.Role.entries.<get-entries>|<get-entries>#static(){}[0]
+
+        final fun valueOf(kotlin/String): io.github.kmpfacelink.llm/ChatMessage.Role // io.github.kmpfacelink.llm/ChatMessage.Role.valueOf|valueOf#static(kotlin.String){}[0]
+        final fun values(): kotlin/Array<io.github.kmpfacelink.llm/ChatMessage.Role> // io.github.kmpfacelink.llm/ChatMessage.Role.values|values#static(){}[0]
+    }
+
+    final object $serializer : kotlinx.serialization.internal/GeneratedSerializer<io.github.kmpfacelink.llm/ChatMessage> { // io.github.kmpfacelink.llm/ChatMessage.$serializer|null[0]
+        final val descriptor // io.github.kmpfacelink.llm/ChatMessage.$serializer.descriptor|{}descriptor[0]
+            final fun <get-descriptor>(): kotlinx.serialization.descriptors/SerialDescriptor // io.github.kmpfacelink.llm/ChatMessage.$serializer.descriptor.<get-descriptor>|<get-descriptor>(){}[0]
+
+        final fun childSerializers(): kotlin/Array<kotlinx.serialization/KSerializer<*>> // io.github.kmpfacelink.llm/ChatMessage.$serializer.childSerializers|childSerializers(){}[0]
+        final fun deserialize(kotlinx.serialization.encoding/Decoder): io.github.kmpfacelink.llm/ChatMessage // io.github.kmpfacelink.llm/ChatMessage.$serializer.deserialize|deserialize(kotlinx.serialization.encoding.Decoder){}[0]
+        final fun serialize(kotlinx.serialization.encoding/Encoder, io.github.kmpfacelink.llm/ChatMessage) // io.github.kmpfacelink.llm/ChatMessage.$serializer.serialize|serialize(kotlinx.serialization.encoding.Encoder;io.github.kmpfacelink.llm.ChatMessage){}[0]
+    }
+
+    final object Companion { // io.github.kmpfacelink.llm/ChatMessage.Companion|null[0]
+        final val $childSerializers // io.github.kmpfacelink.llm/ChatMessage.Companion.$childSerializers|{}$childSerializers[0]
+
+        final fun serializer(): kotlinx.serialization/KSerializer<io.github.kmpfacelink.llm/ChatMessage> // io.github.kmpfacelink.llm/ChatMessage.Companion.serializer|serializer(){}[0]
+    }
+}
+
+final class io.github.kmpfacelink.llm/ConversationHistory { // io.github.kmpfacelink.llm/ConversationHistory|null[0]
+    constructor <init>(io.github.kmpfacelink.llm/PersonaConfig = ..., kotlin/Int = ...) // io.github.kmpfacelink.llm/ConversationHistory.<init>|<init>(io.github.kmpfacelink.llm.PersonaConfig;kotlin.Int){}[0]
+
+    final val maxContextTokens // io.github.kmpfacelink.llm/ConversationHistory.maxContextTokens|{}maxContextTokens[0]
+        final fun <get-maxContextTokens>(): kotlin/Int // io.github.kmpfacelink.llm/ConversationHistory.maxContextTokens.<get-maxContextTokens>|<get-maxContextTokens>(){}[0]
+    final val messages // io.github.kmpfacelink.llm/ConversationHistory.messages|{}messages[0]
+        final fun <get-messages>(): kotlin.collections/List<io.github.kmpfacelink.llm/ChatMessage> // io.github.kmpfacelink.llm/ConversationHistory.messages.<get-messages>|<get-messages>(){}[0]
+    final val persona // io.github.kmpfacelink.llm/ConversationHistory.persona|{}persona[0]
+        final fun <get-persona>(): io.github.kmpfacelink.llm/PersonaConfig // io.github.kmpfacelink.llm/ConversationHistory.persona.<get-persona>|<get-persona>(){}[0]
+    final val size // io.github.kmpfacelink.llm/ConversationHistory.size|{}size[0]
+        final fun <get-size>(): kotlin/Int // io.github.kmpfacelink.llm/ConversationHistory.size.<get-size>|<get-size>(){}[0]
+
+    final fun addAssistant(kotlin/String) // io.github.kmpfacelink.llm/ConversationHistory.addAssistant|addAssistant(kotlin.String){}[0]
+    final fun addUser(kotlin/String) // io.github.kmpfacelink.llm/ConversationHistory.addUser|addUser(kotlin.String){}[0]
+    final fun clear() // io.github.kmpfacelink.llm/ConversationHistory.clear|clear(){}[0]
+    final fun toMessageList(): kotlin.collections/List<io.github.kmpfacelink.llm/ChatMessage> // io.github.kmpfacelink.llm/ConversationHistory.toMessageList|toMessageList(){}[0]
+}
+
+final class io.github.kmpfacelink.llm/DefaultModelManager : io.github.kmpfacelink.llm/ModelManager { // io.github.kmpfacelink.llm/DefaultModelManager|null[0]
+    constructor <init>(io.ktor.client/HttpClient, kotlin/String, kotlin/Long = ...) // io.github.kmpfacelink.llm/DefaultModelManager.<init>|<init>(io.ktor.client.HttpClient;kotlin.String;kotlin.Long){}[0]
+
+    final fun download(io.github.kmpfacelink.llm/ModelInfo): kotlinx.coroutines.flow/Flow<io.github.kmpfacelink.llm/DownloadProgress> // io.github.kmpfacelink.llm/DefaultModelManager.download|download(io.github.kmpfacelink.llm.ModelInfo){}[0]
+    final suspend fun delete(kotlin/String): kotlin/Boolean // io.github.kmpfacelink.llm/DefaultModelManager.delete|delete(kotlin.String){}[0]
+    final suspend fun evictIfNeeded() // io.github.kmpfacelink.llm/DefaultModelManager.evictIfNeeded|evictIfNeeded(){}[0]
+    final suspend fun getModelPath(kotlin/String): kotlin/String? // io.github.kmpfacelink.llm/DefaultModelManager.getModelPath|getModelPath(kotlin.String){}[0]
+    final suspend fun isDownloaded(kotlin/String): kotlin/Boolean // io.github.kmpfacelink.llm/DefaultModelManager.isDownloaded|isDownloaded(kotlin.String){}[0]
+    final suspend fun listCached(): kotlin.collections/List<kotlin/String> // io.github.kmpfacelink.llm/DefaultModelManager.listCached|listCached(){}[0]
+}
+
+final class io.github.kmpfacelink.llm/DownloadProgress { // io.github.kmpfacelink.llm/DownloadProgress|null[0]
+    constructor <init>(kotlin/Long, kotlin/Long, kotlin/Float) // io.github.kmpfacelink.llm/DownloadProgress.<init>|<init>(kotlin.Long;kotlin.Long;kotlin.Float){}[0]
+
+    final val bytesDownloaded // io.github.kmpfacelink.llm/DownloadProgress.bytesDownloaded|{}bytesDownloaded[0]
+        final fun <get-bytesDownloaded>(): kotlin/Long // io.github.kmpfacelink.llm/DownloadProgress.bytesDownloaded.<get-bytesDownloaded>|<get-bytesDownloaded>(){}[0]
+    final val progress // io.github.kmpfacelink.llm/DownloadProgress.progress|{}progress[0]
+        final fun <get-progress>(): kotlin/Float // io.github.kmpfacelink.llm/DownloadProgress.progress.<get-progress>|<get-progress>(){}[0]
+    final val totalBytes // io.github.kmpfacelink.llm/DownloadProgress.totalBytes|{}totalBytes[0]
+        final fun <get-totalBytes>(): kotlin/Long // io.github.kmpfacelink.llm/DownloadProgress.totalBytes.<get-totalBytes>|<get-totalBytes>(){}[0]
+
+    final fun component1(): kotlin/Long // io.github.kmpfacelink.llm/DownloadProgress.component1|component1(){}[0]
+    final fun component2(): kotlin/Long // io.github.kmpfacelink.llm/DownloadProgress.component2|component2(){}[0]
+    final fun component3(): kotlin/Float // io.github.kmpfacelink.llm/DownloadProgress.component3|component3(){}[0]
+    final fun copy(kotlin/Long = ..., kotlin/Long = ..., kotlin/Float = ...): io.github.kmpfacelink.llm/DownloadProgress // io.github.kmpfacelink.llm/DownloadProgress.copy|copy(kotlin.Long;kotlin.Long;kotlin.Float){}[0]
+    final fun equals(kotlin/Any?): kotlin/Boolean // io.github.kmpfacelink.llm/DownloadProgress.equals|equals(kotlin.Any?){}[0]
+    final fun hashCode(): kotlin/Int // io.github.kmpfacelink.llm/DownloadProgress.hashCode|hashCode(){}[0]
+    final fun toString(): kotlin/String // io.github.kmpfacelink.llm/DownloadProgress.toString|toString(){}[0]
+}
+
+final class io.github.kmpfacelink.llm/ModelInfo { // io.github.kmpfacelink.llm/ModelInfo|null[0]
+    constructor <init>(kotlin/String, kotlin/String, kotlin/Long, io.github.kmpfacelink.llm/Quantization, kotlin/String, kotlin/String?, kotlin/Long = ..., kotlin/Boolean = ..., io.github.kmpfacelink.llm/ModelFormat = ...) // io.github.kmpfacelink.llm/ModelInfo.<init>|<init>(kotlin.String;kotlin.String;kotlin.Long;io.github.kmpfacelink.llm.Quantization;kotlin.String;kotlin.String?;kotlin.Long;kotlin.Boolean;io.github.kmpfacelink.llm.ModelFormat){}[0]
+
+    final val displayName // io.github.kmpfacelink.llm/ModelInfo.displayName|{}displayName[0]
+        final fun <get-displayName>(): kotlin/String // io.github.kmpfacelink.llm/ModelInfo.displayName.<get-displayName>|<get-displayName>(){}[0]
+    final val downloadUrl // io.github.kmpfacelink.llm/ModelInfo.downloadUrl|{}downloadUrl[0]
+        final fun <get-downloadUrl>(): kotlin/String // io.github.kmpfacelink.llm/ModelInfo.downloadUrl.<get-downloadUrl>|<get-downloadUrl>(){}[0]
+    final val format // io.github.kmpfacelink.llm/ModelInfo.format|{}format[0]
+        final fun <get-format>(): io.github.kmpfacelink.llm/ModelFormat // io.github.kmpfacelink.llm/ModelInfo.format.<get-format>|<get-format>(){}[0]
+    final val id // io.github.kmpfacelink.llm/ModelInfo.id|{}id[0]
+        final fun <get-id>(): kotlin/String // io.github.kmpfacelink.llm/ModelInfo.id.<get-id>|<get-id>(){}[0]
+    final val quantization // io.github.kmpfacelink.llm/ModelInfo.quantization|{}quantization[0]
+        final fun <get-quantization>(): io.github.kmpfacelink.llm/Quantization // io.github.kmpfacelink.llm/ModelInfo.quantization.<get-quantization>|<get-quantization>(){}[0]
+    final val ramRequirementBytes // io.github.kmpfacelink.llm/ModelInfo.ramRequirementBytes|{}ramRequirementBytes[0]
+        final fun <get-ramRequirementBytes>(): kotlin/Long // io.github.kmpfacelink.llm/ModelInfo.ramRequirementBytes.<get-ramRequirementBytes>|<get-ramRequirementBytes>(){}[0]
+    final val sha256Checksum // io.github.kmpfacelink.llm/ModelInfo.sha256Checksum|{}sha256Checksum[0]
+        final fun <get-sha256Checksum>(): kotlin/String? // io.github.kmpfacelink.llm/ModelInfo.sha256Checksum.<get-sha256Checksum>|<get-sha256Checksum>(){}[0]
+    final val sizeBytes // io.github.kmpfacelink.llm/ModelInfo.sizeBytes|{}sizeBytes[0]
+        final fun <get-sizeBytes>(): kotlin/Long // io.github.kmpfacelink.llm/ModelInfo.sizeBytes.<get-sizeBytes>|<get-sizeBytes>(){}[0]
+    final val supportsNativeAudio // io.github.kmpfacelink.llm/ModelInfo.supportsNativeAudio|{}supportsNativeAudio[0]
+        final fun <get-supportsNativeAudio>(): kotlin/Boolean // io.github.kmpfacelink.llm/ModelInfo.supportsNativeAudio.<get-supportsNativeAudio>|<get-supportsNativeAudio>(){}[0]
+
+    final fun component1(): kotlin/String // io.github.kmpfacelink.llm/ModelInfo.component1|component1(){}[0]
+    final fun component2(): kotlin/String // io.github.kmpfacelink.llm/ModelInfo.component2|component2(){}[0]
+    final fun component3(): kotlin/Long // io.github.kmpfacelink.llm/ModelInfo.component3|component3(){}[0]
+    final fun component4(): io.github.kmpfacelink.llm/Quantization // io.github.kmpfacelink.llm/ModelInfo.component4|component4(){}[0]
+    final fun component5(): kotlin/String // io.github.kmpfacelink.llm/ModelInfo.component5|component5(){}[0]
+    final fun component6(): kotlin/String? // io.github.kmpfacelink.llm/ModelInfo.component6|component6(){}[0]
+    final fun component7(): kotlin/Long // io.github.kmpfacelink.llm/ModelInfo.component7|component7(){}[0]
+    final fun component8(): kotlin/Boolean // io.github.kmpfacelink.llm/ModelInfo.component8|component8(){}[0]
+    final fun component9(): io.github.kmpfacelink.llm/ModelFormat // io.github.kmpfacelink.llm/ModelInfo.component9|component9(){}[0]
+    final fun copy(kotlin/String = ..., kotlin/String = ..., kotlin/Long = ..., io.github.kmpfacelink.llm/Quantization = ..., kotlin/String = ..., kotlin/String? = ..., kotlin/Long = ..., kotlin/Boolean = ..., io.github.kmpfacelink.llm/ModelFormat = ...): io.github.kmpfacelink.llm/ModelInfo // io.github.kmpfacelink.llm/ModelInfo.copy|copy(kotlin.String;kotlin.String;kotlin.Long;io.github.kmpfacelink.llm.Quantization;kotlin.String;kotlin.String?;kotlin.Long;kotlin.Boolean;io.github.kmpfacelink.llm.ModelFormat){}[0]
+    final fun equals(kotlin/Any?): kotlin/Boolean // io.github.kmpfacelink.llm/ModelInfo.equals|equals(kotlin.Any?){}[0]
+    final fun hashCode(): kotlin/Int // io.github.kmpfacelink.llm/ModelInfo.hashCode|hashCode(){}[0]
+    final fun toString(): kotlin/String // io.github.kmpfacelink.llm/ModelInfo.toString|toString(){}[0]
+}
+
+final class io.github.kmpfacelink.llm/PersonaConfig { // io.github.kmpfacelink.llm/PersonaConfig|null[0]
+    constructor <init>(kotlin/String = ..., kotlin/String = ..., kotlin/String? = ...) // io.github.kmpfacelink.llm/PersonaConfig.<init>|<init>(kotlin.String;kotlin.String;kotlin.String?){}[0]
+
+    final val language // io.github.kmpfacelink.llm/PersonaConfig.language|{}language[0]
+        final fun <get-language>(): kotlin/String? // io.github.kmpfacelink.llm/PersonaConfig.language.<get-language>|<get-language>(){}[0]
+    final val name // io.github.kmpfacelink.llm/PersonaConfig.name|{}name[0]
+        final fun <get-name>(): kotlin/String // io.github.kmpfacelink.llm/PersonaConfig.name.<get-name>|<get-name>(){}[0]
+    final val systemPrompt // io.github.kmpfacelink.llm/PersonaConfig.systemPrompt|{}systemPrompt[0]
+        final fun <get-systemPrompt>(): kotlin/String // io.github.kmpfacelink.llm/PersonaConfig.systemPrompt.<get-systemPrompt>|<get-systemPrompt>(){}[0]
+
+    final fun component1(): kotlin/String // io.github.kmpfacelink.llm/PersonaConfig.component1|component1(){}[0]
+    final fun component2(): kotlin/String // io.github.kmpfacelink.llm/PersonaConfig.component2|component2(){}[0]
+    final fun component3(): kotlin/String? // io.github.kmpfacelink.llm/PersonaConfig.component3|component3(){}[0]
+    final fun copy(kotlin/String = ..., kotlin/String = ..., kotlin/String? = ...): io.github.kmpfacelink.llm/PersonaConfig // io.github.kmpfacelink.llm/PersonaConfig.copy|copy(kotlin.String;kotlin.String;kotlin.String?){}[0]
+    final fun equals(kotlin/Any?): kotlin/Boolean // io.github.kmpfacelink.llm/PersonaConfig.equals|equals(kotlin.Any?){}[0]
+    final fun hashCode(): kotlin/Int // io.github.kmpfacelink.llm/PersonaConfig.hashCode|hashCode(){}[0]
+    final fun toString(): kotlin/String // io.github.kmpfacelink.llm/PersonaConfig.toString|toString(){}[0]
+}
+
+sealed class io.github.kmpfacelink.llm/LlmConfig { // io.github.kmpfacelink.llm/LlmConfig|null[0]
+    final class Anthropic : io.github.kmpfacelink.llm/LlmConfig { // io.github.kmpfacelink.llm/LlmConfig.Anthropic|null[0]
+        constructor <init>(kotlin/String, kotlin/String = ..., kotlin/Int = ..., kotlin/Double = ...) // io.github.kmpfacelink.llm/LlmConfig.Anthropic.<init>|<init>(kotlin.String;kotlin.String;kotlin.Int;kotlin.Double){}[0]
+
+        final val apiKey // io.github.kmpfacelink.llm/LlmConfig.Anthropic.apiKey|{}apiKey[0]
+            final fun <get-apiKey>(): kotlin/String // io.github.kmpfacelink.llm/LlmConfig.Anthropic.apiKey.<get-apiKey>|<get-apiKey>(){}[0]
+        final val maxTokens // io.github.kmpfacelink.llm/LlmConfig.Anthropic.maxTokens|{}maxTokens[0]
+            final fun <get-maxTokens>(): kotlin/Int // io.github.kmpfacelink.llm/LlmConfig.Anthropic.maxTokens.<get-maxTokens>|<get-maxTokens>(){}[0]
+        final val model // io.github.kmpfacelink.llm/LlmConfig.Anthropic.model|{}model[0]
+            final fun <get-model>(): kotlin/String // io.github.kmpfacelink.llm/LlmConfig.Anthropic.model.<get-model>|<get-model>(){}[0]
+        final val temperature // io.github.kmpfacelink.llm/LlmConfig.Anthropic.temperature|{}temperature[0]
+            final fun <get-temperature>(): kotlin/Double // io.github.kmpfacelink.llm/LlmConfig.Anthropic.temperature.<get-temperature>|<get-temperature>(){}[0]
+
+        final fun component1(): kotlin/String // io.github.kmpfacelink.llm/LlmConfig.Anthropic.component1|component1(){}[0]
+        final fun component2(): kotlin/String // io.github.kmpfacelink.llm/LlmConfig.Anthropic.component2|component2(){}[0]
+        final fun component3(): kotlin/Int // io.github.kmpfacelink.llm/LlmConfig.Anthropic.component3|component3(){}[0]
+        final fun component4(): kotlin/Double // io.github.kmpfacelink.llm/LlmConfig.Anthropic.component4|component4(){}[0]
+        final fun copy(kotlin/String = ..., kotlin/String = ..., kotlin/Int = ..., kotlin/Double = ...): io.github.kmpfacelink.llm/LlmConfig.Anthropic // io.github.kmpfacelink.llm/LlmConfig.Anthropic.copy|copy(kotlin.String;kotlin.String;kotlin.Int;kotlin.Double){}[0]
+        final fun equals(kotlin/Any?): kotlin/Boolean // io.github.kmpfacelink.llm/LlmConfig.Anthropic.equals|equals(kotlin.Any?){}[0]
+        final fun hashCode(): kotlin/Int // io.github.kmpfacelink.llm/LlmConfig.Anthropic.hashCode|hashCode(){}[0]
+        final fun toString(): kotlin/String // io.github.kmpfacelink.llm/LlmConfig.Anthropic.toString|toString(){}[0]
+    }
+
+    final class FoundationModels : io.github.kmpfacelink.llm/LlmConfig { // io.github.kmpfacelink.llm/LlmConfig.FoundationModels|null[0]
+        constructor <init>(kotlin/String = ..., kotlin/Int = ..., kotlin/Double = ...) // io.github.kmpfacelink.llm/LlmConfig.FoundationModels.<init>|<init>(kotlin.String;kotlin.Int;kotlin.Double){}[0]
+
+        final val instructions // io.github.kmpfacelink.llm/LlmConfig.FoundationModels.instructions|{}instructions[0]
+            final fun <get-instructions>(): kotlin/String // io.github.kmpfacelink.llm/LlmConfig.FoundationModels.instructions.<get-instructions>|<get-instructions>(){}[0]
+        final val maxTokens // io.github.kmpfacelink.llm/LlmConfig.FoundationModels.maxTokens|{}maxTokens[0]
+            final fun <get-maxTokens>(): kotlin/Int // io.github.kmpfacelink.llm/LlmConfig.FoundationModels.maxTokens.<get-maxTokens>|<get-maxTokens>(){}[0]
+        final val temperature // io.github.kmpfacelink.llm/LlmConfig.FoundationModels.temperature|{}temperature[0]
+            final fun <get-temperature>(): kotlin/Double // io.github.kmpfacelink.llm/LlmConfig.FoundationModels.temperature.<get-temperature>|<get-temperature>(){}[0]
+
+        final fun component1(): kotlin/String // io.github.kmpfacelink.llm/LlmConfig.FoundationModels.component1|component1(){}[0]
+        final fun component2(): kotlin/Int // io.github.kmpfacelink.llm/LlmConfig.FoundationModels.component2|component2(){}[0]
+        final fun component3(): kotlin/Double // io.github.kmpfacelink.llm/LlmConfig.FoundationModels.component3|component3(){}[0]
+        final fun copy(kotlin/String = ..., kotlin/Int = ..., kotlin/Double = ...): io.github.kmpfacelink.llm/LlmConfig.FoundationModels // io.github.kmpfacelink.llm/LlmConfig.FoundationModels.copy|copy(kotlin.String;kotlin.Int;kotlin.Double){}[0]
+        final fun equals(kotlin/Any?): kotlin/Boolean // io.github.kmpfacelink.llm/LlmConfig.FoundationModels.equals|equals(kotlin.Any?){}[0]
+        final fun hashCode(): kotlin/Int // io.github.kmpfacelink.llm/LlmConfig.FoundationModels.hashCode|hashCode(){}[0]
+        final fun toString(): kotlin/String // io.github.kmpfacelink.llm/LlmConfig.FoundationModels.toString|toString(){}[0]
+    }
+
+    final class Gemini : io.github.kmpfacelink.llm/LlmConfig { // io.github.kmpfacelink.llm/LlmConfig.Gemini|null[0]
+        constructor <init>(kotlin/String, kotlin/String = ..., kotlin/Int = ..., kotlin/Double = ...) // io.github.kmpfacelink.llm/LlmConfig.Gemini.<init>|<init>(kotlin.String;kotlin.String;kotlin.Int;kotlin.Double){}[0]
+
+        final val apiKey // io.github.kmpfacelink.llm/LlmConfig.Gemini.apiKey|{}apiKey[0]
+            final fun <get-apiKey>(): kotlin/String // io.github.kmpfacelink.llm/LlmConfig.Gemini.apiKey.<get-apiKey>|<get-apiKey>(){}[0]
+        final val maxTokens // io.github.kmpfacelink.llm/LlmConfig.Gemini.maxTokens|{}maxTokens[0]
+            final fun <get-maxTokens>(): kotlin/Int // io.github.kmpfacelink.llm/LlmConfig.Gemini.maxTokens.<get-maxTokens>|<get-maxTokens>(){}[0]
+        final val model // io.github.kmpfacelink.llm/LlmConfig.Gemini.model|{}model[0]
+            final fun <get-model>(): kotlin/String // io.github.kmpfacelink.llm/LlmConfig.Gemini.model.<get-model>|<get-model>(){}[0]
+        final val temperature // io.github.kmpfacelink.llm/LlmConfig.Gemini.temperature|{}temperature[0]
+            final fun <get-temperature>(): kotlin/Double // io.github.kmpfacelink.llm/LlmConfig.Gemini.temperature.<get-temperature>|<get-temperature>(){}[0]
+
+        final fun component1(): kotlin/String // io.github.kmpfacelink.llm/LlmConfig.Gemini.component1|component1(){}[0]
+        final fun component2(): kotlin/String // io.github.kmpfacelink.llm/LlmConfig.Gemini.component2|component2(){}[0]
+        final fun component3(): kotlin/Int // io.github.kmpfacelink.llm/LlmConfig.Gemini.component3|component3(){}[0]
+        final fun component4(): kotlin/Double // io.github.kmpfacelink.llm/LlmConfig.Gemini.component4|component4(){}[0]
+        final fun copy(kotlin/String = ..., kotlin/String = ..., kotlin/Int = ..., kotlin/Double = ...): io.github.kmpfacelink.llm/LlmConfig.Gemini // io.github.kmpfacelink.llm/LlmConfig.Gemini.copy|copy(kotlin.String;kotlin.String;kotlin.Int;kotlin.Double){}[0]
+        final fun equals(kotlin/Any?): kotlin/Boolean // io.github.kmpfacelink.llm/LlmConfig.Gemini.equals|equals(kotlin.Any?){}[0]
+        final fun hashCode(): kotlin/Int // io.github.kmpfacelink.llm/LlmConfig.Gemini.hashCode|hashCode(){}[0]
+        final fun toString(): kotlin/String // io.github.kmpfacelink.llm/LlmConfig.Gemini.toString|toString(){}[0]
+    }
+
+    final class Hybrid : io.github.kmpfacelink.llm/LlmConfig { // io.github.kmpfacelink.llm/LlmConfig.Hybrid|null[0]
+        constructor <init>(io.github.kmpfacelink.llm/LlmConfig.OnDevice, io.github.kmpfacelink.llm/LlmConfig, io.github.kmpfacelink.llm/RoutingStrategy = ..., kotlinx.coroutines.flow/StateFlow<io.github.kmpfacelink.model/ThermalState> = ...) // io.github.kmpfacelink.llm/LlmConfig.Hybrid.<init>|<init>(io.github.kmpfacelink.llm.LlmConfig.OnDevice;io.github.kmpfacelink.llm.LlmConfig;io.github.kmpfacelink.llm.RoutingStrategy;kotlinx.coroutines.flow.StateFlow<io.github.kmpfacelink.model.ThermalState>){}[0]
+
+        final val cloudConfig // io.github.kmpfacelink.llm/LlmConfig.Hybrid.cloudConfig|{}cloudConfig[0]
+            final fun <get-cloudConfig>(): io.github.kmpfacelink.llm/LlmConfig // io.github.kmpfacelink.llm/LlmConfig.Hybrid.cloudConfig.<get-cloudConfig>|<get-cloudConfig>(){}[0]
+        final val onDeviceConfig // io.github.kmpfacelink.llm/LlmConfig.Hybrid.onDeviceConfig|{}onDeviceConfig[0]
+            final fun <get-onDeviceConfig>(): io.github.kmpfacelink.llm/LlmConfig.OnDevice // io.github.kmpfacelink.llm/LlmConfig.Hybrid.onDeviceConfig.<get-onDeviceConfig>|<get-onDeviceConfig>(){}[0]
+        final val routingStrategy // io.github.kmpfacelink.llm/LlmConfig.Hybrid.routingStrategy|{}routingStrategy[0]
+            final fun <get-routingStrategy>(): io.github.kmpfacelink.llm/RoutingStrategy // io.github.kmpfacelink.llm/LlmConfig.Hybrid.routingStrategy.<get-routingStrategy>|<get-routingStrategy>(){}[0]
+        final val thermalStateProvider // io.github.kmpfacelink.llm/LlmConfig.Hybrid.thermalStateProvider|{}thermalStateProvider[0]
+            final fun <get-thermalStateProvider>(): kotlinx.coroutines.flow/StateFlow<io.github.kmpfacelink.model/ThermalState> // io.github.kmpfacelink.llm/LlmConfig.Hybrid.thermalStateProvider.<get-thermalStateProvider>|<get-thermalStateProvider>(){}[0]
+
+        final fun component1(): io.github.kmpfacelink.llm/LlmConfig.OnDevice // io.github.kmpfacelink.llm/LlmConfig.Hybrid.component1|component1(){}[0]
+        final fun component2(): io.github.kmpfacelink.llm/LlmConfig // io.github.kmpfacelink.llm/LlmConfig.Hybrid.component2|component2(){}[0]
+        final fun component3(): io.github.kmpfacelink.llm/RoutingStrategy // io.github.kmpfacelink.llm/LlmConfig.Hybrid.component3|component3(){}[0]
+        final fun component4(): kotlinx.coroutines.flow/StateFlow<io.github.kmpfacelink.model/ThermalState> // io.github.kmpfacelink.llm/LlmConfig.Hybrid.component4|component4(){}[0]
+        final fun copy(io.github.kmpfacelink.llm/LlmConfig.OnDevice = ..., io.github.kmpfacelink.llm/LlmConfig = ..., io.github.kmpfacelink.llm/RoutingStrategy = ..., kotlinx.coroutines.flow/StateFlow<io.github.kmpfacelink.model/ThermalState> = ...): io.github.kmpfacelink.llm/LlmConfig.Hybrid // io.github.kmpfacelink.llm/LlmConfig.Hybrid.copy|copy(io.github.kmpfacelink.llm.LlmConfig.OnDevice;io.github.kmpfacelink.llm.LlmConfig;io.github.kmpfacelink.llm.RoutingStrategy;kotlinx.coroutines.flow.StateFlow<io.github.kmpfacelink.model.ThermalState>){}[0]
+        final fun equals(kotlin/Any?): kotlin/Boolean // io.github.kmpfacelink.llm/LlmConfig.Hybrid.equals|equals(kotlin.Any?){}[0]
+        final fun hashCode(): kotlin/Int // io.github.kmpfacelink.llm/LlmConfig.Hybrid.hashCode|hashCode(){}[0]
+        final fun toString(): kotlin/String // io.github.kmpfacelink.llm/LlmConfig.Hybrid.toString|toString(){}[0]
+    }
+
+    final class OnDevice : io.github.kmpfacelink.llm/LlmConfig { // io.github.kmpfacelink.llm/LlmConfig.OnDevice|null[0]
+        constructor <init>(kotlin/String, kotlin/Int = ..., kotlin/Double = ..., io.github.kmpfacelink.llm/OnDeviceBackend = ...) // io.github.kmpfacelink.llm/LlmConfig.OnDevice.<init>|<init>(kotlin.String;kotlin.Int;kotlin.Double;io.github.kmpfacelink.llm.OnDeviceBackend){}[0]
+
+        final val maxTokens // io.github.kmpfacelink.llm/LlmConfig.OnDevice.maxTokens|{}maxTokens[0]
+            final fun <get-maxTokens>(): kotlin/Int // io.github.kmpfacelink.llm/LlmConfig.OnDevice.maxTokens.<get-maxTokens>|<get-maxTokens>(){}[0]
+        final val modelId // io.github.kmpfacelink.llm/LlmConfig.OnDevice.modelId|{}modelId[0]
+            final fun <get-modelId>(): kotlin/String // io.github.kmpfacelink.llm/LlmConfig.OnDevice.modelId.<get-modelId>|<get-modelId>(){}[0]
+        final val preferredBackend // io.github.kmpfacelink.llm/LlmConfig.OnDevice.preferredBackend|{}preferredBackend[0]
+            final fun <get-preferredBackend>(): io.github.kmpfacelink.llm/OnDeviceBackend // io.github.kmpfacelink.llm/LlmConfig.OnDevice.preferredBackend.<get-preferredBackend>|<get-preferredBackend>(){}[0]
+        final val temperature // io.github.kmpfacelink.llm/LlmConfig.OnDevice.temperature|{}temperature[0]
+            final fun <get-temperature>(): kotlin/Double // io.github.kmpfacelink.llm/LlmConfig.OnDevice.temperature.<get-temperature>|<get-temperature>(){}[0]
+
+        final fun component1(): kotlin/String // io.github.kmpfacelink.llm/LlmConfig.OnDevice.component1|component1(){}[0]
+        final fun component2(): kotlin/Int // io.github.kmpfacelink.llm/LlmConfig.OnDevice.component2|component2(){}[0]
+        final fun component3(): kotlin/Double // io.github.kmpfacelink.llm/LlmConfig.OnDevice.component3|component3(){}[0]
+        final fun component4(): io.github.kmpfacelink.llm/OnDeviceBackend // io.github.kmpfacelink.llm/LlmConfig.OnDevice.component4|component4(){}[0]
+        final fun copy(kotlin/String = ..., kotlin/Int = ..., kotlin/Double = ..., io.github.kmpfacelink.llm/OnDeviceBackend = ...): io.github.kmpfacelink.llm/LlmConfig.OnDevice // io.github.kmpfacelink.llm/LlmConfig.OnDevice.copy|copy(kotlin.String;kotlin.Int;kotlin.Double;io.github.kmpfacelink.llm.OnDeviceBackend){}[0]
+        final fun equals(kotlin/Any?): kotlin/Boolean // io.github.kmpfacelink.llm/LlmConfig.OnDevice.equals|equals(kotlin.Any?){}[0]
+        final fun hashCode(): kotlin/Int // io.github.kmpfacelink.llm/LlmConfig.OnDevice.hashCode|hashCode(){}[0]
+        final fun toString(): kotlin/String // io.github.kmpfacelink.llm/LlmConfig.OnDevice.toString|toString(){}[0]
+    }
+
+    final class OpenAi : io.github.kmpfacelink.llm/LlmConfig { // io.github.kmpfacelink.llm/LlmConfig.OpenAi|null[0]
+        constructor <init>(kotlin/String, kotlin/String = ..., kotlin/String = ..., kotlin/Int = ..., kotlin/Double = ...) // io.github.kmpfacelink.llm/LlmConfig.OpenAi.<init>|<init>(kotlin.String;kotlin.String;kotlin.String;kotlin.Int;kotlin.Double){}[0]
+
+        final val apiKey // io.github.kmpfacelink.llm/LlmConfig.OpenAi.apiKey|{}apiKey[0]
+            final fun <get-apiKey>(): kotlin/String // io.github.kmpfacelink.llm/LlmConfig.OpenAi.apiKey.<get-apiKey>|<get-apiKey>(){}[0]
+        final val baseUrl // io.github.kmpfacelink.llm/LlmConfig.OpenAi.baseUrl|{}baseUrl[0]
+            final fun <get-baseUrl>(): kotlin/String // io.github.kmpfacelink.llm/LlmConfig.OpenAi.baseUrl.<get-baseUrl>|<get-baseUrl>(){}[0]
+        final val maxTokens // io.github.kmpfacelink.llm/LlmConfig.OpenAi.maxTokens|{}maxTokens[0]
+            final fun <get-maxTokens>(): kotlin/Int // io.github.kmpfacelink.llm/LlmConfig.OpenAi.maxTokens.<get-maxTokens>|<get-maxTokens>(){}[0]
+        final val model // io.github.kmpfacelink.llm/LlmConfig.OpenAi.model|{}model[0]
+            final fun <get-model>(): kotlin/String // io.github.kmpfacelink.llm/LlmConfig.OpenAi.model.<get-model>|<get-model>(){}[0]
+        final val temperature // io.github.kmpfacelink.llm/LlmConfig.OpenAi.temperature|{}temperature[0]
+            final fun <get-temperature>(): kotlin/Double // io.github.kmpfacelink.llm/LlmConfig.OpenAi.temperature.<get-temperature>|<get-temperature>(){}[0]
+
+        final fun component1(): kotlin/String // io.github.kmpfacelink.llm/LlmConfig.OpenAi.component1|component1(){}[0]
+        final fun component2(): kotlin/String // io.github.kmpfacelink.llm/LlmConfig.OpenAi.component2|component2(){}[0]
+        final fun component3(): kotlin/String // io.github.kmpfacelink.llm/LlmConfig.OpenAi.component3|component3(){}[0]
+        final fun component4(): kotlin/Int // io.github.kmpfacelink.llm/LlmConfig.OpenAi.component4|component4(){}[0]
+        final fun component5(): kotlin/Double // io.github.kmpfacelink.llm/LlmConfig.OpenAi.component5|component5(){}[0]
+        final fun copy(kotlin/String = ..., kotlin/String = ..., kotlin/String = ..., kotlin/Int = ..., kotlin/Double = ...): io.github.kmpfacelink.llm/LlmConfig.OpenAi // io.github.kmpfacelink.llm/LlmConfig.OpenAi.copy|copy(kotlin.String;kotlin.String;kotlin.String;kotlin.Int;kotlin.Double){}[0]
+        final fun equals(kotlin/Any?): kotlin/Boolean // io.github.kmpfacelink.llm/LlmConfig.OpenAi.equals|equals(kotlin.Any?){}[0]
+        final fun hashCode(): kotlin/Int // io.github.kmpfacelink.llm/LlmConfig.OpenAi.hashCode|hashCode(){}[0]
+        final fun toString(): kotlin/String // io.github.kmpfacelink.llm/LlmConfig.OpenAi.toString|toString(){}[0]
+    }
+}
+
+sealed class io.github.kmpfacelink.llm/LlmState { // io.github.kmpfacelink.llm/LlmState|null[0]
+    final class Error : io.github.kmpfacelink.llm/LlmState { // io.github.kmpfacelink.llm/LlmState.Error|null[0]
+        constructor <init>(kotlin/String) // io.github.kmpfacelink.llm/LlmState.Error.<init>|<init>(kotlin.String){}[0]
+
+        final val message // io.github.kmpfacelink.llm/LlmState.Error.message|{}message[0]
+            final fun <get-message>(): kotlin/String // io.github.kmpfacelink.llm/LlmState.Error.message.<get-message>|<get-message>(){}[0]
+
+        final fun component1(): kotlin/String // io.github.kmpfacelink.llm/LlmState.Error.component1|component1(){}[0]
+        final fun copy(kotlin/String = ...): io.github.kmpfacelink.llm/LlmState.Error // io.github.kmpfacelink.llm/LlmState.Error.copy|copy(kotlin.String){}[0]
+        final fun equals(kotlin/Any?): kotlin/Boolean // io.github.kmpfacelink.llm/LlmState.Error.equals|equals(kotlin.Any?){}[0]
+        final fun hashCode(): kotlin/Int // io.github.kmpfacelink.llm/LlmState.Error.hashCode|hashCode(){}[0]
+        final fun toString(): kotlin/String // io.github.kmpfacelink.llm/LlmState.Error.toString|toString(){}[0]
+    }
+
+    final object Idle : io.github.kmpfacelink.llm/LlmState { // io.github.kmpfacelink.llm/LlmState.Idle|null[0]
+        final fun equals(kotlin/Any?): kotlin/Boolean // io.github.kmpfacelink.llm/LlmState.Idle.equals|equals(kotlin.Any?){}[0]
+        final fun hashCode(): kotlin/Int // io.github.kmpfacelink.llm/LlmState.Idle.hashCode|hashCode(){}[0]
+        final fun toString(): kotlin/String // io.github.kmpfacelink.llm/LlmState.Idle.toString|toString(){}[0]
+    }
+
+    final object Streaming : io.github.kmpfacelink.llm/LlmState { // io.github.kmpfacelink.llm/LlmState.Streaming|null[0]
+        final fun equals(kotlin/Any?): kotlin/Boolean // io.github.kmpfacelink.llm/LlmState.Streaming.equals|equals(kotlin.Any?){}[0]
+        final fun hashCode(): kotlin/Int // io.github.kmpfacelink.llm/LlmState.Streaming.hashCode|hashCode(){}[0]
+        final fun toString(): kotlin/String // io.github.kmpfacelink.llm/LlmState.Streaming.toString|toString(){}[0]
+    }
+}
+
+sealed class io.github.kmpfacelink.llm/RoutingStrategy { // io.github.kmpfacelink.llm/RoutingStrategy|null[0]
+    final class Adaptive : io.github.kmpfacelink.llm/RoutingStrategy { // io.github.kmpfacelink.llm/RoutingStrategy.Adaptive|null[0]
+        constructor <init>(kotlin/Float = ..., io.github.kmpfacelink.model/ThermalState = ..., kotlin/Long = ..., kotlin/Double = ..., kotlin/Double = ...) // io.github.kmpfacelink.llm/RoutingStrategy.Adaptive.<init>|<init>(kotlin.Float;io.github.kmpfacelink.model.ThermalState;kotlin.Long;kotlin.Double;kotlin.Double){}[0]
+
+        final val complexityThreshold // io.github.kmpfacelink.llm/RoutingStrategy.Adaptive.complexityThreshold|{}complexityThreshold[0]
+            final fun <get-complexityThreshold>(): kotlin/Float // io.github.kmpfacelink.llm/RoutingStrategy.Adaptive.complexityThreshold.<get-complexityThreshold>|<get-complexityThreshold>(){}[0]
+        final val costPerCloudRequest // io.github.kmpfacelink.llm/RoutingStrategy.Adaptive.costPerCloudRequest|{}costPerCloudRequest[0]
+            final fun <get-costPerCloudRequest>(): kotlin/Double // io.github.kmpfacelink.llm/RoutingStrategy.Adaptive.costPerCloudRequest.<get-costPerCloudRequest>|<get-costPerCloudRequest>(){}[0]
+        final val dailyCostBudget // io.github.kmpfacelink.llm/RoutingStrategy.Adaptive.dailyCostBudget|{}dailyCostBudget[0]
+            final fun <get-dailyCostBudget>(): kotlin/Double // io.github.kmpfacelink.llm/RoutingStrategy.Adaptive.dailyCostBudget.<get-dailyCostBudget>|<get-dailyCostBudget>(){}[0]
+        final val latencyTimeoutMs // io.github.kmpfacelink.llm/RoutingStrategy.Adaptive.latencyTimeoutMs|{}latencyTimeoutMs[0]
+            final fun <get-latencyTimeoutMs>(): kotlin/Long // io.github.kmpfacelink.llm/RoutingStrategy.Adaptive.latencyTimeoutMs.<get-latencyTimeoutMs>|<get-latencyTimeoutMs>(){}[0]
+        final val thermalThreshold // io.github.kmpfacelink.llm/RoutingStrategy.Adaptive.thermalThreshold|{}thermalThreshold[0]
+            final fun <get-thermalThreshold>(): io.github.kmpfacelink.model/ThermalState // io.github.kmpfacelink.llm/RoutingStrategy.Adaptive.thermalThreshold.<get-thermalThreshold>|<get-thermalThreshold>(){}[0]
+
+        final fun component1(): kotlin/Float // io.github.kmpfacelink.llm/RoutingStrategy.Adaptive.component1|component1(){}[0]
+        final fun component2(): io.github.kmpfacelink.model/ThermalState // io.github.kmpfacelink.llm/RoutingStrategy.Adaptive.component2|component2(){}[0]
+        final fun component3(): kotlin/Long // io.github.kmpfacelink.llm/RoutingStrategy.Adaptive.component3|component3(){}[0]
+        final fun component4(): kotlin/Double // io.github.kmpfacelink.llm/RoutingStrategy.Adaptive.component4|component4(){}[0]
+        final fun component5(): kotlin/Double // io.github.kmpfacelink.llm/RoutingStrategy.Adaptive.component5|component5(){}[0]
+        final fun copy(kotlin/Float = ..., io.github.kmpfacelink.model/ThermalState = ..., kotlin/Long = ..., kotlin/Double = ..., kotlin/Double = ...): io.github.kmpfacelink.llm/RoutingStrategy.Adaptive // io.github.kmpfacelink.llm/RoutingStrategy.Adaptive.copy|copy(kotlin.Float;io.github.kmpfacelink.model.ThermalState;kotlin.Long;kotlin.Double;kotlin.Double){}[0]
+        final fun equals(kotlin/Any?): kotlin/Boolean // io.github.kmpfacelink.llm/RoutingStrategy.Adaptive.equals|equals(kotlin.Any?){}[0]
+        final fun hashCode(): kotlin/Int // io.github.kmpfacelink.llm/RoutingStrategy.Adaptive.hashCode|hashCode(){}[0]
+        final fun toString(): kotlin/String // io.github.kmpfacelink.llm/RoutingStrategy.Adaptive.toString|toString(){}[0]
+    }
+
+    final class Auto : io.github.kmpfacelink.llm/RoutingStrategy { // io.github.kmpfacelink.llm/RoutingStrategy.Auto|null[0]
+        constructor <init>(kotlin/Float = ...) // io.github.kmpfacelink.llm/RoutingStrategy.Auto.<init>|<init>(kotlin.Float){}[0]
+
+        final val complexityThreshold // io.github.kmpfacelink.llm/RoutingStrategy.Auto.complexityThreshold|{}complexityThreshold[0]
+            final fun <get-complexityThreshold>(): kotlin/Float // io.github.kmpfacelink.llm/RoutingStrategy.Auto.complexityThreshold.<get-complexityThreshold>|<get-complexityThreshold>(){}[0]
+
+        final fun component1(): kotlin/Float // io.github.kmpfacelink.llm/RoutingStrategy.Auto.component1|component1(){}[0]
+        final fun copy(kotlin/Float = ...): io.github.kmpfacelink.llm/RoutingStrategy.Auto // io.github.kmpfacelink.llm/RoutingStrategy.Auto.copy|copy(kotlin.Float){}[0]
+        final fun equals(kotlin/Any?): kotlin/Boolean // io.github.kmpfacelink.llm/RoutingStrategy.Auto.equals|equals(kotlin.Any?){}[0]
+        final fun hashCode(): kotlin/Int // io.github.kmpfacelink.llm/RoutingStrategy.Auto.hashCode|hashCode(){}[0]
+        final fun toString(): kotlin/String // io.github.kmpfacelink.llm/RoutingStrategy.Auto.toString|toString(){}[0]
+    }
+
+    final object AlwaysCloud : io.github.kmpfacelink.llm/RoutingStrategy { // io.github.kmpfacelink.llm/RoutingStrategy.AlwaysCloud|null[0]
+        final fun equals(kotlin/Any?): kotlin/Boolean // io.github.kmpfacelink.llm/RoutingStrategy.AlwaysCloud.equals|equals(kotlin.Any?){}[0]
+        final fun hashCode(): kotlin/Int // io.github.kmpfacelink.llm/RoutingStrategy.AlwaysCloud.hashCode|hashCode(){}[0]
+        final fun toString(): kotlin/String // io.github.kmpfacelink.llm/RoutingStrategy.AlwaysCloud.toString|toString(){}[0]
+    }
+
+    final object AlwaysOnDevice : io.github.kmpfacelink.llm/RoutingStrategy { // io.github.kmpfacelink.llm/RoutingStrategy.AlwaysOnDevice|null[0]
+        final fun equals(kotlin/Any?): kotlin/Boolean // io.github.kmpfacelink.llm/RoutingStrategy.AlwaysOnDevice.equals|equals(kotlin.Any?){}[0]
+        final fun hashCode(): kotlin/Int // io.github.kmpfacelink.llm/RoutingStrategy.AlwaysOnDevice.hashCode|hashCode(){}[0]
+        final fun toString(): kotlin/String // io.github.kmpfacelink.llm/RoutingStrategy.AlwaysOnDevice.toString|toString(){}[0]
+    }
+}
+
+final object io.github.kmpfacelink.llm.benchmark/BenchmarkPrompts { // io.github.kmpfacelink.llm.benchmark/BenchmarkPrompts|null[0]
+    final const val LONG_ANALYTICAL // io.github.kmpfacelink.llm.benchmark/BenchmarkPrompts.LONG_ANALYTICAL|{}LONG_ANALYTICAL[0]
+        final fun <get-LONG_ANALYTICAL>(): kotlin/String // io.github.kmpfacelink.llm.benchmark/BenchmarkPrompts.LONG_ANALYTICAL.<get-LONG_ANALYTICAL>|<get-LONG_ANALYTICAL>(){}[0]
+    final const val MEDIUM_CONVERSATIONAL // io.github.kmpfacelink.llm.benchmark/BenchmarkPrompts.MEDIUM_CONVERSATIONAL|{}MEDIUM_CONVERSATIONAL[0]
+        final fun <get-MEDIUM_CONVERSATIONAL>(): kotlin/String // io.github.kmpfacelink.llm.benchmark/BenchmarkPrompts.MEDIUM_CONVERSATIONAL.<get-MEDIUM_CONVERSATIONAL>|<get-MEDIUM_CONVERSATIONAL>(){}[0]
+    final const val SHORT_CASUAL // io.github.kmpfacelink.llm.benchmark/BenchmarkPrompts.SHORT_CASUAL|{}SHORT_CASUAL[0]
+        final fun <get-SHORT_CASUAL>(): kotlin/String // io.github.kmpfacelink.llm.benchmark/BenchmarkPrompts.SHORT_CASUAL.<get-SHORT_CASUAL>|<get-SHORT_CASUAL>(){}[0]
+
+    final fun standardSet(): kotlin.collections/List<kotlin/String> // io.github.kmpfacelink.llm.benchmark/BenchmarkPrompts.standardSet|standardSet(){}[0]
+}
+
+final object io.github.kmpfacelink.llm/FoundationModelsProviderRegistry { // io.github.kmpfacelink.llm/FoundationModelsProviderRegistry|null[0]
+    final fun clear() // io.github.kmpfacelink.llm/FoundationModelsProviderRegistry.clear|clear(){}[0]
+    final fun get(): io.github.kmpfacelink.llm/FoundationModelsProvider? // io.github.kmpfacelink.llm/FoundationModelsProviderRegistry.get|get(){}[0]
+    final fun isAvailable(): kotlin/Boolean // io.github.kmpfacelink.llm/FoundationModelsProviderRegistry.isAvailable|isAvailable(){}[0]
+    final fun register(io.github.kmpfacelink.llm/FoundationModelsProvider) // io.github.kmpfacelink.llm/FoundationModelsProviderRegistry.register|register(io.github.kmpfacelink.llm.FoundationModelsProvider){}[0]
+}
+
+final object io.github.kmpfacelink.llm/ModelRegistry { // io.github.kmpfacelink.llm/ModelRegistry|null[0]
+    final val audioCapableModels // io.github.kmpfacelink.llm/ModelRegistry.audioCapableModels|{}audioCapableModels[0]
+        final fun <get-audioCapableModels>(): kotlin.collections/List<io.github.kmpfacelink.llm/ModelInfo> // io.github.kmpfacelink.llm/ModelRegistry.audioCapableModels.<get-audioCapableModels>|<get-audioCapableModels>(){}[0]
+    final val models // io.github.kmpfacelink.llm/ModelRegistry.models|{}models[0]
+        final fun <get-models>(): kotlin.collections/List<io.github.kmpfacelink.llm/ModelInfo> // io.github.kmpfacelink.llm/ModelRegistry.models.<get-models>|<get-models>(){}[0]
+
+    final fun defaultModel(): io.github.kmpfacelink.llm/ModelInfo // io.github.kmpfacelink.llm/ModelRegistry.defaultModel|defaultModel(){}[0]
+    final fun findById(kotlin/String): io.github.kmpfacelink.llm/ModelInfo? // io.github.kmpfacelink.llm/ModelRegistry.findById|findById(kotlin.String){}[0]
+    final fun recommendForRam(kotlin/Long): io.github.kmpfacelink.llm/ModelInfo // io.github.kmpfacelink.llm/ModelRegistry.recommendForRam|recommendForRam(kotlin.Long){}[0]
+}
+
+final object io.github.kmpfacelink.llm/TokenCounter { // io.github.kmpfacelink.llm/TokenCounter|null[0]
+    final fun estimate(kotlin.collections/List<io.github.kmpfacelink.llm/ChatMessage>): kotlin/Int // io.github.kmpfacelink.llm/TokenCounter.estimate|estimate(kotlin.collections.List<io.github.kmpfacelink.llm.ChatMessage>){}[0]
+    final fun estimate(kotlin/String): kotlin/Int // io.github.kmpfacelink.llm/TokenCounter.estimate|estimate(kotlin.String){}[0]
+}

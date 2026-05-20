@@ -1,0 +1,604 @@
+// Klib ABI Dump
+// Targets: [iosArm64, iosSimulatorArm64]
+// Rendering settings:
+// - Signature version: 2
+// - Show manifest properties: true
+// - Show declarations: true
+
+// Library unique name: <io.github.rioX432:kmp-facelink-voice>
+final enum class io.github.kmpfacelink.voice.lipsync/LipSyncEngineType : kotlin/Enum<io.github.kmpfacelink.voice.lipsync/LipSyncEngineType> { // io.github.kmpfacelink.voice.lipsync/LipSyncEngineType|null[0]
+    enum entry DEFAULT // io.github.kmpfacelink.voice.lipsync/LipSyncEngineType.DEFAULT|null[0]
+    enum entry ENHANCED_AMPLITUDE // io.github.kmpfacelink.voice.lipsync/LipSyncEngineType.ENHANCED_AMPLITUDE|null[0]
+    enum entry NEURAL // io.github.kmpfacelink.voice.lipsync/LipSyncEngineType.NEURAL|null[0]
+
+    final val entries // io.github.kmpfacelink.voice.lipsync/LipSyncEngineType.entries|#static{}entries[0]
+        final fun <get-entries>(): kotlin.enums/EnumEntries<io.github.kmpfacelink.voice.lipsync/LipSyncEngineType> // io.github.kmpfacelink.voice.lipsync/LipSyncEngineType.entries.<get-entries>|<get-entries>#static(){}[0]
+
+    final fun valueOf(kotlin/String): io.github.kmpfacelink.voice.lipsync/LipSyncEngineType // io.github.kmpfacelink.voice.lipsync/LipSyncEngineType.valueOf|valueOf#static(kotlin.String){}[0]
+    final fun values(): kotlin/Array<io.github.kmpfacelink.voice.lipsync/LipSyncEngineType> // io.github.kmpfacelink.voice.lipsync/LipSyncEngineType.values|values#static(){}[0]
+}
+
+final enum class io.github.kmpfacelink.voice.lipsync/LipSyncLanguage : kotlin/Enum<io.github.kmpfacelink.voice.lipsync/LipSyncLanguage> { // io.github.kmpfacelink.voice.lipsync/LipSyncLanguage|null[0]
+    enum entry CHINESE // io.github.kmpfacelink.voice.lipsync/LipSyncLanguage.CHINESE|null[0]
+    enum entry ENGLISH // io.github.kmpfacelink.voice.lipsync/LipSyncLanguage.ENGLISH|null[0]
+    enum entry JAPANESE // io.github.kmpfacelink.voice.lipsync/LipSyncLanguage.JAPANESE|null[0]
+
+    final val entries // io.github.kmpfacelink.voice.lipsync/LipSyncLanguage.entries|#static{}entries[0]
+        final fun <get-entries>(): kotlin.enums/EnumEntries<io.github.kmpfacelink.voice.lipsync/LipSyncLanguage> // io.github.kmpfacelink.voice.lipsync/LipSyncLanguage.entries.<get-entries>|<get-entries>#static(){}[0]
+
+    final fun valueOf(kotlin/String): io.github.kmpfacelink.voice.lipsync/LipSyncLanguage // io.github.kmpfacelink.voice.lipsync/LipSyncLanguage.valueOf|valueOf#static(kotlin.String){}[0]
+    final fun values(): kotlin/Array<io.github.kmpfacelink.voice.lipsync/LipSyncLanguage> // io.github.kmpfacelink.voice.lipsync/LipSyncLanguage.values|values#static(){}[0]
+}
+
+final enum class io.github.kmpfacelink.voice.lipsync/Viseme : kotlin/Enum<io.github.kmpfacelink.voice.lipsync/Viseme> { // io.github.kmpfacelink.voice.lipsync/Viseme|null[0]
+    enum entry AA // io.github.kmpfacelink.voice.lipsync/Viseme.AA|null[0]
+    enum entry CH // io.github.kmpfacelink.voice.lipsync/Viseme.CH|null[0]
+    enum entry DD // io.github.kmpfacelink.voice.lipsync/Viseme.DD|null[0]
+    enum entry E // io.github.kmpfacelink.voice.lipsync/Viseme.E|null[0]
+    enum entry FF // io.github.kmpfacelink.voice.lipsync/Viseme.FF|null[0]
+    enum entry IH // io.github.kmpfacelink.voice.lipsync/Viseme.IH|null[0]
+    enum entry KK // io.github.kmpfacelink.voice.lipsync/Viseme.KK|null[0]
+    enum entry NN // io.github.kmpfacelink.voice.lipsync/Viseme.NN|null[0]
+    enum entry OH // io.github.kmpfacelink.voice.lipsync/Viseme.OH|null[0]
+    enum entry OU // io.github.kmpfacelink.voice.lipsync/Viseme.OU|null[0]
+    enum entry PP // io.github.kmpfacelink.voice.lipsync/Viseme.PP|null[0]
+    enum entry RR // io.github.kmpfacelink.voice.lipsync/Viseme.RR|null[0]
+    enum entry SIL // io.github.kmpfacelink.voice.lipsync/Viseme.SIL|null[0]
+    enum entry SS // io.github.kmpfacelink.voice.lipsync/Viseme.SS|null[0]
+    enum entry TH // io.github.kmpfacelink.voice.lipsync/Viseme.TH|null[0]
+
+    final val entries // io.github.kmpfacelink.voice.lipsync/Viseme.entries|#static{}entries[0]
+        final fun <get-entries>(): kotlin.enums/EnumEntries<io.github.kmpfacelink.voice.lipsync/Viseme> // io.github.kmpfacelink.voice.lipsync/Viseme.entries.<get-entries>|<get-entries>#static(){}[0]
+
+    final fun valueOf(kotlin/String): io.github.kmpfacelink.voice.lipsync/Viseme // io.github.kmpfacelink.voice.lipsync/Viseme.valueOf|valueOf#static(kotlin.String){}[0]
+    final fun values(): kotlin/Array<io.github.kmpfacelink.voice.lipsync/Viseme> // io.github.kmpfacelink.voice.lipsync/Viseme.values|values#static(){}[0]
+}
+
+abstract interface io.github.kmpfacelink.voice.asr/AsrEngine : io.github.kmpfacelink.api/Releasable, kotlin/AutoCloseable { // io.github.kmpfacelink.voice.asr/AsrEngine|null[0]
+    abstract val state // io.github.kmpfacelink.voice.asr/AsrEngine.state|{}state[0]
+        abstract fun <get-state>(): kotlinx.coroutines.flow/StateFlow<io.github.kmpfacelink.voice.asr/AsrState> // io.github.kmpfacelink.voice.asr/AsrEngine.state.<get-state>|<get-state>(){}[0]
+    abstract val transcriptions // io.github.kmpfacelink.voice.asr/AsrEngine.transcriptions|{}transcriptions[0]
+        abstract fun <get-transcriptions>(): kotlinx.coroutines.flow/Flow<io.github.kmpfacelink.voice.asr/TranscriptionResult> // io.github.kmpfacelink.voice.asr/AsrEngine.transcriptions.<get-transcriptions>|<get-transcriptions>(){}[0]
+
+    abstract fun release() // io.github.kmpfacelink.voice.asr/AsrEngine.release|release(){}[0]
+    abstract suspend fun startListening() // io.github.kmpfacelink.voice.asr/AsrEngine.startListening|startListening(){}[0]
+    abstract suspend fun stopListening() // io.github.kmpfacelink.voice.asr/AsrEngine.stopListening|stopListening(){}[0]
+    abstract suspend fun transcribe(io.github.kmpfacelink.voice.audio/AudioData): io.github.kmpfacelink.voice.asr/TranscriptionResult // io.github.kmpfacelink.voice.asr/AsrEngine.transcribe|transcribe(io.github.kmpfacelink.voice.audio.AudioData){}[0]
+    open fun close() // io.github.kmpfacelink.voice.asr/AsrEngine.close|close(){}[0]
+}
+
+abstract interface io.github.kmpfacelink.voice.audio/AudioPlayer : io.github.kmpfacelink.api/Releasable { // io.github.kmpfacelink.voice.audio/AudioPlayer|null[0]
+    abstract val isPlaying // io.github.kmpfacelink.voice.audio/AudioPlayer.isPlaying|{}isPlaying[0]
+        abstract fun <get-isPlaying>(): kotlinx.coroutines.flow/StateFlow<kotlin/Boolean> // io.github.kmpfacelink.voice.audio/AudioPlayer.isPlaying.<get-isPlaying>|<get-isPlaying>(){}[0]
+
+    abstract fun release() // io.github.kmpfacelink.voice.audio/AudioPlayer.release|release(){}[0]
+    abstract fun stop() // io.github.kmpfacelink.voice.audio/AudioPlayer.stop|stop(){}[0]
+    abstract suspend fun play(io.github.kmpfacelink.voice.audio/AudioData) // io.github.kmpfacelink.voice.audio/AudioPlayer.play|play(io.github.kmpfacelink.voice.audio.AudioData){}[0]
+}
+
+abstract interface io.github.kmpfacelink.voice.audio/AudioRecorder : io.github.kmpfacelink.api/Releasable { // io.github.kmpfacelink.voice.audio/AudioRecorder|null[0]
+    abstract val audioChunks // io.github.kmpfacelink.voice.audio/AudioRecorder.audioChunks|{}audioChunks[0]
+        abstract fun <get-audioChunks>(): kotlinx.coroutines.flow/Flow<kotlin/ByteArray> // io.github.kmpfacelink.voice.audio/AudioRecorder.audioChunks.<get-audioChunks>|<get-audioChunks>(){}[0]
+    abstract val isRecording // io.github.kmpfacelink.voice.audio/AudioRecorder.isRecording|{}isRecording[0]
+        abstract fun <get-isRecording>(): kotlinx.coroutines.flow/StateFlow<kotlin/Boolean> // io.github.kmpfacelink.voice.audio/AudioRecorder.isRecording.<get-isRecording>|<get-isRecording>(){}[0]
+
+    abstract fun release() // io.github.kmpfacelink.voice.audio/AudioRecorder.release|release(){}[0]
+    abstract suspend fun start(io.github.kmpfacelink.voice.audio/AudioFormat = ...) // io.github.kmpfacelink.voice.audio/AudioRecorder.start|start(io.github.kmpfacelink.voice.audio.AudioFormat){}[0]
+    abstract suspend fun stop(): io.github.kmpfacelink.voice.audio/AudioData? // io.github.kmpfacelink.voice.audio/AudioRecorder.stop|stop(){}[0]
+}
+
+abstract interface io.github.kmpfacelink.voice.lipsync/LipSyncEngine : io.github.kmpfacelink.api/Releasable { // io.github.kmpfacelink.voice.lipsync/LipSyncEngine|null[0]
+    abstract fun animateFromAudio(io.github.kmpfacelink.voice.audio/AudioData, io.github.kmpfacelink.voice.lipsync/LipSyncConfig = ...): kotlinx.coroutines.flow/Flow<io.github.kmpfacelink.voice.lipsync/LipSyncFrame> // io.github.kmpfacelink.voice.lipsync/LipSyncEngine.animateFromAudio|animateFromAudio(io.github.kmpfacelink.voice.audio.AudioData;io.github.kmpfacelink.voice.lipsync.LipSyncConfig){}[0]
+    abstract fun animateFromPhonemes(kotlin.collections/List<io.github.kmpfacelink.voice.tts/PhonemeEvent>, io.github.kmpfacelink.voice.lipsync/LipSyncConfig = ...): kotlinx.coroutines.flow/Flow<io.github.kmpfacelink.voice.lipsync/LipSyncFrame> // io.github.kmpfacelink.voice.lipsync/LipSyncEngine.animateFromPhonemes|animateFromPhonemes(kotlin.collections.List<io.github.kmpfacelink.voice.tts.PhonemeEvent>;io.github.kmpfacelink.voice.lipsync.LipSyncConfig){}[0]
+    open fun release() // io.github.kmpfacelink.voice.lipsync/LipSyncEngine.release|release(){}[0]
+}
+
+abstract interface io.github.kmpfacelink.voice.lipsync/NeuralLipSyncEngine : io.github.kmpfacelink.voice.lipsync/LipSyncEngine { // io.github.kmpfacelink.voice.lipsync/NeuralLipSyncEngine|null[0]
+    abstract val isModelLoaded // io.github.kmpfacelink.voice.lipsync/NeuralLipSyncEngine.isModelLoaded|{}isModelLoaded[0]
+        abstract fun <get-isModelLoaded>(): kotlin/Boolean // io.github.kmpfacelink.voice.lipsync/NeuralLipSyncEngine.isModelLoaded.<get-isModelLoaded>|<get-isModelLoaded>(){}[0]
+
+    abstract fun predictFromAudio(io.github.kmpfacelink.voice.audio/AudioData, io.github.kmpfacelink.voice.lipsync/LipSyncConfig = ...): kotlinx.coroutines.flow/Flow<io.github.kmpfacelink.voice.lipsync/LipSyncFrame> // io.github.kmpfacelink.voice.lipsync/NeuralLipSyncEngine.predictFromAudio|predictFromAudio(io.github.kmpfacelink.voice.audio.AudioData;io.github.kmpfacelink.voice.lipsync.LipSyncConfig){}[0]
+    abstract fun unloadModel() // io.github.kmpfacelink.voice.lipsync/NeuralLipSyncEngine.unloadModel|unloadModel(){}[0]
+    abstract suspend fun loadModel(kotlin/String) // io.github.kmpfacelink.voice.lipsync/NeuralLipSyncEngine.loadModel|loadModel(kotlin.String){}[0]
+}
+
+abstract interface io.github.kmpfacelink.voice.lipsync/NeuralModelBridge { // io.github.kmpfacelink.voice.lipsync/NeuralModelBridge|null[0]
+    abstract val isLoaded // io.github.kmpfacelink.voice.lipsync/NeuralModelBridge.isLoaded|{}isLoaded[0]
+        abstract fun <get-isLoaded>(): kotlin/Boolean // io.github.kmpfacelink.voice.lipsync/NeuralModelBridge.isLoaded.<get-isLoaded>|<get-isLoaded>(){}[0]
+
+    abstract fun infer(kotlin/FloatArray): kotlin/FloatArray // io.github.kmpfacelink.voice.lipsync/NeuralModelBridge.infer|infer(kotlin.FloatArray){}[0]
+    abstract fun release() // io.github.kmpfacelink.voice.lipsync/NeuralModelBridge.release|release(){}[0]
+    abstract suspend fun load(io.github.kmpfacelink.voice.lipsync/NeuralLipSyncConfig) // io.github.kmpfacelink.voice.lipsync/NeuralModelBridge.load|load(io.github.kmpfacelink.voice.lipsync.NeuralLipSyncConfig){}[0]
+}
+
+abstract interface io.github.kmpfacelink.voice.tts/TtsEngine : io.github.kmpfacelink.api/Releasable, kotlin/AutoCloseable { // io.github.kmpfacelink.voice.tts/TtsEngine|null[0]
+    abstract val state // io.github.kmpfacelink.voice.tts/TtsEngine.state|{}state[0]
+        abstract fun <get-state>(): kotlinx.coroutines.flow/StateFlow<io.github.kmpfacelink.voice.tts/TtsState> // io.github.kmpfacelink.voice.tts/TtsEngine.state.<get-state>|<get-state>(){}[0]
+
+    abstract fun release() // io.github.kmpfacelink.voice.tts/TtsEngine.release|release(){}[0]
+    abstract suspend fun synthesize(kotlin/String): io.github.kmpfacelink.voice.tts/TtsResult // io.github.kmpfacelink.voice.tts/TtsEngine.synthesize|synthesize(kotlin.String){}[0]
+    open fun close() // io.github.kmpfacelink.voice.tts/TtsEngine.close|close(){}[0]
+}
+
+abstract interface io.github.kmpfacelink.voice/EngineState { // io.github.kmpfacelink.voice/EngineState|null[0]
+    abstract interface Active : io.github.kmpfacelink.voice/EngineState // io.github.kmpfacelink.voice/EngineState.Active|null[0]
+
+    abstract interface Error : io.github.kmpfacelink.voice/EngineState { // io.github.kmpfacelink.voice/EngineState.Error|null[0]
+        abstract val message // io.github.kmpfacelink.voice/EngineState.Error.message|{}message[0]
+            abstract fun <get-message>(): kotlin/String // io.github.kmpfacelink.voice/EngineState.Error.message.<get-message>|<get-message>(){}[0]
+    }
+
+    abstract interface Idle : io.github.kmpfacelink.voice/EngineState // io.github.kmpfacelink.voice/EngineState.Idle|null[0]
+}
+
+final class io.github.kmpfacelink.voice.asr/TranscriptionResult { // io.github.kmpfacelink.voice.asr/TranscriptionResult|null[0]
+    constructor <init>(kotlin/String, kotlin/Boolean = ..., kotlin/String? = ..., kotlin/Long = ...) // io.github.kmpfacelink.voice.asr/TranscriptionResult.<init>|<init>(kotlin.String;kotlin.Boolean;kotlin.String?;kotlin.Long){}[0]
+
+    final val isFinal // io.github.kmpfacelink.voice.asr/TranscriptionResult.isFinal|{}isFinal[0]
+        final fun <get-isFinal>(): kotlin/Boolean // io.github.kmpfacelink.voice.asr/TranscriptionResult.isFinal.<get-isFinal>|<get-isFinal>(){}[0]
+    final val language // io.github.kmpfacelink.voice.asr/TranscriptionResult.language|{}language[0]
+        final fun <get-language>(): kotlin/String? // io.github.kmpfacelink.voice.asr/TranscriptionResult.language.<get-language>|<get-language>(){}[0]
+    final val text // io.github.kmpfacelink.voice.asr/TranscriptionResult.text|{}text[0]
+        final fun <get-text>(): kotlin/String // io.github.kmpfacelink.voice.asr/TranscriptionResult.text.<get-text>|<get-text>(){}[0]
+    final val timestampMs // io.github.kmpfacelink.voice.asr/TranscriptionResult.timestampMs|{}timestampMs[0]
+        final fun <get-timestampMs>(): kotlin/Long // io.github.kmpfacelink.voice.asr/TranscriptionResult.timestampMs.<get-timestampMs>|<get-timestampMs>(){}[0]
+
+    final fun component1(): kotlin/String // io.github.kmpfacelink.voice.asr/TranscriptionResult.component1|component1(){}[0]
+    final fun component2(): kotlin/Boolean // io.github.kmpfacelink.voice.asr/TranscriptionResult.component2|component2(){}[0]
+    final fun component3(): kotlin/String? // io.github.kmpfacelink.voice.asr/TranscriptionResult.component3|component3(){}[0]
+    final fun component4(): kotlin/Long // io.github.kmpfacelink.voice.asr/TranscriptionResult.component4|component4(){}[0]
+    final fun copy(kotlin/String = ..., kotlin/Boolean = ..., kotlin/String? = ..., kotlin/Long = ...): io.github.kmpfacelink.voice.asr/TranscriptionResult // io.github.kmpfacelink.voice.asr/TranscriptionResult.copy|copy(kotlin.String;kotlin.Boolean;kotlin.String?;kotlin.Long){}[0]
+    final fun equals(kotlin/Any?): kotlin/Boolean // io.github.kmpfacelink.voice.asr/TranscriptionResult.equals|equals(kotlin.Any?){}[0]
+    final fun hashCode(): kotlin/Int // io.github.kmpfacelink.voice.asr/TranscriptionResult.hashCode|hashCode(){}[0]
+    final fun toString(): kotlin/String // io.github.kmpfacelink.voice.asr/TranscriptionResult.toString|toString(){}[0]
+}
+
+final class io.github.kmpfacelink.voice.audio/AudioData { // io.github.kmpfacelink.voice.audio/AudioData|null[0]
+    constructor <init>(kotlin/ByteArray, io.github.kmpfacelink.voice.audio/AudioFormat, kotlin/Long) // io.github.kmpfacelink.voice.audio/AudioData.<init>|<init>(kotlin.ByteArray;io.github.kmpfacelink.voice.audio.AudioFormat;kotlin.Long){}[0]
+
+    final val bytes // io.github.kmpfacelink.voice.audio/AudioData.bytes|{}bytes[0]
+        final fun <get-bytes>(): kotlin/ByteArray // io.github.kmpfacelink.voice.audio/AudioData.bytes.<get-bytes>|<get-bytes>(){}[0]
+    final val durationMs // io.github.kmpfacelink.voice.audio/AudioData.durationMs|{}durationMs[0]
+        final fun <get-durationMs>(): kotlin/Long // io.github.kmpfacelink.voice.audio/AudioData.durationMs.<get-durationMs>|<get-durationMs>(){}[0]
+    final val format // io.github.kmpfacelink.voice.audio/AudioData.format|{}format[0]
+        final fun <get-format>(): io.github.kmpfacelink.voice.audio/AudioFormat // io.github.kmpfacelink.voice.audio/AudioData.format.<get-format>|<get-format>(){}[0]
+
+    final fun component1(): kotlin/ByteArray // io.github.kmpfacelink.voice.audio/AudioData.component1|component1(){}[0]
+    final fun component2(): io.github.kmpfacelink.voice.audio/AudioFormat // io.github.kmpfacelink.voice.audio/AudioData.component2|component2(){}[0]
+    final fun component3(): kotlin/Long // io.github.kmpfacelink.voice.audio/AudioData.component3|component3(){}[0]
+    final fun copy(kotlin/ByteArray = ..., io.github.kmpfacelink.voice.audio/AudioFormat = ..., kotlin/Long = ...): io.github.kmpfacelink.voice.audio/AudioData // io.github.kmpfacelink.voice.audio/AudioData.copy|copy(kotlin.ByteArray;io.github.kmpfacelink.voice.audio.AudioFormat;kotlin.Long){}[0]
+    final fun equals(kotlin/Any?): kotlin/Boolean // io.github.kmpfacelink.voice.audio/AudioData.equals|equals(kotlin.Any?){}[0]
+    final fun hashCode(): kotlin/Int // io.github.kmpfacelink.voice.audio/AudioData.hashCode|hashCode(){}[0]
+    final fun toString(): kotlin/String // io.github.kmpfacelink.voice.audio/AudioData.toString|toString(){}[0]
+}
+
+final class io.github.kmpfacelink.voice.audio/AudioFormat { // io.github.kmpfacelink.voice.audio/AudioFormat|null[0]
+    constructor <init>(kotlin/Int = ..., kotlin/Int = ..., kotlin/Int = ...) // io.github.kmpfacelink.voice.audio/AudioFormat.<init>|<init>(kotlin.Int;kotlin.Int;kotlin.Int){}[0]
+
+    final val bitsPerSample // io.github.kmpfacelink.voice.audio/AudioFormat.bitsPerSample|{}bitsPerSample[0]
+        final fun <get-bitsPerSample>(): kotlin/Int // io.github.kmpfacelink.voice.audio/AudioFormat.bitsPerSample.<get-bitsPerSample>|<get-bitsPerSample>(){}[0]
+    final val channels // io.github.kmpfacelink.voice.audio/AudioFormat.channels|{}channels[0]
+        final fun <get-channels>(): kotlin/Int // io.github.kmpfacelink.voice.audio/AudioFormat.channels.<get-channels>|<get-channels>(){}[0]
+    final val sampleRate // io.github.kmpfacelink.voice.audio/AudioFormat.sampleRate|{}sampleRate[0]
+        final fun <get-sampleRate>(): kotlin/Int // io.github.kmpfacelink.voice.audio/AudioFormat.sampleRate.<get-sampleRate>|<get-sampleRate>(){}[0]
+
+    final fun component1(): kotlin/Int // io.github.kmpfacelink.voice.audio/AudioFormat.component1|component1(){}[0]
+    final fun component2(): kotlin/Int // io.github.kmpfacelink.voice.audio/AudioFormat.component2|component2(){}[0]
+    final fun component3(): kotlin/Int // io.github.kmpfacelink.voice.audio/AudioFormat.component3|component3(){}[0]
+    final fun copy(kotlin/Int = ..., kotlin/Int = ..., kotlin/Int = ...): io.github.kmpfacelink.voice.audio/AudioFormat // io.github.kmpfacelink.voice.audio/AudioFormat.copy|copy(kotlin.Int;kotlin.Int;kotlin.Int){}[0]
+    final fun equals(kotlin/Any?): kotlin/Boolean // io.github.kmpfacelink.voice.audio/AudioFormat.equals|equals(kotlin.Any?){}[0]
+    final fun hashCode(): kotlin/Int // io.github.kmpfacelink.voice.audio/AudioFormat.hashCode|hashCode(){}[0]
+    final fun toString(): kotlin/String // io.github.kmpfacelink.voice.audio/AudioFormat.toString|toString(){}[0]
+}
+
+final class io.github.kmpfacelink.voice.lipsync/AudioFeatures { // io.github.kmpfacelink.voice.lipsync/AudioFeatures|null[0]
+    constructor <init>(kotlin/Float, kotlin/Float, kotlin/Float) // io.github.kmpfacelink.voice.lipsync/AudioFeatures.<init>|<init>(kotlin.Float;kotlin.Float;kotlin.Float){}[0]
+
+    final val energy // io.github.kmpfacelink.voice.lipsync/AudioFeatures.energy|{}energy[0]
+        final fun <get-energy>(): kotlin/Float // io.github.kmpfacelink.voice.lipsync/AudioFeatures.energy.<get-energy>|<get-energy>(){}[0]
+    final val spectralCentroid // io.github.kmpfacelink.voice.lipsync/AudioFeatures.spectralCentroid|{}spectralCentroid[0]
+        final fun <get-spectralCentroid>(): kotlin/Float // io.github.kmpfacelink.voice.lipsync/AudioFeatures.spectralCentroid.<get-spectralCentroid>|<get-spectralCentroid>(){}[0]
+    final val zeroCrossingRate // io.github.kmpfacelink.voice.lipsync/AudioFeatures.zeroCrossingRate|{}zeroCrossingRate[0]
+        final fun <get-zeroCrossingRate>(): kotlin/Float // io.github.kmpfacelink.voice.lipsync/AudioFeatures.zeroCrossingRate.<get-zeroCrossingRate>|<get-zeroCrossingRate>(){}[0]
+
+    final fun component1(): kotlin/Float // io.github.kmpfacelink.voice.lipsync/AudioFeatures.component1|component1(){}[0]
+    final fun component2(): kotlin/Float // io.github.kmpfacelink.voice.lipsync/AudioFeatures.component2|component2(){}[0]
+    final fun component3(): kotlin/Float // io.github.kmpfacelink.voice.lipsync/AudioFeatures.component3|component3(){}[0]
+    final fun copy(kotlin/Float = ..., kotlin/Float = ..., kotlin/Float = ...): io.github.kmpfacelink.voice.lipsync/AudioFeatures // io.github.kmpfacelink.voice.lipsync/AudioFeatures.copy|copy(kotlin.Float;kotlin.Float;kotlin.Float){}[0]
+    final fun equals(kotlin/Any?): kotlin/Boolean // io.github.kmpfacelink.voice.lipsync/AudioFeatures.equals|equals(kotlin.Any?){}[0]
+    final fun hashCode(): kotlin/Int // io.github.kmpfacelink.voice.lipsync/AudioFeatures.hashCode|hashCode(){}[0]
+    final fun toString(): kotlin/String // io.github.kmpfacelink.voice.lipsync/AudioFeatures.toString|toString(){}[0]
+}
+
+final class io.github.kmpfacelink.voice.lipsync/LipSyncConfig { // io.github.kmpfacelink.voice.lipsync/LipSyncConfig|null[0]
+    constructor <init>(kotlin/Float = ..., kotlin/Float = ..., kotlin/Int = ..., io.github.kmpfacelink.voice.lipsync/LipSyncLanguage = ...) // io.github.kmpfacelink.voice.lipsync/LipSyncConfig.<init>|<init>(kotlin.Float;kotlin.Float;kotlin.Int;io.github.kmpfacelink.voice.lipsync.LipSyncLanguage){}[0]
+
+    final val amplitudeScale // io.github.kmpfacelink.voice.lipsync/LipSyncConfig.amplitudeScale|{}amplitudeScale[0]
+        final fun <get-amplitudeScale>(): kotlin/Float // io.github.kmpfacelink.voice.lipsync/LipSyncConfig.amplitudeScale.<get-amplitudeScale>|<get-amplitudeScale>(){}[0]
+    final val language // io.github.kmpfacelink.voice.lipsync/LipSyncConfig.language|{}language[0]
+        final fun <get-language>(): io.github.kmpfacelink.voice.lipsync/LipSyncLanguage // io.github.kmpfacelink.voice.lipsync/LipSyncConfig.language.<get-language>|<get-language>(){}[0]
+    final val smoothing // io.github.kmpfacelink.voice.lipsync/LipSyncConfig.smoothing|{}smoothing[0]
+        final fun <get-smoothing>(): kotlin/Float // io.github.kmpfacelink.voice.lipsync/LipSyncConfig.smoothing.<get-smoothing>|<get-smoothing>(){}[0]
+    final val targetFps // io.github.kmpfacelink.voice.lipsync/LipSyncConfig.targetFps|{}targetFps[0]
+        final fun <get-targetFps>(): kotlin/Int // io.github.kmpfacelink.voice.lipsync/LipSyncConfig.targetFps.<get-targetFps>|<get-targetFps>(){}[0]
+
+    final fun component1(): kotlin/Float // io.github.kmpfacelink.voice.lipsync/LipSyncConfig.component1|component1(){}[0]
+    final fun component2(): kotlin/Float // io.github.kmpfacelink.voice.lipsync/LipSyncConfig.component2|component2(){}[0]
+    final fun component3(): kotlin/Int // io.github.kmpfacelink.voice.lipsync/LipSyncConfig.component3|component3(){}[0]
+    final fun component4(): io.github.kmpfacelink.voice.lipsync/LipSyncLanguage // io.github.kmpfacelink.voice.lipsync/LipSyncConfig.component4|component4(){}[0]
+    final fun copy(kotlin/Float = ..., kotlin/Float = ..., kotlin/Int = ..., io.github.kmpfacelink.voice.lipsync/LipSyncLanguage = ...): io.github.kmpfacelink.voice.lipsync/LipSyncConfig // io.github.kmpfacelink.voice.lipsync/LipSyncConfig.copy|copy(kotlin.Float;kotlin.Float;kotlin.Int;io.github.kmpfacelink.voice.lipsync.LipSyncLanguage){}[0]
+    final fun equals(kotlin/Any?): kotlin/Boolean // io.github.kmpfacelink.voice.lipsync/LipSyncConfig.equals|equals(kotlin.Any?){}[0]
+    final fun hashCode(): kotlin/Int // io.github.kmpfacelink.voice.lipsync/LipSyncConfig.hashCode|hashCode(){}[0]
+    final fun toString(): kotlin/String // io.github.kmpfacelink.voice.lipsync/LipSyncConfig.toString|toString(){}[0]
+}
+
+final class io.github.kmpfacelink.voice.lipsync/LipSyncFrame { // io.github.kmpfacelink.voice.lipsync/LipSyncFrame|null[0]
+    constructor <init>(kotlin.collections/Map<io.github.kmpfacelink.model/BlendShape, kotlin/Float>, kotlin/Long) // io.github.kmpfacelink.voice.lipsync/LipSyncFrame.<init>|<init>(kotlin.collections.Map<io.github.kmpfacelink.model.BlendShape,kotlin.Float>;kotlin.Long){}[0]
+
+    final val blendShapes // io.github.kmpfacelink.voice.lipsync/LipSyncFrame.blendShapes|{}blendShapes[0]
+        final fun <get-blendShapes>(): kotlin.collections/Map<io.github.kmpfacelink.model/BlendShape, kotlin/Float> // io.github.kmpfacelink.voice.lipsync/LipSyncFrame.blendShapes.<get-blendShapes>|<get-blendShapes>(){}[0]
+    final val timestampMs // io.github.kmpfacelink.voice.lipsync/LipSyncFrame.timestampMs|{}timestampMs[0]
+        final fun <get-timestampMs>(): kotlin/Long // io.github.kmpfacelink.voice.lipsync/LipSyncFrame.timestampMs.<get-timestampMs>|<get-timestampMs>(){}[0]
+
+    final fun component1(): kotlin.collections/Map<io.github.kmpfacelink.model/BlendShape, kotlin/Float> // io.github.kmpfacelink.voice.lipsync/LipSyncFrame.component1|component1(){}[0]
+    final fun component2(): kotlin/Long // io.github.kmpfacelink.voice.lipsync/LipSyncFrame.component2|component2(){}[0]
+    final fun copy(kotlin.collections/Map<io.github.kmpfacelink.model/BlendShape, kotlin/Float> = ..., kotlin/Long = ...): io.github.kmpfacelink.voice.lipsync/LipSyncFrame // io.github.kmpfacelink.voice.lipsync/LipSyncFrame.copy|copy(kotlin.collections.Map<io.github.kmpfacelink.model.BlendShape,kotlin.Float>;kotlin.Long){}[0]
+    final fun equals(kotlin/Any?): kotlin/Boolean // io.github.kmpfacelink.voice.lipsync/LipSyncFrame.equals|equals(kotlin.Any?){}[0]
+    final fun hashCode(): kotlin/Int // io.github.kmpfacelink.voice.lipsync/LipSyncFrame.hashCode|hashCode(){}[0]
+    final fun toString(): kotlin/String // io.github.kmpfacelink.voice.lipsync/LipSyncFrame.toString|toString(){}[0]
+}
+
+final class io.github.kmpfacelink.voice.lipsync/NeuralLipSyncConfig { // io.github.kmpfacelink.voice.lipsync/NeuralLipSyncConfig|null[0]
+    constructor <init>(kotlin/String, kotlin/Boolean = ..., kotlin/Int = ..., kotlin/Long = ..., kotlin/Int = ...) // io.github.kmpfacelink.voice.lipsync/NeuralLipSyncConfig.<init>|<init>(kotlin.String;kotlin.Boolean;kotlin.Int;kotlin.Long;kotlin.Int){}[0]
+
+    final val inputWindowMs // io.github.kmpfacelink.voice.lipsync/NeuralLipSyncConfig.inputWindowMs|{}inputWindowMs[0]
+        final fun <get-inputWindowMs>(): kotlin/Long // io.github.kmpfacelink.voice.lipsync/NeuralLipSyncConfig.inputWindowMs.<get-inputWindowMs>|<get-inputWindowMs>(){}[0]
+    final val modelPath // io.github.kmpfacelink.voice.lipsync/NeuralLipSyncConfig.modelPath|{}modelPath[0]
+        final fun <get-modelPath>(): kotlin/String // io.github.kmpfacelink.voice.lipsync/NeuralLipSyncConfig.modelPath.<get-modelPath>|<get-modelPath>(){}[0]
+    final val numThreads // io.github.kmpfacelink.voice.lipsync/NeuralLipSyncConfig.numThreads|{}numThreads[0]
+        final fun <get-numThreads>(): kotlin/Int // io.github.kmpfacelink.voice.lipsync/NeuralLipSyncConfig.numThreads.<get-numThreads>|<get-numThreads>(){}[0]
+    final val outputBlendShapeCount // io.github.kmpfacelink.voice.lipsync/NeuralLipSyncConfig.outputBlendShapeCount|{}outputBlendShapeCount[0]
+        final fun <get-outputBlendShapeCount>(): kotlin/Int // io.github.kmpfacelink.voice.lipsync/NeuralLipSyncConfig.outputBlendShapeCount.<get-outputBlendShapeCount>|<get-outputBlendShapeCount>(){}[0]
+    final val useGpuDelegate // io.github.kmpfacelink.voice.lipsync/NeuralLipSyncConfig.useGpuDelegate|{}useGpuDelegate[0]
+        final fun <get-useGpuDelegate>(): kotlin/Boolean // io.github.kmpfacelink.voice.lipsync/NeuralLipSyncConfig.useGpuDelegate.<get-useGpuDelegate>|<get-useGpuDelegate>(){}[0]
+
+    final fun component1(): kotlin/String // io.github.kmpfacelink.voice.lipsync/NeuralLipSyncConfig.component1|component1(){}[0]
+    final fun component2(): kotlin/Boolean // io.github.kmpfacelink.voice.lipsync/NeuralLipSyncConfig.component2|component2(){}[0]
+    final fun component3(): kotlin/Int // io.github.kmpfacelink.voice.lipsync/NeuralLipSyncConfig.component3|component3(){}[0]
+    final fun component4(): kotlin/Long // io.github.kmpfacelink.voice.lipsync/NeuralLipSyncConfig.component4|component4(){}[0]
+    final fun component5(): kotlin/Int // io.github.kmpfacelink.voice.lipsync/NeuralLipSyncConfig.component5|component5(){}[0]
+    final fun copy(kotlin/String = ..., kotlin/Boolean = ..., kotlin/Int = ..., kotlin/Long = ..., kotlin/Int = ...): io.github.kmpfacelink.voice.lipsync/NeuralLipSyncConfig // io.github.kmpfacelink.voice.lipsync/NeuralLipSyncConfig.copy|copy(kotlin.String;kotlin.Boolean;kotlin.Int;kotlin.Long;kotlin.Int){}[0]
+    final fun equals(kotlin/Any?): kotlin/Boolean // io.github.kmpfacelink.voice.lipsync/NeuralLipSyncConfig.equals|equals(kotlin.Any?){}[0]
+    final fun hashCode(): kotlin/Int // io.github.kmpfacelink.voice.lipsync/NeuralLipSyncConfig.hashCode|hashCode(){}[0]
+    final fun toString(): kotlin/String // io.github.kmpfacelink.voice.lipsync/NeuralLipSyncConfig.toString|toString(){}[0]
+
+    final object Companion // io.github.kmpfacelink.voice.lipsync/NeuralLipSyncConfig.Companion|null[0]
+}
+
+final class io.github.kmpfacelink.voice.tts/PhonemeEvent { // io.github.kmpfacelink.voice.tts/PhonemeEvent|null[0]
+    constructor <init>(kotlin/String, kotlin/Long, kotlin/Long) // io.github.kmpfacelink.voice.tts/PhonemeEvent.<init>|<init>(kotlin.String;kotlin.Long;kotlin.Long){}[0]
+
+    final val endMs // io.github.kmpfacelink.voice.tts/PhonemeEvent.endMs|{}endMs[0]
+        final fun <get-endMs>(): kotlin/Long // io.github.kmpfacelink.voice.tts/PhonemeEvent.endMs.<get-endMs>|<get-endMs>(){}[0]
+    final val phoneme // io.github.kmpfacelink.voice.tts/PhonemeEvent.phoneme|{}phoneme[0]
+        final fun <get-phoneme>(): kotlin/String // io.github.kmpfacelink.voice.tts/PhonemeEvent.phoneme.<get-phoneme>|<get-phoneme>(){}[0]
+    final val startMs // io.github.kmpfacelink.voice.tts/PhonemeEvent.startMs|{}startMs[0]
+        final fun <get-startMs>(): kotlin/Long // io.github.kmpfacelink.voice.tts/PhonemeEvent.startMs.<get-startMs>|<get-startMs>(){}[0]
+
+    final fun component1(): kotlin/String // io.github.kmpfacelink.voice.tts/PhonemeEvent.component1|component1(){}[0]
+    final fun component2(): kotlin/Long // io.github.kmpfacelink.voice.tts/PhonemeEvent.component2|component2(){}[0]
+    final fun component3(): kotlin/Long // io.github.kmpfacelink.voice.tts/PhonemeEvent.component3|component3(){}[0]
+    final fun copy(kotlin/String = ..., kotlin/Long = ..., kotlin/Long = ...): io.github.kmpfacelink.voice.tts/PhonemeEvent // io.github.kmpfacelink.voice.tts/PhonemeEvent.copy|copy(kotlin.String;kotlin.Long;kotlin.Long){}[0]
+    final fun equals(kotlin/Any?): kotlin/Boolean // io.github.kmpfacelink.voice.tts/PhonemeEvent.equals|equals(kotlin.Any?){}[0]
+    final fun hashCode(): kotlin/Int // io.github.kmpfacelink.voice.tts/PhonemeEvent.hashCode|hashCode(){}[0]
+    final fun toString(): kotlin/String // io.github.kmpfacelink.voice.tts/PhonemeEvent.toString|toString(){}[0]
+}
+
+final class io.github.kmpfacelink.voice.tts/TtsResult { // io.github.kmpfacelink.voice.tts/TtsResult|null[0]
+    constructor <init>(io.github.kmpfacelink.voice.audio/AudioData, kotlin.collections/List<io.github.kmpfacelink.voice.tts/PhonemeEvent> = ..., kotlin/Long) // io.github.kmpfacelink.voice.tts/TtsResult.<init>|<init>(io.github.kmpfacelink.voice.audio.AudioData;kotlin.collections.List<io.github.kmpfacelink.voice.tts.PhonemeEvent>;kotlin.Long){}[0]
+
+    final val audio // io.github.kmpfacelink.voice.tts/TtsResult.audio|{}audio[0]
+        final fun <get-audio>(): io.github.kmpfacelink.voice.audio/AudioData // io.github.kmpfacelink.voice.tts/TtsResult.audio.<get-audio>|<get-audio>(){}[0]
+    final val durationMs // io.github.kmpfacelink.voice.tts/TtsResult.durationMs|{}durationMs[0]
+        final fun <get-durationMs>(): kotlin/Long // io.github.kmpfacelink.voice.tts/TtsResult.durationMs.<get-durationMs>|<get-durationMs>(){}[0]
+    final val phonemeEvents // io.github.kmpfacelink.voice.tts/TtsResult.phonemeEvents|{}phonemeEvents[0]
+        final fun <get-phonemeEvents>(): kotlin.collections/List<io.github.kmpfacelink.voice.tts/PhonemeEvent> // io.github.kmpfacelink.voice.tts/TtsResult.phonemeEvents.<get-phonemeEvents>|<get-phonemeEvents>(){}[0]
+
+    final fun component1(): io.github.kmpfacelink.voice.audio/AudioData // io.github.kmpfacelink.voice.tts/TtsResult.component1|component1(){}[0]
+    final fun component2(): kotlin.collections/List<io.github.kmpfacelink.voice.tts/PhonemeEvent> // io.github.kmpfacelink.voice.tts/TtsResult.component2|component2(){}[0]
+    final fun component3(): kotlin/Long // io.github.kmpfacelink.voice.tts/TtsResult.component3|component3(){}[0]
+    final fun copy(io.github.kmpfacelink.voice.audio/AudioData = ..., kotlin.collections/List<io.github.kmpfacelink.voice.tts/PhonemeEvent> = ..., kotlin/Long = ...): io.github.kmpfacelink.voice.tts/TtsResult // io.github.kmpfacelink.voice.tts/TtsResult.copy|copy(io.github.kmpfacelink.voice.audio.AudioData;kotlin.collections.List<io.github.kmpfacelink.voice.tts.PhonemeEvent>;kotlin.Long){}[0]
+    final fun equals(kotlin/Any?): kotlin/Boolean // io.github.kmpfacelink.voice.tts/TtsResult.equals|equals(kotlin.Any?){}[0]
+    final fun hashCode(): kotlin/Int // io.github.kmpfacelink.voice.tts/TtsResult.hashCode|hashCode(){}[0]
+    final fun toString(): kotlin/String // io.github.kmpfacelink.voice.tts/TtsResult.toString|toString(){}[0]
+}
+
+final class io.github.kmpfacelink.voice/VoicePipeline : io.github.kmpfacelink.api/Releasable, kotlin/AutoCloseable { // io.github.kmpfacelink.voice/VoicePipeline|null[0]
+    constructor <init>(io.github.kmpfacelink.voice/VoicePipelineConfig, io.github.kmpfacelink.voice.audio/AudioRecorder? = ..., io.github.kmpfacelink.voice.audio/AudioPlayer? = ..., io.github.kmpfacelink.voice.tts/TtsEngine? = ..., io.github.kmpfacelink.voice.asr/AsrEngine? = ..., io.github.kmpfacelink.voice.lipsync/LipSyncEngine? = ..., kotlinx.coroutines/CoroutineDispatcher = ...) // io.github.kmpfacelink.voice/VoicePipeline.<init>|<init>(io.github.kmpfacelink.voice.VoicePipelineConfig;io.github.kmpfacelink.voice.audio.AudioRecorder?;io.github.kmpfacelink.voice.audio.AudioPlayer?;io.github.kmpfacelink.voice.tts.TtsEngine?;io.github.kmpfacelink.voice.asr.AsrEngine?;io.github.kmpfacelink.voice.lipsync.LipSyncEngine?;kotlinx.coroutines.CoroutineDispatcher){}[0]
+
+    final val lipSyncOutput // io.github.kmpfacelink.voice/VoicePipeline.lipSyncOutput|{}lipSyncOutput[0]
+        final fun <get-lipSyncOutput>(): kotlinx.coroutines.flow/Flow<kotlin.collections/Map<io.github.kmpfacelink.model/BlendShape, kotlin/Float>> // io.github.kmpfacelink.voice/VoicePipeline.lipSyncOutput.<get-lipSyncOutput>|<get-lipSyncOutput>(){}[0]
+    final val state // io.github.kmpfacelink.voice/VoicePipeline.state|{}state[0]
+        final fun <get-state>(): kotlinx.coroutines.flow/StateFlow<io.github.kmpfacelink.voice/VoicePipelineState> // io.github.kmpfacelink.voice/VoicePipeline.state.<get-state>|<get-state>(){}[0]
+    final val transcriptions // io.github.kmpfacelink.voice/VoicePipeline.transcriptions|{}transcriptions[0]
+        final fun <get-transcriptions>(): kotlinx.coroutines.flow/Flow<io.github.kmpfacelink.voice.asr/TranscriptionResult> // io.github.kmpfacelink.voice/VoicePipeline.transcriptions.<get-transcriptions>|<get-transcriptions>(){}[0]
+
+    final fun close() // io.github.kmpfacelink.voice/VoicePipeline.close|close(){}[0]
+    final fun release() // io.github.kmpfacelink.voice/VoicePipeline.release|release(){}[0]
+    final suspend fun speak(kotlin/String): kotlinx.coroutines.flow/Flow<kotlin.collections/Map<io.github.kmpfacelink.model/BlendShape, kotlin/Float>> // io.github.kmpfacelink.voice/VoicePipeline.speak|speak(kotlin.String){}[0]
+    final suspend fun startListening() // io.github.kmpfacelink.voice/VoicePipeline.startListening|startListening(){}[0]
+    final suspend fun stopListening(): io.github.kmpfacelink.voice.asr/TranscriptionResult? // io.github.kmpfacelink.voice/VoicePipeline.stopListening|stopListening(){}[0]
+}
+
+final class io.github.kmpfacelink.voice/VoicePipelineConfig { // io.github.kmpfacelink.voice/VoicePipelineConfig|null[0]
+    constructor <init>(io.github.kmpfacelink.voice.asr/AsrConfig? = ..., io.github.kmpfacelink.voice.tts/TtsConfig, io.github.kmpfacelink.voice.lipsync/LipSyncConfig = ..., kotlin/Boolean = ...) // io.github.kmpfacelink.voice/VoicePipelineConfig.<init>|<init>(io.github.kmpfacelink.voice.asr.AsrConfig?;io.github.kmpfacelink.voice.tts.TtsConfig;io.github.kmpfacelink.voice.lipsync.LipSyncConfig;kotlin.Boolean){}[0]
+
+    final val asrConfig // io.github.kmpfacelink.voice/VoicePipelineConfig.asrConfig|{}asrConfig[0]
+        final fun <get-asrConfig>(): io.github.kmpfacelink.voice.asr/AsrConfig? // io.github.kmpfacelink.voice/VoicePipelineConfig.asrConfig.<get-asrConfig>|<get-asrConfig>(){}[0]
+    final val autoPlayAudio // io.github.kmpfacelink.voice/VoicePipelineConfig.autoPlayAudio|{}autoPlayAudio[0]
+        final fun <get-autoPlayAudio>(): kotlin/Boolean // io.github.kmpfacelink.voice/VoicePipelineConfig.autoPlayAudio.<get-autoPlayAudio>|<get-autoPlayAudio>(){}[0]
+    final val lipSyncConfig // io.github.kmpfacelink.voice/VoicePipelineConfig.lipSyncConfig|{}lipSyncConfig[0]
+        final fun <get-lipSyncConfig>(): io.github.kmpfacelink.voice.lipsync/LipSyncConfig // io.github.kmpfacelink.voice/VoicePipelineConfig.lipSyncConfig.<get-lipSyncConfig>|<get-lipSyncConfig>(){}[0]
+    final val ttsConfig // io.github.kmpfacelink.voice/VoicePipelineConfig.ttsConfig|{}ttsConfig[0]
+        final fun <get-ttsConfig>(): io.github.kmpfacelink.voice.tts/TtsConfig // io.github.kmpfacelink.voice/VoicePipelineConfig.ttsConfig.<get-ttsConfig>|<get-ttsConfig>(){}[0]
+
+    final fun component1(): io.github.kmpfacelink.voice.asr/AsrConfig? // io.github.kmpfacelink.voice/VoicePipelineConfig.component1|component1(){}[0]
+    final fun component2(): io.github.kmpfacelink.voice.tts/TtsConfig // io.github.kmpfacelink.voice/VoicePipelineConfig.component2|component2(){}[0]
+    final fun component3(): io.github.kmpfacelink.voice.lipsync/LipSyncConfig // io.github.kmpfacelink.voice/VoicePipelineConfig.component3|component3(){}[0]
+    final fun component4(): kotlin/Boolean // io.github.kmpfacelink.voice/VoicePipelineConfig.component4|component4(){}[0]
+    final fun copy(io.github.kmpfacelink.voice.asr/AsrConfig? = ..., io.github.kmpfacelink.voice.tts/TtsConfig = ..., io.github.kmpfacelink.voice.lipsync/LipSyncConfig = ..., kotlin/Boolean = ...): io.github.kmpfacelink.voice/VoicePipelineConfig // io.github.kmpfacelink.voice/VoicePipelineConfig.copy|copy(io.github.kmpfacelink.voice.asr.AsrConfig?;io.github.kmpfacelink.voice.tts.TtsConfig;io.github.kmpfacelink.voice.lipsync.LipSyncConfig;kotlin.Boolean){}[0]
+    final fun equals(kotlin/Any?): kotlin/Boolean // io.github.kmpfacelink.voice/VoicePipelineConfig.equals|equals(kotlin.Any?){}[0]
+    final fun hashCode(): kotlin/Int // io.github.kmpfacelink.voice/VoicePipelineConfig.hashCode|hashCode(){}[0]
+    final fun toString(): kotlin/String // io.github.kmpfacelink.voice/VoicePipelineConfig.toString|toString(){}[0]
+}
+
+sealed class io.github.kmpfacelink.voice.asr/AsrConfig { // io.github.kmpfacelink.voice.asr/AsrConfig|null[0]
+    final class OpenAiWhisper : io.github.kmpfacelink.voice.asr/AsrConfig { // io.github.kmpfacelink.voice.asr/AsrConfig.OpenAiWhisper|null[0]
+        constructor <init>(kotlin/String, kotlin/String = ..., kotlin/String = ..., kotlin/String? = ...) // io.github.kmpfacelink.voice.asr/AsrConfig.OpenAiWhisper.<init>|<init>(kotlin.String;kotlin.String;kotlin.String;kotlin.String?){}[0]
+
+        final val apiKey // io.github.kmpfacelink.voice.asr/AsrConfig.OpenAiWhisper.apiKey|{}apiKey[0]
+            final fun <get-apiKey>(): kotlin/String // io.github.kmpfacelink.voice.asr/AsrConfig.OpenAiWhisper.apiKey.<get-apiKey>|<get-apiKey>(){}[0]
+        final val baseUrl // io.github.kmpfacelink.voice.asr/AsrConfig.OpenAiWhisper.baseUrl|{}baseUrl[0]
+            final fun <get-baseUrl>(): kotlin/String // io.github.kmpfacelink.voice.asr/AsrConfig.OpenAiWhisper.baseUrl.<get-baseUrl>|<get-baseUrl>(){}[0]
+        final val language // io.github.kmpfacelink.voice.asr/AsrConfig.OpenAiWhisper.language|{}language[0]
+            final fun <get-language>(): kotlin/String? // io.github.kmpfacelink.voice.asr/AsrConfig.OpenAiWhisper.language.<get-language>|<get-language>(){}[0]
+        final val model // io.github.kmpfacelink.voice.asr/AsrConfig.OpenAiWhisper.model|{}model[0]
+            final fun <get-model>(): kotlin/String // io.github.kmpfacelink.voice.asr/AsrConfig.OpenAiWhisper.model.<get-model>|<get-model>(){}[0]
+
+        final fun component1(): kotlin/String // io.github.kmpfacelink.voice.asr/AsrConfig.OpenAiWhisper.component1|component1(){}[0]
+        final fun component2(): kotlin/String // io.github.kmpfacelink.voice.asr/AsrConfig.OpenAiWhisper.component2|component2(){}[0]
+        final fun component3(): kotlin/String // io.github.kmpfacelink.voice.asr/AsrConfig.OpenAiWhisper.component3|component3(){}[0]
+        final fun component4(): kotlin/String? // io.github.kmpfacelink.voice.asr/AsrConfig.OpenAiWhisper.component4|component4(){}[0]
+        final fun copy(kotlin/String = ..., kotlin/String = ..., kotlin/String = ..., kotlin/String? = ...): io.github.kmpfacelink.voice.asr/AsrConfig.OpenAiWhisper // io.github.kmpfacelink.voice.asr/AsrConfig.OpenAiWhisper.copy|copy(kotlin.String;kotlin.String;kotlin.String;kotlin.String?){}[0]
+        final fun equals(kotlin/Any?): kotlin/Boolean // io.github.kmpfacelink.voice.asr/AsrConfig.OpenAiWhisper.equals|equals(kotlin.Any?){}[0]
+        final fun hashCode(): kotlin/Int // io.github.kmpfacelink.voice.asr/AsrConfig.OpenAiWhisper.hashCode|hashCode(){}[0]
+        final fun toString(): kotlin/String // io.github.kmpfacelink.voice.asr/AsrConfig.OpenAiWhisper.toString|toString(){}[0]
+    }
+
+    final class WhisperCpp : io.github.kmpfacelink.voice.asr/AsrConfig { // io.github.kmpfacelink.voice.asr/AsrConfig.WhisperCpp|null[0]
+        constructor <init>(kotlin/String, kotlin/String? = ..., kotlin/Int = ...) // io.github.kmpfacelink.voice.asr/AsrConfig.WhisperCpp.<init>|<init>(kotlin.String;kotlin.String?;kotlin.Int){}[0]
+
+        final val language // io.github.kmpfacelink.voice.asr/AsrConfig.WhisperCpp.language|{}language[0]
+            final fun <get-language>(): kotlin/String? // io.github.kmpfacelink.voice.asr/AsrConfig.WhisperCpp.language.<get-language>|<get-language>(){}[0]
+        final val modelPath // io.github.kmpfacelink.voice.asr/AsrConfig.WhisperCpp.modelPath|{}modelPath[0]
+            final fun <get-modelPath>(): kotlin/String // io.github.kmpfacelink.voice.asr/AsrConfig.WhisperCpp.modelPath.<get-modelPath>|<get-modelPath>(){}[0]
+        final val threads // io.github.kmpfacelink.voice.asr/AsrConfig.WhisperCpp.threads|{}threads[0]
+            final fun <get-threads>(): kotlin/Int // io.github.kmpfacelink.voice.asr/AsrConfig.WhisperCpp.threads.<get-threads>|<get-threads>(){}[0]
+
+        final fun component1(): kotlin/String // io.github.kmpfacelink.voice.asr/AsrConfig.WhisperCpp.component1|component1(){}[0]
+        final fun component2(): kotlin/String? // io.github.kmpfacelink.voice.asr/AsrConfig.WhisperCpp.component2|component2(){}[0]
+        final fun component3(): kotlin/Int // io.github.kmpfacelink.voice.asr/AsrConfig.WhisperCpp.component3|component3(){}[0]
+        final fun copy(kotlin/String = ..., kotlin/String? = ..., kotlin/Int = ...): io.github.kmpfacelink.voice.asr/AsrConfig.WhisperCpp // io.github.kmpfacelink.voice.asr/AsrConfig.WhisperCpp.copy|copy(kotlin.String;kotlin.String?;kotlin.Int){}[0]
+        final fun equals(kotlin/Any?): kotlin/Boolean // io.github.kmpfacelink.voice.asr/AsrConfig.WhisperCpp.equals|equals(kotlin.Any?){}[0]
+        final fun hashCode(): kotlin/Int // io.github.kmpfacelink.voice.asr/AsrConfig.WhisperCpp.hashCode|hashCode(){}[0]
+        final fun toString(): kotlin/String // io.github.kmpfacelink.voice.asr/AsrConfig.WhisperCpp.toString|toString(){}[0]
+    }
+}
+
+sealed class io.github.kmpfacelink.voice.asr/AsrState : io.github.kmpfacelink.voice/EngineState { // io.github.kmpfacelink.voice.asr/AsrState|null[0]
+    final class Error : io.github.kmpfacelink.voice.asr/AsrState, io.github.kmpfacelink.voice/EngineState.Error { // io.github.kmpfacelink.voice.asr/AsrState.Error|null[0]
+        constructor <init>(kotlin/String) // io.github.kmpfacelink.voice.asr/AsrState.Error.<init>|<init>(kotlin.String){}[0]
+
+        final val message // io.github.kmpfacelink.voice.asr/AsrState.Error.message|{}message[0]
+            final fun <get-message>(): kotlin/String // io.github.kmpfacelink.voice.asr/AsrState.Error.message.<get-message>|<get-message>(){}[0]
+
+        final fun component1(): kotlin/String // io.github.kmpfacelink.voice.asr/AsrState.Error.component1|component1(){}[0]
+        final fun copy(kotlin/String = ...): io.github.kmpfacelink.voice.asr/AsrState.Error // io.github.kmpfacelink.voice.asr/AsrState.Error.copy|copy(kotlin.String){}[0]
+        final fun equals(kotlin/Any?): kotlin/Boolean // io.github.kmpfacelink.voice.asr/AsrState.Error.equals|equals(kotlin.Any?){}[0]
+        final fun hashCode(): kotlin/Int // io.github.kmpfacelink.voice.asr/AsrState.Error.hashCode|hashCode(){}[0]
+        final fun toString(): kotlin/String // io.github.kmpfacelink.voice.asr/AsrState.Error.toString|toString(){}[0]
+    }
+
+    final object Idle : io.github.kmpfacelink.voice.asr/AsrState, io.github.kmpfacelink.voice/EngineState.Idle { // io.github.kmpfacelink.voice.asr/AsrState.Idle|null[0]
+        final fun equals(kotlin/Any?): kotlin/Boolean // io.github.kmpfacelink.voice.asr/AsrState.Idle.equals|equals(kotlin.Any?){}[0]
+        final fun hashCode(): kotlin/Int // io.github.kmpfacelink.voice.asr/AsrState.Idle.hashCode|hashCode(){}[0]
+        final fun toString(): kotlin/String // io.github.kmpfacelink.voice.asr/AsrState.Idle.toString|toString(){}[0]
+    }
+
+    final object Listening : io.github.kmpfacelink.voice.asr/AsrState, io.github.kmpfacelink.voice/EngineState.Active { // io.github.kmpfacelink.voice.asr/AsrState.Listening|null[0]
+        final fun equals(kotlin/Any?): kotlin/Boolean // io.github.kmpfacelink.voice.asr/AsrState.Listening.equals|equals(kotlin.Any?){}[0]
+        final fun hashCode(): kotlin/Int // io.github.kmpfacelink.voice.asr/AsrState.Listening.hashCode|hashCode(){}[0]
+        final fun toString(): kotlin/String // io.github.kmpfacelink.voice.asr/AsrState.Listening.toString|toString(){}[0]
+    }
+
+    final object Processing : io.github.kmpfacelink.voice.asr/AsrState, io.github.kmpfacelink.voice/EngineState.Active { // io.github.kmpfacelink.voice.asr/AsrState.Processing|null[0]
+        final fun equals(kotlin/Any?): kotlin/Boolean // io.github.kmpfacelink.voice.asr/AsrState.Processing.equals|equals(kotlin.Any?){}[0]
+        final fun hashCode(): kotlin/Int // io.github.kmpfacelink.voice.asr/AsrState.Processing.hashCode|hashCode(){}[0]
+        final fun toString(): kotlin/String // io.github.kmpfacelink.voice.asr/AsrState.Processing.toString|toString(){}[0]
+    }
+}
+
+sealed class io.github.kmpfacelink.voice.tts/TtsConfig { // io.github.kmpfacelink.voice.tts/TtsConfig|null[0]
+    final class ElevenLabs : io.github.kmpfacelink.voice.tts/TtsConfig { // io.github.kmpfacelink.voice.tts/TtsConfig.ElevenLabs|null[0]
+        constructor <init>(kotlin/String, kotlin/String = ..., kotlin/String, kotlin/String = ..., kotlin/Float = ..., kotlin/Float = ...) // io.github.kmpfacelink.voice.tts/TtsConfig.ElevenLabs.<init>|<init>(kotlin.String;kotlin.String;kotlin.String;kotlin.String;kotlin.Float;kotlin.Float){}[0]
+
+        final val apiKey // io.github.kmpfacelink.voice.tts/TtsConfig.ElevenLabs.apiKey|{}apiKey[0]
+            final fun <get-apiKey>(): kotlin/String // io.github.kmpfacelink.voice.tts/TtsConfig.ElevenLabs.apiKey.<get-apiKey>|<get-apiKey>(){}[0]
+        final val baseUrl // io.github.kmpfacelink.voice.tts/TtsConfig.ElevenLabs.baseUrl|{}baseUrl[0]
+            final fun <get-baseUrl>(): kotlin/String // io.github.kmpfacelink.voice.tts/TtsConfig.ElevenLabs.baseUrl.<get-baseUrl>|<get-baseUrl>(){}[0]
+        final val modelId // io.github.kmpfacelink.voice.tts/TtsConfig.ElevenLabs.modelId|{}modelId[0]
+            final fun <get-modelId>(): kotlin/String // io.github.kmpfacelink.voice.tts/TtsConfig.ElevenLabs.modelId.<get-modelId>|<get-modelId>(){}[0]
+        final val similarityBoost // io.github.kmpfacelink.voice.tts/TtsConfig.ElevenLabs.similarityBoost|{}similarityBoost[0]
+            final fun <get-similarityBoost>(): kotlin/Float // io.github.kmpfacelink.voice.tts/TtsConfig.ElevenLabs.similarityBoost.<get-similarityBoost>|<get-similarityBoost>(){}[0]
+        final val stability // io.github.kmpfacelink.voice.tts/TtsConfig.ElevenLabs.stability|{}stability[0]
+            final fun <get-stability>(): kotlin/Float // io.github.kmpfacelink.voice.tts/TtsConfig.ElevenLabs.stability.<get-stability>|<get-stability>(){}[0]
+        final val voiceId // io.github.kmpfacelink.voice.tts/TtsConfig.ElevenLabs.voiceId|{}voiceId[0]
+            final fun <get-voiceId>(): kotlin/String // io.github.kmpfacelink.voice.tts/TtsConfig.ElevenLabs.voiceId.<get-voiceId>|<get-voiceId>(){}[0]
+
+        final fun component1(): kotlin/String // io.github.kmpfacelink.voice.tts/TtsConfig.ElevenLabs.component1|component1(){}[0]
+        final fun component2(): kotlin/String // io.github.kmpfacelink.voice.tts/TtsConfig.ElevenLabs.component2|component2(){}[0]
+        final fun component3(): kotlin/String // io.github.kmpfacelink.voice.tts/TtsConfig.ElevenLabs.component3|component3(){}[0]
+        final fun component4(): kotlin/String // io.github.kmpfacelink.voice.tts/TtsConfig.ElevenLabs.component4|component4(){}[0]
+        final fun component5(): kotlin/Float // io.github.kmpfacelink.voice.tts/TtsConfig.ElevenLabs.component5|component5(){}[0]
+        final fun component6(): kotlin/Float // io.github.kmpfacelink.voice.tts/TtsConfig.ElevenLabs.component6|component6(){}[0]
+        final fun copy(kotlin/String = ..., kotlin/String = ..., kotlin/String = ..., kotlin/String = ..., kotlin/Float = ..., kotlin/Float = ...): io.github.kmpfacelink.voice.tts/TtsConfig.ElevenLabs // io.github.kmpfacelink.voice.tts/TtsConfig.ElevenLabs.copy|copy(kotlin.String;kotlin.String;kotlin.String;kotlin.String;kotlin.Float;kotlin.Float){}[0]
+        final fun equals(kotlin/Any?): kotlin/Boolean // io.github.kmpfacelink.voice.tts/TtsConfig.ElevenLabs.equals|equals(kotlin.Any?){}[0]
+        final fun hashCode(): kotlin/Int // io.github.kmpfacelink.voice.tts/TtsConfig.ElevenLabs.hashCode|hashCode(){}[0]
+        final fun toString(): kotlin/String // io.github.kmpfacelink.voice.tts/TtsConfig.ElevenLabs.toString|toString(){}[0]
+    }
+
+    final class OpenAiTts : io.github.kmpfacelink.voice.tts/TtsConfig { // io.github.kmpfacelink.voice.tts/TtsConfig.OpenAiTts|null[0]
+        constructor <init>(kotlin/String, kotlin/String = ..., kotlin/String = ..., kotlin/String = ..., kotlin/Float = ...) // io.github.kmpfacelink.voice.tts/TtsConfig.OpenAiTts.<init>|<init>(kotlin.String;kotlin.String;kotlin.String;kotlin.String;kotlin.Float){}[0]
+
+        final val apiKey // io.github.kmpfacelink.voice.tts/TtsConfig.OpenAiTts.apiKey|{}apiKey[0]
+            final fun <get-apiKey>(): kotlin/String // io.github.kmpfacelink.voice.tts/TtsConfig.OpenAiTts.apiKey.<get-apiKey>|<get-apiKey>(){}[0]
+        final val baseUrl // io.github.kmpfacelink.voice.tts/TtsConfig.OpenAiTts.baseUrl|{}baseUrl[0]
+            final fun <get-baseUrl>(): kotlin/String // io.github.kmpfacelink.voice.tts/TtsConfig.OpenAiTts.baseUrl.<get-baseUrl>|<get-baseUrl>(){}[0]
+        final val model // io.github.kmpfacelink.voice.tts/TtsConfig.OpenAiTts.model|{}model[0]
+            final fun <get-model>(): kotlin/String // io.github.kmpfacelink.voice.tts/TtsConfig.OpenAiTts.model.<get-model>|<get-model>(){}[0]
+        final val speed // io.github.kmpfacelink.voice.tts/TtsConfig.OpenAiTts.speed|{}speed[0]
+            final fun <get-speed>(): kotlin/Float // io.github.kmpfacelink.voice.tts/TtsConfig.OpenAiTts.speed.<get-speed>|<get-speed>(){}[0]
+        final val voice // io.github.kmpfacelink.voice.tts/TtsConfig.OpenAiTts.voice|{}voice[0]
+            final fun <get-voice>(): kotlin/String // io.github.kmpfacelink.voice.tts/TtsConfig.OpenAiTts.voice.<get-voice>|<get-voice>(){}[0]
+
+        final fun component1(): kotlin/String // io.github.kmpfacelink.voice.tts/TtsConfig.OpenAiTts.component1|component1(){}[0]
+        final fun component2(): kotlin/String // io.github.kmpfacelink.voice.tts/TtsConfig.OpenAiTts.component2|component2(){}[0]
+        final fun component3(): kotlin/String // io.github.kmpfacelink.voice.tts/TtsConfig.OpenAiTts.component3|component3(){}[0]
+        final fun component4(): kotlin/String // io.github.kmpfacelink.voice.tts/TtsConfig.OpenAiTts.component4|component4(){}[0]
+        final fun component5(): kotlin/Float // io.github.kmpfacelink.voice.tts/TtsConfig.OpenAiTts.component5|component5(){}[0]
+        final fun copy(kotlin/String = ..., kotlin/String = ..., kotlin/String = ..., kotlin/String = ..., kotlin/Float = ...): io.github.kmpfacelink.voice.tts/TtsConfig.OpenAiTts // io.github.kmpfacelink.voice.tts/TtsConfig.OpenAiTts.copy|copy(kotlin.String;kotlin.String;kotlin.String;kotlin.String;kotlin.Float){}[0]
+        final fun equals(kotlin/Any?): kotlin/Boolean // io.github.kmpfacelink.voice.tts/TtsConfig.OpenAiTts.equals|equals(kotlin.Any?){}[0]
+        final fun hashCode(): kotlin/Int // io.github.kmpfacelink.voice.tts/TtsConfig.OpenAiTts.hashCode|hashCode(){}[0]
+        final fun toString(): kotlin/String // io.github.kmpfacelink.voice.tts/TtsConfig.OpenAiTts.toString|toString(){}[0]
+    }
+
+    final class Voicevox : io.github.kmpfacelink.voice.tts/TtsConfig { // io.github.kmpfacelink.voice.tts/TtsConfig.Voicevox|null[0]
+        constructor <init>(kotlin/String = ..., kotlin/Int = ..., kotlin/Int = ...) // io.github.kmpfacelink.voice.tts/TtsConfig.Voicevox.<init>|<init>(kotlin.String;kotlin.Int;kotlin.Int){}[0]
+
+        final val host // io.github.kmpfacelink.voice.tts/TtsConfig.Voicevox.host|{}host[0]
+            final fun <get-host>(): kotlin/String // io.github.kmpfacelink.voice.tts/TtsConfig.Voicevox.host.<get-host>|<get-host>(){}[0]
+        final val port // io.github.kmpfacelink.voice.tts/TtsConfig.Voicevox.port|{}port[0]
+            final fun <get-port>(): kotlin/Int // io.github.kmpfacelink.voice.tts/TtsConfig.Voicevox.port.<get-port>|<get-port>(){}[0]
+        final val speakerId // io.github.kmpfacelink.voice.tts/TtsConfig.Voicevox.speakerId|{}speakerId[0]
+            final fun <get-speakerId>(): kotlin/Int // io.github.kmpfacelink.voice.tts/TtsConfig.Voicevox.speakerId.<get-speakerId>|<get-speakerId>(){}[0]
+
+        final fun component1(): kotlin/String // io.github.kmpfacelink.voice.tts/TtsConfig.Voicevox.component1|component1(){}[0]
+        final fun component2(): kotlin/Int // io.github.kmpfacelink.voice.tts/TtsConfig.Voicevox.component2|component2(){}[0]
+        final fun component3(): kotlin/Int // io.github.kmpfacelink.voice.tts/TtsConfig.Voicevox.component3|component3(){}[0]
+        final fun copy(kotlin/String = ..., kotlin/Int = ..., kotlin/Int = ...): io.github.kmpfacelink.voice.tts/TtsConfig.Voicevox // io.github.kmpfacelink.voice.tts/TtsConfig.Voicevox.copy|copy(kotlin.String;kotlin.Int;kotlin.Int){}[0]
+        final fun equals(kotlin/Any?): kotlin/Boolean // io.github.kmpfacelink.voice.tts/TtsConfig.Voicevox.equals|equals(kotlin.Any?){}[0]
+        final fun hashCode(): kotlin/Int // io.github.kmpfacelink.voice.tts/TtsConfig.Voicevox.hashCode|hashCode(){}[0]
+        final fun toString(): kotlin/String // io.github.kmpfacelink.voice.tts/TtsConfig.Voicevox.toString|toString(){}[0]
+    }
+}
+
+sealed class io.github.kmpfacelink.voice.tts/TtsState : io.github.kmpfacelink.voice/EngineState { // io.github.kmpfacelink.voice.tts/TtsState|null[0]
+    final class Error : io.github.kmpfacelink.voice.tts/TtsState, io.github.kmpfacelink.voice/EngineState.Error { // io.github.kmpfacelink.voice.tts/TtsState.Error|null[0]
+        constructor <init>(kotlin/String) // io.github.kmpfacelink.voice.tts/TtsState.Error.<init>|<init>(kotlin.String){}[0]
+
+        final val message // io.github.kmpfacelink.voice.tts/TtsState.Error.message|{}message[0]
+            final fun <get-message>(): kotlin/String // io.github.kmpfacelink.voice.tts/TtsState.Error.message.<get-message>|<get-message>(){}[0]
+
+        final fun component1(): kotlin/String // io.github.kmpfacelink.voice.tts/TtsState.Error.component1|component1(){}[0]
+        final fun copy(kotlin/String = ...): io.github.kmpfacelink.voice.tts/TtsState.Error // io.github.kmpfacelink.voice.tts/TtsState.Error.copy|copy(kotlin.String){}[0]
+        final fun equals(kotlin/Any?): kotlin/Boolean // io.github.kmpfacelink.voice.tts/TtsState.Error.equals|equals(kotlin.Any?){}[0]
+        final fun hashCode(): kotlin/Int // io.github.kmpfacelink.voice.tts/TtsState.Error.hashCode|hashCode(){}[0]
+        final fun toString(): kotlin/String // io.github.kmpfacelink.voice.tts/TtsState.Error.toString|toString(){}[0]
+    }
+
+    final object Idle : io.github.kmpfacelink.voice.tts/TtsState, io.github.kmpfacelink.voice/EngineState.Idle { // io.github.kmpfacelink.voice.tts/TtsState.Idle|null[0]
+        final fun equals(kotlin/Any?): kotlin/Boolean // io.github.kmpfacelink.voice.tts/TtsState.Idle.equals|equals(kotlin.Any?){}[0]
+        final fun hashCode(): kotlin/Int // io.github.kmpfacelink.voice.tts/TtsState.Idle.hashCode|hashCode(){}[0]
+        final fun toString(): kotlin/String // io.github.kmpfacelink.voice.tts/TtsState.Idle.toString|toString(){}[0]
+    }
+
+    final object Synthesizing : io.github.kmpfacelink.voice.tts/TtsState, io.github.kmpfacelink.voice/EngineState.Active { // io.github.kmpfacelink.voice.tts/TtsState.Synthesizing|null[0]
+        final fun equals(kotlin/Any?): kotlin/Boolean // io.github.kmpfacelink.voice.tts/TtsState.Synthesizing.equals|equals(kotlin.Any?){}[0]
+        final fun hashCode(): kotlin/Int // io.github.kmpfacelink.voice.tts/TtsState.Synthesizing.hashCode|hashCode(){}[0]
+        final fun toString(): kotlin/String // io.github.kmpfacelink.voice.tts/TtsState.Synthesizing.toString|toString(){}[0]
+    }
+}
+
+sealed class io.github.kmpfacelink.voice/VoicePipelineState : io.github.kmpfacelink.voice/EngineState { // io.github.kmpfacelink.voice/VoicePipelineState|null[0]
+    final class Error : io.github.kmpfacelink.voice/EngineState.Error, io.github.kmpfacelink.voice/VoicePipelineState { // io.github.kmpfacelink.voice/VoicePipelineState.Error|null[0]
+        constructor <init>(kotlin/String) // io.github.kmpfacelink.voice/VoicePipelineState.Error.<init>|<init>(kotlin.String){}[0]
+
+        final val message // io.github.kmpfacelink.voice/VoicePipelineState.Error.message|{}message[0]
+            final fun <get-message>(): kotlin/String // io.github.kmpfacelink.voice/VoicePipelineState.Error.message.<get-message>|<get-message>(){}[0]
+
+        final fun component1(): kotlin/String // io.github.kmpfacelink.voice/VoicePipelineState.Error.component1|component1(){}[0]
+        final fun copy(kotlin/String = ...): io.github.kmpfacelink.voice/VoicePipelineState.Error // io.github.kmpfacelink.voice/VoicePipelineState.Error.copy|copy(kotlin.String){}[0]
+        final fun equals(kotlin/Any?): kotlin/Boolean // io.github.kmpfacelink.voice/VoicePipelineState.Error.equals|equals(kotlin.Any?){}[0]
+        final fun hashCode(): kotlin/Int // io.github.kmpfacelink.voice/VoicePipelineState.Error.hashCode|hashCode(){}[0]
+        final fun toString(): kotlin/String // io.github.kmpfacelink.voice/VoicePipelineState.Error.toString|toString(){}[0]
+    }
+
+    final object Idle : io.github.kmpfacelink.voice/EngineState.Idle, io.github.kmpfacelink.voice/VoicePipelineState { // io.github.kmpfacelink.voice/VoicePipelineState.Idle|null[0]
+        final fun equals(kotlin/Any?): kotlin/Boolean // io.github.kmpfacelink.voice/VoicePipelineState.Idle.equals|equals(kotlin.Any?){}[0]
+        final fun hashCode(): kotlin/Int // io.github.kmpfacelink.voice/VoicePipelineState.Idle.hashCode|hashCode(){}[0]
+        final fun toString(): kotlin/String // io.github.kmpfacelink.voice/VoicePipelineState.Idle.toString|toString(){}[0]
+    }
+
+    final object Listening : io.github.kmpfacelink.voice/EngineState.Active, io.github.kmpfacelink.voice/VoicePipelineState { // io.github.kmpfacelink.voice/VoicePipelineState.Listening|null[0]
+        final fun equals(kotlin/Any?): kotlin/Boolean // io.github.kmpfacelink.voice/VoicePipelineState.Listening.equals|equals(kotlin.Any?){}[0]
+        final fun hashCode(): kotlin/Int // io.github.kmpfacelink.voice/VoicePipelineState.Listening.hashCode|hashCode(){}[0]
+        final fun toString(): kotlin/String // io.github.kmpfacelink.voice/VoicePipelineState.Listening.toString|toString(){}[0]
+    }
+
+    final object Processing : io.github.kmpfacelink.voice/EngineState.Active, io.github.kmpfacelink.voice/VoicePipelineState { // io.github.kmpfacelink.voice/VoicePipelineState.Processing|null[0]
+        final fun equals(kotlin/Any?): kotlin/Boolean // io.github.kmpfacelink.voice/VoicePipelineState.Processing.equals|equals(kotlin.Any?){}[0]
+        final fun hashCode(): kotlin/Int // io.github.kmpfacelink.voice/VoicePipelineState.Processing.hashCode|hashCode(){}[0]
+        final fun toString(): kotlin/String // io.github.kmpfacelink.voice/VoicePipelineState.Processing.toString|toString(){}[0]
+    }
+
+    final object Speaking : io.github.kmpfacelink.voice/EngineState.Active, io.github.kmpfacelink.voice/VoicePipelineState { // io.github.kmpfacelink.voice/VoicePipelineState.Speaking|null[0]
+        final fun equals(kotlin/Any?): kotlin/Boolean // io.github.kmpfacelink.voice/VoicePipelineState.Speaking.equals|equals(kotlin.Any?){}[0]
+        final fun hashCode(): kotlin/Int // io.github.kmpfacelink.voice/VoicePipelineState.Speaking.hashCode|hashCode(){}[0]
+        final fun toString(): kotlin/String // io.github.kmpfacelink.voice/VoicePipelineState.Speaking.toString|toString(){}[0]
+    }
+}
+
+final object io.github.kmpfacelink.voice.lipsync/LipSyncEngineFactory { // io.github.kmpfacelink.voice.lipsync/LipSyncEngineFactory|null[0]
+    final fun clearNeuralProvider() // io.github.kmpfacelink.voice.lipsync/LipSyncEngineFactory.clearNeuralProvider|clearNeuralProvider(){}[0]
+    final fun create(io.github.kmpfacelink.voice.lipsync/LipSyncEngineType = ...): io.github.kmpfacelink.voice.lipsync/LipSyncEngine // io.github.kmpfacelink.voice.lipsync/LipSyncEngineFactory.create|create(io.github.kmpfacelink.voice.lipsync.LipSyncEngineType){}[0]
+    final fun isNeuralAvailable(): kotlin/Boolean // io.github.kmpfacelink.voice.lipsync/LipSyncEngineFactory.isNeuralAvailable|isNeuralAvailable(){}[0]
+    final fun registerNeuralProvider(kotlin/Function0<io.github.kmpfacelink.voice.lipsync/NeuralLipSyncEngine>) // io.github.kmpfacelink.voice.lipsync/LipSyncEngineFactory.registerNeuralProvider|registerNeuralProvider(kotlin.Function0<io.github.kmpfacelink.voice.lipsync.NeuralLipSyncEngine>){}[0]
+}
+
+final object io.github.kmpfacelink.voice.lipsync/NeuralLipSyncProvider { // io.github.kmpfacelink.voice.lipsync/NeuralLipSyncProvider|null[0]
+    final fun clearBridgeFactory() // io.github.kmpfacelink.voice.lipsync/NeuralLipSyncProvider.clearBridgeFactory|clearBridgeFactory(){}[0]
+    final fun create(io.github.kmpfacelink.voice.lipsync/NeuralLipSyncConfig): io.github.kmpfacelink.voice.lipsync/NeuralLipSyncEngine // io.github.kmpfacelink.voice.lipsync/NeuralLipSyncProvider.create|create(io.github.kmpfacelink.voice.lipsync.NeuralLipSyncConfig){}[0]
+    final fun isBridgeAvailable(): kotlin/Boolean // io.github.kmpfacelink.voice.lipsync/NeuralLipSyncProvider.isBridgeAvailable|isBridgeAvailable(){}[0]
+    final fun registerBridgeFactory(kotlin/Function0<io.github.kmpfacelink.voice.lipsync/NeuralModelBridge>) // io.github.kmpfacelink.voice.lipsync/NeuralLipSyncProvider.registerBridgeFactory|registerBridgeFactory(kotlin.Function0<io.github.kmpfacelink.voice.lipsync.NeuralModelBridge>){}[0]
+}
+
+final object io.github.kmpfacelink.voice.lipsync/VisemeBlendShapes { // io.github.kmpfacelink.voice.lipsync/VisemeBlendShapes|null[0]
+    final val mouthBlendShapes // io.github.kmpfacelink.voice.lipsync/VisemeBlendShapes.mouthBlendShapes|{}mouthBlendShapes[0]
+        final fun <get-mouthBlendShapes>(): kotlin.collections/Set<io.github.kmpfacelink.model/BlendShape> // io.github.kmpfacelink.voice.lipsync/VisemeBlendShapes.mouthBlendShapes.<get-mouthBlendShapes>|<get-mouthBlendShapes>(){}[0]
+
+    final fun blendShapesFor(io.github.kmpfacelink.voice.lipsync/Viseme): kotlin.collections/Map<io.github.kmpfacelink.model/BlendShape, kotlin/Float> // io.github.kmpfacelink.voice.lipsync/VisemeBlendShapes.blendShapesFor|blendShapesFor(io.github.kmpfacelink.voice.lipsync.Viseme){}[0]
+}
+
+final object io.github.kmpfacelink.voice/ApiEndpoints { // io.github.kmpfacelink.voice/ApiEndpoints|null[0]
+    final const val DEFAULT_VOICEVOX_PORT // io.github.kmpfacelink.voice/ApiEndpoints.DEFAULT_VOICEVOX_PORT|{}DEFAULT_VOICEVOX_PORT[0]
+        final fun <get-DEFAULT_VOICEVOX_PORT>(): kotlin/Int // io.github.kmpfacelink.voice/ApiEndpoints.DEFAULT_VOICEVOX_PORT.<get-DEFAULT_VOICEVOX_PORT>|<get-DEFAULT_VOICEVOX_PORT>(){}[0]
+    final const val ELEVENLABS_V1 // io.github.kmpfacelink.voice/ApiEndpoints.ELEVENLABS_V1|{}ELEVENLABS_V1[0]
+        final fun <get-ELEVENLABS_V1>(): kotlin/String // io.github.kmpfacelink.voice/ApiEndpoints.ELEVENLABS_V1.<get-ELEVENLABS_V1>|<get-ELEVENLABS_V1>(){}[0]
+    final const val OPENAI_V1 // io.github.kmpfacelink.voice/ApiEndpoints.OPENAI_V1|{}OPENAI_V1[0]
+        final fun <get-OPENAI_V1>(): kotlin/String // io.github.kmpfacelink.voice/ApiEndpoints.OPENAI_V1.<get-OPENAI_V1>|<get-OPENAI_V1>(){}[0]
+}
+
+final fun (kotlinx.coroutines.flow/Flow<io.github.kmpfacelink.model/FaceTrackingData>).io.github.kmpfacelink.voice/withLipSync(kotlinx.coroutines.flow/Flow<io.github.kmpfacelink.voice.lipsync/LipSyncFrame>): kotlinx.coroutines.flow/Flow<io.github.kmpfacelink.model/FaceTrackingData> // io.github.kmpfacelink.voice/withLipSync|withLipSync@kotlinx.coroutines.flow.Flow<io.github.kmpfacelink.model.FaceTrackingData>(kotlinx.coroutines.flow.Flow<io.github.kmpfacelink.voice.lipsync.LipSyncFrame>){}[0]
+final fun (kotlinx.coroutines.flow/Flow<io.github.kmpfacelink.model/FaceTrackingData>).io.github.kmpfacelink.voice/withLipSyncShapes(kotlinx.coroutines.flow/Flow<kotlin.collections/Map<io.github.kmpfacelink.model/BlendShape, kotlin/Float>>): kotlinx.coroutines.flow/Flow<io.github.kmpfacelink.model/FaceTrackingData> // io.github.kmpfacelink.voice/withLipSyncShapes|withLipSyncShapes@kotlinx.coroutines.flow.Flow<io.github.kmpfacelink.model.FaceTrackingData>(kotlinx.coroutines.flow.Flow<kotlin.collections.Map<io.github.kmpfacelink.model.BlendShape,kotlin.Float>>){}[0]
+final fun io.github.kmpfacelink.voice.audio/createAudioPlayer(): io.github.kmpfacelink.voice.audio/AudioPlayer // io.github.kmpfacelink.voice.audio/createAudioPlayer|createAudioPlayer(){}[0]
+final fun io.github.kmpfacelink.voice.audio/createAudioRecorder(): io.github.kmpfacelink.voice.audio/AudioRecorder // io.github.kmpfacelink.voice.audio/createAudioRecorder|createAudioRecorder(){}[0]

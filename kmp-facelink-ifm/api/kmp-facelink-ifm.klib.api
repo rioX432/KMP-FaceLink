@@ -1,0 +1,68 @@
+// Klib ABI Dump
+// Targets: [iosArm64, iosSimulatorArm64]
+// Rendering settings:
+// - Signature version: 2
+// - Show manifest properties: true
+// - Show declarations: true
+
+// Library unique name: <io.github.rioX432:kmp-facelink-ifm>
+final enum class io.github.kmpfacelink.ifm/DataVersion : kotlin/Enum<io.github.kmpfacelink.ifm/DataVersion> { // io.github.kmpfacelink.ifm/DataVersion|null[0]
+    enum entry V1 // io.github.kmpfacelink.ifm/DataVersion.V1|null[0]
+    enum entry V2 // io.github.kmpfacelink.ifm/DataVersion.V2|null[0]
+
+    final val entries // io.github.kmpfacelink.ifm/DataVersion.entries|#static{}entries[0]
+        final fun <get-entries>(): kotlin.enums/EnumEntries<io.github.kmpfacelink.ifm/DataVersion> // io.github.kmpfacelink.ifm/DataVersion.entries.<get-entries>|<get-entries>#static(){}[0]
+
+    final fun valueOf(kotlin/String): io.github.kmpfacelink.ifm/DataVersion // io.github.kmpfacelink.ifm/DataVersion.valueOf|valueOf#static(kotlin.String){}[0]
+    final fun values(): kotlin/Array<io.github.kmpfacelink.ifm/DataVersion> // io.github.kmpfacelink.ifm/DataVersion.values|values#static(){}[0]
+}
+
+final class io.github.kmpfacelink.ifm/IfmConfig { // io.github.kmpfacelink.ifm/IfmConfig|null[0]
+    constructor <init>(kotlin/String = ..., kotlin/Int = ..., io.github.kmpfacelink.ifm/DataVersion = ...) // io.github.kmpfacelink.ifm/IfmConfig.<init>|<init>(kotlin.String;kotlin.Int;io.github.kmpfacelink.ifm.DataVersion){}[0]
+
+    final val dataVersion // io.github.kmpfacelink.ifm/IfmConfig.dataVersion|{}dataVersion[0]
+        final fun <get-dataVersion>(): io.github.kmpfacelink.ifm/DataVersion // io.github.kmpfacelink.ifm/IfmConfig.dataVersion.<get-dataVersion>|<get-dataVersion>(){}[0]
+    final val host // io.github.kmpfacelink.ifm/IfmConfig.host|{}host[0]
+        final fun <get-host>(): kotlin/String // io.github.kmpfacelink.ifm/IfmConfig.host.<get-host>|<get-host>(){}[0]
+    final val port // io.github.kmpfacelink.ifm/IfmConfig.port|{}port[0]
+        final fun <get-port>(): kotlin/Int // io.github.kmpfacelink.ifm/IfmConfig.port.<get-port>|<get-port>(){}[0]
+
+    final fun component1(): kotlin/String // io.github.kmpfacelink.ifm/IfmConfig.component1|component1(){}[0]
+    final fun component2(): kotlin/Int // io.github.kmpfacelink.ifm/IfmConfig.component2|component2(){}[0]
+    final fun component3(): io.github.kmpfacelink.ifm/DataVersion // io.github.kmpfacelink.ifm/IfmConfig.component3|component3(){}[0]
+    final fun copy(kotlin/String = ..., kotlin/Int = ..., io.github.kmpfacelink.ifm/DataVersion = ...): io.github.kmpfacelink.ifm/IfmConfig // io.github.kmpfacelink.ifm/IfmConfig.copy|copy(kotlin.String;kotlin.Int;io.github.kmpfacelink.ifm.DataVersion){}[0]
+    final fun equals(kotlin/Any?): kotlin/Boolean // io.github.kmpfacelink.ifm/IfmConfig.equals|equals(kotlin.Any?){}[0]
+    final fun hashCode(): kotlin/Int // io.github.kmpfacelink.ifm/IfmConfig.hashCode|hashCode(){}[0]
+    final fun toString(): kotlin/String // io.github.kmpfacelink.ifm/IfmConfig.toString|toString(){}[0]
+
+    final object Companion { // io.github.kmpfacelink.ifm/IfmConfig.Companion|null[0]
+        final const val DEFAULT_HOST // io.github.kmpfacelink.ifm/IfmConfig.Companion.DEFAULT_HOST|{}DEFAULT_HOST[0]
+            final fun <get-DEFAULT_HOST>(): kotlin/String // io.github.kmpfacelink.ifm/IfmConfig.Companion.DEFAULT_HOST.<get-DEFAULT_HOST>|<get-DEFAULT_HOST>(){}[0]
+        final const val DEFAULT_PORT // io.github.kmpfacelink.ifm/IfmConfig.Companion.DEFAULT_PORT|{}DEFAULT_PORT[0]
+            final fun <get-DEFAULT_PORT>(): kotlin/Int // io.github.kmpfacelink.ifm/IfmConfig.Companion.DEFAULT_PORT.<get-DEFAULT_PORT>|<get-DEFAULT_PORT>(){}[0]
+    }
+}
+
+final class io.github.kmpfacelink.ifm/IfmReceiver : io.github.kmpfacelink.api/Releasable { // io.github.kmpfacelink.ifm/IfmReceiver|null[0]
+    constructor <init>(kotlin/Int = ...) // io.github.kmpfacelink.ifm/IfmReceiver.<init>|<init>(kotlin.Int){}[0]
+
+    final val trackingData // io.github.kmpfacelink.ifm/IfmReceiver.trackingData|{}trackingData[0]
+        final fun <get-trackingData>(): kotlinx.coroutines.flow/Flow<io.github.kmpfacelink.model/FaceTrackingData> // io.github.kmpfacelink.ifm/IfmReceiver.trackingData.<get-trackingData>|<get-trackingData>(){}[0]
+
+    final fun release() // io.github.kmpfacelink.ifm/IfmReceiver.release|release(){}[0]
+    final fun sendHandshake(kotlin/String, kotlin/Int = ...) // io.github.kmpfacelink.ifm/IfmReceiver.sendHandshake|sendHandshake(kotlin.String;kotlin.Int){}[0]
+    final fun start(kotlinx.coroutines/CoroutineScope) // io.github.kmpfacelink.ifm/IfmReceiver.start|start(kotlinx.coroutines.CoroutineScope){}[0]
+    final fun stop() // io.github.kmpfacelink.ifm/IfmReceiver.stop|stop(){}[0]
+}
+
+final class io.github.kmpfacelink.ifm/IfmSender : io.github.kmpfacelink.api/Releasable { // io.github.kmpfacelink.ifm/IfmSender|null[0]
+    constructor <init>(io.github.kmpfacelink.ifm/IfmConfig = ...) // io.github.kmpfacelink.ifm/IfmSender.<init>|<init>(io.github.kmpfacelink.ifm.IfmConfig){}[0]
+
+    final fun release() // io.github.kmpfacelink.ifm/IfmSender.release|release(){}[0]
+    final fun sendFrame(kotlin.collections/Map<io.github.kmpfacelink.model/BlendShape, kotlin/Float>, io.github.kmpfacelink.model/HeadTransform, io.github.kmpfacelink.model/GazeData? = ...) // io.github.kmpfacelink.ifm/IfmSender.sendFrame|sendFrame(kotlin.collections.Map<io.github.kmpfacelink.model.BlendShape,kotlin.Float>;io.github.kmpfacelink.model.HeadTransform;io.github.kmpfacelink.model.GazeData?){}[0]
+    final fun start(kotlinx.coroutines.flow/Flow<io.github.kmpfacelink.model/FaceTrackingData>, kotlinx.coroutines/CoroutineScope) // io.github.kmpfacelink.ifm/IfmSender.start|start(kotlinx.coroutines.flow.Flow<io.github.kmpfacelink.model.FaceTrackingData>;kotlinx.coroutines.CoroutineScope){}[0]
+    final fun stop() // io.github.kmpfacelink.ifm/IfmSender.stop|stop(){}[0]
+}
+
+final const val io.github.kmpfacelink.ifm/HANDSHAKE_STRING // io.github.kmpfacelink.ifm/HANDSHAKE_STRING|{}HANDSHAKE_STRING[0]
+    final fun <get-HANDSHAKE_STRING>(): kotlin/String // io.github.kmpfacelink.ifm/HANDSHAKE_STRING.<get-HANDSHAKE_STRING>|<get-HANDSHAKE_STRING>(){}[0]

@@ -1,0 +1,229 @@
+// Klib ABI Dump
+// Targets: [iosArm64, iosSimulatorArm64]
+// Rendering settings:
+// - Signature version: 2
+// - Show manifest properties: true
+// - Show declarations: true
+
+// Library unique name: <io.github.rioX432:kmp-facelink-pipeline>
+abstract fun interface io.github.kmpfacelink.pipeline.expression/ExpressionMapper { // io.github.kmpfacelink.pipeline.expression/ExpressionMapper|null[0]
+    abstract fun map(io.github.kmpfacelink.actions.emotion/Emotion, kotlin/Float): kotlin.collections/Map<io.github.kmpfacelink.model/BlendShape, kotlin/Float> // io.github.kmpfacelink.pipeline.expression/ExpressionMapper.map|map(io.github.kmpfacelink.actions.emotion.Emotion;kotlin.Float){}[0]
+}
+
+abstract interface io.github.kmpfacelink.pipeline/AvatarPipeline : io.github.kmpfacelink.api/Releasable { // io.github.kmpfacelink.pipeline/AvatarPipeline|null[0]
+    abstract val output // io.github.kmpfacelink.pipeline/AvatarPipeline.output|{}output[0]
+        abstract fun <get-output>(): kotlinx.coroutines.flow/Flow<io.github.kmpfacelink.pipeline/AvatarPipelineOutput> // io.github.kmpfacelink.pipeline/AvatarPipeline.output.<get-output>|<get-output>(){}[0]
+    abstract val state // io.github.kmpfacelink.pipeline/AvatarPipeline.state|{}state[0]
+        abstract fun <get-state>(): kotlinx.coroutines.flow/StateFlow<io.github.kmpfacelink.pipeline/AvatarPipelineState> // io.github.kmpfacelink.pipeline/AvatarPipeline.state.<get-state>|<get-state>(){}[0]
+
+    abstract fun release() // io.github.kmpfacelink.pipeline/AvatarPipeline.release|release(){}[0]
+    abstract suspend fun listen() // io.github.kmpfacelink.pipeline/AvatarPipeline.listen|listen(){}[0]
+    abstract suspend fun processText(kotlin/String) // io.github.kmpfacelink.pipeline/AvatarPipeline.processText|processText(kotlin.String){}[0]
+    abstract suspend fun start() // io.github.kmpfacelink.pipeline/AvatarPipeline.start|start(){}[0]
+    abstract suspend fun stop() // io.github.kmpfacelink.pipeline/AvatarPipeline.stop|stop(){}[0]
+}
+
+final class io.github.kmpfacelink.pipeline.benchmark/PipelineLatencyReport { // io.github.kmpfacelink.pipeline.benchmark/PipelineLatencyReport|null[0]
+    constructor <init>(kotlin/Long, kotlin/Long, kotlin/Long, kotlin/Long, kotlin/Long, kotlin/Int, kotlin/Int) // io.github.kmpfacelink.pipeline.benchmark/PipelineLatencyReport.<init>|<init>(kotlin.Long;kotlin.Long;kotlin.Long;kotlin.Long;kotlin.Long;kotlin.Int;kotlin.Int){}[0]
+
+    final val firstAudioLatencyMs // io.github.kmpfacelink.pipeline.benchmark/PipelineLatencyReport.firstAudioLatencyMs|{}firstAudioLatencyMs[0]
+        final fun <get-firstAudioLatencyMs>(): kotlin/Long // io.github.kmpfacelink.pipeline.benchmark/PipelineLatencyReport.firstAudioLatencyMs.<get-firstAudioLatencyMs>|<get-firstAudioLatencyMs>(){}[0]
+    final val firstBlendShapeLatencyMs // io.github.kmpfacelink.pipeline.benchmark/PipelineLatencyReport.firstBlendShapeLatencyMs|{}firstBlendShapeLatencyMs[0]
+        final fun <get-firstBlendShapeLatencyMs>(): kotlin/Long // io.github.kmpfacelink.pipeline.benchmark/PipelineLatencyReport.firstBlendShapeLatencyMs.<get-firstBlendShapeLatencyMs>|<get-firstBlendShapeLatencyMs>(){}[0]
+    final val firstSentenceLatencyMs // io.github.kmpfacelink.pipeline.benchmark/PipelineLatencyReport.firstSentenceLatencyMs|{}firstSentenceLatencyMs[0]
+        final fun <get-firstSentenceLatencyMs>(): kotlin/Long // io.github.kmpfacelink.pipeline.benchmark/PipelineLatencyReport.firstSentenceLatencyMs.<get-firstSentenceLatencyMs>|<get-firstSentenceLatencyMs>(){}[0]
+    final val firstTokenLatencyMs // io.github.kmpfacelink.pipeline.benchmark/PipelineLatencyReport.firstTokenLatencyMs|{}firstTokenLatencyMs[0]
+        final fun <get-firstTokenLatencyMs>(): kotlin/Long // io.github.kmpfacelink.pipeline.benchmark/PipelineLatencyReport.firstTokenLatencyMs.<get-firstTokenLatencyMs>|<get-firstTokenLatencyMs>(){}[0]
+    final val sentenceCount // io.github.kmpfacelink.pipeline.benchmark/PipelineLatencyReport.sentenceCount|{}sentenceCount[0]
+        final fun <get-sentenceCount>(): kotlin/Int // io.github.kmpfacelink.pipeline.benchmark/PipelineLatencyReport.sentenceCount.<get-sentenceCount>|<get-sentenceCount>(){}[0]
+    final val totalFrames // io.github.kmpfacelink.pipeline.benchmark/PipelineLatencyReport.totalFrames|{}totalFrames[0]
+        final fun <get-totalFrames>(): kotlin/Int // io.github.kmpfacelink.pipeline.benchmark/PipelineLatencyReport.totalFrames.<get-totalFrames>|<get-totalFrames>(){}[0]
+    final val totalLatencyMs // io.github.kmpfacelink.pipeline.benchmark/PipelineLatencyReport.totalLatencyMs|{}totalLatencyMs[0]
+        final fun <get-totalLatencyMs>(): kotlin/Long // io.github.kmpfacelink.pipeline.benchmark/PipelineLatencyReport.totalLatencyMs.<get-totalLatencyMs>|<get-totalLatencyMs>(){}[0]
+
+    final fun component1(): kotlin/Long // io.github.kmpfacelink.pipeline.benchmark/PipelineLatencyReport.component1|component1(){}[0]
+    final fun component2(): kotlin/Long // io.github.kmpfacelink.pipeline.benchmark/PipelineLatencyReport.component2|component2(){}[0]
+    final fun component3(): kotlin/Long // io.github.kmpfacelink.pipeline.benchmark/PipelineLatencyReport.component3|component3(){}[0]
+    final fun component4(): kotlin/Long // io.github.kmpfacelink.pipeline.benchmark/PipelineLatencyReport.component4|component4(){}[0]
+    final fun component5(): kotlin/Long // io.github.kmpfacelink.pipeline.benchmark/PipelineLatencyReport.component5|component5(){}[0]
+    final fun component6(): kotlin/Int // io.github.kmpfacelink.pipeline.benchmark/PipelineLatencyReport.component6|component6(){}[0]
+    final fun component7(): kotlin/Int // io.github.kmpfacelink.pipeline.benchmark/PipelineLatencyReport.component7|component7(){}[0]
+    final fun copy(kotlin/Long = ..., kotlin/Long = ..., kotlin/Long = ..., kotlin/Long = ..., kotlin/Long = ..., kotlin/Int = ..., kotlin/Int = ...): io.github.kmpfacelink.pipeline.benchmark/PipelineLatencyReport // io.github.kmpfacelink.pipeline.benchmark/PipelineLatencyReport.copy|copy(kotlin.Long;kotlin.Long;kotlin.Long;kotlin.Long;kotlin.Long;kotlin.Int;kotlin.Int){}[0]
+    final fun equals(kotlin/Any?): kotlin/Boolean // io.github.kmpfacelink.pipeline.benchmark/PipelineLatencyReport.equals|equals(kotlin.Any?){}[0]
+    final fun hashCode(): kotlin/Int // io.github.kmpfacelink.pipeline.benchmark/PipelineLatencyReport.hashCode|hashCode(){}[0]
+    final fun toJson(): kotlin/String // io.github.kmpfacelink.pipeline.benchmark/PipelineLatencyReport.toJson|toJson(){}[0]
+    final fun toString(): kotlin/String // io.github.kmpfacelink.pipeline.benchmark/PipelineLatencyReport.toString|toString(){}[0]
+}
+
+final class io.github.kmpfacelink.pipeline.benchmark/PipelineLatencyTracker { // io.github.kmpfacelink.pipeline.benchmark/PipelineLatencyTracker|null[0]
+    constructor <init>() // io.github.kmpfacelink.pipeline.benchmark/PipelineLatencyTracker.<init>|<init>(){}[0]
+
+    final fun onComplete() // io.github.kmpfacelink.pipeline.benchmark/PipelineLatencyTracker.onComplete|onComplete(){}[0]
+    final fun onFirstAudio() // io.github.kmpfacelink.pipeline.benchmark/PipelineLatencyTracker.onFirstAudio|onFirstAudio(){}[0]
+    final fun onFirstBlendShape() // io.github.kmpfacelink.pipeline.benchmark/PipelineLatencyTracker.onFirstBlendShape|onFirstBlendShape(){}[0]
+    final fun onFirstSentence() // io.github.kmpfacelink.pipeline.benchmark/PipelineLatencyTracker.onFirstSentence|onFirstSentence(){}[0]
+    final fun onFirstToken() // io.github.kmpfacelink.pipeline.benchmark/PipelineLatencyTracker.onFirstToken|onFirstToken(){}[0]
+    final fun onProcessingStart() // io.github.kmpfacelink.pipeline.benchmark/PipelineLatencyTracker.onProcessingStart|onProcessingStart(){}[0]
+    final fun report(): io.github.kmpfacelink.pipeline.benchmark/PipelineLatencyReport // io.github.kmpfacelink.pipeline.benchmark/PipelineLatencyTracker.report|report(){}[0]
+}
+
+final class io.github.kmpfacelink.pipeline.expression/DefaultExpressionMapper : io.github.kmpfacelink.pipeline.expression/ExpressionMapper { // io.github.kmpfacelink.pipeline.expression/DefaultExpressionMapper|null[0]
+    constructor <init>(kotlin.collections/List<io.github.kmpfacelink.actions.emotion/EmotionTemplate> = ...) // io.github.kmpfacelink.pipeline.expression/DefaultExpressionMapper.<init>|<init>(kotlin.collections.List<io.github.kmpfacelink.actions.emotion.EmotionTemplate>){}[0]
+
+    final fun map(io.github.kmpfacelink.actions.emotion/Emotion, kotlin/Float): kotlin.collections/Map<io.github.kmpfacelink.model/BlendShape, kotlin/Float> // io.github.kmpfacelink.pipeline.expression/DefaultExpressionMapper.map|map(io.github.kmpfacelink.actions.emotion.Emotion;kotlin.Float){}[0]
+}
+
+final class io.github.kmpfacelink.pipeline.expression/ExpressionBlender { // io.github.kmpfacelink.pipeline.expression/ExpressionBlender|null[0]
+    constructor <init>(kotlin/Float = ..., kotlin/Float = ...) // io.github.kmpfacelink.pipeline.expression/ExpressionBlender.<init>|<init>(kotlin.Float;kotlin.Float){}[0]
+
+    final val emotionWeight // io.github.kmpfacelink.pipeline.expression/ExpressionBlender.emotionWeight|{}emotionWeight[0]
+        final fun <get-emotionWeight>(): kotlin/Float // io.github.kmpfacelink.pipeline.expression/ExpressionBlender.emotionWeight.<get-emotionWeight>|<get-emotionWeight>(){}[0]
+    final val lipSyncWeight // io.github.kmpfacelink.pipeline.expression/ExpressionBlender.lipSyncWeight|{}lipSyncWeight[0]
+        final fun <get-lipSyncWeight>(): kotlin/Float // io.github.kmpfacelink.pipeline.expression/ExpressionBlender.lipSyncWeight.<get-lipSyncWeight>|<get-lipSyncWeight>(){}[0]
+
+    final fun blend(kotlin.collections/Map<io.github.kmpfacelink.model/BlendShape, kotlin/Float>, kotlin.collections/Map<io.github.kmpfacelink.model/BlendShape, kotlin/Float>): kotlin.collections/Map<io.github.kmpfacelink.model/BlendShape, kotlin/Float> // io.github.kmpfacelink.pipeline.expression/ExpressionBlender.blend|blend(kotlin.collections.Map<io.github.kmpfacelink.model.BlendShape,kotlin.Float>;kotlin.collections.Map<io.github.kmpfacelink.model.BlendShape,kotlin.Float>){}[0]
+}
+
+final class io.github.kmpfacelink.pipeline.expression/SentimentResult { // io.github.kmpfacelink.pipeline.expression/SentimentResult|null[0]
+    constructor <init>(io.github.kmpfacelink.actions.emotion/Emotion, kotlin/Float) // io.github.kmpfacelink.pipeline.expression/SentimentResult.<init>|<init>(io.github.kmpfacelink.actions.emotion.Emotion;kotlin.Float){}[0]
+
+    final val emotion // io.github.kmpfacelink.pipeline.expression/SentimentResult.emotion|{}emotion[0]
+        final fun <get-emotion>(): io.github.kmpfacelink.actions.emotion/Emotion // io.github.kmpfacelink.pipeline.expression/SentimentResult.emotion.<get-emotion>|<get-emotion>(){}[0]
+    final val intensity // io.github.kmpfacelink.pipeline.expression/SentimentResult.intensity|{}intensity[0]
+        final fun <get-intensity>(): kotlin/Float // io.github.kmpfacelink.pipeline.expression/SentimentResult.intensity.<get-intensity>|<get-intensity>(){}[0]
+
+    final fun component1(): io.github.kmpfacelink.actions.emotion/Emotion // io.github.kmpfacelink.pipeline.expression/SentimentResult.component1|component1(){}[0]
+    final fun component2(): kotlin/Float // io.github.kmpfacelink.pipeline.expression/SentimentResult.component2|component2(){}[0]
+    final fun copy(io.github.kmpfacelink.actions.emotion/Emotion = ..., kotlin/Float = ...): io.github.kmpfacelink.pipeline.expression/SentimentResult // io.github.kmpfacelink.pipeline.expression/SentimentResult.copy|copy(io.github.kmpfacelink.actions.emotion.Emotion;kotlin.Float){}[0]
+    final fun equals(kotlin/Any?): kotlin/Boolean // io.github.kmpfacelink.pipeline.expression/SentimentResult.equals|equals(kotlin.Any?){}[0]
+    final fun hashCode(): kotlin/Int // io.github.kmpfacelink.pipeline.expression/SentimentResult.hashCode|hashCode(){}[0]
+    final fun toString(): kotlin/String // io.github.kmpfacelink.pipeline.expression/SentimentResult.toString|toString(){}[0]
+}
+
+final class io.github.kmpfacelink.pipeline.expression/TextSentimentAnalyzer { // io.github.kmpfacelink.pipeline.expression/TextSentimentAnalyzer|null[0]
+    constructor <init>() // io.github.kmpfacelink.pipeline.expression/TextSentimentAnalyzer.<init>|<init>(){}[0]
+
+    final fun analyze(kotlin/String): io.github.kmpfacelink.pipeline.expression/SentimentResult // io.github.kmpfacelink.pipeline.expression/TextSentimentAnalyzer.analyze|analyze(kotlin.String){}[0]
+}
+
+final class io.github.kmpfacelink.pipeline/AvatarPipelineBuilder { // io.github.kmpfacelink.pipeline/AvatarPipelineBuilder|null[0]
+    constructor <init>() // io.github.kmpfacelink.pipeline/AvatarPipelineBuilder.<init>|<init>(){}[0]
+
+    final fun asrEngine(io.github.kmpfacelink.voice.asr/AsrEngine) // io.github.kmpfacelink.pipeline/AvatarPipelineBuilder.asrEngine|asrEngine(io.github.kmpfacelink.voice.asr.AsrEngine){}[0]
+    final fun build(): io.github.kmpfacelink.pipeline/AvatarPipeline // io.github.kmpfacelink.pipeline/AvatarPipelineBuilder.build|build(){}[0]
+    final fun dispatcher(kotlinx.coroutines/CoroutineDispatcher) // io.github.kmpfacelink.pipeline/AvatarPipelineBuilder.dispatcher|dispatcher(kotlinx.coroutines.CoroutineDispatcher){}[0]
+    final fun expressionBlendRatio(kotlin/Float) // io.github.kmpfacelink.pipeline/AvatarPipelineBuilder.expressionBlendRatio|expressionBlendRatio(kotlin.Float){}[0]
+    final fun lipSyncEngine(io.github.kmpfacelink.voice.lipsync/LipSyncEngine) // io.github.kmpfacelink.pipeline/AvatarPipelineBuilder.lipSyncEngine|lipSyncEngine(io.github.kmpfacelink.voice.lipsync.LipSyncEngine){}[0]
+    final fun llm(io.github.kmpfacelink.llm/LlmConfig) // io.github.kmpfacelink.pipeline/AvatarPipelineBuilder.llm|llm(io.github.kmpfacelink.llm.LlmConfig){}[0]
+    final fun llmClient(io.github.kmpfacelink.llm/LlmClient) // io.github.kmpfacelink.pipeline/AvatarPipelineBuilder.llmClient|llmClient(io.github.kmpfacelink.llm.LlmClient){}[0]
+    final fun persona(io.github.kmpfacelink.llm/PersonaConfig) // io.github.kmpfacelink.pipeline/AvatarPipelineBuilder.persona|persona(io.github.kmpfacelink.llm.PersonaConfig){}[0]
+    final fun scope(kotlinx.coroutines/CoroutineScope) // io.github.kmpfacelink.pipeline/AvatarPipelineBuilder.scope|scope(kotlinx.coroutines.CoroutineScope){}[0]
+    final fun thermalStateProvider(kotlinx.coroutines.flow/StateFlow<io.github.kmpfacelink.model/ThermalState>) // io.github.kmpfacelink.pipeline/AvatarPipelineBuilder.thermalStateProvider|thermalStateProvider(kotlinx.coroutines.flow.StateFlow<io.github.kmpfacelink.model.ThermalState>){}[0]
+    final fun ttsEngine(io.github.kmpfacelink.voice.tts/TtsEngine) // io.github.kmpfacelink.pipeline/AvatarPipelineBuilder.ttsEngine|ttsEngine(io.github.kmpfacelink.voice.tts.TtsEngine){}[0]
+}
+
+final class io.github.kmpfacelink.pipeline/AvatarPipelineConfig { // io.github.kmpfacelink.pipeline/AvatarPipelineConfig|null[0]
+    constructor <init>(io.github.kmpfacelink.llm/LlmConfig, io.github.kmpfacelink.llm/PersonaConfig = ..., kotlin/Float = ..., kotlinx.coroutines.flow/StateFlow<io.github.kmpfacelink.model/ThermalState> = ...) // io.github.kmpfacelink.pipeline/AvatarPipelineConfig.<init>|<init>(io.github.kmpfacelink.llm.LlmConfig;io.github.kmpfacelink.llm.PersonaConfig;kotlin.Float;kotlinx.coroutines.flow.StateFlow<io.github.kmpfacelink.model.ThermalState>){}[0]
+
+    final val expressionBlendRatio // io.github.kmpfacelink.pipeline/AvatarPipelineConfig.expressionBlendRatio|{}expressionBlendRatio[0]
+        final fun <get-expressionBlendRatio>(): kotlin/Float // io.github.kmpfacelink.pipeline/AvatarPipelineConfig.expressionBlendRatio.<get-expressionBlendRatio>|<get-expressionBlendRatio>(){}[0]
+    final val llmConfig // io.github.kmpfacelink.pipeline/AvatarPipelineConfig.llmConfig|{}llmConfig[0]
+        final fun <get-llmConfig>(): io.github.kmpfacelink.llm/LlmConfig // io.github.kmpfacelink.pipeline/AvatarPipelineConfig.llmConfig.<get-llmConfig>|<get-llmConfig>(){}[0]
+    final val persona // io.github.kmpfacelink.pipeline/AvatarPipelineConfig.persona|{}persona[0]
+        final fun <get-persona>(): io.github.kmpfacelink.llm/PersonaConfig // io.github.kmpfacelink.pipeline/AvatarPipelineConfig.persona.<get-persona>|<get-persona>(){}[0]
+    final val thermalStateProvider // io.github.kmpfacelink.pipeline/AvatarPipelineConfig.thermalStateProvider|{}thermalStateProvider[0]
+        final fun <get-thermalStateProvider>(): kotlinx.coroutines.flow/StateFlow<io.github.kmpfacelink.model/ThermalState> // io.github.kmpfacelink.pipeline/AvatarPipelineConfig.thermalStateProvider.<get-thermalStateProvider>|<get-thermalStateProvider>(){}[0]
+
+    final fun component1(): io.github.kmpfacelink.llm/LlmConfig // io.github.kmpfacelink.pipeline/AvatarPipelineConfig.component1|component1(){}[0]
+    final fun component2(): io.github.kmpfacelink.llm/PersonaConfig // io.github.kmpfacelink.pipeline/AvatarPipelineConfig.component2|component2(){}[0]
+    final fun component3(): kotlin/Float // io.github.kmpfacelink.pipeline/AvatarPipelineConfig.component3|component3(){}[0]
+    final fun component4(): kotlinx.coroutines.flow/StateFlow<io.github.kmpfacelink.model/ThermalState> // io.github.kmpfacelink.pipeline/AvatarPipelineConfig.component4|component4(){}[0]
+    final fun copy(io.github.kmpfacelink.llm/LlmConfig = ..., io.github.kmpfacelink.llm/PersonaConfig = ..., kotlin/Float = ..., kotlinx.coroutines.flow/StateFlow<io.github.kmpfacelink.model/ThermalState> = ...): io.github.kmpfacelink.pipeline/AvatarPipelineConfig // io.github.kmpfacelink.pipeline/AvatarPipelineConfig.copy|copy(io.github.kmpfacelink.llm.LlmConfig;io.github.kmpfacelink.llm.PersonaConfig;kotlin.Float;kotlinx.coroutines.flow.StateFlow<io.github.kmpfacelink.model.ThermalState>){}[0]
+    final fun equals(kotlin/Any?): kotlin/Boolean // io.github.kmpfacelink.pipeline/AvatarPipelineConfig.equals|equals(kotlin.Any?){}[0]
+    final fun hashCode(): kotlin/Int // io.github.kmpfacelink.pipeline/AvatarPipelineConfig.hashCode|hashCode(){}[0]
+    final fun toString(): kotlin/String // io.github.kmpfacelink.pipeline/AvatarPipelineConfig.toString|toString(){}[0]
+}
+
+final class io.github.kmpfacelink.pipeline/AvatarPipelineOutput { // io.github.kmpfacelink.pipeline/AvatarPipelineOutput|null[0]
+    constructor <init>(kotlin.collections/Map<io.github.kmpfacelink.model/BlendShape, kotlin/Float>, io.github.kmpfacelink.actions.emotion/Emotion?, kotlin/String?, kotlin/Boolean, kotlin/Long) // io.github.kmpfacelink.pipeline/AvatarPipelineOutput.<init>|<init>(kotlin.collections.Map<io.github.kmpfacelink.model.BlendShape,kotlin.Float>;io.github.kmpfacelink.actions.emotion.Emotion?;kotlin.String?;kotlin.Boolean;kotlin.Long){}[0]
+
+    final val blendShapes // io.github.kmpfacelink.pipeline/AvatarPipelineOutput.blendShapes|{}blendShapes[0]
+        final fun <get-blendShapes>(): kotlin.collections/Map<io.github.kmpfacelink.model/BlendShape, kotlin/Float> // io.github.kmpfacelink.pipeline/AvatarPipelineOutput.blendShapes.<get-blendShapes>|<get-blendShapes>(){}[0]
+    final val emotion // io.github.kmpfacelink.pipeline/AvatarPipelineOutput.emotion|{}emotion[0]
+        final fun <get-emotion>(): io.github.kmpfacelink.actions.emotion/Emotion? // io.github.kmpfacelink.pipeline/AvatarPipelineOutput.emotion.<get-emotion>|<get-emotion>(){}[0]
+    final val isAudioPlaying // io.github.kmpfacelink.pipeline/AvatarPipelineOutput.isAudioPlaying|{}isAudioPlaying[0]
+        final fun <get-isAudioPlaying>(): kotlin/Boolean // io.github.kmpfacelink.pipeline/AvatarPipelineOutput.isAudioPlaying.<get-isAudioPlaying>|<get-isAudioPlaying>(){}[0]
+    final val text // io.github.kmpfacelink.pipeline/AvatarPipelineOutput.text|{}text[0]
+        final fun <get-text>(): kotlin/String? // io.github.kmpfacelink.pipeline/AvatarPipelineOutput.text.<get-text>|<get-text>(){}[0]
+    final val timestampMs // io.github.kmpfacelink.pipeline/AvatarPipelineOutput.timestampMs|{}timestampMs[0]
+        final fun <get-timestampMs>(): kotlin/Long // io.github.kmpfacelink.pipeline/AvatarPipelineOutput.timestampMs.<get-timestampMs>|<get-timestampMs>(){}[0]
+
+    final fun component1(): kotlin.collections/Map<io.github.kmpfacelink.model/BlendShape, kotlin/Float> // io.github.kmpfacelink.pipeline/AvatarPipelineOutput.component1|component1(){}[0]
+    final fun component2(): io.github.kmpfacelink.actions.emotion/Emotion? // io.github.kmpfacelink.pipeline/AvatarPipelineOutput.component2|component2(){}[0]
+    final fun component3(): kotlin/String? // io.github.kmpfacelink.pipeline/AvatarPipelineOutput.component3|component3(){}[0]
+    final fun component4(): kotlin/Boolean // io.github.kmpfacelink.pipeline/AvatarPipelineOutput.component4|component4(){}[0]
+    final fun component5(): kotlin/Long // io.github.kmpfacelink.pipeline/AvatarPipelineOutput.component5|component5(){}[0]
+    final fun copy(kotlin.collections/Map<io.github.kmpfacelink.model/BlendShape, kotlin/Float> = ..., io.github.kmpfacelink.actions.emotion/Emotion? = ..., kotlin/String? = ..., kotlin/Boolean = ..., kotlin/Long = ...): io.github.kmpfacelink.pipeline/AvatarPipelineOutput // io.github.kmpfacelink.pipeline/AvatarPipelineOutput.copy|copy(kotlin.collections.Map<io.github.kmpfacelink.model.BlendShape,kotlin.Float>;io.github.kmpfacelink.actions.emotion.Emotion?;kotlin.String?;kotlin.Boolean;kotlin.Long){}[0]
+    final fun equals(kotlin/Any?): kotlin/Boolean // io.github.kmpfacelink.pipeline/AvatarPipelineOutput.equals|equals(kotlin.Any?){}[0]
+    final fun hashCode(): kotlin/Int // io.github.kmpfacelink.pipeline/AvatarPipelineOutput.hashCode|hashCode(){}[0]
+    final fun toString(): kotlin/String // io.github.kmpfacelink.pipeline/AvatarPipelineOutput.toString|toString(){}[0]
+}
+
+final class io.github.kmpfacelink.pipeline/DefaultAvatarPipeline : io.github.kmpfacelink.pipeline/AvatarPipeline { // io.github.kmpfacelink.pipeline/DefaultAvatarPipeline|null[0]
+    constructor <init>(io.github.kmpfacelink.pipeline/AvatarPipelineConfig, io.github.kmpfacelink.llm/LlmClient, io.github.kmpfacelink.voice.tts/TtsEngine? = ..., io.github.kmpfacelink.voice.lipsync/LipSyncEngine? = ..., io.github.kmpfacelink.voice.asr/AsrEngine? = ..., kotlinx.coroutines/CoroutineScope = ...) // io.github.kmpfacelink.pipeline/DefaultAvatarPipeline.<init>|<init>(io.github.kmpfacelink.pipeline.AvatarPipelineConfig;io.github.kmpfacelink.llm.LlmClient;io.github.kmpfacelink.voice.tts.TtsEngine?;io.github.kmpfacelink.voice.lipsync.LipSyncEngine?;io.github.kmpfacelink.voice.asr.AsrEngine?;kotlinx.coroutines.CoroutineScope){}[0]
+
+    final val output // io.github.kmpfacelink.pipeline/DefaultAvatarPipeline.output|{}output[0]
+        final fun <get-output>(): kotlinx.coroutines.flow/Flow<io.github.kmpfacelink.pipeline/AvatarPipelineOutput> // io.github.kmpfacelink.pipeline/DefaultAvatarPipeline.output.<get-output>|<get-output>(){}[0]
+    final val state // io.github.kmpfacelink.pipeline/DefaultAvatarPipeline.state|{}state[0]
+        final fun <get-state>(): kotlinx.coroutines.flow/StateFlow<io.github.kmpfacelink.pipeline/AvatarPipelineState> // io.github.kmpfacelink.pipeline/DefaultAvatarPipeline.state.<get-state>|<get-state>(){}[0]
+
+    final fun release() // io.github.kmpfacelink.pipeline/DefaultAvatarPipeline.release|release(){}[0]
+    final suspend fun listen() // io.github.kmpfacelink.pipeline/DefaultAvatarPipeline.listen|listen(){}[0]
+    final suspend fun processText(kotlin/String) // io.github.kmpfacelink.pipeline/DefaultAvatarPipeline.processText|processText(kotlin.String){}[0]
+    final suspend fun start() // io.github.kmpfacelink.pipeline/DefaultAvatarPipeline.start|start(){}[0]
+    final suspend fun stop() // io.github.kmpfacelink.pipeline/DefaultAvatarPipeline.stop|stop(){}[0]
+}
+
+sealed class io.github.kmpfacelink.pipeline/AvatarPipelineState { // io.github.kmpfacelink.pipeline/AvatarPipelineState|null[0]
+    final class Error : io.github.kmpfacelink.pipeline/AvatarPipelineState { // io.github.kmpfacelink.pipeline/AvatarPipelineState.Error|null[0]
+        constructor <init>(kotlin/String, kotlin/Throwable? = ...) // io.github.kmpfacelink.pipeline/AvatarPipelineState.Error.<init>|<init>(kotlin.String;kotlin.Throwable?){}[0]
+
+        final val cause // io.github.kmpfacelink.pipeline/AvatarPipelineState.Error.cause|{}cause[0]
+            final fun <get-cause>(): kotlin/Throwable? // io.github.kmpfacelink.pipeline/AvatarPipelineState.Error.cause.<get-cause>|<get-cause>(){}[0]
+        final val message // io.github.kmpfacelink.pipeline/AvatarPipelineState.Error.message|{}message[0]
+            final fun <get-message>(): kotlin/String // io.github.kmpfacelink.pipeline/AvatarPipelineState.Error.message.<get-message>|<get-message>(){}[0]
+
+        final fun component1(): kotlin/String // io.github.kmpfacelink.pipeline/AvatarPipelineState.Error.component1|component1(){}[0]
+        final fun component2(): kotlin/Throwable? // io.github.kmpfacelink.pipeline/AvatarPipelineState.Error.component2|component2(){}[0]
+        final fun copy(kotlin/String = ..., kotlin/Throwable? = ...): io.github.kmpfacelink.pipeline/AvatarPipelineState.Error // io.github.kmpfacelink.pipeline/AvatarPipelineState.Error.copy|copy(kotlin.String;kotlin.Throwable?){}[0]
+        final fun equals(kotlin/Any?): kotlin/Boolean // io.github.kmpfacelink.pipeline/AvatarPipelineState.Error.equals|equals(kotlin.Any?){}[0]
+        final fun hashCode(): kotlin/Int // io.github.kmpfacelink.pipeline/AvatarPipelineState.Error.hashCode|hashCode(){}[0]
+        final fun toString(): kotlin/String // io.github.kmpfacelink.pipeline/AvatarPipelineState.Error.toString|toString(){}[0]
+    }
+
+    final object Idle : io.github.kmpfacelink.pipeline/AvatarPipelineState { // io.github.kmpfacelink.pipeline/AvatarPipelineState.Idle|null[0]
+        final fun equals(kotlin/Any?): kotlin/Boolean // io.github.kmpfacelink.pipeline/AvatarPipelineState.Idle.equals|equals(kotlin.Any?){}[0]
+        final fun hashCode(): kotlin/Int // io.github.kmpfacelink.pipeline/AvatarPipelineState.Idle.hashCode|hashCode(){}[0]
+        final fun toString(): kotlin/String // io.github.kmpfacelink.pipeline/AvatarPipelineState.Idle.toString|toString(){}[0]
+    }
+
+    final object Listening : io.github.kmpfacelink.pipeline/AvatarPipelineState { // io.github.kmpfacelink.pipeline/AvatarPipelineState.Listening|null[0]
+        final fun equals(kotlin/Any?): kotlin/Boolean // io.github.kmpfacelink.pipeline/AvatarPipelineState.Listening.equals|equals(kotlin.Any?){}[0]
+        final fun hashCode(): kotlin/Int // io.github.kmpfacelink.pipeline/AvatarPipelineState.Listening.hashCode|hashCode(){}[0]
+        final fun toString(): kotlin/String // io.github.kmpfacelink.pipeline/AvatarPipelineState.Listening.toString|toString(){}[0]
+    }
+
+    final object Processing : io.github.kmpfacelink.pipeline/AvatarPipelineState { // io.github.kmpfacelink.pipeline/AvatarPipelineState.Processing|null[0]
+        final fun equals(kotlin/Any?): kotlin/Boolean // io.github.kmpfacelink.pipeline/AvatarPipelineState.Processing.equals|equals(kotlin.Any?){}[0]
+        final fun hashCode(): kotlin/Int // io.github.kmpfacelink.pipeline/AvatarPipelineState.Processing.hashCode|hashCode(){}[0]
+        final fun toString(): kotlin/String // io.github.kmpfacelink.pipeline/AvatarPipelineState.Processing.toString|toString(){}[0]
+    }
+
+    final object Speaking : io.github.kmpfacelink.pipeline/AvatarPipelineState { // io.github.kmpfacelink.pipeline/AvatarPipelineState.Speaking|null[0]
+        final fun equals(kotlin/Any?): kotlin/Boolean // io.github.kmpfacelink.pipeline/AvatarPipelineState.Speaking.equals|equals(kotlin.Any?){}[0]
+        final fun hashCode(): kotlin/Int // io.github.kmpfacelink.pipeline/AvatarPipelineState.Speaking.hashCode|hashCode(){}[0]
+        final fun toString(): kotlin/String // io.github.kmpfacelink.pipeline/AvatarPipelineState.Speaking.toString|toString(){}[0]
+    }
+}
+
+final fun io.github.kmpfacelink.pipeline/buildAvatarPipeline(kotlin/Function1<io.github.kmpfacelink.pipeline/AvatarPipelineBuilder, kotlin/Unit>): io.github.kmpfacelink.pipeline/AvatarPipeline // io.github.kmpfacelink.pipeline/buildAvatarPipeline|buildAvatarPipeline(kotlin.Function1<io.github.kmpfacelink.pipeline.AvatarPipelineBuilder,kotlin.Unit>){}[0]

@@ -1,0 +1,431 @@
+// Klib ABI Dump
+// Targets: [iosArm64, iosSimulatorArm64, wasmJs]
+// Rendering settings:
+// - Signature version: 2
+// - Show manifest properties: true
+// - Show declarations: true
+
+// Library unique name: <io.github.rioX432:kmp-facelink-actions>
+final enum class io.github.kmpfacelink.actions.emotion/Emotion : kotlin/Enum<io.github.kmpfacelink.actions.emotion/Emotion> { // io.github.kmpfacelink.actions.emotion/Emotion|null[0]
+    enum entry ANGRY // io.github.kmpfacelink.actions.emotion/Emotion.ANGRY|null[0]
+    enum entry DISGUSTED // io.github.kmpfacelink.actions.emotion/Emotion.DISGUSTED|null[0]
+    enum entry FEAR // io.github.kmpfacelink.actions.emotion/Emotion.FEAR|null[0]
+    enum entry HAPPY // io.github.kmpfacelink.actions.emotion/Emotion.HAPPY|null[0]
+    enum entry NEUTRAL // io.github.kmpfacelink.actions.emotion/Emotion.NEUTRAL|null[0]
+    enum entry SAD // io.github.kmpfacelink.actions.emotion/Emotion.SAD|null[0]
+    enum entry SURPRISED // io.github.kmpfacelink.actions.emotion/Emotion.SURPRISED|null[0]
+
+    final val entries // io.github.kmpfacelink.actions.emotion/Emotion.entries|#static{}entries[0]
+        final fun <get-entries>(): kotlin.enums/EnumEntries<io.github.kmpfacelink.actions.emotion/Emotion> // io.github.kmpfacelink.actions.emotion/Emotion.entries.<get-entries>|<get-entries>#static(){}[0]
+
+    final fun valueOf(kotlin/String): io.github.kmpfacelink.actions.emotion/Emotion // io.github.kmpfacelink.actions.emotion/Emotion.valueOf|valueOf#static(kotlin.String){}[0]
+    final fun values(): kotlin/Array<io.github.kmpfacelink.actions.emotion/Emotion> // io.github.kmpfacelink.actions.emotion/Emotion.values|values#static(){}[0]
+}
+
+final enum class io.github.kmpfacelink.actions/ThresholdDirection : kotlin/Enum<io.github.kmpfacelink.actions/ThresholdDirection> { // io.github.kmpfacelink.actions/ThresholdDirection|null[0]
+    enum entry ABOVE // io.github.kmpfacelink.actions/ThresholdDirection.ABOVE|null[0]
+    enum entry BELOW // io.github.kmpfacelink.actions/ThresholdDirection.BELOW|null[0]
+
+    final val entries // io.github.kmpfacelink.actions/ThresholdDirection.entries|#static{}entries[0]
+        final fun <get-entries>(): kotlin.enums/EnumEntries<io.github.kmpfacelink.actions/ThresholdDirection> // io.github.kmpfacelink.actions/ThresholdDirection.entries.<get-entries>|<get-entries>#static(){}[0]
+
+    final fun valueOf(kotlin/String): io.github.kmpfacelink.actions/ThresholdDirection // io.github.kmpfacelink.actions/ThresholdDirection.valueOf|valueOf#static(kotlin.String){}[0]
+    final fun values(): kotlin/Array<io.github.kmpfacelink.actions/ThresholdDirection> // io.github.kmpfacelink.actions/ThresholdDirection.values|values#static(){}[0]
+}
+
+final class io.github.kmpfacelink.actions.emotion/EmotionClassifier { // io.github.kmpfacelink.actions.emotion/EmotionClassifier|null[0]
+    constructor <init>(kotlin/Float = ..., kotlin.collections/List<io.github.kmpfacelink.actions.emotion/EmotionTemplate> = ...) // io.github.kmpfacelink.actions.emotion/EmotionClassifier.<init>|<init>(kotlin.Float;kotlin.collections.List<io.github.kmpfacelink.actions.emotion.EmotionTemplate>){}[0]
+
+    final fun classify(io.github.kmpfacelink.model/FaceTrackingData): io.github.kmpfacelink.actions.emotion/EmotionResult // io.github.kmpfacelink.actions.emotion/EmotionClassifier.classify|classify(io.github.kmpfacelink.model.FaceTrackingData){}[0]
+    final fun classify(kotlin.collections/Map<io.github.kmpfacelink.model/BlendShape, kotlin/Float>, kotlin/Long): io.github.kmpfacelink.actions.emotion/EmotionResult // io.github.kmpfacelink.actions.emotion/EmotionClassifier.classify|classify(kotlin.collections.Map<io.github.kmpfacelink.model.BlendShape,kotlin.Float>;kotlin.Long){}[0]
+}
+
+final class io.github.kmpfacelink.actions.emotion/EmotionResult { // io.github.kmpfacelink.actions.emotion/EmotionResult|null[0]
+    constructor <init>(io.github.kmpfacelink.actions.emotion/Emotion, kotlin/Float, kotlin.collections/Map<io.github.kmpfacelink.actions.emotion/Emotion, kotlin/Float>, kotlin/Long) // io.github.kmpfacelink.actions.emotion/EmotionResult.<init>|<init>(io.github.kmpfacelink.actions.emotion.Emotion;kotlin.Float;kotlin.collections.Map<io.github.kmpfacelink.actions.emotion.Emotion,kotlin.Float>;kotlin.Long){}[0]
+
+    final val confidence // io.github.kmpfacelink.actions.emotion/EmotionResult.confidence|{}confidence[0]
+        final fun <get-confidence>(): kotlin/Float // io.github.kmpfacelink.actions.emotion/EmotionResult.confidence.<get-confidence>|<get-confidence>(){}[0]
+    final val emotion // io.github.kmpfacelink.actions.emotion/EmotionResult.emotion|{}emotion[0]
+        final fun <get-emotion>(): io.github.kmpfacelink.actions.emotion/Emotion // io.github.kmpfacelink.actions.emotion/EmotionResult.emotion.<get-emotion>|<get-emotion>(){}[0]
+    final val scores // io.github.kmpfacelink.actions.emotion/EmotionResult.scores|{}scores[0]
+        final fun <get-scores>(): kotlin.collections/Map<io.github.kmpfacelink.actions.emotion/Emotion, kotlin/Float> // io.github.kmpfacelink.actions.emotion/EmotionResult.scores.<get-scores>|<get-scores>(){}[0]
+    final val timestampMs // io.github.kmpfacelink.actions.emotion/EmotionResult.timestampMs|{}timestampMs[0]
+        final fun <get-timestampMs>(): kotlin/Long // io.github.kmpfacelink.actions.emotion/EmotionResult.timestampMs.<get-timestampMs>|<get-timestampMs>(){}[0]
+
+    final fun component1(): io.github.kmpfacelink.actions.emotion/Emotion // io.github.kmpfacelink.actions.emotion/EmotionResult.component1|component1(){}[0]
+    final fun component2(): kotlin/Float // io.github.kmpfacelink.actions.emotion/EmotionResult.component2|component2(){}[0]
+    final fun component3(): kotlin.collections/Map<io.github.kmpfacelink.actions.emotion/Emotion, kotlin/Float> // io.github.kmpfacelink.actions.emotion/EmotionResult.component3|component3(){}[0]
+    final fun component4(): kotlin/Long // io.github.kmpfacelink.actions.emotion/EmotionResult.component4|component4(){}[0]
+    final fun copy(io.github.kmpfacelink.actions.emotion/Emotion = ..., kotlin/Float = ..., kotlin.collections/Map<io.github.kmpfacelink.actions.emotion/Emotion, kotlin/Float> = ..., kotlin/Long = ...): io.github.kmpfacelink.actions.emotion/EmotionResult // io.github.kmpfacelink.actions.emotion/EmotionResult.copy|copy(io.github.kmpfacelink.actions.emotion.Emotion;kotlin.Float;kotlin.collections.Map<io.github.kmpfacelink.actions.emotion.Emotion,kotlin.Float>;kotlin.Long){}[0]
+    final fun equals(kotlin/Any?): kotlin/Boolean // io.github.kmpfacelink.actions.emotion/EmotionResult.equals|equals(kotlin.Any?){}[0]
+    final fun hashCode(): kotlin/Int // io.github.kmpfacelink.actions.emotion/EmotionResult.hashCode|hashCode(){}[0]
+    final fun toString(): kotlin/String // io.github.kmpfacelink.actions.emotion/EmotionResult.toString|toString(){}[0]
+}
+
+final class io.github.kmpfacelink.actions.emotion/EmotionTemplate { // io.github.kmpfacelink.actions.emotion/EmotionTemplate|null[0]
+    constructor <init>(io.github.kmpfacelink.actions.emotion/Emotion, kotlin.collections/Map<io.github.kmpfacelink.model/BlendShape, kotlin/Float>) // io.github.kmpfacelink.actions.emotion/EmotionTemplate.<init>|<init>(io.github.kmpfacelink.actions.emotion.Emotion;kotlin.collections.Map<io.github.kmpfacelink.model.BlendShape,kotlin.Float>){}[0]
+
+    final val emotion // io.github.kmpfacelink.actions.emotion/EmotionTemplate.emotion|{}emotion[0]
+        final fun <get-emotion>(): io.github.kmpfacelink.actions.emotion/Emotion // io.github.kmpfacelink.actions.emotion/EmotionTemplate.emotion.<get-emotion>|<get-emotion>(){}[0]
+    final val weights // io.github.kmpfacelink.actions.emotion/EmotionTemplate.weights|{}weights[0]
+        final fun <get-weights>(): kotlin.collections/Map<io.github.kmpfacelink.model/BlendShape, kotlin/Float> // io.github.kmpfacelink.actions.emotion/EmotionTemplate.weights.<get-weights>|<get-weights>(){}[0]
+
+    final fun component1(): io.github.kmpfacelink.actions.emotion/Emotion // io.github.kmpfacelink.actions.emotion/EmotionTemplate.component1|component1(){}[0]
+    final fun component2(): kotlin.collections/Map<io.github.kmpfacelink.model/BlendShape, kotlin/Float> // io.github.kmpfacelink.actions.emotion/EmotionTemplate.component2|component2(){}[0]
+    final fun copy(io.github.kmpfacelink.actions.emotion/Emotion = ..., kotlin.collections/Map<io.github.kmpfacelink.model/BlendShape, kotlin/Float> = ...): io.github.kmpfacelink.actions.emotion/EmotionTemplate // io.github.kmpfacelink.actions.emotion/EmotionTemplate.copy|copy(io.github.kmpfacelink.actions.emotion.Emotion;kotlin.collections.Map<io.github.kmpfacelink.model.BlendShape,kotlin.Float>){}[0]
+    final fun equals(kotlin/Any?): kotlin/Boolean // io.github.kmpfacelink.actions.emotion/EmotionTemplate.equals|equals(kotlin.Any?){}[0]
+    final fun hashCode(): kotlin/Int // io.github.kmpfacelink.actions.emotion/EmotionTemplate.hashCode|hashCode(){}[0]
+    final fun toString(): kotlin/String // io.github.kmpfacelink.actions.emotion/EmotionTemplate.toString|toString(){}[0]
+}
+
+final class io.github.kmpfacelink.actions.gesture/GestureMatch { // io.github.kmpfacelink.actions.gesture/GestureMatch|null[0]
+    constructor <init>(kotlin/String, kotlin/Float) // io.github.kmpfacelink.actions.gesture/GestureMatch.<init>|<init>(kotlin.String;kotlin.Float){}[0]
+
+    final val confidence // io.github.kmpfacelink.actions.gesture/GestureMatch.confidence|{}confidence[0]
+        final fun <get-confidence>(): kotlin/Float // io.github.kmpfacelink.actions.gesture/GestureMatch.confidence.<get-confidence>|<get-confidence>(){}[0]
+    final val gestureName // io.github.kmpfacelink.actions.gesture/GestureMatch.gestureName|{}gestureName[0]
+        final fun <get-gestureName>(): kotlin/String // io.github.kmpfacelink.actions.gesture/GestureMatch.gestureName.<get-gestureName>|<get-gestureName>(){}[0]
+
+    final fun component1(): kotlin/String // io.github.kmpfacelink.actions.gesture/GestureMatch.component1|component1(){}[0]
+    final fun component2(): kotlin/Float // io.github.kmpfacelink.actions.gesture/GestureMatch.component2|component2(){}[0]
+    final fun copy(kotlin/String = ..., kotlin/Float = ...): io.github.kmpfacelink.actions.gesture/GestureMatch // io.github.kmpfacelink.actions.gesture/GestureMatch.copy|copy(kotlin.String;kotlin.Float){}[0]
+    final fun equals(kotlin/Any?): kotlin/Boolean // io.github.kmpfacelink.actions.gesture/GestureMatch.equals|equals(kotlin.Any?){}[0]
+    final fun hashCode(): kotlin/Int // io.github.kmpfacelink.actions.gesture/GestureMatch.hashCode|hashCode(){}[0]
+    final fun toString(): kotlin/String // io.github.kmpfacelink.actions.gesture/GestureMatch.toString|toString(){}[0]
+}
+
+final class io.github.kmpfacelink.actions.gesture/LandmarkGesture { // io.github.kmpfacelink.actions.gesture/LandmarkGesture|null[0]
+    constructor <init>(kotlin/String, kotlin.collections/List<io.github.kmpfacelink.actions.gesture/LandmarkCondition>) // io.github.kmpfacelink.actions.gesture/LandmarkGesture.<init>|<init>(kotlin.String;kotlin.collections.List<io.github.kmpfacelink.actions.gesture.LandmarkCondition>){}[0]
+
+    final val conditions // io.github.kmpfacelink.actions.gesture/LandmarkGesture.conditions|{}conditions[0]
+        final fun <get-conditions>(): kotlin.collections/List<io.github.kmpfacelink.actions.gesture/LandmarkCondition> // io.github.kmpfacelink.actions.gesture/LandmarkGesture.conditions.<get-conditions>|<get-conditions>(){}[0]
+    final val name // io.github.kmpfacelink.actions.gesture/LandmarkGesture.name|{}name[0]
+        final fun <get-name>(): kotlin/String // io.github.kmpfacelink.actions.gesture/LandmarkGesture.name.<get-name>|<get-name>(){}[0]
+
+    final fun component1(): kotlin/String // io.github.kmpfacelink.actions.gesture/LandmarkGesture.component1|component1(){}[0]
+    final fun component2(): kotlin.collections/List<io.github.kmpfacelink.actions.gesture/LandmarkCondition> // io.github.kmpfacelink.actions.gesture/LandmarkGesture.component2|component2(){}[0]
+    final fun copy(kotlin/String = ..., kotlin.collections/List<io.github.kmpfacelink.actions.gesture/LandmarkCondition> = ...): io.github.kmpfacelink.actions.gesture/LandmarkGesture // io.github.kmpfacelink.actions.gesture/LandmarkGesture.copy|copy(kotlin.String;kotlin.collections.List<io.github.kmpfacelink.actions.gesture.LandmarkCondition>){}[0]
+    final fun equals(kotlin/Any?): kotlin/Boolean // io.github.kmpfacelink.actions.gesture/LandmarkGesture.equals|equals(kotlin.Any?){}[0]
+    final fun evaluate(kotlin.collections/List<io.github.kmpfacelink.model/HandLandmarkPoint>): kotlin/Float // io.github.kmpfacelink.actions.gesture/LandmarkGesture.evaluate|evaluate(kotlin.collections.List<io.github.kmpfacelink.model.HandLandmarkPoint>){}[0]
+    final fun hashCode(): kotlin/Int // io.github.kmpfacelink.actions.gesture/LandmarkGesture.hashCode|hashCode(){}[0]
+    final fun toString(): kotlin/String // io.github.kmpfacelink.actions.gesture/LandmarkGesture.toString|toString(){}[0]
+}
+
+final class io.github.kmpfacelink.actions.gesture/LandmarkGestureBuilder { // io.github.kmpfacelink.actions.gesture/LandmarkGestureBuilder|null[0]
+    constructor <init>(kotlin/String) // io.github.kmpfacelink.actions.gesture/LandmarkGestureBuilder.<init>|<init>(kotlin.String){}[0]
+
+    final fun above(io.github.kmpfacelink.model/HandJoint, io.github.kmpfacelink.model/HandJoint) // io.github.kmpfacelink.actions.gesture/LandmarkGestureBuilder.above|above(io.github.kmpfacelink.model.HandJoint;io.github.kmpfacelink.model.HandJoint){}[0]
+    final fun below(io.github.kmpfacelink.model/HandJoint, io.github.kmpfacelink.model/HandJoint) // io.github.kmpfacelink.actions.gesture/LandmarkGestureBuilder.below|below(io.github.kmpfacelink.model.HandJoint;io.github.kmpfacelink.model.HandJoint){}[0]
+    final fun distanceGreaterThan(io.github.kmpfacelink.model/HandJoint, io.github.kmpfacelink.model/HandJoint, kotlin/Float) // io.github.kmpfacelink.actions.gesture/LandmarkGestureBuilder.distanceGreaterThan|distanceGreaterThan(io.github.kmpfacelink.model.HandJoint;io.github.kmpfacelink.model.HandJoint;kotlin.Float){}[0]
+    final fun distanceLessThan(io.github.kmpfacelink.model/HandJoint, io.github.kmpfacelink.model/HandJoint, kotlin/Float) // io.github.kmpfacelink.actions.gesture/LandmarkGestureBuilder.distanceLessThan|distanceLessThan(io.github.kmpfacelink.model.HandJoint;io.github.kmpfacelink.model.HandJoint;kotlin.Float){}[0]
+}
+
+final class io.github.kmpfacelink.actions.gesture/LandmarkGestureDetector { // io.github.kmpfacelink.actions.gesture/LandmarkGestureDetector|null[0]
+    constructor <init>(kotlin.collections/List<io.github.kmpfacelink.actions.gesture/LandmarkGesture>, kotlin/Float = ...) // io.github.kmpfacelink.actions.gesture/LandmarkGestureDetector.<init>|<init>(kotlin.collections.List<io.github.kmpfacelink.actions.gesture.LandmarkGesture>;kotlin.Float){}[0]
+
+    final fun detect(io.github.kmpfacelink.model/HandTrackingData): kotlin.collections/List<io.github.kmpfacelink.actions.gesture/GestureMatch> // io.github.kmpfacelink.actions.gesture/LandmarkGestureDetector.detect|detect(io.github.kmpfacelink.model.HandTrackingData){}[0]
+    final fun detect(io.github.kmpfacelink.model/TrackedHand): kotlin.collections/List<io.github.kmpfacelink.actions.gesture/GestureMatch> // io.github.kmpfacelink.actions.gesture/LandmarkGestureDetector.detect|detect(io.github.kmpfacelink.model.TrackedHand){}[0]
+}
+
+final class io.github.kmpfacelink.actions.record/TrackingPlayer { // io.github.kmpfacelink.actions.record/TrackingPlayer|null[0]
+    constructor <init>(io.github.kmpfacelink.actions.record/TrackingSession, kotlin/Float = ..., kotlin/Boolean = ...) // io.github.kmpfacelink.actions.record/TrackingPlayer.<init>|<init>(io.github.kmpfacelink.actions.record.TrackingSession;kotlin.Float;kotlin.Boolean){}[0]
+
+    final fun play(): kotlinx.coroutines.flow/Flow<io.github.kmpfacelink.model/FaceTrackingData> // io.github.kmpfacelink.actions.record/TrackingPlayer.play|play(){}[0]
+}
+
+final class io.github.kmpfacelink.actions.record/TrackingRecorder { // io.github.kmpfacelink.actions.record/TrackingRecorder|null[0]
+    constructor <init>(kotlin/Int = ...) // io.github.kmpfacelink.actions.record/TrackingRecorder.<init>|<init>(kotlin.Int){}[0]
+
+    final val currentFrameCount // io.github.kmpfacelink.actions.record/TrackingRecorder.currentFrameCount|{}currentFrameCount[0]
+        final fun <get-currentFrameCount>(): kotlin/Int // io.github.kmpfacelink.actions.record/TrackingRecorder.currentFrameCount.<get-currentFrameCount>|<get-currentFrameCount>(){}[0]
+    final val isRecording // io.github.kmpfacelink.actions.record/TrackingRecorder.isRecording|{}isRecording[0]
+        final fun <get-isRecording>(): kotlin/Boolean // io.github.kmpfacelink.actions.record/TrackingRecorder.isRecording.<get-isRecording>|<get-isRecording>(){}[0]
+
+    final suspend fun clear() // io.github.kmpfacelink.actions.record/TrackingRecorder.clear|clear(){}[0]
+    final suspend fun record(io.github.kmpfacelink.model/FaceTrackingData) // io.github.kmpfacelink.actions.record/TrackingRecorder.record|record(io.github.kmpfacelink.model.FaceTrackingData){}[0]
+    final suspend fun start() // io.github.kmpfacelink.actions.record/TrackingRecorder.start|start(){}[0]
+    final suspend fun stop(): io.github.kmpfacelink.actions.record/TrackingSession // io.github.kmpfacelink.actions.record/TrackingRecorder.stop|stop(){}[0]
+}
+
+final class io.github.kmpfacelink.actions.record/TrackingSession { // io.github.kmpfacelink.actions.record/TrackingSession|null[0]
+    constructor <init>(kotlin.collections/List<io.github.kmpfacelink.model/FaceTrackingData>) // io.github.kmpfacelink.actions.record/TrackingSession.<init>|<init>(kotlin.collections.List<io.github.kmpfacelink.model.FaceTrackingData>){}[0]
+
+    final val averageFps // io.github.kmpfacelink.actions.record/TrackingSession.averageFps|{}averageFps[0]
+        final fun <get-averageFps>(): kotlin/Float // io.github.kmpfacelink.actions.record/TrackingSession.averageFps.<get-averageFps>|<get-averageFps>(){}[0]
+    final val durationMs // io.github.kmpfacelink.actions.record/TrackingSession.durationMs|{}durationMs[0]
+        final fun <get-durationMs>(): kotlin/Long // io.github.kmpfacelink.actions.record/TrackingSession.durationMs.<get-durationMs>|<get-durationMs>(){}[0]
+    final val endTimestampMs // io.github.kmpfacelink.actions.record/TrackingSession.endTimestampMs|{}endTimestampMs[0]
+        final fun <get-endTimestampMs>(): kotlin/Long // io.github.kmpfacelink.actions.record/TrackingSession.endTimestampMs.<get-endTimestampMs>|<get-endTimestampMs>(){}[0]
+    final val frameCount // io.github.kmpfacelink.actions.record/TrackingSession.frameCount|{}frameCount[0]
+        final fun <get-frameCount>(): kotlin/Int // io.github.kmpfacelink.actions.record/TrackingSession.frameCount.<get-frameCount>|<get-frameCount>(){}[0]
+    final val frames // io.github.kmpfacelink.actions.record/TrackingSession.frames|{}frames[0]
+        final fun <get-frames>(): kotlin.collections/List<io.github.kmpfacelink.model/FaceTrackingData> // io.github.kmpfacelink.actions.record/TrackingSession.frames.<get-frames>|<get-frames>(){}[0]
+    final val isEmpty // io.github.kmpfacelink.actions.record/TrackingSession.isEmpty|{}isEmpty[0]
+        final fun <get-isEmpty>(): kotlin/Boolean // io.github.kmpfacelink.actions.record/TrackingSession.isEmpty.<get-isEmpty>|<get-isEmpty>(){}[0]
+    final val startTimestampMs // io.github.kmpfacelink.actions.record/TrackingSession.startTimestampMs|{}startTimestampMs[0]
+        final fun <get-startTimestampMs>(): kotlin/Long // io.github.kmpfacelink.actions.record/TrackingSession.startTimestampMs.<get-startTimestampMs>|<get-startTimestampMs>(){}[0]
+
+    final fun component1(): kotlin.collections/List<io.github.kmpfacelink.model/FaceTrackingData> // io.github.kmpfacelink.actions.record/TrackingSession.component1|component1(){}[0]
+    final fun copy(kotlin.collections/List<io.github.kmpfacelink.model/FaceTrackingData> = ...): io.github.kmpfacelink.actions.record/TrackingSession // io.github.kmpfacelink.actions.record/TrackingSession.copy|copy(kotlin.collections.List<io.github.kmpfacelink.model.FaceTrackingData>){}[0]
+    final fun equals(kotlin/Any?): kotlin/Boolean // io.github.kmpfacelink.actions.record/TrackingSession.equals|equals(kotlin.Any?){}[0]
+    final fun hashCode(): kotlin/Int // io.github.kmpfacelink.actions.record/TrackingSession.hashCode|hashCode(){}[0]
+    final fun toString(): kotlin/String // io.github.kmpfacelink.actions.record/TrackingSession.toString|toString(){}[0]
+}
+
+final class io.github.kmpfacelink.actions/ActionBinding { // io.github.kmpfacelink.actions/ActionBinding|null[0]
+    constructor <init>(kotlin/String, io.github.kmpfacelink.actions/ActionTrigger, kotlin/Long = ..., kotlin/Long = ..., kotlin/Long = ..., kotlin/Boolean = ...) // io.github.kmpfacelink.actions/ActionBinding.<init>|<init>(kotlin.String;io.github.kmpfacelink.actions.ActionTrigger;kotlin.Long;kotlin.Long;kotlin.Long;kotlin.Boolean){}[0]
+
+    final val actionId // io.github.kmpfacelink.actions/ActionBinding.actionId|{}actionId[0]
+        final fun <get-actionId>(): kotlin/String // io.github.kmpfacelink.actions/ActionBinding.actionId.<get-actionId>|<get-actionId>(){}[0]
+    final val cooldownMs // io.github.kmpfacelink.actions/ActionBinding.cooldownMs|{}cooldownMs[0]
+        final fun <get-cooldownMs>(): kotlin/Long // io.github.kmpfacelink.actions/ActionBinding.cooldownMs.<get-cooldownMs>|<get-cooldownMs>(){}[0]
+    final val debounceMs // io.github.kmpfacelink.actions/ActionBinding.debounceMs|{}debounceMs[0]
+        final fun <get-debounceMs>(): kotlin/Long // io.github.kmpfacelink.actions/ActionBinding.debounceMs.<get-debounceMs>|<get-debounceMs>(){}[0]
+    final val emitHeldEvents // io.github.kmpfacelink.actions/ActionBinding.emitHeldEvents|{}emitHeldEvents[0]
+        final fun <get-emitHeldEvents>(): kotlin/Boolean // io.github.kmpfacelink.actions/ActionBinding.emitHeldEvents.<get-emitHeldEvents>|<get-emitHeldEvents>(){}[0]
+    final val holdTimeMs // io.github.kmpfacelink.actions/ActionBinding.holdTimeMs|{}holdTimeMs[0]
+        final fun <get-holdTimeMs>(): kotlin/Long // io.github.kmpfacelink.actions/ActionBinding.holdTimeMs.<get-holdTimeMs>|<get-holdTimeMs>(){}[0]
+    final val trigger // io.github.kmpfacelink.actions/ActionBinding.trigger|{}trigger[0]
+        final fun <get-trigger>(): io.github.kmpfacelink.actions/ActionTrigger // io.github.kmpfacelink.actions/ActionBinding.trigger.<get-trigger>|<get-trigger>(){}[0]
+
+    final fun component1(): kotlin/String // io.github.kmpfacelink.actions/ActionBinding.component1|component1(){}[0]
+    final fun component2(): io.github.kmpfacelink.actions/ActionTrigger // io.github.kmpfacelink.actions/ActionBinding.component2|component2(){}[0]
+    final fun component3(): kotlin/Long // io.github.kmpfacelink.actions/ActionBinding.component3|component3(){}[0]
+    final fun component4(): kotlin/Long // io.github.kmpfacelink.actions/ActionBinding.component4|component4(){}[0]
+    final fun component5(): kotlin/Long // io.github.kmpfacelink.actions/ActionBinding.component5|component5(){}[0]
+    final fun component6(): kotlin/Boolean // io.github.kmpfacelink.actions/ActionBinding.component6|component6(){}[0]
+    final fun copy(kotlin/String = ..., io.github.kmpfacelink.actions/ActionTrigger = ..., kotlin/Long = ..., kotlin/Long = ..., kotlin/Long = ..., kotlin/Boolean = ...): io.github.kmpfacelink.actions/ActionBinding // io.github.kmpfacelink.actions/ActionBinding.copy|copy(kotlin.String;io.github.kmpfacelink.actions.ActionTrigger;kotlin.Long;kotlin.Long;kotlin.Long;kotlin.Boolean){}[0]
+    final fun equals(kotlin/Any?): kotlin/Boolean // io.github.kmpfacelink.actions/ActionBinding.equals|equals(kotlin.Any?){}[0]
+    final fun hashCode(): kotlin/Int // io.github.kmpfacelink.actions/ActionBinding.hashCode|hashCode(){}[0]
+    final fun toString(): kotlin/String // io.github.kmpfacelink.actions/ActionBinding.toString|toString(){}[0]
+}
+
+final class io.github.kmpfacelink.actions/ActionSystem : io.github.kmpfacelink.api/Releasable { // io.github.kmpfacelink.actions/ActionSystem|null[0]
+    constructor <init>() // io.github.kmpfacelink.actions/ActionSystem.<init>|<init>(){}[0]
+
+    final val events // io.github.kmpfacelink.actions/ActionSystem.events|{}events[0]
+        final fun <get-events>(): kotlinx.coroutines.flow/Flow<io.github.kmpfacelink.actions/ActionEvent> // io.github.kmpfacelink.actions/ActionSystem.events.<get-events>|<get-events>(){}[0]
+
+    final fun release() // io.github.kmpfacelink.actions/ActionSystem.release|release(){}[0]
+    final suspend fun clear() // io.github.kmpfacelink.actions/ActionSystem.clear|clear(){}[0]
+    final suspend fun processFace(io.github.kmpfacelink.model/FaceTrackingData): kotlin.collections/List<io.github.kmpfacelink.actions/ActionEvent> // io.github.kmpfacelink.actions/ActionSystem.processFace|processFace(io.github.kmpfacelink.model.FaceTrackingData){}[0]
+    final suspend fun processHand(io.github.kmpfacelink.model/HandTrackingData): kotlin.collections/List<io.github.kmpfacelink.actions/ActionEvent> // io.github.kmpfacelink.actions/ActionSystem.processHand|processHand(io.github.kmpfacelink.model.HandTrackingData){}[0]
+    final suspend fun register(io.github.kmpfacelink.actions/ActionBinding) // io.github.kmpfacelink.actions/ActionSystem.register|register(io.github.kmpfacelink.actions.ActionBinding){}[0]
+    final suspend fun unregister(kotlin/String): kotlin/Boolean // io.github.kmpfacelink.actions/ActionSystem.unregister|unregister(kotlin.String){}[0]
+}
+
+sealed class io.github.kmpfacelink.actions.gesture/LandmarkCondition { // io.github.kmpfacelink.actions.gesture/LandmarkCondition|null[0]
+    final class Above : io.github.kmpfacelink.actions.gesture/LandmarkCondition { // io.github.kmpfacelink.actions.gesture/LandmarkCondition.Above|null[0]
+        constructor <init>(io.github.kmpfacelink.model/HandJoint, io.github.kmpfacelink.model/HandJoint) // io.github.kmpfacelink.actions.gesture/LandmarkCondition.Above.<init>|<init>(io.github.kmpfacelink.model.HandJoint;io.github.kmpfacelink.model.HandJoint){}[0]
+
+        final val joint // io.github.kmpfacelink.actions.gesture/LandmarkCondition.Above.joint|{}joint[0]
+            final fun <get-joint>(): io.github.kmpfacelink.model/HandJoint // io.github.kmpfacelink.actions.gesture/LandmarkCondition.Above.joint.<get-joint>|<get-joint>(){}[0]
+        final val referenceJoint // io.github.kmpfacelink.actions.gesture/LandmarkCondition.Above.referenceJoint|{}referenceJoint[0]
+            final fun <get-referenceJoint>(): io.github.kmpfacelink.model/HandJoint // io.github.kmpfacelink.actions.gesture/LandmarkCondition.Above.referenceJoint.<get-referenceJoint>|<get-referenceJoint>(){}[0]
+
+        final fun component1(): io.github.kmpfacelink.model/HandJoint // io.github.kmpfacelink.actions.gesture/LandmarkCondition.Above.component1|component1(){}[0]
+        final fun component2(): io.github.kmpfacelink.model/HandJoint // io.github.kmpfacelink.actions.gesture/LandmarkCondition.Above.component2|component2(){}[0]
+        final fun copy(io.github.kmpfacelink.model/HandJoint = ..., io.github.kmpfacelink.model/HandJoint = ...): io.github.kmpfacelink.actions.gesture/LandmarkCondition.Above // io.github.kmpfacelink.actions.gesture/LandmarkCondition.Above.copy|copy(io.github.kmpfacelink.model.HandJoint;io.github.kmpfacelink.model.HandJoint){}[0]
+        final fun equals(kotlin/Any?): kotlin/Boolean // io.github.kmpfacelink.actions.gesture/LandmarkCondition.Above.equals|equals(kotlin.Any?){}[0]
+        final fun hashCode(): kotlin/Int // io.github.kmpfacelink.actions.gesture/LandmarkCondition.Above.hashCode|hashCode(){}[0]
+        final fun toString(): kotlin/String // io.github.kmpfacelink.actions.gesture/LandmarkCondition.Above.toString|toString(){}[0]
+    }
+
+    final class Below : io.github.kmpfacelink.actions.gesture/LandmarkCondition { // io.github.kmpfacelink.actions.gesture/LandmarkCondition.Below|null[0]
+        constructor <init>(io.github.kmpfacelink.model/HandJoint, io.github.kmpfacelink.model/HandJoint) // io.github.kmpfacelink.actions.gesture/LandmarkCondition.Below.<init>|<init>(io.github.kmpfacelink.model.HandJoint;io.github.kmpfacelink.model.HandJoint){}[0]
+
+        final val joint // io.github.kmpfacelink.actions.gesture/LandmarkCondition.Below.joint|{}joint[0]
+            final fun <get-joint>(): io.github.kmpfacelink.model/HandJoint // io.github.kmpfacelink.actions.gesture/LandmarkCondition.Below.joint.<get-joint>|<get-joint>(){}[0]
+        final val referenceJoint // io.github.kmpfacelink.actions.gesture/LandmarkCondition.Below.referenceJoint|{}referenceJoint[0]
+            final fun <get-referenceJoint>(): io.github.kmpfacelink.model/HandJoint // io.github.kmpfacelink.actions.gesture/LandmarkCondition.Below.referenceJoint.<get-referenceJoint>|<get-referenceJoint>(){}[0]
+
+        final fun component1(): io.github.kmpfacelink.model/HandJoint // io.github.kmpfacelink.actions.gesture/LandmarkCondition.Below.component1|component1(){}[0]
+        final fun component2(): io.github.kmpfacelink.model/HandJoint // io.github.kmpfacelink.actions.gesture/LandmarkCondition.Below.component2|component2(){}[0]
+        final fun copy(io.github.kmpfacelink.model/HandJoint = ..., io.github.kmpfacelink.model/HandJoint = ...): io.github.kmpfacelink.actions.gesture/LandmarkCondition.Below // io.github.kmpfacelink.actions.gesture/LandmarkCondition.Below.copy|copy(io.github.kmpfacelink.model.HandJoint;io.github.kmpfacelink.model.HandJoint){}[0]
+        final fun equals(kotlin/Any?): kotlin/Boolean // io.github.kmpfacelink.actions.gesture/LandmarkCondition.Below.equals|equals(kotlin.Any?){}[0]
+        final fun hashCode(): kotlin/Int // io.github.kmpfacelink.actions.gesture/LandmarkCondition.Below.hashCode|hashCode(){}[0]
+        final fun toString(): kotlin/String // io.github.kmpfacelink.actions.gesture/LandmarkCondition.Below.toString|toString(){}[0]
+    }
+
+    final class DistanceGreaterThan : io.github.kmpfacelink.actions.gesture/LandmarkCondition { // io.github.kmpfacelink.actions.gesture/LandmarkCondition.DistanceGreaterThan|null[0]
+        constructor <init>(io.github.kmpfacelink.model/HandJoint, io.github.kmpfacelink.model/HandJoint, kotlin/Float) // io.github.kmpfacelink.actions.gesture/LandmarkCondition.DistanceGreaterThan.<init>|<init>(io.github.kmpfacelink.model.HandJoint;io.github.kmpfacelink.model.HandJoint;kotlin.Float){}[0]
+
+        final val jointA // io.github.kmpfacelink.actions.gesture/LandmarkCondition.DistanceGreaterThan.jointA|{}jointA[0]
+            final fun <get-jointA>(): io.github.kmpfacelink.model/HandJoint // io.github.kmpfacelink.actions.gesture/LandmarkCondition.DistanceGreaterThan.jointA.<get-jointA>|<get-jointA>(){}[0]
+        final val jointB // io.github.kmpfacelink.actions.gesture/LandmarkCondition.DistanceGreaterThan.jointB|{}jointB[0]
+            final fun <get-jointB>(): io.github.kmpfacelink.model/HandJoint // io.github.kmpfacelink.actions.gesture/LandmarkCondition.DistanceGreaterThan.jointB.<get-jointB>|<get-jointB>(){}[0]
+        final val minDistance // io.github.kmpfacelink.actions.gesture/LandmarkCondition.DistanceGreaterThan.minDistance|{}minDistance[0]
+            final fun <get-minDistance>(): kotlin/Float // io.github.kmpfacelink.actions.gesture/LandmarkCondition.DistanceGreaterThan.minDistance.<get-minDistance>|<get-minDistance>(){}[0]
+
+        final fun component1(): io.github.kmpfacelink.model/HandJoint // io.github.kmpfacelink.actions.gesture/LandmarkCondition.DistanceGreaterThan.component1|component1(){}[0]
+        final fun component2(): io.github.kmpfacelink.model/HandJoint // io.github.kmpfacelink.actions.gesture/LandmarkCondition.DistanceGreaterThan.component2|component2(){}[0]
+        final fun component3(): kotlin/Float // io.github.kmpfacelink.actions.gesture/LandmarkCondition.DistanceGreaterThan.component3|component3(){}[0]
+        final fun copy(io.github.kmpfacelink.model/HandJoint = ..., io.github.kmpfacelink.model/HandJoint = ..., kotlin/Float = ...): io.github.kmpfacelink.actions.gesture/LandmarkCondition.DistanceGreaterThan // io.github.kmpfacelink.actions.gesture/LandmarkCondition.DistanceGreaterThan.copy|copy(io.github.kmpfacelink.model.HandJoint;io.github.kmpfacelink.model.HandJoint;kotlin.Float){}[0]
+        final fun equals(kotlin/Any?): kotlin/Boolean // io.github.kmpfacelink.actions.gesture/LandmarkCondition.DistanceGreaterThan.equals|equals(kotlin.Any?){}[0]
+        final fun hashCode(): kotlin/Int // io.github.kmpfacelink.actions.gesture/LandmarkCondition.DistanceGreaterThan.hashCode|hashCode(){}[0]
+        final fun toString(): kotlin/String // io.github.kmpfacelink.actions.gesture/LandmarkCondition.DistanceGreaterThan.toString|toString(){}[0]
+    }
+
+    final class DistanceLessThan : io.github.kmpfacelink.actions.gesture/LandmarkCondition { // io.github.kmpfacelink.actions.gesture/LandmarkCondition.DistanceLessThan|null[0]
+        constructor <init>(io.github.kmpfacelink.model/HandJoint, io.github.kmpfacelink.model/HandJoint, kotlin/Float) // io.github.kmpfacelink.actions.gesture/LandmarkCondition.DistanceLessThan.<init>|<init>(io.github.kmpfacelink.model.HandJoint;io.github.kmpfacelink.model.HandJoint;kotlin.Float){}[0]
+
+        final val jointA // io.github.kmpfacelink.actions.gesture/LandmarkCondition.DistanceLessThan.jointA|{}jointA[0]
+            final fun <get-jointA>(): io.github.kmpfacelink.model/HandJoint // io.github.kmpfacelink.actions.gesture/LandmarkCondition.DistanceLessThan.jointA.<get-jointA>|<get-jointA>(){}[0]
+        final val jointB // io.github.kmpfacelink.actions.gesture/LandmarkCondition.DistanceLessThan.jointB|{}jointB[0]
+            final fun <get-jointB>(): io.github.kmpfacelink.model/HandJoint // io.github.kmpfacelink.actions.gesture/LandmarkCondition.DistanceLessThan.jointB.<get-jointB>|<get-jointB>(){}[0]
+        final val maxDistance // io.github.kmpfacelink.actions.gesture/LandmarkCondition.DistanceLessThan.maxDistance|{}maxDistance[0]
+            final fun <get-maxDistance>(): kotlin/Float // io.github.kmpfacelink.actions.gesture/LandmarkCondition.DistanceLessThan.maxDistance.<get-maxDistance>|<get-maxDistance>(){}[0]
+
+        final fun component1(): io.github.kmpfacelink.model/HandJoint // io.github.kmpfacelink.actions.gesture/LandmarkCondition.DistanceLessThan.component1|component1(){}[0]
+        final fun component2(): io.github.kmpfacelink.model/HandJoint // io.github.kmpfacelink.actions.gesture/LandmarkCondition.DistanceLessThan.component2|component2(){}[0]
+        final fun component3(): kotlin/Float // io.github.kmpfacelink.actions.gesture/LandmarkCondition.DistanceLessThan.component3|component3(){}[0]
+        final fun copy(io.github.kmpfacelink.model/HandJoint = ..., io.github.kmpfacelink.model/HandJoint = ..., kotlin/Float = ...): io.github.kmpfacelink.actions.gesture/LandmarkCondition.DistanceLessThan // io.github.kmpfacelink.actions.gesture/LandmarkCondition.DistanceLessThan.copy|copy(io.github.kmpfacelink.model.HandJoint;io.github.kmpfacelink.model.HandJoint;kotlin.Float){}[0]
+        final fun equals(kotlin/Any?): kotlin/Boolean // io.github.kmpfacelink.actions.gesture/LandmarkCondition.DistanceLessThan.equals|equals(kotlin.Any?){}[0]
+        final fun hashCode(): kotlin/Int // io.github.kmpfacelink.actions.gesture/LandmarkCondition.DistanceLessThan.hashCode|hashCode(){}[0]
+        final fun toString(): kotlin/String // io.github.kmpfacelink.actions.gesture/LandmarkCondition.DistanceLessThan.toString|toString(){}[0]
+    }
+}
+
+sealed class io.github.kmpfacelink.actions/ActionEvent { // io.github.kmpfacelink.actions/ActionEvent|null[0]
+    abstract val actionId // io.github.kmpfacelink.actions/ActionEvent.actionId|{}actionId[0]
+        abstract fun <get-actionId>(): kotlin/String // io.github.kmpfacelink.actions/ActionEvent.actionId.<get-actionId>|<get-actionId>(){}[0]
+    abstract val timestampMs // io.github.kmpfacelink.actions/ActionEvent.timestampMs|{}timestampMs[0]
+        abstract fun <get-timestampMs>(): kotlin/Long // io.github.kmpfacelink.actions/ActionEvent.timestampMs.<get-timestampMs>|<get-timestampMs>(){}[0]
+
+    final class Held : io.github.kmpfacelink.actions/ActionEvent { // io.github.kmpfacelink.actions/ActionEvent.Held|null[0]
+        constructor <init>(kotlin/String, kotlin/Long, kotlin/Long) // io.github.kmpfacelink.actions/ActionEvent.Held.<init>|<init>(kotlin.String;kotlin.Long;kotlin.Long){}[0]
+
+        final val actionId // io.github.kmpfacelink.actions/ActionEvent.Held.actionId|{}actionId[0]
+            final fun <get-actionId>(): kotlin/String // io.github.kmpfacelink.actions/ActionEvent.Held.actionId.<get-actionId>|<get-actionId>(){}[0]
+        final val durationMs // io.github.kmpfacelink.actions/ActionEvent.Held.durationMs|{}durationMs[0]
+            final fun <get-durationMs>(): kotlin/Long // io.github.kmpfacelink.actions/ActionEvent.Held.durationMs.<get-durationMs>|<get-durationMs>(){}[0]
+        final val timestampMs // io.github.kmpfacelink.actions/ActionEvent.Held.timestampMs|{}timestampMs[0]
+            final fun <get-timestampMs>(): kotlin/Long // io.github.kmpfacelink.actions/ActionEvent.Held.timestampMs.<get-timestampMs>|<get-timestampMs>(){}[0]
+
+        final fun component1(): kotlin/String // io.github.kmpfacelink.actions/ActionEvent.Held.component1|component1(){}[0]
+        final fun component2(): kotlin/Long // io.github.kmpfacelink.actions/ActionEvent.Held.component2|component2(){}[0]
+        final fun component3(): kotlin/Long // io.github.kmpfacelink.actions/ActionEvent.Held.component3|component3(){}[0]
+        final fun copy(kotlin/String = ..., kotlin/Long = ..., kotlin/Long = ...): io.github.kmpfacelink.actions/ActionEvent.Held // io.github.kmpfacelink.actions/ActionEvent.Held.copy|copy(kotlin.String;kotlin.Long;kotlin.Long){}[0]
+        final fun equals(kotlin/Any?): kotlin/Boolean // io.github.kmpfacelink.actions/ActionEvent.Held.equals|equals(kotlin.Any?){}[0]
+        final fun hashCode(): kotlin/Int // io.github.kmpfacelink.actions/ActionEvent.Held.hashCode|hashCode(){}[0]
+        final fun toString(): kotlin/String // io.github.kmpfacelink.actions/ActionEvent.Held.toString|toString(){}[0]
+    }
+
+    final class Released : io.github.kmpfacelink.actions/ActionEvent { // io.github.kmpfacelink.actions/ActionEvent.Released|null[0]
+        constructor <init>(kotlin/String, kotlin/Long, kotlin/Long) // io.github.kmpfacelink.actions/ActionEvent.Released.<init>|<init>(kotlin.String;kotlin.Long;kotlin.Long){}[0]
+
+        final val actionId // io.github.kmpfacelink.actions/ActionEvent.Released.actionId|{}actionId[0]
+            final fun <get-actionId>(): kotlin/String // io.github.kmpfacelink.actions/ActionEvent.Released.actionId.<get-actionId>|<get-actionId>(){}[0]
+        final val timestampMs // io.github.kmpfacelink.actions/ActionEvent.Released.timestampMs|{}timestampMs[0]
+            final fun <get-timestampMs>(): kotlin/Long // io.github.kmpfacelink.actions/ActionEvent.Released.timestampMs.<get-timestampMs>|<get-timestampMs>(){}[0]
+        final val totalDurationMs // io.github.kmpfacelink.actions/ActionEvent.Released.totalDurationMs|{}totalDurationMs[0]
+            final fun <get-totalDurationMs>(): kotlin/Long // io.github.kmpfacelink.actions/ActionEvent.Released.totalDurationMs.<get-totalDurationMs>|<get-totalDurationMs>(){}[0]
+
+        final fun component1(): kotlin/String // io.github.kmpfacelink.actions/ActionEvent.Released.component1|component1(){}[0]
+        final fun component2(): kotlin/Long // io.github.kmpfacelink.actions/ActionEvent.Released.component2|component2(){}[0]
+        final fun component3(): kotlin/Long // io.github.kmpfacelink.actions/ActionEvent.Released.component3|component3(){}[0]
+        final fun copy(kotlin/String = ..., kotlin/Long = ..., kotlin/Long = ...): io.github.kmpfacelink.actions/ActionEvent.Released // io.github.kmpfacelink.actions/ActionEvent.Released.copy|copy(kotlin.String;kotlin.Long;kotlin.Long){}[0]
+        final fun equals(kotlin/Any?): kotlin/Boolean // io.github.kmpfacelink.actions/ActionEvent.Released.equals|equals(kotlin.Any?){}[0]
+        final fun hashCode(): kotlin/Int // io.github.kmpfacelink.actions/ActionEvent.Released.hashCode|hashCode(){}[0]
+        final fun toString(): kotlin/String // io.github.kmpfacelink.actions/ActionEvent.Released.toString|toString(){}[0]
+    }
+
+    final class Started : io.github.kmpfacelink.actions/ActionEvent { // io.github.kmpfacelink.actions/ActionEvent.Started|null[0]
+        constructor <init>(kotlin/String, kotlin/Long) // io.github.kmpfacelink.actions/ActionEvent.Started.<init>|<init>(kotlin.String;kotlin.Long){}[0]
+
+        final val actionId // io.github.kmpfacelink.actions/ActionEvent.Started.actionId|{}actionId[0]
+            final fun <get-actionId>(): kotlin/String // io.github.kmpfacelink.actions/ActionEvent.Started.actionId.<get-actionId>|<get-actionId>(){}[0]
+        final val timestampMs // io.github.kmpfacelink.actions/ActionEvent.Started.timestampMs|{}timestampMs[0]
+            final fun <get-timestampMs>(): kotlin/Long // io.github.kmpfacelink.actions/ActionEvent.Started.timestampMs.<get-timestampMs>|<get-timestampMs>(){}[0]
+
+        final fun component1(): kotlin/String // io.github.kmpfacelink.actions/ActionEvent.Started.component1|component1(){}[0]
+        final fun component2(): kotlin/Long // io.github.kmpfacelink.actions/ActionEvent.Started.component2|component2(){}[0]
+        final fun copy(kotlin/String = ..., kotlin/Long = ...): io.github.kmpfacelink.actions/ActionEvent.Started // io.github.kmpfacelink.actions/ActionEvent.Started.copy|copy(kotlin.String;kotlin.Long){}[0]
+        final fun equals(kotlin/Any?): kotlin/Boolean // io.github.kmpfacelink.actions/ActionEvent.Started.equals|equals(kotlin.Any?){}[0]
+        final fun hashCode(): kotlin/Int // io.github.kmpfacelink.actions/ActionEvent.Started.hashCode|hashCode(){}[0]
+        final fun toString(): kotlin/String // io.github.kmpfacelink.actions/ActionEvent.Started.toString|toString(){}[0]
+    }
+}
+
+sealed class io.github.kmpfacelink.actions/ActionTrigger { // io.github.kmpfacelink.actions/ActionTrigger|null[0]
+    final class CombinedTrigger : io.github.kmpfacelink.actions/ActionTrigger { // io.github.kmpfacelink.actions/ActionTrigger.CombinedTrigger|null[0]
+        constructor <init>(kotlin.collections/List<io.github.kmpfacelink.actions/ActionTrigger>) // io.github.kmpfacelink.actions/ActionTrigger.CombinedTrigger.<init>|<init>(kotlin.collections.List<io.github.kmpfacelink.actions.ActionTrigger>){}[0]
+
+        final val triggers // io.github.kmpfacelink.actions/ActionTrigger.CombinedTrigger.triggers|{}triggers[0]
+            final fun <get-triggers>(): kotlin.collections/List<io.github.kmpfacelink.actions/ActionTrigger> // io.github.kmpfacelink.actions/ActionTrigger.CombinedTrigger.triggers.<get-triggers>|<get-triggers>(){}[0]
+
+        final fun component1(): kotlin.collections/List<io.github.kmpfacelink.actions/ActionTrigger> // io.github.kmpfacelink.actions/ActionTrigger.CombinedTrigger.component1|component1(){}[0]
+        final fun copy(kotlin.collections/List<io.github.kmpfacelink.actions/ActionTrigger> = ...): io.github.kmpfacelink.actions/ActionTrigger.CombinedTrigger // io.github.kmpfacelink.actions/ActionTrigger.CombinedTrigger.copy|copy(kotlin.collections.List<io.github.kmpfacelink.actions.ActionTrigger>){}[0]
+        final fun equals(kotlin/Any?): kotlin/Boolean // io.github.kmpfacelink.actions/ActionTrigger.CombinedTrigger.equals|equals(kotlin.Any?){}[0]
+        final fun hashCode(): kotlin/Int // io.github.kmpfacelink.actions/ActionTrigger.CombinedTrigger.hashCode|hashCode(){}[0]
+        final fun toString(): kotlin/String // io.github.kmpfacelink.actions/ActionTrigger.CombinedTrigger.toString|toString(){}[0]
+    }
+
+    final class ExpressionTrigger : io.github.kmpfacelink.actions/ActionTrigger { // io.github.kmpfacelink.actions/ActionTrigger.ExpressionTrigger|null[0]
+        constructor <init>(io.github.kmpfacelink.model/BlendShape, kotlin/Float = ..., io.github.kmpfacelink.actions/ThresholdDirection = ...) // io.github.kmpfacelink.actions/ActionTrigger.ExpressionTrigger.<init>|<init>(io.github.kmpfacelink.model.BlendShape;kotlin.Float;io.github.kmpfacelink.actions.ThresholdDirection){}[0]
+
+        final val blendShape // io.github.kmpfacelink.actions/ActionTrigger.ExpressionTrigger.blendShape|{}blendShape[0]
+            final fun <get-blendShape>(): io.github.kmpfacelink.model/BlendShape // io.github.kmpfacelink.actions/ActionTrigger.ExpressionTrigger.blendShape.<get-blendShape>|<get-blendShape>(){}[0]
+        final val direction // io.github.kmpfacelink.actions/ActionTrigger.ExpressionTrigger.direction|{}direction[0]
+            final fun <get-direction>(): io.github.kmpfacelink.actions/ThresholdDirection // io.github.kmpfacelink.actions/ActionTrigger.ExpressionTrigger.direction.<get-direction>|<get-direction>(){}[0]
+        final val threshold // io.github.kmpfacelink.actions/ActionTrigger.ExpressionTrigger.threshold|{}threshold[0]
+            final fun <get-threshold>(): kotlin/Float // io.github.kmpfacelink.actions/ActionTrigger.ExpressionTrigger.threshold.<get-threshold>|<get-threshold>(){}[0]
+
+        final fun component1(): io.github.kmpfacelink.model/BlendShape // io.github.kmpfacelink.actions/ActionTrigger.ExpressionTrigger.component1|component1(){}[0]
+        final fun component2(): kotlin/Float // io.github.kmpfacelink.actions/ActionTrigger.ExpressionTrigger.component2|component2(){}[0]
+        final fun component3(): io.github.kmpfacelink.actions/ThresholdDirection // io.github.kmpfacelink.actions/ActionTrigger.ExpressionTrigger.component3|component3(){}[0]
+        final fun copy(io.github.kmpfacelink.model/BlendShape = ..., kotlin/Float = ..., io.github.kmpfacelink.actions/ThresholdDirection = ...): io.github.kmpfacelink.actions/ActionTrigger.ExpressionTrigger // io.github.kmpfacelink.actions/ActionTrigger.ExpressionTrigger.copy|copy(io.github.kmpfacelink.model.BlendShape;kotlin.Float;io.github.kmpfacelink.actions.ThresholdDirection){}[0]
+        final fun equals(kotlin/Any?): kotlin/Boolean // io.github.kmpfacelink.actions/ActionTrigger.ExpressionTrigger.equals|equals(kotlin.Any?){}[0]
+        final fun hashCode(): kotlin/Int // io.github.kmpfacelink.actions/ActionTrigger.ExpressionTrigger.hashCode|hashCode(){}[0]
+        final fun toString(): kotlin/String // io.github.kmpfacelink.actions/ActionTrigger.ExpressionTrigger.toString|toString(){}[0]
+    }
+
+    final class GestureTrigger : io.github.kmpfacelink.actions/ActionTrigger { // io.github.kmpfacelink.actions/ActionTrigger.GestureTrigger|null[0]
+        constructor <init>(io.github.kmpfacelink.model/HandGesture, io.github.kmpfacelink.model/Handedness? = ..., kotlin/Float = ...) // io.github.kmpfacelink.actions/ActionTrigger.GestureTrigger.<init>|<init>(io.github.kmpfacelink.model.HandGesture;io.github.kmpfacelink.model.Handedness?;kotlin.Float){}[0]
+
+        final val gesture // io.github.kmpfacelink.actions/ActionTrigger.GestureTrigger.gesture|{}gesture[0]
+            final fun <get-gesture>(): io.github.kmpfacelink.model/HandGesture // io.github.kmpfacelink.actions/ActionTrigger.GestureTrigger.gesture.<get-gesture>|<get-gesture>(){}[0]
+        final val hand // io.github.kmpfacelink.actions/ActionTrigger.GestureTrigger.hand|{}hand[0]
+            final fun <get-hand>(): io.github.kmpfacelink.model/Handedness? // io.github.kmpfacelink.actions/ActionTrigger.GestureTrigger.hand.<get-hand>|<get-hand>(){}[0]
+        final val minConfidence // io.github.kmpfacelink.actions/ActionTrigger.GestureTrigger.minConfidence|{}minConfidence[0]
+            final fun <get-minConfidence>(): kotlin/Float // io.github.kmpfacelink.actions/ActionTrigger.GestureTrigger.minConfidence.<get-minConfidence>|<get-minConfidence>(){}[0]
+
+        final fun component1(): io.github.kmpfacelink.model/HandGesture // io.github.kmpfacelink.actions/ActionTrigger.GestureTrigger.component1|component1(){}[0]
+        final fun component2(): io.github.kmpfacelink.model/Handedness? // io.github.kmpfacelink.actions/ActionTrigger.GestureTrigger.component2|component2(){}[0]
+        final fun component3(): kotlin/Float // io.github.kmpfacelink.actions/ActionTrigger.GestureTrigger.component3|component3(){}[0]
+        final fun copy(io.github.kmpfacelink.model/HandGesture = ..., io.github.kmpfacelink.model/Handedness? = ..., kotlin/Float = ...): io.github.kmpfacelink.actions/ActionTrigger.GestureTrigger // io.github.kmpfacelink.actions/ActionTrigger.GestureTrigger.copy|copy(io.github.kmpfacelink.model.HandGesture;io.github.kmpfacelink.model.Handedness?;kotlin.Float){}[0]
+        final fun equals(kotlin/Any?): kotlin/Boolean // io.github.kmpfacelink.actions/ActionTrigger.GestureTrigger.equals|equals(kotlin.Any?){}[0]
+        final fun hashCode(): kotlin/Int // io.github.kmpfacelink.actions/ActionTrigger.GestureTrigger.hashCode|hashCode(){}[0]
+        final fun toString(): kotlin/String // io.github.kmpfacelink.actions/ActionTrigger.GestureTrigger.toString|toString(){}[0]
+    }
+}
+
+final val io.github.kmpfacelink.actions.emotion/DEFAULT_EMOTION_TEMPLATES // io.github.kmpfacelink.actions.emotion/DEFAULT_EMOTION_TEMPLATES|{}DEFAULT_EMOTION_TEMPLATES[0]
+    final fun <get-DEFAULT_EMOTION_TEMPLATES>(): kotlin.collections/List<io.github.kmpfacelink.actions.emotion/EmotionTemplate> // io.github.kmpfacelink.actions.emotion/DEFAULT_EMOTION_TEMPLATES.<get-DEFAULT_EMOTION_TEMPLATES>|<get-DEFAULT_EMOTION_TEMPLATES>(){}[0]
+
+final fun (io.github.kmpfacelink.actions.record/TrackingSession).io.github.kmpfacelink.actions.record/play(kotlin/Float = ..., kotlin/Boolean = ...): kotlinx.coroutines.flow/Flow<io.github.kmpfacelink.model/FaceTrackingData> // io.github.kmpfacelink.actions.record/play|play@io.github.kmpfacelink.actions.record.TrackingSession(kotlin.Float;kotlin.Boolean){}[0]
+final fun (kotlinx.coroutines.flow/Flow<io.github.kmpfacelink.model/FaceTrackingData>).io.github.kmpfacelink.actions.emotion/classifyEmotion(io.github.kmpfacelink.actions.emotion/EmotionClassifier = ...): kotlinx.coroutines.flow/Flow<io.github.kmpfacelink.actions.emotion/EmotionResult> // io.github.kmpfacelink.actions.emotion/classifyEmotion|classifyEmotion@kotlinx.coroutines.flow.Flow<io.github.kmpfacelink.model.FaceTrackingData>(io.github.kmpfacelink.actions.emotion.EmotionClassifier){}[0]
+final fun (kotlinx.coroutines.flow/Flow<io.github.kmpfacelink.model/FaceTrackingData>).io.github.kmpfacelink.actions.record/record(io.github.kmpfacelink.actions.record/TrackingRecorder): kotlinx.coroutines.flow/Flow<io.github.kmpfacelink.model/FaceTrackingData> // io.github.kmpfacelink.actions.record/record|record@kotlinx.coroutines.flow.Flow<io.github.kmpfacelink.model.FaceTrackingData>(io.github.kmpfacelink.actions.record.TrackingRecorder){}[0]
+final fun (kotlinx.coroutines.flow/Flow<io.github.kmpfacelink.model/FaceTrackingData>).io.github.kmpfacelink.actions/feedActions(io.github.kmpfacelink.actions/ActionSystem): kotlinx.coroutines.flow/Flow<io.github.kmpfacelink.model/FaceTrackingData> // io.github.kmpfacelink.actions/feedActions|feedActions@kotlinx.coroutines.flow.Flow<io.github.kmpfacelink.model.FaceTrackingData>(io.github.kmpfacelink.actions.ActionSystem){}[0]
+final fun (kotlinx.coroutines.flow/Flow<io.github.kmpfacelink.model/HandTrackingData>).io.github.kmpfacelink.actions/feedActions(io.github.kmpfacelink.actions/ActionSystem): kotlinx.coroutines.flow/Flow<io.github.kmpfacelink.model/HandTrackingData> // io.github.kmpfacelink.actions/feedActions|feedActions@kotlinx.coroutines.flow.Flow<io.github.kmpfacelink.model.HandTrackingData>(io.github.kmpfacelink.actions.ActionSystem){}[0]
+final fun io.github.kmpfacelink.actions.emotion/angryTrigger(kotlin/Float = ..., kotlin/Float = ...): io.github.kmpfacelink.actions/ActionTrigger // io.github.kmpfacelink.actions.emotion/angryTrigger|angryTrigger(kotlin.Float;kotlin.Float){}[0]
+final fun io.github.kmpfacelink.actions.emotion/disgustedTrigger(kotlin/Float = ..., kotlin/Float = ...): io.github.kmpfacelink.actions/ActionTrigger // io.github.kmpfacelink.actions.emotion/disgustedTrigger|disgustedTrigger(kotlin.Float;kotlin.Float){}[0]
+final fun io.github.kmpfacelink.actions.emotion/fearTrigger(kotlin/Float = ..., kotlin/Float = ..., kotlin/Float = ..., kotlin/Float = ...): io.github.kmpfacelink.actions/ActionTrigger // io.github.kmpfacelink.actions.emotion/fearTrigger|fearTrigger(kotlin.Float;kotlin.Float;kotlin.Float;kotlin.Float){}[0]
+final fun io.github.kmpfacelink.actions.emotion/happyTrigger(kotlin/Float = ...): io.github.kmpfacelink.actions/ActionTrigger // io.github.kmpfacelink.actions.emotion/happyTrigger|happyTrigger(kotlin.Float){}[0]
+final fun io.github.kmpfacelink.actions.emotion/sadTrigger(kotlin/Float = ..., kotlin/Float = ...): io.github.kmpfacelink.actions/ActionTrigger // io.github.kmpfacelink.actions.emotion/sadTrigger|sadTrigger(kotlin.Float;kotlin.Float){}[0]
+final fun io.github.kmpfacelink.actions.emotion/surprisedEmotionTrigger(kotlin/Float = ..., kotlin/Float = ..., kotlin/Float = ...): io.github.kmpfacelink.actions/ActionTrigger // io.github.kmpfacelink.actions.emotion/surprisedEmotionTrigger|surprisedEmotionTrigger(kotlin.Float;kotlin.Float;kotlin.Float){}[0]
+final fun io.github.kmpfacelink.actions.gesture/landmarkGesture(kotlin/String, kotlin/Function1<io.github.kmpfacelink.actions.gesture/LandmarkGestureBuilder, kotlin/Unit>): io.github.kmpfacelink.actions.gesture/LandmarkGesture // io.github.kmpfacelink.actions.gesture/landmarkGesture|landmarkGesture(kotlin.String;kotlin.Function1<io.github.kmpfacelink.actions.gesture.LandmarkGestureBuilder,kotlin.Unit>){}[0]
+final fun io.github.kmpfacelink.actions/closedFistTrigger(kotlin/Float = ...): io.github.kmpfacelink.actions/ActionTrigger // io.github.kmpfacelink.actions/closedFistTrigger|closedFistTrigger(kotlin.Float){}[0]
+final fun io.github.kmpfacelink.actions/fingerCountFourTrigger(kotlin/Float = ...): io.github.kmpfacelink.actions/ActionTrigger // io.github.kmpfacelink.actions/fingerCountFourTrigger|fingerCountFourTrigger(kotlin.Float){}[0]
+final fun io.github.kmpfacelink.actions/fingerCountThreeTrigger(kotlin/Float = ...): io.github.kmpfacelink.actions/ActionTrigger // io.github.kmpfacelink.actions/fingerCountThreeTrigger|fingerCountThreeTrigger(kotlin.Float){}[0]
+final fun io.github.kmpfacelink.actions/okSignTrigger(kotlin/Float = ...): io.github.kmpfacelink.actions/ActionTrigger // io.github.kmpfacelink.actions/okSignTrigger|okSignTrigger(kotlin.Float){}[0]
+final fun io.github.kmpfacelink.actions/openPalmTrigger(kotlin/Float = ...): io.github.kmpfacelink.actions/ActionTrigger // io.github.kmpfacelink.actions/openPalmTrigger|openPalmTrigger(kotlin.Float){}[0]
+final fun io.github.kmpfacelink.actions/pinchTrigger(kotlin/Float = ...): io.github.kmpfacelink.actions/ActionTrigger // io.github.kmpfacelink.actions/pinchTrigger|pinchTrigger(kotlin.Float){}[0]
+final fun io.github.kmpfacelink.actions/rockTrigger(kotlin/Float = ...): io.github.kmpfacelink.actions/ActionTrigger // io.github.kmpfacelink.actions/rockTrigger|rockTrigger(kotlin.Float){}[0]
+final fun io.github.kmpfacelink.actions/smileTrigger(kotlin/Float = ...): io.github.kmpfacelink.actions/ActionTrigger // io.github.kmpfacelink.actions/smileTrigger|smileTrigger(kotlin.Float){}[0]
+final fun io.github.kmpfacelink.actions/surprisedTrigger(kotlin/Float = ...): io.github.kmpfacelink.actions/ActionTrigger // io.github.kmpfacelink.actions/surprisedTrigger|surprisedTrigger(kotlin.Float){}[0]
+final fun io.github.kmpfacelink.actions/thumbsUpTrigger(kotlin/Float = ...): io.github.kmpfacelink.actions/ActionTrigger // io.github.kmpfacelink.actions/thumbsUpTrigger|thumbsUpTrigger(kotlin.Float){}[0]
+final fun io.github.kmpfacelink.actions/tongueOutTrigger(kotlin/Float = ...): io.github.kmpfacelink.actions/ActionTrigger // io.github.kmpfacelink.actions/tongueOutTrigger|tongueOutTrigger(kotlin.Float){}[0]
+final fun io.github.kmpfacelink.actions/victoryTrigger(kotlin/Float = ...): io.github.kmpfacelink.actions/ActionTrigger // io.github.kmpfacelink.actions/victoryTrigger|victoryTrigger(kotlin.Float){}[0]
+final fun io.github.kmpfacelink.actions/winkLeftTrigger(kotlin/Float = ...): io.github.kmpfacelink.actions/ActionTrigger // io.github.kmpfacelink.actions/winkLeftTrigger|winkLeftTrigger(kotlin.Float){}[0]
+final fun io.github.kmpfacelink.actions/winkRightTrigger(kotlin/Float = ...): io.github.kmpfacelink.actions/ActionTrigger // io.github.kmpfacelink.actions/winkRightTrigger|winkRightTrigger(kotlin.Float){}[0]

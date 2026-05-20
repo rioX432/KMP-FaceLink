@@ -78,16 +78,22 @@ VERSION_NAME=0.1.0
 
 Add a section for the new version with a summary of changes.
 
-### 3. Commit and tag
+### 3. Update docs/migration.md
+
+If this release contains breaking changes, deprecated API removals, or new requirements:
+- Add a migration section for this version in `docs/migration.md`
+- Verify the deprecated API removal schedule is accurate
+
+### 4. Commit and tag
 
 ```bash
-git add gradle.properties CHANGELOG.md
+git add gradle.properties CHANGELOG.md docs/migration.md
 git commit -m "Release v0.1.0"
 git tag v0.1.0
 git push origin master --tags
 ```
 
-### 4. Monitor the release
+### 5. Monitor the release
 
 The `v0.1.0` tag push triggers the Release workflow. Monitor progress at:
 `https://github.com/rioX432/KMP-FaceLink/actions/workflows/release.yml`
@@ -99,7 +105,7 @@ The workflow will:
 4. Update `Package.swift` checksums and commit to `master` automatically
 5. Deploy Dokka documentation to GitHub Pages
 
-### 5. Verify
+### 6. Verify
 
 - [ ] Check [Maven Central](https://central.sonatype.com/namespace/io.github.rioX432) for the published artifacts (may take 15-30 minutes to sync)
 - [ ] Check the GitHub Release page for XCFramework downloads

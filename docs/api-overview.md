@@ -4,41 +4,48 @@ KMP-FaceLink is a modular Kotlin Multiplatform SDK for real-time face, hand, and
 
 ## Architecture
 
-```
-┌─────────────────────────────────────────────────────────────────────┐
-│                        Your Application                             │
-├─────────────────────────────────────────────────────────────────────┤
-│                                                                     │
-│  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐           │
-│  │ pipeline │  │   vmc    │  │   ifm    │  │   vts    │           │
-│  │ ASR→LLM→ │  │ OSC/UDP  │  │iFacialMo│  │ VTube    │           │
-│  │ TTS→Lip  │  │ VRM apps │  │cap proto │  │ Studio   │           │
-│  └────┬─────┘  └────┬─────┘  └────┬─────┘  └────┬─────┘           │
-│       │              │              │              │                 │
-│  ┌────┴─────┐  ┌─────┴──────┐     │              │                 │
-│  │  voice   │  │ networking │     │              │                 │
-│  │ ASR/TTS  │  │  UDP/time  │     │              │                 │
-│  └────┬─────┘  └────────────┘     │              │                 │
-│       │                            │              │                 │
-│  ┌────┴─────┐  ┌──────────┐       │              │                 │
-│  │   llm    │  │  avatar   │      │              │                 │
-│  │ Cloud +  │  │ Live2D /  │      │              │                 │
-│  │ On-device│  │ VRM map   │      │              │                 │
-│  └────┬─────┘  └────┬─────┘      │              │                 │
-│       │              │             │              │                 │
-│  ┌────┴─────┐  ┌─────┴──────┐    │              │                 │
-│  │ actions  │  │   stream   │    │              │                 │
-│  │ Gesture/ │  │  WebSocket │    │              │                 │
-│  │ emotion  │  │  streaming │    │              │                 │
-│  └────┬─────┘  └─────┬──────┘    │              │                 │
-│       │               │           │              │                 │
-│  ─────┴───────────────┴───────────┴──────────────┴─────────────    │
-│                     kmp-facelink (core)                             │
-│              FaceTracker · HandTracker · BodyTracker                │
-│              HolisticTracker · BlendShape · Flow<T>                 │
-├─────────────────────────────────────────────────────────────────────┤
-│  Android: MediaPipe + CameraX    │    iOS: ARKit + Vision          │
-└──────────────────────────────────┴──────────────────────────────────┘
+```mermaid
+graph TD
+    App[Your Application]
+
+    subgraph High-Level Modules
+        pipeline["pipeline<br/><small>ASR → LLM → TTS → Lip</small>"]
+        vmc["vmc<br/><small>OSC/UDP · VRM apps</small>"]
+        ifm["ifm<br/><small>iFacialMocap proto</small>"]
+        vts["vts<br/><small>VTube Studio</small>"]
+    end
+
+    subgraph Mid-Level Modules
+        voice["voice<br/><small>ASR / TTS</small>"]
+        networking["networking<br/><small>UDP / time</small>"]
+        llm["llm<br/><small>Cloud + On-device</small>"]
+        avatar["avatar<br/><small>Live2D / VRM map</small>"]
+        actions["actions<br/><small>Gesture / emotion</small>"]
+        stream["stream<br/><small>WebSocket streaming</small>"]
+    end
+
+    subgraph core ["kmp-facelink (core)"]
+        trackers["FaceTracker · HandTracker · BodyTracker<br/>HolisticTracker · BlendShape · Flow&lt;T&gt;"]
+    end
+
+    subgraph platform [Platform]
+        android["Android: MediaPipe + CameraX"]
+        ios["iOS: ARKit + Vision"]
+    end
+
+    App --> pipeline & vmc & ifm & vts
+    pipeline --> voice
+    voice --> llm
+    llm --> actions
+    vmc --> networking
+    ifm --> networking
+    avatar --> trackers
+    actions --> trackers
+    stream --> trackers
+    networking --> trackers
+    vts --> trackers
+    pipeline --> trackers
+    trackers --> android & ios
 ```
 
 ## Modules
@@ -381,28 +388,23 @@ All trackers share the same `TrackingState` lifecycle. When something goes wrong
 
 ### State Transition Diagram
 
-```
-                  ┌──────────────────────────────────┐
-                  │                                  │
-                  v                                  │
-IDLE ──start()──> STARTING ──success──> TRACKING ──stop()──> STOPPED
-                     │                     │                    │
-                   failure           runtime failure          start()
-                     │                     │                    │
-                     v                     v                    v
-                   ERROR <─────────────  ERROR              STARTING
-                     │
-                   start()
-                     │
-                     v
-                  STARTING ──success──> TRACKING
-                     │
-                   failure
-                     │
-                     v
-                   ERROR (cycle continues)
+```mermaid
+stateDiagram-v2
+    [*] --> IDLE
+    IDLE --> STARTING : start()
+    STARTING --> TRACKING : success
+    STARTING --> ERROR : failure
+    TRACKING --> STOPPED : stop()
+    TRACKING --> ERROR : runtime failure
+    STOPPED --> STARTING : start()
+    ERROR --> STARTING : start()
 
-Any state ──release()──> RELEASED (terminal)
+    IDLE --> RELEASED : release()
+    STARTING --> RELEASED : release()
+    TRACKING --> RELEASED : release()
+    STOPPED --> RELEASED : release()
+    ERROR --> RELEASED : release()
+    RELEASED --> [*]
 ```
 
 ### Valid Operations per State

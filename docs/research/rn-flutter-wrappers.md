@@ -43,17 +43,14 @@ This pattern directly informs the RN and Flutter wrapper designs.
 
 ### Architecture
 
-```
-JavaScript (TypeScript)
-    │
-    ▼
-Turbo Module Spec (Codegen)
-    │
-    ├── Android: Kotlin/Java Turbo Module → KMP-FaceLink AAR
-    │     └── JNI call into FaceLinkRnFacade (wraps Flow → poll buffer)
-    │
-    └── iOS: ObjC++ Turbo Module → KMPFaceLink.xcframework
-          └── C bridge → K/N ObjC API (reuse Unity pattern)
+```mermaid
+graph TD
+    JS["JavaScript (TypeScript)"]
+    JS --> TM["Turbo Module Spec (Codegen)"]
+    TM --> Android["Android: Kotlin/Java Turbo Module<br/>→ KMP-FaceLink AAR"]
+    TM --> iOS["iOS: ObjC++ Turbo Module<br/>→ KMPFaceLink.xcframework"]
+    Android --> JNI["JNI call into FaceLinkRnFacade<br/><small>wraps Flow → poll buffer</small>"]
+    iOS --> CBridge["C bridge → K/N ObjC API<br/><small>reuse Unity pattern</small>"]
 ```
 
 ### Data Transfer Strategy
@@ -149,14 +146,13 @@ react-native-kmp-facelink/
 
 ### Recommended: Hybrid FFI + MethodChannel
 
-```
-Dart (Flutter)
-    │
-    ├── dart:ffi → shared C bridge (libkmpfacelink_bridge.so / .dylib)
-    │     └── Polling: getLatestBlendShapes(), getLatestHeadTransform()
-    │
-    └── MethodChannel → Kotlin/Swift lifecycle methods
-          └── initialize(), startTracking(), stopTracking(), dispose()
+```mermaid
+graph TD
+    Dart["Dart (Flutter)"]
+    Dart --> FFI["dart:ffi → shared C bridge<br/><small>libkmpfacelink_bridge.so / .dylib</small>"]
+    Dart --> MC["MethodChannel → Kotlin/Swift"]
+    FFI --> Poll["Polling: getLatestBlendShapes()<br/>getLatestHeadTransform()"]
+    MC --> Lifecycle["initialize(), startTracking()<br/>stopTracking(), dispose()"]
 ```
 
 **Why FFI for data:** dart:ffi calls native C functions synchronously on the same thread with zero serialization overhead. For 52 floats at 60fps, this is essentially free (~10 microseconds per call). The C bridge already exists in the Unity plugin and can be compiled as a shared library.

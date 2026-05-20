@@ -66,16 +66,17 @@ The face tracking pipeline runs at 30–60 fps, meaning each frame has a budget 
 
 The solution is to decouple the LLM from the tracking path entirely:
 
-```
-Real-time tracking path (16 ms)
-  └── Raw blend shapes → ExpressionBlender → rendered output
-
-Async LLM classification loop (1–5 s)
-  └── Conversation context / audio transcript
-      → LLM: "What expression should the avatar show?"
-      → EmotionTemplate selection + intensity
-      → Stored as "current emotional context"
-      └── Applied by ExpressionBlender on next frame
+```mermaid
+graph LR
+    subgraph realtime ["Real-time path (16 ms)"]
+        raw[Raw blend shapes] --> blender[ExpressionBlender] --> output[Rendered output]
+    end
+    subgraph async ["Async LLM loop (1–5 s)"]
+        ctx[Conversation context] --> llm["LLM: What expression?"]
+        llm --> emo[EmotionTemplate + intensity]
+        emo --> state["current emotional context"]
+    end
+    state -.->|applied on next frame| blender
 ```
 
 The LLM operates on a separate coroutine, classifying conversation context every 1–5 seconds. Its output updates a shared `StateFlow<EmotionContext>` that the real-time path reads without blocking. This pattern is analogous to `AdaptiveRouter`'s thermal state monitoring — a background signal that influences but never blocks the hot path.
@@ -103,24 +104,17 @@ The `ExpressionBlender.blend()` method already accepts an `emotion: Map<BlendSha
 
 ### Component Design
 
-```
-ConversationContext (text transcript / TTS input)
-    │
-    ▼
-ExpressionClassifier (new)
-    ├── FastPath: TextSentimentAnalyzer (heuristic, ~0 ms, existing)
-    └── SlowPath: LlmExpressionClassifier (new, ~1-5 s async)
-          ├── Android: Gemma 3n E2B via LiteRT-LM / ML Kit GenAI
-          └── iOS: FoundationModelsLlmClient (existing)
-    │
-    ▼
-EmotionContext (StateFlow<EmotionState>) ← updated every 1–5 s
-    │
-    ▼
-ExpressionBlender.blend(lipSync, emotionFromTemplate(currentState))
-    │
-    ▼
-Rendered blend shapes (real-time, 60 fps)
+```mermaid
+graph TD
+    input["ConversationContext<br/><small>text transcript / TTS input</small>"]
+    input --> classifier["ExpressionClassifier"]
+    classifier --> fast["FastPath: TextSentimentAnalyzer<br/><small>heuristic, ~0 ms, existing</small>"]
+    classifier --> slow["SlowPath: LlmExpressionClassifier<br/><small>~1-5 s async</small>"]
+    slow --> android["Android: Gemma 3n E2B<br/><small>LiteRT-LM / ML Kit GenAI</small>"]
+    slow --> ios["iOS: FoundationModelsLlmClient<br/><small>existing</small>"]
+    fast & android & ios --> emotion["EmotionContext (StateFlow)<br/><small>updated every 1–5 s</small>"]
+    emotion --> blend["ExpressionBlender.blend()<br/><small>lipSync + emotionFromTemplate</small>"]
+    blend --> rendered["Rendered blend shapes<br/><small>real-time, 60 fps</small>"]
 ```
 
 ### LLM Prompt Design

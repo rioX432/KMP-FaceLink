@@ -125,25 +125,13 @@ For Kotlin/Native to support visionOS:
 
 Since Kotlin/Native won't have visionOS support in the near term, the recommended architecture uses a Swift bridge:
 
-```
-┌─────────────────────────────────────────────────────┐
-│  visionOS App (Swift / SwiftUI / RealityKit)        │
-│                                                      │
-│  ┌─────────────────────────────────────────────┐    │
-│  │  VisionOSTrackingBridge (Swift)              │    │
-│  │  - HandTrackingProvider → HandTrackingData   │    │
-│  │  - ARHumanBodyManager → BodyTrackingData     │    │
-│  │  - Converts 3D world coords to model types   │    │
-│  └──────────────────┬──────────────────────────┘    │
-│                     │ JSON / Protobuf / WebSocket    │
-│  ┌──────────────────▼──────────────────────────┐    │
-│  │  KMP-FaceLink shared modules                 │    │
-│  │  - kmp-facelink-avatar (parameter mapping)   │    │
-│  │  - kmp-facelink-actions (gesture triggers)   │    │
-│  │  - kmp-facelink-pipeline (orchestration)     │    │
-│  │  - kmp-facelink-networking (VMC/VTS output)  │    │
-│  └──────────────────────────────────────────────┘    │
-└─────────────────────────────────────────────────────┘
+```mermaid
+graph TD
+    subgraph visionOS["visionOS App (Swift / SwiftUI / RealityKit)"]
+        bridge["VisionOSTrackingBridge (Swift)<br/><small>HandTrackingProvider → HandTrackingData<br/>ARHumanBodyManager → BodyTrackingData<br/>Converts 3D world coords to model types</small>"]
+        bridge -->|JSON / Protobuf / WebSocket| shared
+        shared["KMP-FaceLink shared modules<br/><small>avatar · actions · pipeline · networking</small>"]
+    end
 ```
 
 **Phase 1 — Swift-only tracking + KMP processing (feasible now):**

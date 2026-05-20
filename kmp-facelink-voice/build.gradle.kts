@@ -14,10 +14,16 @@ dokka {
 kotlin {
     explicitApi()
 
-    androidLibrary {
+    android {
         namespace = "io.github.kmpfacelink.voice"
         compileSdk = 36
         minSdk = 24
+        optimization {
+            consumerKeepRules.apply {
+                publish = true
+                file("consumer-proguard-rules.pro")
+            }
+        }
     }
 
     val whisperDir = rootProject.file("whisper/ios")

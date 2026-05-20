@@ -19,10 +19,16 @@ kotlin {
         browser()
     }
 
-    androidLibrary {
+    android {
         namespace = "io.github.kmpfacelink.avatar"
         compileSdk = 36
         minSdk = 24
+        optimization {
+            consumerKeepRules.apply {
+                publish = true
+                file("consumer-proguard-rules.pro")
+            }
+        }
     }
 
     val xcf = XCFramework("KMPFaceLinkAvatar")

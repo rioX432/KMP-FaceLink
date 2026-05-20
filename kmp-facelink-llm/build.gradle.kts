@@ -15,10 +15,16 @@ kotlin {
     explicitApi()
     applyDefaultHierarchyTemplate()
 
-    androidLibrary {
+    android {
         namespace = "io.github.kmpfacelink.llm"
         compileSdk = 36
         minSdk = 24
+        optimization {
+            consumerKeepRules.apply {
+                publish = true
+                file("consumer-proguard-rules.pro")
+            }
+        }
     }
 
     val xcf = XCFramework("KMPFaceLinkLlm")

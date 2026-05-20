@@ -32,6 +32,7 @@ kotlin {
                 file("consumer-proguard-rules.pro")
             }
         }
+        withHostTestBuilder {}
     }
 
     val xcf = XCFramework("KMPFaceLink")
@@ -85,6 +86,12 @@ kotlin {
         commonTest.dependencies {
             implementation(libs.kotlin.test)
             implementation(libs.kotlinx.coroutines.test)
+        }
+
+        getByName("androidHostTest").dependencies {
+            implementation(libs.kotlin.test)
+            implementation(libs.junit)
+            implementation(libs.robolectric)
         }
     }
 }

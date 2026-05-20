@@ -27,6 +27,7 @@ onnxruntime = "1.24.2"
 javacv = "1.5.11"
 opencv = "4.10.0-1.5.11"
 openblas = "0.3.28-1.5.11"
+robolectric = "4.14.1"
 
 [libraries]
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines" }
@@ -69,6 +70,8 @@ onnxruntime = { module = "com.microsoft.onnxruntime:onnxruntime", version.ref = 
 javacv = { module = "org.bytedeco:javacv-platform", version.ref = "javacv" }
 opencv = { module = "org.bytedeco:opencv-platform", version.ref = "opencv" }
 openblas = { module = "org.bytedeco:openblas-platform", version.ref = "openblas" }
+robolectric = { module = "org.robolectric:robolectric", version.ref = "robolectric" }
+junit = { module = "junit:junit", version = "4.13.2" }
 
 [plugins]
 kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }

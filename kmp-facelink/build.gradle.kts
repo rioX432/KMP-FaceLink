@@ -22,10 +22,16 @@ kotlin {
         browser()
     }
 
-    androidLibrary {
+    android {
         namespace = "io.github.kmpfacelink"
         compileSdk = 36
         minSdk = 24
+        optimization {
+            consumerKeepRules.apply {
+                publish = true
+                file("consumer-proguard-rules.pro")
+            }
+        }
     }
 
     val xcf = XCFramework("KMPFaceLink")

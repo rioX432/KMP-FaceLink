@@ -1,0 +1,9 @@
+# Verify the app launches without crashing and the home screen is visible.
+appId: io.github.kmpfacelink.sample
+---
+- launchApp
+- assertVisible: "KMP-FaceLink"
+- assertVisible: "Cross-platform face, hand & body tracking SDK"
+- assertVisible: "Face Tracking"
+- assertVisible: "Hand Tracking"
+- assertVisible: "Holistic Tracking"

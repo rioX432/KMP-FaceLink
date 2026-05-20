@@ -1,0 +1,27 @@
+# Start tracking, stop it, and verify state returns to idle.
+appId: io.github.kmpfacelink.sample
+---
+- launchApp:
+    clearState: true
+- assertVisible: "KMP-FaceLink"
+
+# Navigate to Face Tracking
+- tapOn: "Face Tracking"
+- assertVisible: "Start"
+
+# Start tracking
+- tapOn: "Start"
+- extendedWaitUntil:
+    visible: "Stop"
+    timeout: 10000
+
+# Stop tracking
+- tapOn: "Stop"
+# Verify state returned to idle
+- extendedWaitUntil:
+    visible: "Start"
+    timeout: 5000
+
+# Verify the app is still responsive by switching modes
+- tapOn: "HAND"
+- assertVisible: "Tap Start to begin hand tracking"

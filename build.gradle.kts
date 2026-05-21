@@ -49,6 +49,7 @@ val publishableModules = setOf(
     "kmp-facelink-stream",
     "kmp-facelink-vts",
     "kmp-facelink-interact",
+    "kmp-facelink-compose",
     "kmp-facelink-bom",
 )
 
@@ -65,6 +66,7 @@ val pomDescriptions = mapOf(
     "kmp-facelink-stream" to "WebSocket streaming server for KMP-FaceLink phone-as-tracker use case",
     "kmp-facelink-vts" to "VTube Studio Plugin API integration for KMP-FaceLink",
     "kmp-facelink-interact" to "Stream interaction events (chat, gifts, raids) for KMP-FaceLink",
+    "kmp-facelink-compose" to "Compose Multiplatform remember helpers for KMP-FaceLink trackers",
     "kmp-facelink-bom" to "Bill of Materials for KMP-FaceLink multi-module version alignment",
 )
 
@@ -91,6 +93,7 @@ dependencies {
     dokka(project(":kmp-facelink-stream"))
     dokka(project(":kmp-facelink-vts"))
     dokka(project(":kmp-facelink-interact"))
+    dokka(project(":kmp-facelink-compose"))
 }
 
 subprojects {
@@ -310,6 +313,19 @@ project(":kmp-facelink-interact") {
     }
 }
 
+project(":kmp-facelink-compose") {
+    afterEvaluate {
+        detekt {
+            source.setFrom(
+                "src/commonMain/kotlin",
+                "src/androidMain/kotlin",
+                "src/iosMain/kotlin",
+                "src/commonTest/kotlin",
+            )
+        }
+    }
+}
+
 // Module dependency graph validation
 // Allowed dependencies per module, based on the architecture spec in AGENTS.md
 tasks.register("validateModuleDependencies") {
@@ -340,6 +356,7 @@ tasks.register("validateModuleDependencies") {
             ":kmp-facelink-stream" to setOf(core),
             ":kmp-facelink-vts" to setOf(core),
             ":kmp-facelink-interact" to setOf(core),
+            ":kmp-facelink-compose" to setOf(core),
         )
 
         val violations = mutableListOf<String>()

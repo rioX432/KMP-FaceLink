@@ -10,6 +10,11 @@ Strictly follow the rules in [AGENTS.md](./AGENTS.md).
 
 ## Won't Do
 - **クラウドLLMフォールバック** — LLMモジュールはローカルLLM（Gemma 3n / Apple Foundation Models）のみ。クラウドAPI連携は範囲外。VTuberアプリ側で必要なら自前で実装すべき
+- **Desktop GUI application** — KMP-FaceLink is an SDK/library, not an end-user VTuber app. Building a standalone GUI (like VTube Studio or Warudo) is out of scope
+- **Community marketplace / item store** — Asset marketplace features (model store, effect store) belong in the application layer, not the SDK
+- **Effect rendering engine** — The SDK outputs renderer-agnostic effect parameters (position, intensity, duration). Actual particle/visual rendering is the consumer app's responsibility
+- **MCP server for SDK integration** — Premature at current adoption scale. Revisit when developer community reaches critical mass. llms.txt already serves AI-assisted integration
+- **CocoaPods distribution** — CocoaPods trunk goes read-only December 2026. SPM via Package.swift is the sole iOS distribution channel
 
 ## Think Twice
 

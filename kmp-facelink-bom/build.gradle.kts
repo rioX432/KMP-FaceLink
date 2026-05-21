@@ -16,6 +16,7 @@ dependencies {
         api(project(":kmp-facelink-stream"))
         api(project(":kmp-facelink-vts"))
         api(project(":kmp-facelink-interact"))
+        api(project(":kmp-facelink-compose"))
     }
 }
 

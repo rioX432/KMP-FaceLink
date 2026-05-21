@@ -280,6 +280,120 @@ pipeline.output.collect { frame ->
 }
 ```
 
+## Interact Module: kmp-facelink-interact
+
+Streaming platform event sources for audience interaction. Connect to Twitch EventSub, YouTube Live Chat, or use MockStreamEventSource for demo/testing.
+
+### StreamEventSource Interface
+
+```kotlin
+interface StreamEventSource {
+    val events: Flow<StreamEvent>
+    val connectionState: StateFlow<ConnectionState>
+    val platform: StreamPlatform
+    suspend fun connect()
+    suspend fun disconnect()
+}
+```
+
+### StreamEvent Types
+
+```kotlin
+sealed class StreamEvent {
+    abstract val platform: StreamPlatform
+    abstract val timestampMs: Long
+    abstract val author: String
+}
+// Subtypes: ChatMessage, Gift, Follow, Raid, ChannelPointRedemption, SuperChat
+```
+
+### EffectParameter Types
+
+```kotlin
+sealed class EffectParameter {
+    abstract val durationMs: Long
+    abstract val intensity: Float
+    // ThrowEffect — throw object at avatar anchor
+    // ExpressionOverride — temporarily override blend shapes
+    // ScreenShake — shake screen/camera
+}
+```
+
+### MockStreamEventSource (for demo/testing)
+
+```kotlin
+val mockSource = MockStreamEventSource(
+    config = MockConfig(intervalMs = 2000),
+    platform = StreamPlatform.TWITCH,
+)
+mockSource.connect()
+mockSource.events.collect { event -> /* random fake events */ }
+```
+
+### TwitchEventSubSource
+
+```kotlin
+val twitchSource = TwitchEventSubSource(
+    config = TwitchConfig(
+        accessToken = "your-oauth-token",
+        clientId = "your-client-id",
+        broadcasterId = "your-broadcaster-user-id",
+    ),
+)
+twitchSource.connect()
+twitchSource.events.collect { event -> /* real Twitch events */ }
+```
+
+### YouTubeLiveChatSource
+
+```kotlin
+val youtubeSource = YouTubeLiveChatSource(
+    config = YouTubeConfig(
+        apiKey = "your-api-key",
+        accessToken = "your-oauth-token",
+    ),
+)
+youtubeSource.connect()
+youtubeSource.events.collect { event -> /* real YouTube events */ }
+```
+
+### StreamEventAggregator (multi-platform)
+
+```kotlin
+val aggregator = StreamEventAggregator()
+aggregator.addSource(twitchSource)
+aggregator.addSource(youtubeSource)
+aggregator.connectAll()
+aggregator.events.collect { event -> /* unified stream from all platforms */ }
+```
+
+### DefaultStreamBindings (in kmp-facelink-actions)
+
+Pre-configured ActionBindings for common stream interaction patterns:
+
+```kotlin
+val actionSystem = ActionSystem()
+actionSystem.register(DefaultStreamBindings.giftThrow())           // action ID: "stream.gift.throw"
+actionSystem.register(DefaultStreamBindings.raidScreenShake())      // action ID: "stream.raid.shake"
+actionSystem.register(DefaultStreamBindings.channelPointExpression( // action ID: "stream.channelpoint.expression"
+    rewardTitle = "Smile!",
+    blendShapes = mapOf(BlendShape.MOUTH_SMILE_LEFT to 1.0f, BlendShape.MOUTH_SMILE_RIGHT to 1.0f),
+))
+
+// Feed stream events to the action system
+source.events.collect { event ->
+    val actions = actionSystem.processStreamEvent(event)
+    // actions contain ActionEvent.Started with the action IDs above
+}
+```
+
+### Sample App INTERACT Mode
+
+The sample app (Android and iOS) includes an INTERACT demo screen that:
+- Uses MockStreamEventSource to generate fake events every 2 seconds
+- Registers giftThrow and raidScreenShake bindings
+- Displays a scrolling event log and an action feed
+
 ## VMC Module: kmp-facelink-vmc
 
 VMC Protocol (OSC over UDP) for VRM apps.
@@ -356,6 +470,25 @@ actions.events.collect { event -> /* handle */ }
 handTracker.trackingData.collect { actions.processHand(it) }
 ```
 
+### Stream Interaction (Audience → Avatar Effects)
+
+```kotlin
+val source = MockStreamEventSource() // or TwitchEventSubSource / YouTubeLiveChatSource
+val actionSystem = ActionSystem()
+actionSystem.register(DefaultStreamBindings.giftThrow())
+actionSystem.register(DefaultStreamBindings.raidScreenShake())
+source.connect()
+source.events.collect { event ->
+    val actions = actionSystem.processStreamEvent(event)
+    actions.forEach { action ->
+        when (action.actionId) {
+            "stream.gift.throw" -> { /* render ThrowEffect */ }
+            "stream.raid.shake" -> { /* render ScreenShake */ }
+        }
+    }
+}
+```
+
 ## Gradle Plugin
 
 Plugin ID: `io.github.rioX432.facelink` (available on [Gradle Plugin Portal](https://plugins.gradle.org/plugin/io.github.rioX432.facelink))
@@ -392,6 +525,7 @@ dependencies {
     implementation("io.github.rioX432:kmp-facelink:0.2.0")
     implementation("io.github.rioX432:kmp-facelink-avatar:0.2.0")   // optional
     implementation("io.github.rioX432:kmp-facelink-actions:0.2.0")  // optional
+    implementation("io.github.rioX432:kmp-facelink-interact:0.2.0") // optional — stream event sources
 }
 ```
 
@@ -404,7 +538,7 @@ dependencies: [
 ]
 ```
 
-SPM products: KMPFaceLink, KMPFaceLinkAvatar, KMPFaceLinkActions, KMPFaceLinkVoice, KMPFaceLinkLlm, KMPFaceLinkPipeline, KMPFaceLinkNetworking, KMPFaceLinkVMC, KMPFaceLinkIFM.
+SPM products: KMPFaceLink, KMPFaceLinkAvatar, KMPFaceLinkActions, KMPFaceLinkInteract, KMPFaceLinkVoice, KMPFaceLinkLlm, KMPFaceLinkPipeline, KMPFaceLinkNetworking, KMPFaceLinkVMC, KMPFaceLinkIFM.
 
 ## Android Requirements
 
@@ -464,6 +598,7 @@ Task {
 - `kmp-facelink-networking/` — Shared networking utilities
 - `kmp-facelink-vmc/` — VMC Protocol module
 - `kmp-facelink-ifm/` — iFacialMocap protocol module
+- `kmp-facelink-interact/` — Streaming platform event sources (Twitch, YouTube, Mock)
 - `kmp-facelink-stream/` — WebSocket streaming module
 - `kmp-facelink-vts/` — VTube Studio integration module
 - `gradle-plugin/` — Gradle plugin for automated MediaPipe model downloads

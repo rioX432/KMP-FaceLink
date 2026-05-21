@@ -17,7 +17,8 @@
 
 - [kmp-facelink](https://github.com/rioX432/KMP-FaceLink/tree/master/kmp-facelink): Core tracking — face (52 blend shapes + head transform), hand (landmarks + gestures), body (33 keypoints), holistic (combined). Platforms: Android, iOS, JVM, Wasm.
 - [kmp-facelink-avatar](https://github.com/rioX432/KMP-FaceLink/tree/master/kmp-facelink-avatar): BlendShape to Live2D (ParamAngleX, ParamEyeLOpen, etc.) and VRM parameter mapping. Platforms: Android, iOS, JVM, Wasm.
-- [kmp-facelink-actions](https://github.com/rioX432/KMP-FaceLink/tree/master/kmp-facelink-actions): Gesture triggers, expression triggers, combined triggers, emotion classification (FACS-based). Platforms: Android, iOS, JVM, Wasm.
+- [kmp-facelink-actions](https://github.com/rioX432/KMP-FaceLink/tree/master/kmp-facelink-actions): Gesture triggers, expression triggers, combined triggers, emotion classification (FACS-based), DefaultStreamBindings for stream interaction. Platforms: Android, iOS, JVM, Wasm.
+- [kmp-facelink-interact](https://github.com/rioX432/KMP-FaceLink/tree/master/kmp-facelink-interact): Streaming platform event sources (Twitch EventSub, YouTube Live Chat). MockStreamEventSource for demo/testing. StreamEventAggregator for multi-platform. Platforms: Android, iOS, JVM, Wasm.
 - [kmp-facelink-voice](https://github.com/rioX432/KMP-FaceLink/tree/master/kmp-facelink-voice): TTS (OpenAI, ElevenLabs, Voicevox), ASR (Whisper on-device), multilingual lip sync. Experimental.
 - [kmp-facelink-llm](https://github.com/rioX432/KMP-FaceLink/tree/master/kmp-facelink-llm): Streaming LLM API — cloud (OpenAI, Anthropic), on-device (Gemma 3n, llama.cpp), hybrid routing. Experimental.
 - [kmp-facelink-pipeline](https://github.com/rioX432/KMP-FaceLink/tree/master/kmp-facelink-pipeline): AI avatar pipeline orchestration: ASR -> LLM -> TTS -> LipSync -> Expression. Experimental.

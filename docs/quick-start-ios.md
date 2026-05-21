@@ -328,6 +328,65 @@ above — it gives you explicit control over the full lifecycle.
 - `arkit` in `UIRequiredDeviceCapabilities`
 - Xcode 16+
 
+## 5. Stream Interaction Demo (INTERACT Mode)
+
+The sample app includes an **INTERACT** demo mode that showcases the `kmp-facelink-interact` module. It simulates live streaming events and maps them to avatar effect parameters via `DefaultStreamBindings`.
+
+### What It Shows
+
+1. **MockStreamEventSource** generates random stream events (chat, gift, follow, raid, super chat, channel point redemption)
+2. **ActionSystem** with `DefaultStreamBindings` evaluates events and fires action triggers (e.g., gift → `stream.gift.throw`, raid → `stream.raid.shake`)
+3. **EffectParameter** models (`ThrowEffect`, `ScreenShake`, `ExpressionOverride`) describe renderer-agnostic effects for your app to visualize
+
+### Switching to Real Stream Sources
+
+Replace `MockStreamEventSource` with a real platform source. All sources implement the same `StreamEventSource` interface.
+
+**Twitch (EventSub WebSocket):**
+
+```swift
+import KMPFaceLink
+
+let twitchSource = TwitchEventSubSource(
+    config: TwitchConfig(
+        accessToken: "your-oauth-token",
+        clientId: "your-client-id",
+        broadcasterId: "your-broadcaster-user-id",
+        subscriptions: TwitchSubscriptionType.default
+    )
+)
+
+Task {
+    try await twitchSource.connect()
+    for await event in twitchSource.events {
+        // handle event
+    }
+}
+```
+
+**YouTube (Live Chat REST polling):**
+
+```swift
+let youtubeSource = YouTubeLiveChatSource(
+    config: YouTubeConfig(
+        apiKey: "your-api-key",
+        accessToken: "your-oauth-token"
+    )
+)
+```
+
+**Multi-platform aggregation:**
+
+```swift
+let aggregator = StreamEventAggregator()
+aggregator.addSource(source: twitchSource)
+aggregator.addSource(source: youtubeSource)
+try await aggregator.connectAll()
+for await event in aggregator.events {
+    // unified event stream
+}
+```
+
 ## Next Steps
 
 - [API Overview](api-overview.md) for all modules and use cases

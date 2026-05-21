@@ -232,6 +232,65 @@ lifecycleScope.launch {
 - Camera permission granted at runtime
 - MediaPipe model file in `assets/models/` (handled automatically by the Gradle plugin)
 
+## 8. Stream Interaction Demo (INTERACT Mode)
+
+The sample app includes an **INTERACT** demo mode that showcases the `kmp-facelink-interact` module. It simulates live streaming events (chat messages, gifts, follows, raids, super chats, channel point redemptions) and maps them to avatar effect parameters via `DefaultStreamBindings`.
+
+### What It Shows
+
+1. **MockStreamEventSource** generates random stream events at configurable intervals
+2. **ActionSystem** with `DefaultStreamBindings` evaluates events and fires action triggers (e.g., gift → `stream.gift.throw`, raid → `stream.raid.shake`)
+3. **EffectParameter** models (`ThrowEffect`, `ScreenShake`, `ExpressionOverride`) describe renderer-agnostic effects for your app to visualize
+
+### Switching to Real Stream Sources
+
+Replace `MockStreamEventSource` with a real platform source. No other code changes are needed — all sources implement the same `StreamEventSource` interface.
+
+**Twitch (EventSub WebSocket):**
+
+```kotlin
+import io.github.kmpfacelink.interact.twitch.TwitchConfig
+import io.github.kmpfacelink.interact.twitch.TwitchEventSubSource
+
+val twitchSource = TwitchEventSubSource(
+    config = TwitchConfig(
+        accessToken = "your-oauth-token",
+        clientId = "your-client-id",
+        broadcasterId = "your-broadcaster-user-id",
+    ),
+)
+
+// Connect and collect events
+twitchSource.connect()
+twitchSource.events.collect { event -> /* handle */ }
+```
+
+**YouTube (Live Chat REST polling):**
+
+```kotlin
+import io.github.kmpfacelink.interact.youtube.YouTubeConfig
+import io.github.kmpfacelink.interact.youtube.YouTubeLiveChatSource
+
+val youtubeSource = YouTubeLiveChatSource(
+    config = YouTubeConfig(
+        apiKey = "your-api-key",
+        accessToken = "your-oauth-token", // required for auto-detecting active broadcast
+    ),
+)
+```
+
+**Multi-platform aggregation:**
+
+```kotlin
+import io.github.kmpfacelink.interact.StreamEventAggregator
+
+val aggregator = StreamEventAggregator()
+aggregator.addSource(twitchSource)
+aggregator.addSource(youtubeSource)
+aggregator.connectAll()
+aggregator.events.collect { event -> /* unified event stream */ }
+```
+
 ## Next Steps
 
 - [API Overview](api-overview.md) for all modules and use cases

@@ -8,6 +8,7 @@ Records ARKit face blendshape ground truth and front-camera RGB frames simultane
 |---|---|
 | `CaptureApp/` | iOS app (SwiftUI + ARKit) for dual recording |
 | `process_captures.py` | Offline MediaPipe processing of captured RGB frames |
+| `benchmark.py` | Per-blendshape accuracy benchmark and error report |
 | `requirements.txt` | Python dependencies |
 
 ## Quick Start
@@ -65,6 +66,25 @@ python process_captures.py path/to/session_20260521_143022/
 ```
 
 This produces `mediapipe_blendshapes.csv` alongside `arkit_blendshapes.csv` in the session directory.
+
+### 5. Run Accuracy Benchmark
+
+After processing one or more sessions, run the benchmark to compare ARKit vs MediaPipe blendshape accuracy:
+
+```bash
+# Basic report (generates reports/accuracy_report.md)
+python benchmark.py --captures captures/ --output reports/
+
+# With scatter plots (generates reports/plots/*.png)
+python benchmark.py --captures captures/ --output reports/ --plots
+```
+
+The benchmark:
+- Loads all `session_*` directories from the captures folder
+- Aligns ARKit and MediaPipe frames by nearest timestamp (16ms tolerance)
+- Computes per-blendshape MAE, RMSE, Pearson correlation, max error, and range ratio
+- Classifies blendshapes into categories: good (MAE < 0.03), acceptable (0.03-0.08), low-accuracy (0.08-0.15), near-zero (correlation < 0.5)
+- Outputs a ranked Markdown report and optional scatter plots
 
 ## Capture Protocol
 

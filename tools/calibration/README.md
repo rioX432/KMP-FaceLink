@@ -9,6 +9,7 @@ Records ARKit face blendshape ground truth and front-camera RGB frames simultane
 | `CaptureApp/` | iOS app (SwiftUI + ARKit) for dual recording |
 | `process_captures.py` | Offline MediaPipe processing of captured RGB frames |
 | `benchmark.py` | Per-blendshape accuracy benchmark and error report |
+| `optimize.py` | Automated parameter sweep for BlendShapeEnhancer defaults |
 | `requirements.txt` | Python dependencies |
 
 ## Quick Start
@@ -85,6 +86,28 @@ The benchmark:
 - Computes per-blendshape MAE, RMSE, Pearson correlation, max error, and range ratio
 - Classifies blendshapes into categories: good (MAE < 0.03), acceptable (0.03-0.08), low-accuracy (0.08-0.15), near-zero (correlation < 0.5)
 - Outputs a ranked Markdown report and optional scatter plots
+
+### 6. Optimize BlendShapeEnhancer Parameters
+
+After benchmarking identifies problematic blendshapes, run the optimizer to find better default values for sensitivity and dead zone overrides:
+
+```bash
+# Optimize using captured data
+python optimize.py --captures captures/ --output optimized_params.json
+
+# Dry run with synthetic data (verify pipeline without real captures)
+python optimize.py --dry-run
+
+# Cross-validation (80/20 train/test split to check generalization)
+python optimize.py --captures captures/ --validate
+```
+
+The optimizer uses `scipy.optimize.differential_evolution` to minimize weighted MAE against ARKit ground truth. It optimizes:
+- `geometricBlendWeight` (range 0.3-1.0)
+- Per-shape `sensitivityOverrides` for the 10 worst shapes (range 0.5-5.0)
+- Per-shape `deadZoneOverrides` for the 10 worst shapes (range 0.0-0.1)
+
+Output is `optimized_params.json` containing the optimized values and improvement metrics. Use these to update `BlendShapeEnhancerConfig.kt` defaults.
 
 ## Capture Protocol
 

@@ -228,6 +228,7 @@ lifecycleScope.launch {
 
 ## Requirements
 
+- compileSdk 35 or higher
 - Min SDK 24
 - Camera permission granted at runtime
 - MediaPipe model file in `assets/models/` (handled automatically by the Gradle plugin)

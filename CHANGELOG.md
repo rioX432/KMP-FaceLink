@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Changed
+- Lower compileSdk from 36 to 35 across all modules — no SDK 36 APIs were used, and 36 forced downstream projects to upgrade unnecessarily
+- Downgrade AndroidX dependencies to last compileSdk-35-compatible versions: core-ktx 1.16.0, CameraX 1.5.1, activity-compose 1.10.1, lifecycle 2.9.0, Compose BOM 2025.12.00
+
 ## [v0.2.0] — 2026-05-20
 
 ### Added

@@ -6,7 +6,7 @@ plugins {
 
 android {
     namespace = "io.github.kmpfacelink.sample"
-    compileSdk = 36
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "io.github.kmpfacelink.sample"

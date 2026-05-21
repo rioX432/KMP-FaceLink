@@ -15,7 +15,7 @@ kotlin {
 
     android {
         namespace = "io.github.kmpfacelink.networking"
-        compileSdk = 36
+        compileSdk = 35
         minSdk = 24
         optimization {
             consumerKeepRules.apply {

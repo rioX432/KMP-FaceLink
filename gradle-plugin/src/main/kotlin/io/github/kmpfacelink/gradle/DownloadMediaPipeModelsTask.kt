@@ -7,6 +7,7 @@ import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
+import org.gradle.work.DisableCachingByDefault
 import java.io.File
 import java.io.IOException
 import java.net.URI
@@ -18,6 +19,7 @@ import java.security.MessageDigest
  * Skips download when the file already exists and its checksum matches.
  * Deletes incomplete or corrupted files before throwing on failure.
  */
+@DisableCachingByDefault(because = "Downloads files from external URLs; outputs depend on network state")
 public abstract class DownloadMediaPipeModelsTask : DefaultTask() {
 
     /** Model entries to download. */

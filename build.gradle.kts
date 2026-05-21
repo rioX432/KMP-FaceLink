@@ -29,8 +29,6 @@ apiValidation {
     ignoredProjects += listOf("androidApp", "sampleShared")
     // Exclude BOM module (no code, only dependency constraints)
     ignoredProjects += listOf("kmp-facelink-bom")
-    // Exclude Gradle plugin (JVM-only, not a published KMP library)
-    ignoredProjects += listOf("gradle-plugin")
 
     @OptIn(kotlinx.validation.ExperimentalBCVApi::class)
     klib {

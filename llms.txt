@@ -27,6 +27,13 @@
 - [kmp-facelink-vts](https://github.com/rioX432/KMP-FaceLink/tree/master/kmp-facelink-vts): VTube Studio Plugin API direct integration via WebSocket.
 - [kmp-facelink-networking](https://github.com/rioX432/KMP-FaceLink/tree/master/kmp-facelink-networking): Shared UDP socket, time utilities, mDNS discovery. Internal module used by protocol modules.
 
+## Gradle Plugin
+
+- Plugin ID: `io.github.rioX432.facelink` ([Gradle Plugin Portal](https://plugins.gradle.org/plugin/io.github.rioX432.facelink))
+- Automates MediaPipe model downloads (face, hand, body) with SHA-256 checksum verification
+- Apply in your Android module's `build.gradle.kts`, configure via `faceLink {}` DSL
+- Replaces manual model download tasks — models are fetched automatically before build
+
 ## Optional
 
 - [Changelog](https://github.com/rioX432/KMP-FaceLink/blob/master/CHANGELOG.md): Release history and breaking changes

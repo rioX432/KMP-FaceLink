@@ -380,6 +380,42 @@ final class io.github.kmpfacelink.interact.twitch/TwitchEventSubSource : io.gith
     final suspend fun disconnect() // io.github.kmpfacelink.interact.twitch/TwitchEventSubSource.disconnect|disconnect(){}[0]
 }
 
+final class io.github.kmpfacelink.interact.youtube/YouTubeConfig { // io.github.kmpfacelink.interact.youtube/YouTubeConfig|null[0]
+    constructor <init>(kotlin/String, kotlin/String? = ..., kotlin/String? = ..., kotlin/Int = ...) // io.github.kmpfacelink.interact.youtube/YouTubeConfig.<init>|<init>(kotlin.String;kotlin.String?;kotlin.String?;kotlin.Int){}[0]
+
+    final val accessToken // io.github.kmpfacelink.interact.youtube/YouTubeConfig.accessToken|{}accessToken[0]
+        final fun <get-accessToken>(): kotlin/String? // io.github.kmpfacelink.interact.youtube/YouTubeConfig.accessToken.<get-accessToken>|<get-accessToken>(){}[0]
+    final val apiKey // io.github.kmpfacelink.interact.youtube/YouTubeConfig.apiKey|{}apiKey[0]
+        final fun <get-apiKey>(): kotlin/String // io.github.kmpfacelink.interact.youtube/YouTubeConfig.apiKey.<get-apiKey>|<get-apiKey>(){}[0]
+    final val liveChatId // io.github.kmpfacelink.interact.youtube/YouTubeConfig.liveChatId|{}liveChatId[0]
+        final fun <get-liveChatId>(): kotlin/String? // io.github.kmpfacelink.interact.youtube/YouTubeConfig.liveChatId.<get-liveChatId>|<get-liveChatId>(){}[0]
+    final val maxPollsPerMinute // io.github.kmpfacelink.interact.youtube/YouTubeConfig.maxPollsPerMinute|{}maxPollsPerMinute[0]
+        final fun <get-maxPollsPerMinute>(): kotlin/Int // io.github.kmpfacelink.interact.youtube/YouTubeConfig.maxPollsPerMinute.<get-maxPollsPerMinute>|<get-maxPollsPerMinute>(){}[0]
+
+    final fun component1(): kotlin/String // io.github.kmpfacelink.interact.youtube/YouTubeConfig.component1|component1(){}[0]
+    final fun component2(): kotlin/String? // io.github.kmpfacelink.interact.youtube/YouTubeConfig.component2|component2(){}[0]
+    final fun component3(): kotlin/String? // io.github.kmpfacelink.interact.youtube/YouTubeConfig.component3|component3(){}[0]
+    final fun component4(): kotlin/Int // io.github.kmpfacelink.interact.youtube/YouTubeConfig.component4|component4(){}[0]
+    final fun copy(kotlin/String = ..., kotlin/String? = ..., kotlin/String? = ..., kotlin/Int = ...): io.github.kmpfacelink.interact.youtube/YouTubeConfig // io.github.kmpfacelink.interact.youtube/YouTubeConfig.copy|copy(kotlin.String;kotlin.String?;kotlin.String?;kotlin.Int){}[0]
+    final fun equals(kotlin/Any?): kotlin/Boolean // io.github.kmpfacelink.interact.youtube/YouTubeConfig.equals|equals(kotlin.Any?){}[0]
+    final fun hashCode(): kotlin/Int // io.github.kmpfacelink.interact.youtube/YouTubeConfig.hashCode|hashCode(){}[0]
+    final fun toString(): kotlin/String // io.github.kmpfacelink.interact.youtube/YouTubeConfig.toString|toString(){}[0]
+}
+
+final class io.github.kmpfacelink.interact.youtube/YouTubeLiveChatSource : io.github.kmpfacelink.interact/StreamEventSource { // io.github.kmpfacelink.interact.youtube/YouTubeLiveChatSource|null[0]
+    constructor <init>(io.github.kmpfacelink.interact.youtube/YouTubeConfig, io.ktor.client/HttpClient = ...) // io.github.kmpfacelink.interact.youtube/YouTubeLiveChatSource.<init>|<init>(io.github.kmpfacelink.interact.youtube.YouTubeConfig;io.ktor.client.HttpClient){}[0]
+
+    final val connectionState // io.github.kmpfacelink.interact.youtube/YouTubeLiveChatSource.connectionState|{}connectionState[0]
+        final fun <get-connectionState>(): kotlinx.coroutines.flow/StateFlow<io.github.kmpfacelink.interact.model/ConnectionState> // io.github.kmpfacelink.interact.youtube/YouTubeLiveChatSource.connectionState.<get-connectionState>|<get-connectionState>(){}[0]
+    final val events // io.github.kmpfacelink.interact.youtube/YouTubeLiveChatSource.events|{}events[0]
+        final fun <get-events>(): kotlinx.coroutines.flow/Flow<io.github.kmpfacelink.interact.model/StreamEvent> // io.github.kmpfacelink.interact.youtube/YouTubeLiveChatSource.events.<get-events>|<get-events>(){}[0]
+    final val platform // io.github.kmpfacelink.interact.youtube/YouTubeLiveChatSource.platform|{}platform[0]
+        final fun <get-platform>(): io.github.kmpfacelink.interact.model/StreamPlatform // io.github.kmpfacelink.interact.youtube/YouTubeLiveChatSource.platform.<get-platform>|<get-platform>(){}[0]
+
+    final suspend fun connect() // io.github.kmpfacelink.interact.youtube/YouTubeLiveChatSource.connect|connect(){}[0]
+    final suspend fun disconnect() // io.github.kmpfacelink.interact.youtube/YouTubeLiveChatSource.disconnect|disconnect(){}[0]
+}
+
 final class io.github.kmpfacelink.interact/StreamEventAggregator { // io.github.kmpfacelink.interact/StreamEventAggregator|null[0]
     constructor <init>() // io.github.kmpfacelink.interact/StreamEventAggregator.<init>|<init>(){}[0]
 

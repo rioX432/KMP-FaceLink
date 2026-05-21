@@ -10,6 +10,7 @@ Records ARKit face blendshape ground truth and front-camera RGB frames simultane
 | `process_captures.py` | Offline MediaPipe processing of captured RGB frames |
 | `benchmark.py` | Per-blendshape accuracy benchmark and error report |
 | `optimize.py` | Automated parameter sweep for BlendShapeEnhancer defaults |
+| `train_predictor.py` | Train TFLite neural blendshape predictor (landmarks -> 52 ARKit shapes) |
 | `requirements.txt` | Python dependencies |
 
 ## Quick Start
@@ -108,6 +109,31 @@ The optimizer uses `scipy.optimize.differential_evolution` to minimize weighted 
 - Per-shape `deadZoneOverrides` for the 10 worst shapes (range 0.0-0.1)
 
 Output is `optimized_params.json` containing the optimized values and improvement metrics. Use these to update `BlendShapeEnhancerConfig.kt` defaults.
+
+### 7. Train Neural Blendshape Predictor (Research)
+
+Train a custom TFLite model that predicts 52 ARKit blendshape coefficients directly from 478 MediaPipe face landmarks. This is a research spike — see [docs/research/neural-blendshape-predictor.md](../../docs/research/neural-blendshape-predictor.md) for the full integration strategy.
+
+```bash
+# Dry run with synthetic data (verify pipeline)
+python train_predictor.py --dry-run
+
+# Train on captured data
+python train_predictor.py --captures captures/
+
+# Train with leave-one-subject-out cross-validation
+python train_predictor.py --captures captures/ --cross-subject
+```
+
+The training script:
+- Extracts 478 MediaPipe face landmarks from captured RGB frames
+- Uses ARKit blendshapes as ground truth labels
+- Trains a 3-layer FC network (1434 -> 256 -> 128 -> 52) with weighted MSE loss
+- Converts to TFLite float16 and benchmarks inference latency
+- Compares accuracy against a geometric solver baseline (ridge regression)
+- Checks success criteria: >= 15% MAE improvement, <= 5ms latency, <= 1MB model, cross-subject generalization within 20%
+
+Output is saved to `neural_predictor/` containing the TFLite model, Keras model, and training results JSON.
 
 ## Capture Protocol
 

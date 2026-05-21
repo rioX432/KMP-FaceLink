@@ -1,0 +1,350 @@
+// Klib ABI Dump
+// Targets: [iosArm64, iosSimulatorArm64]
+// Rendering settings:
+// - Signature version: 2
+// - Show manifest properties: true
+// - Show declarations: true
+
+// Library unique name: <io.github.rioX432:kmp-facelink-interact>
+final enum class io.github.kmpfacelink.interact.model/ConnectionState : kotlin/Enum<io.github.kmpfacelink.interact.model/ConnectionState> { // io.github.kmpfacelink.interact.model/ConnectionState|null[0]
+    enum entry CONNECTED // io.github.kmpfacelink.interact.model/ConnectionState.CONNECTED|null[0]
+    enum entry CONNECTING // io.github.kmpfacelink.interact.model/ConnectionState.CONNECTING|null[0]
+    enum entry DISCONNECTED // io.github.kmpfacelink.interact.model/ConnectionState.DISCONNECTED|null[0]
+    enum entry RECONNECTING // io.github.kmpfacelink.interact.model/ConnectionState.RECONNECTING|null[0]
+
+    final val entries // io.github.kmpfacelink.interact.model/ConnectionState.entries|#static{}entries[0]
+        final fun <get-entries>(): kotlin.enums/EnumEntries<io.github.kmpfacelink.interact.model/ConnectionState> // io.github.kmpfacelink.interact.model/ConnectionState.entries.<get-entries>|<get-entries>#static(){}[0]
+
+    final fun valueOf(kotlin/String): io.github.kmpfacelink.interact.model/ConnectionState // io.github.kmpfacelink.interact.model/ConnectionState.valueOf|valueOf#static(kotlin.String){}[0]
+    final fun values(): kotlin/Array<io.github.kmpfacelink.interact.model/ConnectionState> // io.github.kmpfacelink.interact.model/ConnectionState.values|values#static(){}[0]
+}
+
+final enum class io.github.kmpfacelink.interact.model/StreamPlatform : kotlin/Enum<io.github.kmpfacelink.interact.model/StreamPlatform> { // io.github.kmpfacelink.interact.model/StreamPlatform|null[0]
+    enum entry BILIBILI // io.github.kmpfacelink.interact.model/StreamPlatform.BILIBILI|null[0]
+    enum entry TWITCH // io.github.kmpfacelink.interact.model/StreamPlatform.TWITCH|null[0]
+    enum entry YOUTUBE // io.github.kmpfacelink.interact.model/StreamPlatform.YOUTUBE|null[0]
+
+    final val entries // io.github.kmpfacelink.interact.model/StreamPlatform.entries|#static{}entries[0]
+        final fun <get-entries>(): kotlin.enums/EnumEntries<io.github.kmpfacelink.interact.model/StreamPlatform> // io.github.kmpfacelink.interact.model/StreamPlatform.entries.<get-entries>|<get-entries>#static(){}[0]
+
+    final fun valueOf(kotlin/String): io.github.kmpfacelink.interact.model/StreamPlatform // io.github.kmpfacelink.interact.model/StreamPlatform.valueOf|valueOf#static(kotlin.String){}[0]
+    final fun values(): kotlin/Array<io.github.kmpfacelink.interact.model/StreamPlatform> // io.github.kmpfacelink.interact.model/StreamPlatform.values|values#static(){}[0]
+
+    final object Companion : kotlinx.serialization.internal/SerializerFactory { // io.github.kmpfacelink.interact.model/StreamPlatform.Companion|null[0]
+        final fun serializer(): kotlinx.serialization/KSerializer<io.github.kmpfacelink.interact.model/StreamPlatform> // io.github.kmpfacelink.interact.model/StreamPlatform.Companion.serializer|serializer(){}[0]
+        final fun serializer(kotlin/Array<out kotlinx.serialization/KSerializer<*>>...): kotlinx.serialization/KSerializer<*> // io.github.kmpfacelink.interact.model/StreamPlatform.Companion.serializer|serializer(kotlin.Array<out|kotlinx.serialization.KSerializer<*>>...){}[0]
+    }
+}
+
+abstract interface io.github.kmpfacelink.interact/StreamEventSource { // io.github.kmpfacelink.interact/StreamEventSource|null[0]
+    abstract val connectionState // io.github.kmpfacelink.interact/StreamEventSource.connectionState|{}connectionState[0]
+        abstract fun <get-connectionState>(): kotlinx.coroutines.flow/StateFlow<io.github.kmpfacelink.interact.model/ConnectionState> // io.github.kmpfacelink.interact/StreamEventSource.connectionState.<get-connectionState>|<get-connectionState>(){}[0]
+    abstract val events // io.github.kmpfacelink.interact/StreamEventSource.events|{}events[0]
+        abstract fun <get-events>(): kotlinx.coroutines.flow/Flow<io.github.kmpfacelink.interact.model/StreamEvent> // io.github.kmpfacelink.interact/StreamEventSource.events.<get-events>|<get-events>(){}[0]
+    abstract val platform // io.github.kmpfacelink.interact/StreamEventSource.platform|{}platform[0]
+        abstract fun <get-platform>(): io.github.kmpfacelink.interact.model/StreamPlatform // io.github.kmpfacelink.interact/StreamEventSource.platform.<get-platform>|<get-platform>(){}[0]
+
+    abstract suspend fun connect() // io.github.kmpfacelink.interact/StreamEventSource.connect|connect(){}[0]
+    abstract suspend fun disconnect() // io.github.kmpfacelink.interact/StreamEventSource.disconnect|disconnect(){}[0]
+}
+
+final class io.github.kmpfacelink.interact.model/ChannelPointRedemption : io.github.kmpfacelink.interact.model/StreamEvent { // io.github.kmpfacelink.interact.model/ChannelPointRedemption|null[0]
+    constructor <init>(io.github.kmpfacelink.interact.model/StreamPlatform, kotlin/Long, kotlin/String, kotlin/String, kotlin/String = ..., kotlin/Int) // io.github.kmpfacelink.interact.model/ChannelPointRedemption.<init>|<init>(io.github.kmpfacelink.interact.model.StreamPlatform;kotlin.Long;kotlin.String;kotlin.String;kotlin.String;kotlin.Int){}[0]
+
+    final val author // io.github.kmpfacelink.interact.model/ChannelPointRedemption.author|{}author[0]
+        final fun <get-author>(): kotlin/String // io.github.kmpfacelink.interact.model/ChannelPointRedemption.author.<get-author>|<get-author>(){}[0]
+    final val cost // io.github.kmpfacelink.interact.model/ChannelPointRedemption.cost|{}cost[0]
+        final fun <get-cost>(): kotlin/Int // io.github.kmpfacelink.interact.model/ChannelPointRedemption.cost.<get-cost>|<get-cost>(){}[0]
+    final val input // io.github.kmpfacelink.interact.model/ChannelPointRedemption.input|{}input[0]
+        final fun <get-input>(): kotlin/String // io.github.kmpfacelink.interact.model/ChannelPointRedemption.input.<get-input>|<get-input>(){}[0]
+    final val platform // io.github.kmpfacelink.interact.model/ChannelPointRedemption.platform|{}platform[0]
+        final fun <get-platform>(): io.github.kmpfacelink.interact.model/StreamPlatform // io.github.kmpfacelink.interact.model/ChannelPointRedemption.platform.<get-platform>|<get-platform>(){}[0]
+    final val rewardTitle // io.github.kmpfacelink.interact.model/ChannelPointRedemption.rewardTitle|{}rewardTitle[0]
+        final fun <get-rewardTitle>(): kotlin/String // io.github.kmpfacelink.interact.model/ChannelPointRedemption.rewardTitle.<get-rewardTitle>|<get-rewardTitle>(){}[0]
+    final val timestampMs // io.github.kmpfacelink.interact.model/ChannelPointRedemption.timestampMs|{}timestampMs[0]
+        final fun <get-timestampMs>(): kotlin/Long // io.github.kmpfacelink.interact.model/ChannelPointRedemption.timestampMs.<get-timestampMs>|<get-timestampMs>(){}[0]
+
+    final fun component1(): io.github.kmpfacelink.interact.model/StreamPlatform // io.github.kmpfacelink.interact.model/ChannelPointRedemption.component1|component1(){}[0]
+    final fun component2(): kotlin/Long // io.github.kmpfacelink.interact.model/ChannelPointRedemption.component2|component2(){}[0]
+    final fun component3(): kotlin/String // io.github.kmpfacelink.interact.model/ChannelPointRedemption.component3|component3(){}[0]
+    final fun component4(): kotlin/String // io.github.kmpfacelink.interact.model/ChannelPointRedemption.component4|component4(){}[0]
+    final fun component5(): kotlin/String // io.github.kmpfacelink.interact.model/ChannelPointRedemption.component5|component5(){}[0]
+    final fun component6(): kotlin/Int // io.github.kmpfacelink.interact.model/ChannelPointRedemption.component6|component6(){}[0]
+    final fun copy(io.github.kmpfacelink.interact.model/StreamPlatform = ..., kotlin/Long = ..., kotlin/String = ..., kotlin/String = ..., kotlin/String = ..., kotlin/Int = ...): io.github.kmpfacelink.interact.model/ChannelPointRedemption // io.github.kmpfacelink.interact.model/ChannelPointRedemption.copy|copy(io.github.kmpfacelink.interact.model.StreamPlatform;kotlin.Long;kotlin.String;kotlin.String;kotlin.String;kotlin.Int){}[0]
+    final fun equals(kotlin/Any?): kotlin/Boolean // io.github.kmpfacelink.interact.model/ChannelPointRedemption.equals|equals(kotlin.Any?){}[0]
+    final fun hashCode(): kotlin/Int // io.github.kmpfacelink.interact.model/ChannelPointRedemption.hashCode|hashCode(){}[0]
+    final fun toString(): kotlin/String // io.github.kmpfacelink.interact.model/ChannelPointRedemption.toString|toString(){}[0]
+
+    final object $serializer : kotlinx.serialization.internal/GeneratedSerializer<io.github.kmpfacelink.interact.model/ChannelPointRedemption> { // io.github.kmpfacelink.interact.model/ChannelPointRedemption.$serializer|null[0]
+        final val descriptor // io.github.kmpfacelink.interact.model/ChannelPointRedemption.$serializer.descriptor|{}descriptor[0]
+            final fun <get-descriptor>(): kotlinx.serialization.descriptors/SerialDescriptor // io.github.kmpfacelink.interact.model/ChannelPointRedemption.$serializer.descriptor.<get-descriptor>|<get-descriptor>(){}[0]
+
+        final fun childSerializers(): kotlin/Array<kotlinx.serialization/KSerializer<*>> // io.github.kmpfacelink.interact.model/ChannelPointRedemption.$serializer.childSerializers|childSerializers(){}[0]
+        final fun deserialize(kotlinx.serialization.encoding/Decoder): io.github.kmpfacelink.interact.model/ChannelPointRedemption // io.github.kmpfacelink.interact.model/ChannelPointRedemption.$serializer.deserialize|deserialize(kotlinx.serialization.encoding.Decoder){}[0]
+        final fun serialize(kotlinx.serialization.encoding/Encoder, io.github.kmpfacelink.interact.model/ChannelPointRedemption) // io.github.kmpfacelink.interact.model/ChannelPointRedemption.$serializer.serialize|serialize(kotlinx.serialization.encoding.Encoder;io.github.kmpfacelink.interact.model.ChannelPointRedemption){}[0]
+    }
+
+    final object Companion { // io.github.kmpfacelink.interact.model/ChannelPointRedemption.Companion|null[0]
+        final val $childSerializers // io.github.kmpfacelink.interact.model/ChannelPointRedemption.Companion.$childSerializers|{}$childSerializers[0]
+
+        final fun serializer(): kotlinx.serialization/KSerializer<io.github.kmpfacelink.interact.model/ChannelPointRedemption> // io.github.kmpfacelink.interact.model/ChannelPointRedemption.Companion.serializer|serializer(){}[0]
+    }
+}
+
+final class io.github.kmpfacelink.interact.model/ChatMessage : io.github.kmpfacelink.interact.model/StreamEvent { // io.github.kmpfacelink.interact.model/ChatMessage|null[0]
+    constructor <init>(io.github.kmpfacelink.interact.model/StreamPlatform, kotlin/Long, kotlin/String, kotlin/String, kotlin.collections/List<kotlin/String> = ..., kotlin.collections/List<io.github.kmpfacelink.interact.model/Emote> = ...) // io.github.kmpfacelink.interact.model/ChatMessage.<init>|<init>(io.github.kmpfacelink.interact.model.StreamPlatform;kotlin.Long;kotlin.String;kotlin.String;kotlin.collections.List<kotlin.String>;kotlin.collections.List<io.github.kmpfacelink.interact.model.Emote>){}[0]
+
+    final val author // io.github.kmpfacelink.interact.model/ChatMessage.author|{}author[0]
+        final fun <get-author>(): kotlin/String // io.github.kmpfacelink.interact.model/ChatMessage.author.<get-author>|<get-author>(){}[0]
+    final val badges // io.github.kmpfacelink.interact.model/ChatMessage.badges|{}badges[0]
+        final fun <get-badges>(): kotlin.collections/List<kotlin/String> // io.github.kmpfacelink.interact.model/ChatMessage.badges.<get-badges>|<get-badges>(){}[0]
+    final val emotes // io.github.kmpfacelink.interact.model/ChatMessage.emotes|{}emotes[0]
+        final fun <get-emotes>(): kotlin.collections/List<io.github.kmpfacelink.interact.model/Emote> // io.github.kmpfacelink.interact.model/ChatMessage.emotes.<get-emotes>|<get-emotes>(){}[0]
+    final val platform // io.github.kmpfacelink.interact.model/ChatMessage.platform|{}platform[0]
+        final fun <get-platform>(): io.github.kmpfacelink.interact.model/StreamPlatform // io.github.kmpfacelink.interact.model/ChatMessage.platform.<get-platform>|<get-platform>(){}[0]
+    final val text // io.github.kmpfacelink.interact.model/ChatMessage.text|{}text[0]
+        final fun <get-text>(): kotlin/String // io.github.kmpfacelink.interact.model/ChatMessage.text.<get-text>|<get-text>(){}[0]
+    final val timestampMs // io.github.kmpfacelink.interact.model/ChatMessage.timestampMs|{}timestampMs[0]
+        final fun <get-timestampMs>(): kotlin/Long // io.github.kmpfacelink.interact.model/ChatMessage.timestampMs.<get-timestampMs>|<get-timestampMs>(){}[0]
+
+    final fun component1(): io.github.kmpfacelink.interact.model/StreamPlatform // io.github.kmpfacelink.interact.model/ChatMessage.component1|component1(){}[0]
+    final fun component2(): kotlin/Long // io.github.kmpfacelink.interact.model/ChatMessage.component2|component2(){}[0]
+    final fun component3(): kotlin/String // io.github.kmpfacelink.interact.model/ChatMessage.component3|component3(){}[0]
+    final fun component4(): kotlin/String // io.github.kmpfacelink.interact.model/ChatMessage.component4|component4(){}[0]
+    final fun component5(): kotlin.collections/List<kotlin/String> // io.github.kmpfacelink.interact.model/ChatMessage.component5|component5(){}[0]
+    final fun component6(): kotlin.collections/List<io.github.kmpfacelink.interact.model/Emote> // io.github.kmpfacelink.interact.model/ChatMessage.component6|component6(){}[0]
+    final fun copy(io.github.kmpfacelink.interact.model/StreamPlatform = ..., kotlin/Long = ..., kotlin/String = ..., kotlin/String = ..., kotlin.collections/List<kotlin/String> = ..., kotlin.collections/List<io.github.kmpfacelink.interact.model/Emote> = ...): io.github.kmpfacelink.interact.model/ChatMessage // io.github.kmpfacelink.interact.model/ChatMessage.copy|copy(io.github.kmpfacelink.interact.model.StreamPlatform;kotlin.Long;kotlin.String;kotlin.String;kotlin.collections.List<kotlin.String>;kotlin.collections.List<io.github.kmpfacelink.interact.model.Emote>){}[0]
+    final fun equals(kotlin/Any?): kotlin/Boolean // io.github.kmpfacelink.interact.model/ChatMessage.equals|equals(kotlin.Any?){}[0]
+    final fun hashCode(): kotlin/Int // io.github.kmpfacelink.interact.model/ChatMessage.hashCode|hashCode(){}[0]
+    final fun toString(): kotlin/String // io.github.kmpfacelink.interact.model/ChatMessage.toString|toString(){}[0]
+
+    final object $serializer : kotlinx.serialization.internal/GeneratedSerializer<io.github.kmpfacelink.interact.model/ChatMessage> { // io.github.kmpfacelink.interact.model/ChatMessage.$serializer|null[0]
+        final val descriptor // io.github.kmpfacelink.interact.model/ChatMessage.$serializer.descriptor|{}descriptor[0]
+            final fun <get-descriptor>(): kotlinx.serialization.descriptors/SerialDescriptor // io.github.kmpfacelink.interact.model/ChatMessage.$serializer.descriptor.<get-descriptor>|<get-descriptor>(){}[0]
+
+        final fun childSerializers(): kotlin/Array<kotlinx.serialization/KSerializer<*>> // io.github.kmpfacelink.interact.model/ChatMessage.$serializer.childSerializers|childSerializers(){}[0]
+        final fun deserialize(kotlinx.serialization.encoding/Decoder): io.github.kmpfacelink.interact.model/ChatMessage // io.github.kmpfacelink.interact.model/ChatMessage.$serializer.deserialize|deserialize(kotlinx.serialization.encoding.Decoder){}[0]
+        final fun serialize(kotlinx.serialization.encoding/Encoder, io.github.kmpfacelink.interact.model/ChatMessage) // io.github.kmpfacelink.interact.model/ChatMessage.$serializer.serialize|serialize(kotlinx.serialization.encoding.Encoder;io.github.kmpfacelink.interact.model.ChatMessage){}[0]
+    }
+
+    final object Companion { // io.github.kmpfacelink.interact.model/ChatMessage.Companion|null[0]
+        final val $childSerializers // io.github.kmpfacelink.interact.model/ChatMessage.Companion.$childSerializers|{}$childSerializers[0]
+
+        final fun serializer(): kotlinx.serialization/KSerializer<io.github.kmpfacelink.interact.model/ChatMessage> // io.github.kmpfacelink.interact.model/ChatMessage.Companion.serializer|serializer(){}[0]
+    }
+}
+
+final class io.github.kmpfacelink.interact.model/Emote { // io.github.kmpfacelink.interact.model/Emote|null[0]
+    constructor <init>(kotlin/String, kotlin/String) // io.github.kmpfacelink.interact.model/Emote.<init>|<init>(kotlin.String;kotlin.String){}[0]
+
+    final val id // io.github.kmpfacelink.interact.model/Emote.id|{}id[0]
+        final fun <get-id>(): kotlin/String // io.github.kmpfacelink.interact.model/Emote.id.<get-id>|<get-id>(){}[0]
+    final val name // io.github.kmpfacelink.interact.model/Emote.name|{}name[0]
+        final fun <get-name>(): kotlin/String // io.github.kmpfacelink.interact.model/Emote.name.<get-name>|<get-name>(){}[0]
+
+    final fun component1(): kotlin/String // io.github.kmpfacelink.interact.model/Emote.component1|component1(){}[0]
+    final fun component2(): kotlin/String // io.github.kmpfacelink.interact.model/Emote.component2|component2(){}[0]
+    final fun copy(kotlin/String = ..., kotlin/String = ...): io.github.kmpfacelink.interact.model/Emote // io.github.kmpfacelink.interact.model/Emote.copy|copy(kotlin.String;kotlin.String){}[0]
+    final fun equals(kotlin/Any?): kotlin/Boolean // io.github.kmpfacelink.interact.model/Emote.equals|equals(kotlin.Any?){}[0]
+    final fun hashCode(): kotlin/Int // io.github.kmpfacelink.interact.model/Emote.hashCode|hashCode(){}[0]
+    final fun toString(): kotlin/String // io.github.kmpfacelink.interact.model/Emote.toString|toString(){}[0]
+
+    final object $serializer : kotlinx.serialization.internal/GeneratedSerializer<io.github.kmpfacelink.interact.model/Emote> { // io.github.kmpfacelink.interact.model/Emote.$serializer|null[0]
+        final val descriptor // io.github.kmpfacelink.interact.model/Emote.$serializer.descriptor|{}descriptor[0]
+            final fun <get-descriptor>(): kotlinx.serialization.descriptors/SerialDescriptor // io.github.kmpfacelink.interact.model/Emote.$serializer.descriptor.<get-descriptor>|<get-descriptor>(){}[0]
+
+        final fun childSerializers(): kotlin/Array<kotlinx.serialization/KSerializer<*>> // io.github.kmpfacelink.interact.model/Emote.$serializer.childSerializers|childSerializers(){}[0]
+        final fun deserialize(kotlinx.serialization.encoding/Decoder): io.github.kmpfacelink.interact.model/Emote // io.github.kmpfacelink.interact.model/Emote.$serializer.deserialize|deserialize(kotlinx.serialization.encoding.Decoder){}[0]
+        final fun serialize(kotlinx.serialization.encoding/Encoder, io.github.kmpfacelink.interact.model/Emote) // io.github.kmpfacelink.interact.model/Emote.$serializer.serialize|serialize(kotlinx.serialization.encoding.Encoder;io.github.kmpfacelink.interact.model.Emote){}[0]
+    }
+
+    final object Companion { // io.github.kmpfacelink.interact.model/Emote.Companion|null[0]
+        final fun serializer(): kotlinx.serialization/KSerializer<io.github.kmpfacelink.interact.model/Emote> // io.github.kmpfacelink.interact.model/Emote.Companion.serializer|serializer(){}[0]
+    }
+}
+
+final class io.github.kmpfacelink.interact.model/Follow : io.github.kmpfacelink.interact.model/StreamEvent { // io.github.kmpfacelink.interact.model/Follow|null[0]
+    constructor <init>(io.github.kmpfacelink.interact.model/StreamPlatform, kotlin/Long, kotlin/String) // io.github.kmpfacelink.interact.model/Follow.<init>|<init>(io.github.kmpfacelink.interact.model.StreamPlatform;kotlin.Long;kotlin.String){}[0]
+
+    final val author // io.github.kmpfacelink.interact.model/Follow.author|{}author[0]
+        final fun <get-author>(): kotlin/String // io.github.kmpfacelink.interact.model/Follow.author.<get-author>|<get-author>(){}[0]
+    final val platform // io.github.kmpfacelink.interact.model/Follow.platform|{}platform[0]
+        final fun <get-platform>(): io.github.kmpfacelink.interact.model/StreamPlatform // io.github.kmpfacelink.interact.model/Follow.platform.<get-platform>|<get-platform>(){}[0]
+    final val timestampMs // io.github.kmpfacelink.interact.model/Follow.timestampMs|{}timestampMs[0]
+        final fun <get-timestampMs>(): kotlin/Long // io.github.kmpfacelink.interact.model/Follow.timestampMs.<get-timestampMs>|<get-timestampMs>(){}[0]
+
+    final fun component1(): io.github.kmpfacelink.interact.model/StreamPlatform // io.github.kmpfacelink.interact.model/Follow.component1|component1(){}[0]
+    final fun component2(): kotlin/Long // io.github.kmpfacelink.interact.model/Follow.component2|component2(){}[0]
+    final fun component3(): kotlin/String // io.github.kmpfacelink.interact.model/Follow.component3|component3(){}[0]
+    final fun copy(io.github.kmpfacelink.interact.model/StreamPlatform = ..., kotlin/Long = ..., kotlin/String = ...): io.github.kmpfacelink.interact.model/Follow // io.github.kmpfacelink.interact.model/Follow.copy|copy(io.github.kmpfacelink.interact.model.StreamPlatform;kotlin.Long;kotlin.String){}[0]
+    final fun equals(kotlin/Any?): kotlin/Boolean // io.github.kmpfacelink.interact.model/Follow.equals|equals(kotlin.Any?){}[0]
+    final fun hashCode(): kotlin/Int // io.github.kmpfacelink.interact.model/Follow.hashCode|hashCode(){}[0]
+    final fun toString(): kotlin/String // io.github.kmpfacelink.interact.model/Follow.toString|toString(){}[0]
+
+    final object $serializer : kotlinx.serialization.internal/GeneratedSerializer<io.github.kmpfacelink.interact.model/Follow> { // io.github.kmpfacelink.interact.model/Follow.$serializer|null[0]
+        final val descriptor // io.github.kmpfacelink.interact.model/Follow.$serializer.descriptor|{}descriptor[0]
+            final fun <get-descriptor>(): kotlinx.serialization.descriptors/SerialDescriptor // io.github.kmpfacelink.interact.model/Follow.$serializer.descriptor.<get-descriptor>|<get-descriptor>(){}[0]
+
+        final fun childSerializers(): kotlin/Array<kotlinx.serialization/KSerializer<*>> // io.github.kmpfacelink.interact.model/Follow.$serializer.childSerializers|childSerializers(){}[0]
+        final fun deserialize(kotlinx.serialization.encoding/Decoder): io.github.kmpfacelink.interact.model/Follow // io.github.kmpfacelink.interact.model/Follow.$serializer.deserialize|deserialize(kotlinx.serialization.encoding.Decoder){}[0]
+        final fun serialize(kotlinx.serialization.encoding/Encoder, io.github.kmpfacelink.interact.model/Follow) // io.github.kmpfacelink.interact.model/Follow.$serializer.serialize|serialize(kotlinx.serialization.encoding.Encoder;io.github.kmpfacelink.interact.model.Follow){}[0]
+    }
+
+    final object Companion { // io.github.kmpfacelink.interact.model/Follow.Companion|null[0]
+        final val $childSerializers // io.github.kmpfacelink.interact.model/Follow.Companion.$childSerializers|{}$childSerializers[0]
+
+        final fun serializer(): kotlinx.serialization/KSerializer<io.github.kmpfacelink.interact.model/Follow> // io.github.kmpfacelink.interact.model/Follow.Companion.serializer|serializer(){}[0]
+    }
+}
+
+final class io.github.kmpfacelink.interact.model/Gift : io.github.kmpfacelink.interact.model/StreamEvent { // io.github.kmpfacelink.interact.model/Gift|null[0]
+    constructor <init>(io.github.kmpfacelink.interact.model/StreamPlatform, kotlin/Long, kotlin/String, kotlin/Double, kotlin/String, kotlin/Int = ..., kotlin/String = ...) // io.github.kmpfacelink.interact.model/Gift.<init>|<init>(io.github.kmpfacelink.interact.model.StreamPlatform;kotlin.Long;kotlin.String;kotlin.Double;kotlin.String;kotlin.Int;kotlin.String){}[0]
+
+    final val amount // io.github.kmpfacelink.interact.model/Gift.amount|{}amount[0]
+        final fun <get-amount>(): kotlin/Double // io.github.kmpfacelink.interact.model/Gift.amount.<get-amount>|<get-amount>(){}[0]
+    final val author // io.github.kmpfacelink.interact.model/Gift.author|{}author[0]
+        final fun <get-author>(): kotlin/String // io.github.kmpfacelink.interact.model/Gift.author.<get-author>|<get-author>(){}[0]
+    final val currency // io.github.kmpfacelink.interact.model/Gift.currency|{}currency[0]
+        final fun <get-currency>(): kotlin/String // io.github.kmpfacelink.interact.model/Gift.currency.<get-currency>|<get-currency>(){}[0]
+    final val message // io.github.kmpfacelink.interact.model/Gift.message|{}message[0]
+        final fun <get-message>(): kotlin/String // io.github.kmpfacelink.interact.model/Gift.message.<get-message>|<get-message>(){}[0]
+    final val platform // io.github.kmpfacelink.interact.model/Gift.platform|{}platform[0]
+        final fun <get-platform>(): io.github.kmpfacelink.interact.model/StreamPlatform // io.github.kmpfacelink.interact.model/Gift.platform.<get-platform>|<get-platform>(){}[0]
+    final val tier // io.github.kmpfacelink.interact.model/Gift.tier|{}tier[0]
+        final fun <get-tier>(): kotlin/Int // io.github.kmpfacelink.interact.model/Gift.tier.<get-tier>|<get-tier>(){}[0]
+    final val timestampMs // io.github.kmpfacelink.interact.model/Gift.timestampMs|{}timestampMs[0]
+        final fun <get-timestampMs>(): kotlin/Long // io.github.kmpfacelink.interact.model/Gift.timestampMs.<get-timestampMs>|<get-timestampMs>(){}[0]
+
+    final fun component1(): io.github.kmpfacelink.interact.model/StreamPlatform // io.github.kmpfacelink.interact.model/Gift.component1|component1(){}[0]
+    final fun component2(): kotlin/Long // io.github.kmpfacelink.interact.model/Gift.component2|component2(){}[0]
+    final fun component3(): kotlin/String // io.github.kmpfacelink.interact.model/Gift.component3|component3(){}[0]
+    final fun component4(): kotlin/Double // io.github.kmpfacelink.interact.model/Gift.component4|component4(){}[0]
+    final fun component5(): kotlin/String // io.github.kmpfacelink.interact.model/Gift.component5|component5(){}[0]
+    final fun component6(): kotlin/Int // io.github.kmpfacelink.interact.model/Gift.component6|component6(){}[0]
+    final fun component7(): kotlin/String // io.github.kmpfacelink.interact.model/Gift.component7|component7(){}[0]
+    final fun copy(io.github.kmpfacelink.interact.model/StreamPlatform = ..., kotlin/Long = ..., kotlin/String = ..., kotlin/Double = ..., kotlin/String = ..., kotlin/Int = ..., kotlin/String = ...): io.github.kmpfacelink.interact.model/Gift // io.github.kmpfacelink.interact.model/Gift.copy|copy(io.github.kmpfacelink.interact.model.StreamPlatform;kotlin.Long;kotlin.String;kotlin.Double;kotlin.String;kotlin.Int;kotlin.String){}[0]
+    final fun equals(kotlin/Any?): kotlin/Boolean // io.github.kmpfacelink.interact.model/Gift.equals|equals(kotlin.Any?){}[0]
+    final fun hashCode(): kotlin/Int // io.github.kmpfacelink.interact.model/Gift.hashCode|hashCode(){}[0]
+    final fun toString(): kotlin/String // io.github.kmpfacelink.interact.model/Gift.toString|toString(){}[0]
+
+    final object $serializer : kotlinx.serialization.internal/GeneratedSerializer<io.github.kmpfacelink.interact.model/Gift> { // io.github.kmpfacelink.interact.model/Gift.$serializer|null[0]
+        final val descriptor // io.github.kmpfacelink.interact.model/Gift.$serializer.descriptor|{}descriptor[0]
+            final fun <get-descriptor>(): kotlinx.serialization.descriptors/SerialDescriptor // io.github.kmpfacelink.interact.model/Gift.$serializer.descriptor.<get-descriptor>|<get-descriptor>(){}[0]
+
+        final fun childSerializers(): kotlin/Array<kotlinx.serialization/KSerializer<*>> // io.github.kmpfacelink.interact.model/Gift.$serializer.childSerializers|childSerializers(){}[0]
+        final fun deserialize(kotlinx.serialization.encoding/Decoder): io.github.kmpfacelink.interact.model/Gift // io.github.kmpfacelink.interact.model/Gift.$serializer.deserialize|deserialize(kotlinx.serialization.encoding.Decoder){}[0]
+        final fun serialize(kotlinx.serialization.encoding/Encoder, io.github.kmpfacelink.interact.model/Gift) // io.github.kmpfacelink.interact.model/Gift.$serializer.serialize|serialize(kotlinx.serialization.encoding.Encoder;io.github.kmpfacelink.interact.model.Gift){}[0]
+    }
+
+    final object Companion { // io.github.kmpfacelink.interact.model/Gift.Companion|null[0]
+        final val $childSerializers // io.github.kmpfacelink.interact.model/Gift.Companion.$childSerializers|{}$childSerializers[0]
+
+        final fun serializer(): kotlinx.serialization/KSerializer<io.github.kmpfacelink.interact.model/Gift> // io.github.kmpfacelink.interact.model/Gift.Companion.serializer|serializer(){}[0]
+    }
+}
+
+final class io.github.kmpfacelink.interact.model/Raid : io.github.kmpfacelink.interact.model/StreamEvent { // io.github.kmpfacelink.interact.model/Raid|null[0]
+    constructor <init>(io.github.kmpfacelink.interact.model/StreamPlatform, kotlin/Long, kotlin/String, kotlin/Int) // io.github.kmpfacelink.interact.model/Raid.<init>|<init>(io.github.kmpfacelink.interact.model.StreamPlatform;kotlin.Long;kotlin.String;kotlin.Int){}[0]
+
+    final val author // io.github.kmpfacelink.interact.model/Raid.author|{}author[0]
+        final fun <get-author>(): kotlin/String // io.github.kmpfacelink.interact.model/Raid.author.<get-author>|<get-author>(){}[0]
+    final val platform // io.github.kmpfacelink.interact.model/Raid.platform|{}platform[0]
+        final fun <get-platform>(): io.github.kmpfacelink.interact.model/StreamPlatform // io.github.kmpfacelink.interact.model/Raid.platform.<get-platform>|<get-platform>(){}[0]
+    final val timestampMs // io.github.kmpfacelink.interact.model/Raid.timestampMs|{}timestampMs[0]
+        final fun <get-timestampMs>(): kotlin/Long // io.github.kmpfacelink.interact.model/Raid.timestampMs.<get-timestampMs>|<get-timestampMs>(){}[0]
+    final val viewerCount // io.github.kmpfacelink.interact.model/Raid.viewerCount|{}viewerCount[0]
+        final fun <get-viewerCount>(): kotlin/Int // io.github.kmpfacelink.interact.model/Raid.viewerCount.<get-viewerCount>|<get-viewerCount>(){}[0]
+
+    final fun component1(): io.github.kmpfacelink.interact.model/StreamPlatform // io.github.kmpfacelink.interact.model/Raid.component1|component1(){}[0]
+    final fun component2(): kotlin/Long // io.github.kmpfacelink.interact.model/Raid.component2|component2(){}[0]
+    final fun component3(): kotlin/String // io.github.kmpfacelink.interact.model/Raid.component3|component3(){}[0]
+    final fun component4(): kotlin/Int // io.github.kmpfacelink.interact.model/Raid.component4|component4(){}[0]
+    final fun copy(io.github.kmpfacelink.interact.model/StreamPlatform = ..., kotlin/Long = ..., kotlin/String = ..., kotlin/Int = ...): io.github.kmpfacelink.interact.model/Raid // io.github.kmpfacelink.interact.model/Raid.copy|copy(io.github.kmpfacelink.interact.model.StreamPlatform;kotlin.Long;kotlin.String;kotlin.Int){}[0]
+    final fun equals(kotlin/Any?): kotlin/Boolean // io.github.kmpfacelink.interact.model/Raid.equals|equals(kotlin.Any?){}[0]
+    final fun hashCode(): kotlin/Int // io.github.kmpfacelink.interact.model/Raid.hashCode|hashCode(){}[0]
+    final fun toString(): kotlin/String // io.github.kmpfacelink.interact.model/Raid.toString|toString(){}[0]
+
+    final object $serializer : kotlinx.serialization.internal/GeneratedSerializer<io.github.kmpfacelink.interact.model/Raid> { // io.github.kmpfacelink.interact.model/Raid.$serializer|null[0]
+        final val descriptor // io.github.kmpfacelink.interact.model/Raid.$serializer.descriptor|{}descriptor[0]
+            final fun <get-descriptor>(): kotlinx.serialization.descriptors/SerialDescriptor // io.github.kmpfacelink.interact.model/Raid.$serializer.descriptor.<get-descriptor>|<get-descriptor>(){}[0]
+
+        final fun childSerializers(): kotlin/Array<kotlinx.serialization/KSerializer<*>> // io.github.kmpfacelink.interact.model/Raid.$serializer.childSerializers|childSerializers(){}[0]
+        final fun deserialize(kotlinx.serialization.encoding/Decoder): io.github.kmpfacelink.interact.model/Raid // io.github.kmpfacelink.interact.model/Raid.$serializer.deserialize|deserialize(kotlinx.serialization.encoding.Decoder){}[0]
+        final fun serialize(kotlinx.serialization.encoding/Encoder, io.github.kmpfacelink.interact.model/Raid) // io.github.kmpfacelink.interact.model/Raid.$serializer.serialize|serialize(kotlinx.serialization.encoding.Encoder;io.github.kmpfacelink.interact.model.Raid){}[0]
+    }
+
+    final object Companion { // io.github.kmpfacelink.interact.model/Raid.Companion|null[0]
+        final val $childSerializers // io.github.kmpfacelink.interact.model/Raid.Companion.$childSerializers|{}$childSerializers[0]
+
+        final fun serializer(): kotlinx.serialization/KSerializer<io.github.kmpfacelink.interact.model/Raid> // io.github.kmpfacelink.interact.model/Raid.Companion.serializer|serializer(){}[0]
+    }
+}
+
+final class io.github.kmpfacelink.interact.model/SuperChat : io.github.kmpfacelink.interact.model/StreamEvent { // io.github.kmpfacelink.interact.model/SuperChat|null[0]
+    constructor <init>(io.github.kmpfacelink.interact.model/StreamPlatform, kotlin/Long, kotlin/String, kotlin/Double, kotlin/String, kotlin/String) // io.github.kmpfacelink.interact.model/SuperChat.<init>|<init>(io.github.kmpfacelink.interact.model.StreamPlatform;kotlin.Long;kotlin.String;kotlin.Double;kotlin.String;kotlin.String){}[0]
+
+    final val amount // io.github.kmpfacelink.interact.model/SuperChat.amount|{}amount[0]
+        final fun <get-amount>(): kotlin/Double // io.github.kmpfacelink.interact.model/SuperChat.amount.<get-amount>|<get-amount>(){}[0]
+    final val author // io.github.kmpfacelink.interact.model/SuperChat.author|{}author[0]
+        final fun <get-author>(): kotlin/String // io.github.kmpfacelink.interact.model/SuperChat.author.<get-author>|<get-author>(){}[0]
+    final val currency // io.github.kmpfacelink.interact.model/SuperChat.currency|{}currency[0]
+        final fun <get-currency>(): kotlin/String // io.github.kmpfacelink.interact.model/SuperChat.currency.<get-currency>|<get-currency>(){}[0]
+    final val platform // io.github.kmpfacelink.interact.model/SuperChat.platform|{}platform[0]
+        final fun <get-platform>(): io.github.kmpfacelink.interact.model/StreamPlatform // io.github.kmpfacelink.interact.model/SuperChat.platform.<get-platform>|<get-platform>(){}[0]
+    final val text // io.github.kmpfacelink.interact.model/SuperChat.text|{}text[0]
+        final fun <get-text>(): kotlin/String // io.github.kmpfacelink.interact.model/SuperChat.text.<get-text>|<get-text>(){}[0]
+    final val timestampMs // io.github.kmpfacelink.interact.model/SuperChat.timestampMs|{}timestampMs[0]
+        final fun <get-timestampMs>(): kotlin/Long // io.github.kmpfacelink.interact.model/SuperChat.timestampMs.<get-timestampMs>|<get-timestampMs>(){}[0]
+
+    final fun component1(): io.github.kmpfacelink.interact.model/StreamPlatform // io.github.kmpfacelink.interact.model/SuperChat.component1|component1(){}[0]
+    final fun component2(): kotlin/Long // io.github.kmpfacelink.interact.model/SuperChat.component2|component2(){}[0]
+    final fun component3(): kotlin/String // io.github.kmpfacelink.interact.model/SuperChat.component3|component3(){}[0]
+    final fun component4(): kotlin/Double // io.github.kmpfacelink.interact.model/SuperChat.component4|component4(){}[0]
+    final fun component5(): kotlin/String // io.github.kmpfacelink.interact.model/SuperChat.component5|component5(){}[0]
+    final fun component6(): kotlin/String // io.github.kmpfacelink.interact.model/SuperChat.component6|component6(){}[0]
+    final fun copy(io.github.kmpfacelink.interact.model/StreamPlatform = ..., kotlin/Long = ..., kotlin/String = ..., kotlin/Double = ..., kotlin/String = ..., kotlin/String = ...): io.github.kmpfacelink.interact.model/SuperChat // io.github.kmpfacelink.interact.model/SuperChat.copy|copy(io.github.kmpfacelink.interact.model.StreamPlatform;kotlin.Long;kotlin.String;kotlin.Double;kotlin.String;kotlin.String){}[0]
+    final fun equals(kotlin/Any?): kotlin/Boolean // io.github.kmpfacelink.interact.model/SuperChat.equals|equals(kotlin.Any?){}[0]
+    final fun hashCode(): kotlin/Int // io.github.kmpfacelink.interact.model/SuperChat.hashCode|hashCode(){}[0]
+    final fun toString(): kotlin/String // io.github.kmpfacelink.interact.model/SuperChat.toString|toString(){}[0]
+
+    final object $serializer : kotlinx.serialization.internal/GeneratedSerializer<io.github.kmpfacelink.interact.model/SuperChat> { // io.github.kmpfacelink.interact.model/SuperChat.$serializer|null[0]
+        final val descriptor // io.github.kmpfacelink.interact.model/SuperChat.$serializer.descriptor|{}descriptor[0]
+            final fun <get-descriptor>(): kotlinx.serialization.descriptors/SerialDescriptor // io.github.kmpfacelink.interact.model/SuperChat.$serializer.descriptor.<get-descriptor>|<get-descriptor>(){}[0]
+
+        final fun childSerializers(): kotlin/Array<kotlinx.serialization/KSerializer<*>> // io.github.kmpfacelink.interact.model/SuperChat.$serializer.childSerializers|childSerializers(){}[0]
+        final fun deserialize(kotlinx.serialization.encoding/Decoder): io.github.kmpfacelink.interact.model/SuperChat // io.github.kmpfacelink.interact.model/SuperChat.$serializer.deserialize|deserialize(kotlinx.serialization.encoding.Decoder){}[0]
+        final fun serialize(kotlinx.serialization.encoding/Encoder, io.github.kmpfacelink.interact.model/SuperChat) // io.github.kmpfacelink.interact.model/SuperChat.$serializer.serialize|serialize(kotlinx.serialization.encoding.Encoder;io.github.kmpfacelink.interact.model.SuperChat){}[0]
+    }
+
+    final object Companion { // io.github.kmpfacelink.interact.model/SuperChat.Companion|null[0]
+        final val $childSerializers // io.github.kmpfacelink.interact.model/SuperChat.Companion.$childSerializers|{}$childSerializers[0]
+
+        final fun serializer(): kotlinx.serialization/KSerializer<io.github.kmpfacelink.interact.model/SuperChat> // io.github.kmpfacelink.interact.model/SuperChat.Companion.serializer|serializer(){}[0]
+    }
+}
+
+final class io.github.kmpfacelink.interact/StreamEventAggregator { // io.github.kmpfacelink.interact/StreamEventAggregator|null[0]
+    constructor <init>() // io.github.kmpfacelink.interact/StreamEventAggregator.<init>|<init>(){}[0]
+
+    final val events // io.github.kmpfacelink.interact/StreamEventAggregator.events|{}events[0]
+        final fun <get-events>(): kotlinx.coroutines.flow/Flow<io.github.kmpfacelink.interact.model/StreamEvent> // io.github.kmpfacelink.interact/StreamEventAggregator.events.<get-events>|<get-events>(){}[0]
+
+    final fun addSource(io.github.kmpfacelink.interact/StreamEventSource) // io.github.kmpfacelink.interact/StreamEventAggregator.addSource|addSource(io.github.kmpfacelink.interact.StreamEventSource){}[0]
+    final fun removeSource(io.github.kmpfacelink.interact/StreamEventSource) // io.github.kmpfacelink.interact/StreamEventAggregator.removeSource|removeSource(io.github.kmpfacelink.interact.StreamEventSource){}[0]
+    final suspend fun connectAll() // io.github.kmpfacelink.interact/StreamEventAggregator.connectAll|connectAll(){}[0]
+    final suspend fun disconnectAll() // io.github.kmpfacelink.interact/StreamEventAggregator.disconnectAll|disconnectAll(){}[0]
+}
+
+sealed class io.github.kmpfacelink.interact.model/StreamEvent { // io.github.kmpfacelink.interact.model/StreamEvent|null[0]
+    abstract val author // io.github.kmpfacelink.interact.model/StreamEvent.author|{}author[0]
+        abstract fun <get-author>(): kotlin/String // io.github.kmpfacelink.interact.model/StreamEvent.author.<get-author>|<get-author>(){}[0]
+    abstract val platform // io.github.kmpfacelink.interact.model/StreamEvent.platform|{}platform[0]
+        abstract fun <get-platform>(): io.github.kmpfacelink.interact.model/StreamPlatform // io.github.kmpfacelink.interact.model/StreamEvent.platform.<get-platform>|<get-platform>(){}[0]
+    abstract val timestampMs // io.github.kmpfacelink.interact.model/StreamEvent.timestampMs|{}timestampMs[0]
+        abstract fun <get-timestampMs>(): kotlin/Long // io.github.kmpfacelink.interact.model/StreamEvent.timestampMs.<get-timestampMs>|<get-timestampMs>(){}[0]
+
+    final object Companion : kotlinx.serialization.internal/SerializerFactory { // io.github.kmpfacelink.interact.model/StreamEvent.Companion|null[0]
+        final fun serializer(): kotlinx.serialization/KSerializer<io.github.kmpfacelink.interact.model/StreamEvent> // io.github.kmpfacelink.interact.model/StreamEvent.Companion.serializer|serializer(){}[0]
+        final fun serializer(kotlin/Array<out kotlinx.serialization/KSerializer<*>>...): kotlinx.serialization/KSerializer<*> // io.github.kmpfacelink.interact.model/StreamEvent.Companion.serializer|serializer(kotlin.Array<out|kotlinx.serialization.KSerializer<*>>...){}[0]
+    }
+}

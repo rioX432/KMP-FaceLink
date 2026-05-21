@@ -10,6 +10,7 @@ enum TrackingMode: String, CaseIterable {
     case holistic = "Holistic"
     case actions = "Actions"
     case voice = "Voice"
+    case interact = "Interact"
 }
 
 struct ContentView: View {
@@ -50,6 +51,8 @@ struct ContentView: View {
                 ActionsTrackingView()
             case .voice:
                 VoiceTrackingView()
+            case .interact:
+                CMPInteractDemoView()
             }
         }
     }
@@ -245,6 +248,18 @@ class CMPFaceTrackingViewModel: ObservableObject {
     deinit {
         observeTask?.cancel()
         tracker.release()
+    }
+}
+
+// MARK: - CMP Interact Demo (Compose Multiplatform)
+
+/// Compose Multiplatform interact demo screen hosted via ComposeUIViewController.
+struct CMPInteractDemoView: View {
+    var body: some View {
+        ComposeViewControllerWrapper {
+            InteractDemoViewControllerKt.InteractDemoViewController()
+        }
+        .ignoresSafeArea()
     }
 }
 

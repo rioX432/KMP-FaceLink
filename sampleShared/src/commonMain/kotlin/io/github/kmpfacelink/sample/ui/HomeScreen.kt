@@ -193,4 +193,10 @@ private val featureCards = listOf(
         title = "Voice",
         description = "TTS with real-time lip sync blend shapes and speech recognition.",
     ),
+    FeatureCardData(
+        mode = TrackingMode.INTERACT,
+        icon = "💬",
+        title = "Interact",
+        description = "Live stream event feed with mock chat, gifts, raids, and action triggers.",
+    ),
 )

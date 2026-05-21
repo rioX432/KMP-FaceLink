@@ -31,6 +31,8 @@ kotlin {
             implementation(project(":kmp-facelink"))
             implementation(project(":kmp-facelink-vmc"))
             implementation(project(":kmp-facelink-ifm"))
+            api(project(":kmp-facelink-interact"))
+            api(project(":kmp-facelink-actions"))
         }
 
         androidMain.dependencies {

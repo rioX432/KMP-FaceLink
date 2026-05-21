@@ -4,6 +4,7 @@ plugins {
     alias(libs.plugins.android.application) apply false
     alias(libs.plugins.compose.multiplatform) apply false
     alias(libs.plugins.skie) apply false
+    alias(libs.plugins.kotlin.jvm) apply false
     alias(libs.plugins.kotlin.serialization) apply false
     alias(libs.plugins.detekt)
     alias(libs.plugins.dokka)
@@ -28,6 +29,8 @@ apiValidation {
     ignoredProjects += listOf("androidApp", "sampleShared")
     // Exclude BOM module (no code, only dependency constraints)
     ignoredProjects += listOf("kmp-facelink-bom")
+    // Exclude Gradle plugin (JVM-only, not a published KMP library)
+    ignoredProjects += listOf("gradle-plugin")
 
     @OptIn(kotlinx.validation.ExperimentalBCVApi::class)
     klib {

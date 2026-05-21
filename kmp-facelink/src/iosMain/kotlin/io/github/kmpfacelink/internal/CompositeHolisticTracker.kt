@@ -74,6 +74,9 @@ internal class CompositeHolisticTracker(
         null
     }
 
+    private val armFusionProcessor: ArmFusionProcessor? =
+        if (config.fuseBodyAndHandArm) ArmFusionProcessor() else null
+
     override val enabledModalities: Set<TrackingModality> = buildSet {
         if (config.enableFace) add(TrackingModality.FACE)
         if (config.enableHand) add(TrackingModality.HAND)
@@ -213,26 +216,35 @@ internal class CompositeHolisticTracker(
         val bodyFlow: Flow<BodyTrackingData?> = bodyTracker?.trackingData ?: flowOf(null)
 
         return combine(faceFlow, handFlow, bodyFlow) { face, hand, body ->
-            val timestampMs = maxOf(
-                face?.timestampMs ?: 0L,
-                hand?.timestampMs ?: 0L,
-                body?.timestampMs ?: 0L,
-            )
-            // Use the most severe thermal state from any sub-tracker
-            val thermalState = maxOf(
-                face?.thermalState?.ordinal ?: 0,
-                hand?.thermalState?.ordinal ?: 0,
-                body?.thermalState?.ordinal ?: 0,
-            ).let { io.github.kmpfacelink.model.ThermalState.entries[it] }
-
-            HolisticTrackingData(
-                face = face,
-                hand = hand,
-                body = body,
-                timestampMs = timestampMs,
-                activeModalities = enabledModalities,
-                thermalState = thermalState,
-            )
+            buildHolisticData(face, hand, body)
         }
+    }
+
+    private fun buildHolisticData(
+        face: FaceTrackingData?,
+        hand: HandTrackingData?,
+        body: BodyTrackingData?,
+    ): HolisticTrackingData {
+        val timestampMs = maxOf(
+            face?.timestampMs ?: 0L,
+            hand?.timestampMs ?: 0L,
+            body?.timestampMs ?: 0L,
+        )
+        // Use the most severe thermal state from any sub-tracker
+        val thermalState = maxOf(
+            face?.thermalState?.ordinal ?: 0,
+            hand?.thermalState?.ordinal ?: 0,
+            body?.thermalState?.ordinal ?: 0,
+        ).let { io.github.kmpfacelink.model.ThermalState.entries[it] }
+
+        return HolisticTrackingData(
+            face = face,
+            hand = hand,
+            body = body,
+            arm = armFusionProcessor?.process(body, hand),
+            timestampMs = timestampMs,
+            activeModalities = enabledModalities,
+            thermalState = thermalState,
+        )
     }
 }

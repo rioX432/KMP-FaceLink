@@ -2,7 +2,7 @@
 
 > Unified face, hand, and body tracking SDK for Kotlin Multiplatform. One API across Android (MediaPipe + CameraX), iOS (ARKit + Vision), JVM/Desktop (ONNX Runtime), and Wasm (MediaPipe JS). Provides 52 ARKit-compatible blend shapes, head transform, hand landmarks, gesture classification, and body pose estimation via a reactive Kotlin Flow API.
 
-KMP-FaceLink is an MIT-licensed open-source library published as `io.github.rioX432:kmp-facelink` on Maven Central. It is designed to be modular: import only the modules you need.
+KMP-FaceLink is an MIT-licensed open-source library published as `com.anotherball:kmp-facelink` on Maven Central. It is designed to be modular: import only the modules you need.
 
 ## Platform Support
 
@@ -491,14 +491,14 @@ source.events.collect { event ->
 
 ## Gradle Plugin (Not Yet Published)
 
-Plugin ID: `io.github.rioX432.facelink` — exists in the codebase (`gradle-plugin/`) but is **not yet published** to the Gradle Plugin Portal. It will be available after the first tagged release.
+Plugin ID: `com.anotherball.facelink` — exists in the codebase (`gradle-plugin/`) but is **not yet published** to the Gradle Plugin Portal. It will be available after the first tagged release.
 
 Once published, it will automate MediaPipe model downloads for Android with SHA-256 checksum verification:
 
 ```kotlin
 // build.gradle.kts (available after first release)
 plugins {
-    id("io.github.rioX432.facelink")
+    id("com.anotherball.facelink")
 }
 
 faceLink {
@@ -518,13 +518,13 @@ Until then, download models manually — see the [Android Quick Start](https://g
 ```kotlin
 // build.gradle.kts
 // NOTE: The Gradle plugin is not yet published. Download models manually for now.
-// plugins { id("io.github.rioX432.facelink") }  // available after first release
+// plugins { id("com.anotherball.facelink") }  // available after first release
 
 dependencies {
-    implementation("io.github.rioX432:kmp-facelink:0.2.0")
-    implementation("io.github.rioX432:kmp-facelink-avatar:0.2.0")   // optional
-    implementation("io.github.rioX432:kmp-facelink-actions:0.2.0")  // optional
-    implementation("io.github.rioX432:kmp-facelink-interact:0.2.0") // optional — stream event sources
+    implementation("com.anotherball:kmp-facelink:0.2.0")
+    implementation("com.anotherball:kmp-facelink-avatar:0.2.0")   // optional
+    implementation("com.anotherball:kmp-facelink-actions:0.2.0")  // optional
+    implementation("com.anotherball:kmp-facelink-interact:0.2.0") // optional — stream event sources
 }
 ```
 
@@ -543,7 +543,7 @@ SPM products: KMPFaceLink, KMPFaceLinkAvatar, KMPFaceLinkActions, KMPFaceLinkInt
 
 - Min SDK 24
 - CAMERA permission (runtime request required)
-- MediaPipe model files in `assets/models/` — download manually (the Gradle plugin `io.github.rioX432.facelink` is not yet published; see Android Quick Start)
+- MediaPipe model files in `assets/models/` — download manually (the Gradle plugin `com.anotherball.facelink` is not yet published; see Android Quick Start)
 - PlatformContext requires both Context and LifecycleOwner
 
 ## iOS Requirements

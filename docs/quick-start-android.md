@@ -8,10 +8,10 @@ In your module-level `build.gradle.kts`:
 
 ```kotlin
 dependencies {
-    implementation("io.github.rioX432:kmp-facelink:0.2.0")
+    implementation("com.anotherball:kmp-facelink:0.2.0")
     // Optional modules — add only what you need:
-    // implementation("io.github.rioX432:kmp-facelink-avatar:0.2.0")
-    // implementation("io.github.rioX432:kmp-facelink-actions:0.2.0")
+    // implementation("com.anotherball:kmp-facelink-avatar:0.2.0")
+    // implementation("com.anotherball:kmp-facelink-actions:0.2.0")
 }
 ```
 
@@ -78,13 +78,13 @@ Add `**/src/main/assets/models/*.task` to your `.gitignore`.
 <details>
 <summary>Gradle Plugin (coming after first release)</summary>
 
-> **Not yet available.** The Gradle plugin `io.github.rioX432.facelink` exists in the codebase but has not been published to the Gradle Plugin Portal yet. It will be published with the first tagged release. Until then, use the manual setup options above.
+> **Not yet available.** The Gradle plugin `com.anotherball.facelink` exists in the codebase but has not been published to the Gradle Plugin Portal yet. It will be published with the first tagged release. Until then, use the manual setup options above.
 
 Once published, the plugin will automate model downloads:
 
 ```kotlin
 plugins {
-    id("io.github.rioX432.facelink")
+    id("com.anotherball.facelink")
 }
 
 faceLink {

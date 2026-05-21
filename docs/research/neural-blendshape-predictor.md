@@ -146,7 +146,7 @@ implementation("org.tensorflow:tensorflow-lite-support:0.4.4")
 
 // Option B: Separate optional module (preferred)
 // kmp-facelink-neural/build.gradle.kts
-// Consumers opt-in: implementation("io.github.rioX432:kmp-facelink-neural:x.y.z")
+// Consumers opt-in: implementation("com.anotherball:kmp-facelink-neural:x.y.z")
 ```
 
 Option B (separate module) is preferred because:

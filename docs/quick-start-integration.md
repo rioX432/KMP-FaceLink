@@ -22,16 +22,16 @@ Define the version once in `gradle/libs.versions.toml` and reference it across a
 kmp-facelink = "0.1.0"
 
 [libraries]
-kmp-facelink = { module = "io.github.rioX432:kmp-facelink", version.ref = "kmp-facelink" }
-kmp-facelink-avatar = { module = "io.github.rioX432:kmp-facelink-avatar", version.ref = "kmp-facelink" }
-kmp-facelink-actions = { module = "io.github.rioX432:kmp-facelink-actions", version.ref = "kmp-facelink" }
-kmp-facelink-voice = { module = "io.github.rioX432:kmp-facelink-voice", version.ref = "kmp-facelink" }
-kmp-facelink-llm = { module = "io.github.rioX432:kmp-facelink-llm", version.ref = "kmp-facelink" }
-kmp-facelink-pipeline = { module = "io.github.rioX432:kmp-facelink-pipeline", version.ref = "kmp-facelink" }
-kmp-facelink-vmc = { module = "io.github.rioX432:kmp-facelink-vmc", version.ref = "kmp-facelink" }
-kmp-facelink-ifm = { module = "io.github.rioX432:kmp-facelink-ifm", version.ref = "kmp-facelink" }
-kmp-facelink-stream = { module = "io.github.rioX432:kmp-facelink-stream", version.ref = "kmp-facelink" }
-kmp-facelink-vts = { module = "io.github.rioX432:kmp-facelink-vts", version.ref = "kmp-facelink" }
+kmp-facelink = { module = "com.anotherball:kmp-facelink", version.ref = "kmp-facelink" }
+kmp-facelink-avatar = { module = "com.anotherball:kmp-facelink-avatar", version.ref = "kmp-facelink" }
+kmp-facelink-actions = { module = "com.anotherball:kmp-facelink-actions", version.ref = "kmp-facelink" }
+kmp-facelink-voice = { module = "com.anotherball:kmp-facelink-voice", version.ref = "kmp-facelink" }
+kmp-facelink-llm = { module = "com.anotherball:kmp-facelink-llm", version.ref = "kmp-facelink" }
+kmp-facelink-pipeline = { module = "com.anotherball:kmp-facelink-pipeline", version.ref = "kmp-facelink" }
+kmp-facelink-vmc = { module = "com.anotherball:kmp-facelink-vmc", version.ref = "kmp-facelink" }
+kmp-facelink-ifm = { module = "com.anotherball:kmp-facelink-ifm", version.ref = "kmp-facelink" }
+kmp-facelink-stream = { module = "com.anotherball:kmp-facelink-stream", version.ref = "kmp-facelink" }
+kmp-facelink-vts = { module = "com.anotherball:kmp-facelink-vts", version.ref = "kmp-facelink" }
 ```
 
 Then in your KMP module's `build.gradle.kts`:
@@ -57,10 +57,10 @@ If your project is Android-only (not KMP), the BOM aligns all module versions au
 
 ```kotlin
 dependencies {
-    implementation(platform("io.github.rioX432:kmp-facelink-bom:0.1.0"))
-    implementation("io.github.rioX432:kmp-facelink")          // No version needed
-    implementation("io.github.rioX432:kmp-facelink-avatar")   // No version needed
-    implementation("io.github.rioX432:kmp-facelink-actions")  // No version needed
+    implementation(platform("com.anotherball:kmp-facelink-bom:0.1.0"))
+    implementation("com.anotherball:kmp-facelink")          // No version needed
+    implementation("com.anotherball:kmp-facelink-avatar")   // No version needed
+    implementation("com.anotherball:kmp-facelink-actions")  // No version needed
     // Add other modules as needed
 }
 ```
@@ -69,7 +69,7 @@ dependencies {
 
 ```kotlin
 dependencies {
-    implementation("io.github.rioX432:kmp-facelink:0.1.0")
+    implementation("com.anotherball:kmp-facelink:0.1.0")
 }
 ```
 

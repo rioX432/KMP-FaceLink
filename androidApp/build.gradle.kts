@@ -1,7 +1,7 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
-    id("io.github.rioX432.facelink")
+    id("com.anotherball.facelink")
 }
 
 android {

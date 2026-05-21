@@ -1,0 +1,25 @@
+name: CaptureApp
+options:
+  bundleIdPrefix: io.github.kmpfacelink.tools
+  deploymentTarget:
+    iOS: "16.0"
+  xcodeVersion: "16.0"
+
+targets:
+  CaptureApp:
+    type: application
+    platform: iOS
+    sources:
+      - path: CaptureApp
+    settings:
+      base:
+        SWIFT_VERSION: "5.9"
+        TARGETED_DEVICE_FAMILY: "1"  # iPhone only (TrueDepth required)
+    info:
+      path: CaptureApp/Info.plist
+      properties:
+        NSCameraUsageDescription: "Camera access is required for ARKit face tracking and RGB frame capture."
+        UIRequiredDeviceCapabilities:
+          - arkit
+          - iphone-ipad-minimum-performance-a12
+        UILaunchScreen: {}

@@ -116,7 +116,7 @@ internal class TrackingStateHolder(
     }
 
     private fun isCurrentlyTracking(mode: TrackingMode): Boolean = when (mode) {
-        TrackingMode.HOME -> false
+        TrackingMode.HOME, TrackingMode.INTERACT -> false
         TrackingMode.FACE, TrackingMode.ACTIONS,
         TrackingMode.VOICE,
         -> faceTracker.state.value == TrackingState.TRACKING
@@ -128,7 +128,7 @@ internal class TrackingStateHolder(
     private suspend fun stopCurrentTracker(mode: TrackingMode) {
         try {
             when (mode) {
-                TrackingMode.HOME -> { /* no tracker to stop */ }
+                TrackingMode.HOME, TrackingMode.INTERACT -> { /* no tracker to stop */ }
                 TrackingMode.FACE -> stopFaceTracker()
                 TrackingMode.HAND -> stopHandTracker()
                 TrackingMode.HOLISTIC -> stopHolisticTracker()
@@ -159,7 +159,7 @@ internal class TrackingStateHolder(
 
     private suspend fun startTrackingForMode(mode: TrackingMode) {
         when (mode) {
-            TrackingMode.HOME -> { /* no tracking on home screen */ }
+            TrackingMode.HOME, TrackingMode.INTERACT -> { /* no tracking needed */ }
             TrackingMode.FACE -> startFaceTracking()
             TrackingMode.HAND -> startHandTracking()
             TrackingMode.HOLISTIC -> startHolisticTracking()

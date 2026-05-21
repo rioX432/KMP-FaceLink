@@ -60,6 +60,10 @@ import io.github.kmpfacelink.util.FaceLinkLogger
  * @property analysisHeight Height of the shared camera analysis stream in pixels. Android only.
  *           **Overrides** per-tracker analysis height settings for the shared session.
  *           Lower values improve performance at the cost of accuracy. Defaults to 480.
+ * @property fuseBodyAndHandArm When true, fuses body pose arm joints (shoulder, elbow, wrist)
+ *           with hand tracker wrist landmarks into unified [ArmTrackingData] exposed in
+ *           [HolisticTrackingData.arm]. Requires both [enableHand] and [enableBody] to be true.
+ *           Defaults to false.
  */
 public data class HolisticTrackerConfig(
     val enableFace: Boolean = true,
@@ -74,6 +78,7 @@ public data class HolisticTrackerConfig(
     val inferenceDelegate: InferenceDelegate = InferenceDelegate.AUTO,
     val analysisWidth: Int = DEFAULT_ANALYSIS_WIDTH,
     val analysisHeight: Int = DEFAULT_ANALYSIS_HEIGHT,
+    val fuseBodyAndHandArm: Boolean = false,
 ) {
     init {
         require(enableFace || enableHand || enableBody) {
@@ -81,6 +86,9 @@ public data class HolisticTrackerConfig(
         }
         require(analysisWidth > 0) { "analysisWidth must be positive, was $analysisWidth" }
         require(analysisHeight > 0) { "analysisHeight must be positive, was $analysisHeight" }
+        require(!fuseBodyAndHandArm || (enableHand && enableBody)) {
+            "fuseBodyAndHandArm requires both enableHand and enableBody to be true"
+        }
         warnOnConflicts()
     }
 

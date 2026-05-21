@@ -104,6 +104,52 @@ public final class io/github/kmpfacelink/api/TrackingState : java/lang/Enum {
 	public static fun values ()[Lio/github/kmpfacelink/api/TrackingState;
 }
 
+public final class io/github/kmpfacelink/model/ArmJointPoint {
+	public fun <init> (FFFF)V
+	public synthetic fun <init> (FFFFILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()F
+	public final fun component2 ()F
+	public final fun component3 ()F
+	public final fun component4 ()F
+	public final fun copy (FFFF)Lio/github/kmpfacelink/model/ArmJointPoint;
+	public static synthetic fun copy$default (Lio/github/kmpfacelink/model/ArmJointPoint;FFFFILjava/lang/Object;)Lio/github/kmpfacelink/model/ArmJointPoint;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getConfidence ()F
+	public final fun getX ()F
+	public final fun getY ()F
+	public final fun getZ ()F
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/github/kmpfacelink/model/ArmSource : java/lang/Enum {
+	public static final field BODY_ONLY Lio/github/kmpfacelink/model/ArmSource;
+	public static final field FUSED Lio/github/kmpfacelink/model/ArmSource;
+	public static final field HAND_ONLY Lio/github/kmpfacelink/model/ArmSource;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lio/github/kmpfacelink/model/ArmSource;
+	public static fun values ()[Lio/github/kmpfacelink/model/ArmSource;
+}
+
+public final class io/github/kmpfacelink/model/ArmTrackingData {
+	public static final field Companion Lio/github/kmpfacelink/model/ArmTrackingData$Companion;
+	public fun <init> (Lio/github/kmpfacelink/model/TrackedArm;Lio/github/kmpfacelink/model/TrackedArm;)V
+	public final fun component1 ()Lio/github/kmpfacelink/model/TrackedArm;
+	public final fun component2 ()Lio/github/kmpfacelink/model/TrackedArm;
+	public final fun copy (Lio/github/kmpfacelink/model/TrackedArm;Lio/github/kmpfacelink/model/TrackedArm;)Lio/github/kmpfacelink/model/ArmTrackingData;
+	public static synthetic fun copy$default (Lio/github/kmpfacelink/model/ArmTrackingData;Lio/github/kmpfacelink/model/TrackedArm;Lio/github/kmpfacelink/model/TrackedArm;ILjava/lang/Object;)Lio/github/kmpfacelink/model/ArmTrackingData;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getLeftArm ()Lio/github/kmpfacelink/model/TrackedArm;
+	public final fun getRightArm ()Lio/github/kmpfacelink/model/TrackedArm;
+	public fun hashCode ()I
+	public final fun isTracking ()Z
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/github/kmpfacelink/model/ArmTrackingData$Companion {
+	public final fun notTracking ()Lio/github/kmpfacelink/model/ArmTrackingData;
+}
+
 public final class io/github/kmpfacelink/model/BlendShape : java/lang/Enum {
 	public static final field BROW_DOWN_LEFT Lio/github/kmpfacelink/model/BlendShape;
 	public static final field BROW_DOWN_RIGHT Lio/github/kmpfacelink/model/BlendShape;
@@ -806,12 +852,13 @@ public final class io/github/kmpfacelink/model/HolisticTrackerConfig {
 	public static final field DEFAULT_ANALYSIS_HEIGHT I
 	public static final field DEFAULT_ANALYSIS_WIDTH I
 	public fun <init> ()V
-	public fun <init> (ZZZLio/github/kmpfacelink/model/FaceTrackerConfig;Lio/github/kmpfacelink/model/HandTrackerConfig;Lio/github/kmpfacelink/model/BodyTrackerConfig;Lio/github/kmpfacelink/model/CameraFacing;Lio/github/kmpfacelink/model/ThermalPolicy;Lio/github/kmpfacelink/model/PowerMode;Lio/github/kmpfacelink/model/InferenceDelegate;II)V
-	public synthetic fun <init> (ZZZLio/github/kmpfacelink/model/FaceTrackerConfig;Lio/github/kmpfacelink/model/HandTrackerConfig;Lio/github/kmpfacelink/model/BodyTrackerConfig;Lio/github/kmpfacelink/model/CameraFacing;Lio/github/kmpfacelink/model/ThermalPolicy;Lio/github/kmpfacelink/model/PowerMode;Lio/github/kmpfacelink/model/InferenceDelegate;IIILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (ZZZLio/github/kmpfacelink/model/FaceTrackerConfig;Lio/github/kmpfacelink/model/HandTrackerConfig;Lio/github/kmpfacelink/model/BodyTrackerConfig;Lio/github/kmpfacelink/model/CameraFacing;Lio/github/kmpfacelink/model/ThermalPolicy;Lio/github/kmpfacelink/model/PowerMode;Lio/github/kmpfacelink/model/InferenceDelegate;IIZ)V
+	public synthetic fun <init> (ZZZLio/github/kmpfacelink/model/FaceTrackerConfig;Lio/github/kmpfacelink/model/HandTrackerConfig;Lio/github/kmpfacelink/model/BodyTrackerConfig;Lio/github/kmpfacelink/model/CameraFacing;Lio/github/kmpfacelink/model/ThermalPolicy;Lio/github/kmpfacelink/model/PowerMode;Lio/github/kmpfacelink/model/InferenceDelegate;IIZILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun component1 ()Z
 	public final fun component10 ()Lio/github/kmpfacelink/model/InferenceDelegate;
 	public final fun component11 ()I
 	public final fun component12 ()I
+	public final fun component13 ()Z
 	public final fun component2 ()Z
 	public final fun component3 ()Z
 	public final fun component4 ()Lio/github/kmpfacelink/model/FaceTrackerConfig;
@@ -820,8 +867,8 @@ public final class io/github/kmpfacelink/model/HolisticTrackerConfig {
 	public final fun component7 ()Lio/github/kmpfacelink/model/CameraFacing;
 	public final fun component8 ()Lio/github/kmpfacelink/model/ThermalPolicy;
 	public final fun component9 ()Lio/github/kmpfacelink/model/PowerMode;
-	public final fun copy (ZZZLio/github/kmpfacelink/model/FaceTrackerConfig;Lio/github/kmpfacelink/model/HandTrackerConfig;Lio/github/kmpfacelink/model/BodyTrackerConfig;Lio/github/kmpfacelink/model/CameraFacing;Lio/github/kmpfacelink/model/ThermalPolicy;Lio/github/kmpfacelink/model/PowerMode;Lio/github/kmpfacelink/model/InferenceDelegate;II)Lio/github/kmpfacelink/model/HolisticTrackerConfig;
-	public static synthetic fun copy$default (Lio/github/kmpfacelink/model/HolisticTrackerConfig;ZZZLio/github/kmpfacelink/model/FaceTrackerConfig;Lio/github/kmpfacelink/model/HandTrackerConfig;Lio/github/kmpfacelink/model/BodyTrackerConfig;Lio/github/kmpfacelink/model/CameraFacing;Lio/github/kmpfacelink/model/ThermalPolicy;Lio/github/kmpfacelink/model/PowerMode;Lio/github/kmpfacelink/model/InferenceDelegate;IIILjava/lang/Object;)Lio/github/kmpfacelink/model/HolisticTrackerConfig;
+	public final fun copy (ZZZLio/github/kmpfacelink/model/FaceTrackerConfig;Lio/github/kmpfacelink/model/HandTrackerConfig;Lio/github/kmpfacelink/model/BodyTrackerConfig;Lio/github/kmpfacelink/model/CameraFacing;Lio/github/kmpfacelink/model/ThermalPolicy;Lio/github/kmpfacelink/model/PowerMode;Lio/github/kmpfacelink/model/InferenceDelegate;IIZ)Lio/github/kmpfacelink/model/HolisticTrackerConfig;
+	public static synthetic fun copy$default (Lio/github/kmpfacelink/model/HolisticTrackerConfig;ZZZLio/github/kmpfacelink/model/FaceTrackerConfig;Lio/github/kmpfacelink/model/HandTrackerConfig;Lio/github/kmpfacelink/model/BodyTrackerConfig;Lio/github/kmpfacelink/model/CameraFacing;Lio/github/kmpfacelink/model/ThermalPolicy;Lio/github/kmpfacelink/model/PowerMode;Lio/github/kmpfacelink/model/InferenceDelegate;IIZILjava/lang/Object;)Lio/github/kmpfacelink/model/HolisticTrackerConfig;
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getAnalysisHeight ()I
 	public final fun getAnalysisWidth ()I
@@ -831,6 +878,7 @@ public final class io/github/kmpfacelink/model/HolisticTrackerConfig {
 	public final fun getEnableFace ()Z
 	public final fun getEnableHand ()Z
 	public final fun getFaceConfig ()Lio/github/kmpfacelink/model/FaceTrackerConfig;
+	public final fun getFuseBodyAndHandArm ()Z
 	public final fun getHandConfig ()Lio/github/kmpfacelink/model/HandTrackerConfig;
 	public final fun getInferenceDelegate ()Lio/github/kmpfacelink/model/InferenceDelegate;
 	public final fun getPowerMode ()Lio/github/kmpfacelink/model/PowerMode;
@@ -844,18 +892,20 @@ public final class io/github/kmpfacelink/model/HolisticTrackerConfig$Companion {
 
 public final class io/github/kmpfacelink/model/HolisticTrackingData {
 	public static final field Companion Lio/github/kmpfacelink/model/HolisticTrackingData$Companion;
-	public fun <init> (Lio/github/kmpfacelink/model/FaceTrackingData;Lio/github/kmpfacelink/model/HandTrackingData;Lio/github/kmpfacelink/model/BodyTrackingData;JLjava/util/Set;Lio/github/kmpfacelink/model/ThermalState;)V
-	public synthetic fun <init> (Lio/github/kmpfacelink/model/FaceTrackingData;Lio/github/kmpfacelink/model/HandTrackingData;Lio/github/kmpfacelink/model/BodyTrackingData;JLjava/util/Set;Lio/github/kmpfacelink/model/ThermalState;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (Lio/github/kmpfacelink/model/FaceTrackingData;Lio/github/kmpfacelink/model/HandTrackingData;Lio/github/kmpfacelink/model/BodyTrackingData;Lio/github/kmpfacelink/model/ArmTrackingData;JLjava/util/Set;Lio/github/kmpfacelink/model/ThermalState;)V
+	public synthetic fun <init> (Lio/github/kmpfacelink/model/FaceTrackingData;Lio/github/kmpfacelink/model/HandTrackingData;Lio/github/kmpfacelink/model/BodyTrackingData;Lio/github/kmpfacelink/model/ArmTrackingData;JLjava/util/Set;Lio/github/kmpfacelink/model/ThermalState;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun component1 ()Lio/github/kmpfacelink/model/FaceTrackingData;
 	public final fun component2 ()Lio/github/kmpfacelink/model/HandTrackingData;
 	public final fun component3 ()Lio/github/kmpfacelink/model/BodyTrackingData;
-	public final fun component4 ()J
-	public final fun component5 ()Ljava/util/Set;
-	public final fun component6 ()Lio/github/kmpfacelink/model/ThermalState;
-	public final fun copy (Lio/github/kmpfacelink/model/FaceTrackingData;Lio/github/kmpfacelink/model/HandTrackingData;Lio/github/kmpfacelink/model/BodyTrackingData;JLjava/util/Set;Lio/github/kmpfacelink/model/ThermalState;)Lio/github/kmpfacelink/model/HolisticTrackingData;
-	public static synthetic fun copy$default (Lio/github/kmpfacelink/model/HolisticTrackingData;Lio/github/kmpfacelink/model/FaceTrackingData;Lio/github/kmpfacelink/model/HandTrackingData;Lio/github/kmpfacelink/model/BodyTrackingData;JLjava/util/Set;Lio/github/kmpfacelink/model/ThermalState;ILjava/lang/Object;)Lio/github/kmpfacelink/model/HolisticTrackingData;
+	public final fun component4 ()Lio/github/kmpfacelink/model/ArmTrackingData;
+	public final fun component5 ()J
+	public final fun component6 ()Ljava/util/Set;
+	public final fun component7 ()Lio/github/kmpfacelink/model/ThermalState;
+	public final fun copy (Lio/github/kmpfacelink/model/FaceTrackingData;Lio/github/kmpfacelink/model/HandTrackingData;Lio/github/kmpfacelink/model/BodyTrackingData;Lio/github/kmpfacelink/model/ArmTrackingData;JLjava/util/Set;Lio/github/kmpfacelink/model/ThermalState;)Lio/github/kmpfacelink/model/HolisticTrackingData;
+	public static synthetic fun copy$default (Lio/github/kmpfacelink/model/HolisticTrackingData;Lio/github/kmpfacelink/model/FaceTrackingData;Lio/github/kmpfacelink/model/HandTrackingData;Lio/github/kmpfacelink/model/BodyTrackingData;Lio/github/kmpfacelink/model/ArmTrackingData;JLjava/util/Set;Lio/github/kmpfacelink/model/ThermalState;ILjava/lang/Object;)Lio/github/kmpfacelink/model/HolisticTrackingData;
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getActiveModalities ()Ljava/util/Set;
+	public final fun getArm ()Lio/github/kmpfacelink/model/ArmTrackingData;
 	public final fun getBody ()Lio/github/kmpfacelink/model/BodyTrackingData;
 	public final fun getFace ()Lio/github/kmpfacelink/model/FaceTrackingData;
 	public final fun getHand ()Lio/github/kmpfacelink/model/HandTrackingData;
@@ -1155,6 +1205,23 @@ public final class io/github/kmpfacelink/model/ThermalState : java/lang/Enum {
 	public static fun getEntries ()Lkotlin/enums/EnumEntries;
 	public static fun valueOf (Ljava/lang/String;)Lio/github/kmpfacelink/model/ThermalState;
 	public static fun values ()[Lio/github/kmpfacelink/model/ThermalState;
+}
+
+public final class io/github/kmpfacelink/model/TrackedArm {
+	public fun <init> (Lio/github/kmpfacelink/model/ArmJointPoint;Lio/github/kmpfacelink/model/ArmJointPoint;Lio/github/kmpfacelink/model/ArmJointPoint;Lio/github/kmpfacelink/model/ArmSource;)V
+	public final fun component1 ()Lio/github/kmpfacelink/model/ArmJointPoint;
+	public final fun component2 ()Lio/github/kmpfacelink/model/ArmJointPoint;
+	public final fun component3 ()Lio/github/kmpfacelink/model/ArmJointPoint;
+	public final fun component4 ()Lio/github/kmpfacelink/model/ArmSource;
+	public final fun copy (Lio/github/kmpfacelink/model/ArmJointPoint;Lio/github/kmpfacelink/model/ArmJointPoint;Lio/github/kmpfacelink/model/ArmJointPoint;Lio/github/kmpfacelink/model/ArmSource;)Lio/github/kmpfacelink/model/TrackedArm;
+	public static synthetic fun copy$default (Lio/github/kmpfacelink/model/TrackedArm;Lio/github/kmpfacelink/model/ArmJointPoint;Lio/github/kmpfacelink/model/ArmJointPoint;Lio/github/kmpfacelink/model/ArmJointPoint;Lio/github/kmpfacelink/model/ArmSource;ILjava/lang/Object;)Lio/github/kmpfacelink/model/TrackedArm;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getElbow ()Lio/github/kmpfacelink/model/ArmJointPoint;
+	public final fun getShoulder ()Lio/github/kmpfacelink/model/ArmJointPoint;
+	public final fun getSource ()Lio/github/kmpfacelink/model/ArmSource;
+	public final fun getWrist ()Lio/github/kmpfacelink/model/ArmJointPoint;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
 }
 
 public final class io/github/kmpfacelink/model/TrackedBody {

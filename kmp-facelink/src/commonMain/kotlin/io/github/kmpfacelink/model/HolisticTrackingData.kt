@@ -9,6 +9,8 @@ package io.github.kmpfacelink.model
  * @property face Face tracking data, or null if face tracking is disabled or no face detected
  * @property hand Hand tracking data, or null if hand tracking is disabled or no hands detected
  * @property body Body tracking data, or null if body tracking is disabled or no bodies detected
+ * @property arm Fused arm tracking data from body pose and hand tracker, or null if
+ *           [HolisticTrackerConfig.fuseBodyAndHandArm] is disabled or no arm data is available
  * @property timestampMs Timestamp in milliseconds (monotonic clock)
  * @property activeModalities Set of modalities that are enabled and actively producing data
  * @property thermalState Current device thermal state at the time of this frame.
@@ -17,6 +19,7 @@ public data class HolisticTrackingData(
     val face: FaceTrackingData?,
     val hand: HandTrackingData?,
     val body: BodyTrackingData?,
+    val arm: ArmTrackingData? = null,
     val timestampMs: Long,
     val activeModalities: Set<TrackingModality>,
     val thermalState: ThermalState = ThermalState.NOMINAL,
@@ -38,6 +41,7 @@ public data class HolisticTrackingData(
             face = null,
             hand = null,
             body = null,
+            arm = null,
             timestampMs = timestampMs,
             activeModalities = activeModalities,
         )

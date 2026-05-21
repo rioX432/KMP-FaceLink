@@ -6,7 +6,7 @@
 // - Show manifest properties: true
 // - Show declarations: true
 
-// Library unique name: <io.github.rioX432:kmp-facelink>
+// Library unique name: <com.anotherball:kmp-facelink>
 open annotation class io.github.kmpfacelink/ExperimentalFaceLinkApi : kotlin/Annotation { // io.github.kmpfacelink/ExperimentalFaceLinkApi|null[0]
     constructor <init>() // io.github.kmpfacelink/ExperimentalFaceLinkApi.<init>|<init>(){}[0]
 }
@@ -24,6 +24,18 @@ final enum class io.github.kmpfacelink.api/TrackingState : kotlin/Enum<io.github
 
     final fun valueOf(kotlin/String): io.github.kmpfacelink.api/TrackingState // io.github.kmpfacelink.api/TrackingState.valueOf|valueOf#static(kotlin.String){}[0]
     final fun values(): kotlin/Array<io.github.kmpfacelink.api/TrackingState> // io.github.kmpfacelink.api/TrackingState.values|values#static(){}[0]
+}
+
+final enum class io.github.kmpfacelink.model/ArmSource : kotlin/Enum<io.github.kmpfacelink.model/ArmSource> { // io.github.kmpfacelink.model/ArmSource|null[0]
+    enum entry BODY_ONLY // io.github.kmpfacelink.model/ArmSource.BODY_ONLY|null[0]
+    enum entry FUSED // io.github.kmpfacelink.model/ArmSource.FUSED|null[0]
+    enum entry HAND_ONLY // io.github.kmpfacelink.model/ArmSource.HAND_ONLY|null[0]
+
+    final val entries // io.github.kmpfacelink.model/ArmSource.entries|#static{}entries[0]
+        final fun <get-entries>(): kotlin.enums/EnumEntries<io.github.kmpfacelink.model/ArmSource> // io.github.kmpfacelink.model/ArmSource.entries.<get-entries>|<get-entries>#static(){}[0]
+
+    final fun valueOf(kotlin/String): io.github.kmpfacelink.model/ArmSource // io.github.kmpfacelink.model/ArmSource.valueOf|valueOf#static(kotlin.String){}[0]
+    final fun values(): kotlin/Array<io.github.kmpfacelink.model/ArmSource> // io.github.kmpfacelink.model/ArmSource.values|values#static(){}[0]
 }
 
 final enum class io.github.kmpfacelink.model/BlendShape : kotlin/Enum<io.github.kmpfacelink.model/BlendShape> { // io.github.kmpfacelink.model/BlendShape|null[0]
@@ -415,6 +427,50 @@ abstract interface io.github.kmpfacelink.util/PoseLiftingStrategy { // io.github
 
 final class io.github.kmpfacelink.api/PlatformContext { // io.github.kmpfacelink.api/PlatformContext|null[0]
     constructor <init>() // io.github.kmpfacelink.api/PlatformContext.<init>|<init>(){}[0]
+}
+
+final class io.github.kmpfacelink.model/ArmJointPoint { // io.github.kmpfacelink.model/ArmJointPoint|null[0]
+    constructor <init>(kotlin/Float, kotlin/Float, kotlin/Float = ..., kotlin/Float = ...) // io.github.kmpfacelink.model/ArmJointPoint.<init>|<init>(kotlin.Float;kotlin.Float;kotlin.Float;kotlin.Float){}[0]
+
+    final val confidence // io.github.kmpfacelink.model/ArmJointPoint.confidence|{}confidence[0]
+        final fun <get-confidence>(): kotlin/Float // io.github.kmpfacelink.model/ArmJointPoint.confidence.<get-confidence>|<get-confidence>(){}[0]
+    final val x // io.github.kmpfacelink.model/ArmJointPoint.x|{}x[0]
+        final fun <get-x>(): kotlin/Float // io.github.kmpfacelink.model/ArmJointPoint.x.<get-x>|<get-x>(){}[0]
+    final val y // io.github.kmpfacelink.model/ArmJointPoint.y|{}y[0]
+        final fun <get-y>(): kotlin/Float // io.github.kmpfacelink.model/ArmJointPoint.y.<get-y>|<get-y>(){}[0]
+    final val z // io.github.kmpfacelink.model/ArmJointPoint.z|{}z[0]
+        final fun <get-z>(): kotlin/Float // io.github.kmpfacelink.model/ArmJointPoint.z.<get-z>|<get-z>(){}[0]
+
+    final fun component1(): kotlin/Float // io.github.kmpfacelink.model/ArmJointPoint.component1|component1(){}[0]
+    final fun component2(): kotlin/Float // io.github.kmpfacelink.model/ArmJointPoint.component2|component2(){}[0]
+    final fun component3(): kotlin/Float // io.github.kmpfacelink.model/ArmJointPoint.component3|component3(){}[0]
+    final fun component4(): kotlin/Float // io.github.kmpfacelink.model/ArmJointPoint.component4|component4(){}[0]
+    final fun copy(kotlin/Float = ..., kotlin/Float = ..., kotlin/Float = ..., kotlin/Float = ...): io.github.kmpfacelink.model/ArmJointPoint // io.github.kmpfacelink.model/ArmJointPoint.copy|copy(kotlin.Float;kotlin.Float;kotlin.Float;kotlin.Float){}[0]
+    final fun equals(kotlin/Any?): kotlin/Boolean // io.github.kmpfacelink.model/ArmJointPoint.equals|equals(kotlin.Any?){}[0]
+    final fun hashCode(): kotlin/Int // io.github.kmpfacelink.model/ArmJointPoint.hashCode|hashCode(){}[0]
+    final fun toString(): kotlin/String // io.github.kmpfacelink.model/ArmJointPoint.toString|toString(){}[0]
+}
+
+final class io.github.kmpfacelink.model/ArmTrackingData { // io.github.kmpfacelink.model/ArmTrackingData|null[0]
+    constructor <init>(io.github.kmpfacelink.model/TrackedArm?, io.github.kmpfacelink.model/TrackedArm?) // io.github.kmpfacelink.model/ArmTrackingData.<init>|<init>(io.github.kmpfacelink.model.TrackedArm?;io.github.kmpfacelink.model.TrackedArm?){}[0]
+
+    final val isTracking // io.github.kmpfacelink.model/ArmTrackingData.isTracking|{}isTracking[0]
+        final fun <get-isTracking>(): kotlin/Boolean // io.github.kmpfacelink.model/ArmTrackingData.isTracking.<get-isTracking>|<get-isTracking>(){}[0]
+    final val leftArm // io.github.kmpfacelink.model/ArmTrackingData.leftArm|{}leftArm[0]
+        final fun <get-leftArm>(): io.github.kmpfacelink.model/TrackedArm? // io.github.kmpfacelink.model/ArmTrackingData.leftArm.<get-leftArm>|<get-leftArm>(){}[0]
+    final val rightArm // io.github.kmpfacelink.model/ArmTrackingData.rightArm|{}rightArm[0]
+        final fun <get-rightArm>(): io.github.kmpfacelink.model/TrackedArm? // io.github.kmpfacelink.model/ArmTrackingData.rightArm.<get-rightArm>|<get-rightArm>(){}[0]
+
+    final fun component1(): io.github.kmpfacelink.model/TrackedArm? // io.github.kmpfacelink.model/ArmTrackingData.component1|component1(){}[0]
+    final fun component2(): io.github.kmpfacelink.model/TrackedArm? // io.github.kmpfacelink.model/ArmTrackingData.component2|component2(){}[0]
+    final fun copy(io.github.kmpfacelink.model/TrackedArm? = ..., io.github.kmpfacelink.model/TrackedArm? = ...): io.github.kmpfacelink.model/ArmTrackingData // io.github.kmpfacelink.model/ArmTrackingData.copy|copy(io.github.kmpfacelink.model.TrackedArm?;io.github.kmpfacelink.model.TrackedArm?){}[0]
+    final fun equals(kotlin/Any?): kotlin/Boolean // io.github.kmpfacelink.model/ArmTrackingData.equals|equals(kotlin.Any?){}[0]
+    final fun hashCode(): kotlin/Int // io.github.kmpfacelink.model/ArmTrackingData.hashCode|hashCode(){}[0]
+    final fun toString(): kotlin/String // io.github.kmpfacelink.model/ArmTrackingData.toString|toString(){}[0]
+
+    final object Companion { // io.github.kmpfacelink.model/ArmTrackingData.Companion|null[0]
+        final fun notTracking(): io.github.kmpfacelink.model/ArmTrackingData // io.github.kmpfacelink.model/ArmTrackingData.Companion.notTracking|notTracking(){}[0]
+    }
 }
 
 final class io.github.kmpfacelink.model/Body3DConfig { // io.github.kmpfacelink.model/Body3DConfig|null[0]
@@ -981,7 +1037,7 @@ final class io.github.kmpfacelink.model/HeadTransform { // io.github.kmpfacelink
 }
 
 final class io.github.kmpfacelink.model/HolisticTrackerConfig { // io.github.kmpfacelink.model/HolisticTrackerConfig|null[0]
-    constructor <init>(kotlin/Boolean = ..., kotlin/Boolean = ..., kotlin/Boolean = ..., io.github.kmpfacelink.model/FaceTrackerConfig = ..., io.github.kmpfacelink.model/HandTrackerConfig = ..., io.github.kmpfacelink.model/BodyTrackerConfig = ..., io.github.kmpfacelink.model/CameraFacing = ..., io.github.kmpfacelink.model/ThermalPolicy = ..., io.github.kmpfacelink.model/PowerMode? = ..., io.github.kmpfacelink.model/InferenceDelegate = ..., kotlin/Int = ..., kotlin/Int = ...) // io.github.kmpfacelink.model/HolisticTrackerConfig.<init>|<init>(kotlin.Boolean;kotlin.Boolean;kotlin.Boolean;io.github.kmpfacelink.model.FaceTrackerConfig;io.github.kmpfacelink.model.HandTrackerConfig;io.github.kmpfacelink.model.BodyTrackerConfig;io.github.kmpfacelink.model.CameraFacing;io.github.kmpfacelink.model.ThermalPolicy;io.github.kmpfacelink.model.PowerMode?;io.github.kmpfacelink.model.InferenceDelegate;kotlin.Int;kotlin.Int){}[0]
+    constructor <init>(kotlin/Boolean = ..., kotlin/Boolean = ..., kotlin/Boolean = ..., io.github.kmpfacelink.model/FaceTrackerConfig = ..., io.github.kmpfacelink.model/HandTrackerConfig = ..., io.github.kmpfacelink.model/BodyTrackerConfig = ..., io.github.kmpfacelink.model/CameraFacing = ..., io.github.kmpfacelink.model/ThermalPolicy = ..., io.github.kmpfacelink.model/PowerMode? = ..., io.github.kmpfacelink.model/InferenceDelegate = ..., kotlin/Int = ..., kotlin/Int = ..., kotlin/Boolean = ...) // io.github.kmpfacelink.model/HolisticTrackerConfig.<init>|<init>(kotlin.Boolean;kotlin.Boolean;kotlin.Boolean;io.github.kmpfacelink.model.FaceTrackerConfig;io.github.kmpfacelink.model.HandTrackerConfig;io.github.kmpfacelink.model.BodyTrackerConfig;io.github.kmpfacelink.model.CameraFacing;io.github.kmpfacelink.model.ThermalPolicy;io.github.kmpfacelink.model.PowerMode?;io.github.kmpfacelink.model.InferenceDelegate;kotlin.Int;kotlin.Int;kotlin.Boolean){}[0]
 
     final val analysisHeight // io.github.kmpfacelink.model/HolisticTrackerConfig.analysisHeight|{}analysisHeight[0]
         final fun <get-analysisHeight>(): kotlin/Int // io.github.kmpfacelink.model/HolisticTrackerConfig.analysisHeight.<get-analysisHeight>|<get-analysisHeight>(){}[0]
@@ -999,6 +1055,8 @@ final class io.github.kmpfacelink.model/HolisticTrackerConfig { // io.github.kmp
         final fun <get-enableHand>(): kotlin/Boolean // io.github.kmpfacelink.model/HolisticTrackerConfig.enableHand.<get-enableHand>|<get-enableHand>(){}[0]
     final val faceConfig // io.github.kmpfacelink.model/HolisticTrackerConfig.faceConfig|{}faceConfig[0]
         final fun <get-faceConfig>(): io.github.kmpfacelink.model/FaceTrackerConfig // io.github.kmpfacelink.model/HolisticTrackerConfig.faceConfig.<get-faceConfig>|<get-faceConfig>(){}[0]
+    final val fuseBodyAndHandArm // io.github.kmpfacelink.model/HolisticTrackerConfig.fuseBodyAndHandArm|{}fuseBodyAndHandArm[0]
+        final fun <get-fuseBodyAndHandArm>(): kotlin/Boolean // io.github.kmpfacelink.model/HolisticTrackerConfig.fuseBodyAndHandArm.<get-fuseBodyAndHandArm>|<get-fuseBodyAndHandArm>(){}[0]
     final val handConfig // io.github.kmpfacelink.model/HolisticTrackerConfig.handConfig|{}handConfig[0]
         final fun <get-handConfig>(): io.github.kmpfacelink.model/HandTrackerConfig // io.github.kmpfacelink.model/HolisticTrackerConfig.handConfig.<get-handConfig>|<get-handConfig>(){}[0]
     final val inferenceDelegate // io.github.kmpfacelink.model/HolisticTrackerConfig.inferenceDelegate|{}inferenceDelegate[0]
@@ -1012,6 +1070,7 @@ final class io.github.kmpfacelink.model/HolisticTrackerConfig { // io.github.kmp
     final fun component10(): io.github.kmpfacelink.model/InferenceDelegate // io.github.kmpfacelink.model/HolisticTrackerConfig.component10|component10(){}[0]
     final fun component11(): kotlin/Int // io.github.kmpfacelink.model/HolisticTrackerConfig.component11|component11(){}[0]
     final fun component12(): kotlin/Int // io.github.kmpfacelink.model/HolisticTrackerConfig.component12|component12(){}[0]
+    final fun component13(): kotlin/Boolean // io.github.kmpfacelink.model/HolisticTrackerConfig.component13|component13(){}[0]
     final fun component2(): kotlin/Boolean // io.github.kmpfacelink.model/HolisticTrackerConfig.component2|component2(){}[0]
     final fun component3(): kotlin/Boolean // io.github.kmpfacelink.model/HolisticTrackerConfig.component3|component3(){}[0]
     final fun component4(): io.github.kmpfacelink.model/FaceTrackerConfig // io.github.kmpfacelink.model/HolisticTrackerConfig.component4|component4(){}[0]
@@ -1020,7 +1079,7 @@ final class io.github.kmpfacelink.model/HolisticTrackerConfig { // io.github.kmp
     final fun component7(): io.github.kmpfacelink.model/CameraFacing // io.github.kmpfacelink.model/HolisticTrackerConfig.component7|component7(){}[0]
     final fun component8(): io.github.kmpfacelink.model/ThermalPolicy // io.github.kmpfacelink.model/HolisticTrackerConfig.component8|component8(){}[0]
     final fun component9(): io.github.kmpfacelink.model/PowerMode? // io.github.kmpfacelink.model/HolisticTrackerConfig.component9|component9(){}[0]
-    final fun copy(kotlin/Boolean = ..., kotlin/Boolean = ..., kotlin/Boolean = ..., io.github.kmpfacelink.model/FaceTrackerConfig = ..., io.github.kmpfacelink.model/HandTrackerConfig = ..., io.github.kmpfacelink.model/BodyTrackerConfig = ..., io.github.kmpfacelink.model/CameraFacing = ..., io.github.kmpfacelink.model/ThermalPolicy = ..., io.github.kmpfacelink.model/PowerMode? = ..., io.github.kmpfacelink.model/InferenceDelegate = ..., kotlin/Int = ..., kotlin/Int = ...): io.github.kmpfacelink.model/HolisticTrackerConfig // io.github.kmpfacelink.model/HolisticTrackerConfig.copy|copy(kotlin.Boolean;kotlin.Boolean;kotlin.Boolean;io.github.kmpfacelink.model.FaceTrackerConfig;io.github.kmpfacelink.model.HandTrackerConfig;io.github.kmpfacelink.model.BodyTrackerConfig;io.github.kmpfacelink.model.CameraFacing;io.github.kmpfacelink.model.ThermalPolicy;io.github.kmpfacelink.model.PowerMode?;io.github.kmpfacelink.model.InferenceDelegate;kotlin.Int;kotlin.Int){}[0]
+    final fun copy(kotlin/Boolean = ..., kotlin/Boolean = ..., kotlin/Boolean = ..., io.github.kmpfacelink.model/FaceTrackerConfig = ..., io.github.kmpfacelink.model/HandTrackerConfig = ..., io.github.kmpfacelink.model/BodyTrackerConfig = ..., io.github.kmpfacelink.model/CameraFacing = ..., io.github.kmpfacelink.model/ThermalPolicy = ..., io.github.kmpfacelink.model/PowerMode? = ..., io.github.kmpfacelink.model/InferenceDelegate = ..., kotlin/Int = ..., kotlin/Int = ..., kotlin/Boolean = ...): io.github.kmpfacelink.model/HolisticTrackerConfig // io.github.kmpfacelink.model/HolisticTrackerConfig.copy|copy(kotlin.Boolean;kotlin.Boolean;kotlin.Boolean;io.github.kmpfacelink.model.FaceTrackerConfig;io.github.kmpfacelink.model.HandTrackerConfig;io.github.kmpfacelink.model.BodyTrackerConfig;io.github.kmpfacelink.model.CameraFacing;io.github.kmpfacelink.model.ThermalPolicy;io.github.kmpfacelink.model.PowerMode?;io.github.kmpfacelink.model.InferenceDelegate;kotlin.Int;kotlin.Int;kotlin.Boolean){}[0]
     final fun equals(kotlin/Any?): kotlin/Boolean // io.github.kmpfacelink.model/HolisticTrackerConfig.equals|equals(kotlin.Any?){}[0]
     final fun hashCode(): kotlin/Int // io.github.kmpfacelink.model/HolisticTrackerConfig.hashCode|hashCode(){}[0]
     final fun toString(): kotlin/String // io.github.kmpfacelink.model/HolisticTrackerConfig.toString|toString(){}[0]
@@ -1034,10 +1093,12 @@ final class io.github.kmpfacelink.model/HolisticTrackerConfig { // io.github.kmp
 }
 
 final class io.github.kmpfacelink.model/HolisticTrackingData { // io.github.kmpfacelink.model/HolisticTrackingData|null[0]
-    constructor <init>(io.github.kmpfacelink.model/FaceTrackingData?, io.github.kmpfacelink.model/HandTrackingData?, io.github.kmpfacelink.model/BodyTrackingData?, kotlin/Long, kotlin.collections/Set<io.github.kmpfacelink.model/TrackingModality>, io.github.kmpfacelink.model/ThermalState = ...) // io.github.kmpfacelink.model/HolisticTrackingData.<init>|<init>(io.github.kmpfacelink.model.FaceTrackingData?;io.github.kmpfacelink.model.HandTrackingData?;io.github.kmpfacelink.model.BodyTrackingData?;kotlin.Long;kotlin.collections.Set<io.github.kmpfacelink.model.TrackingModality>;io.github.kmpfacelink.model.ThermalState){}[0]
+    constructor <init>(io.github.kmpfacelink.model/FaceTrackingData?, io.github.kmpfacelink.model/HandTrackingData?, io.github.kmpfacelink.model/BodyTrackingData?, io.github.kmpfacelink.model/ArmTrackingData? = ..., kotlin/Long, kotlin.collections/Set<io.github.kmpfacelink.model/TrackingModality>, io.github.kmpfacelink.model/ThermalState = ...) // io.github.kmpfacelink.model/HolisticTrackingData.<init>|<init>(io.github.kmpfacelink.model.FaceTrackingData?;io.github.kmpfacelink.model.HandTrackingData?;io.github.kmpfacelink.model.BodyTrackingData?;io.github.kmpfacelink.model.ArmTrackingData?;kotlin.Long;kotlin.collections.Set<io.github.kmpfacelink.model.TrackingModality>;io.github.kmpfacelink.model.ThermalState){}[0]
 
     final val activeModalities // io.github.kmpfacelink.model/HolisticTrackingData.activeModalities|{}activeModalities[0]
         final fun <get-activeModalities>(): kotlin.collections/Set<io.github.kmpfacelink.model/TrackingModality> // io.github.kmpfacelink.model/HolisticTrackingData.activeModalities.<get-activeModalities>|<get-activeModalities>(){}[0]
+    final val arm // io.github.kmpfacelink.model/HolisticTrackingData.arm|{}arm[0]
+        final fun <get-arm>(): io.github.kmpfacelink.model/ArmTrackingData? // io.github.kmpfacelink.model/HolisticTrackingData.arm.<get-arm>|<get-arm>(){}[0]
     final val body // io.github.kmpfacelink.model/HolisticTrackingData.body|{}body[0]
         final fun <get-body>(): io.github.kmpfacelink.model/BodyTrackingData? // io.github.kmpfacelink.model/HolisticTrackingData.body.<get-body>|<get-body>(){}[0]
     final val face // io.github.kmpfacelink.model/HolisticTrackingData.face|{}face[0]
@@ -1054,10 +1115,11 @@ final class io.github.kmpfacelink.model/HolisticTrackingData { // io.github.kmpf
     final fun component1(): io.github.kmpfacelink.model/FaceTrackingData? // io.github.kmpfacelink.model/HolisticTrackingData.component1|component1(){}[0]
     final fun component2(): io.github.kmpfacelink.model/HandTrackingData? // io.github.kmpfacelink.model/HolisticTrackingData.component2|component2(){}[0]
     final fun component3(): io.github.kmpfacelink.model/BodyTrackingData? // io.github.kmpfacelink.model/HolisticTrackingData.component3|component3(){}[0]
-    final fun component4(): kotlin/Long // io.github.kmpfacelink.model/HolisticTrackingData.component4|component4(){}[0]
-    final fun component5(): kotlin.collections/Set<io.github.kmpfacelink.model/TrackingModality> // io.github.kmpfacelink.model/HolisticTrackingData.component5|component5(){}[0]
-    final fun component6(): io.github.kmpfacelink.model/ThermalState // io.github.kmpfacelink.model/HolisticTrackingData.component6|component6(){}[0]
-    final fun copy(io.github.kmpfacelink.model/FaceTrackingData? = ..., io.github.kmpfacelink.model/HandTrackingData? = ..., io.github.kmpfacelink.model/BodyTrackingData? = ..., kotlin/Long = ..., kotlin.collections/Set<io.github.kmpfacelink.model/TrackingModality> = ..., io.github.kmpfacelink.model/ThermalState = ...): io.github.kmpfacelink.model/HolisticTrackingData // io.github.kmpfacelink.model/HolisticTrackingData.copy|copy(io.github.kmpfacelink.model.FaceTrackingData?;io.github.kmpfacelink.model.HandTrackingData?;io.github.kmpfacelink.model.BodyTrackingData?;kotlin.Long;kotlin.collections.Set<io.github.kmpfacelink.model.TrackingModality>;io.github.kmpfacelink.model.ThermalState){}[0]
+    final fun component4(): io.github.kmpfacelink.model/ArmTrackingData? // io.github.kmpfacelink.model/HolisticTrackingData.component4|component4(){}[0]
+    final fun component5(): kotlin/Long // io.github.kmpfacelink.model/HolisticTrackingData.component5|component5(){}[0]
+    final fun component6(): kotlin.collections/Set<io.github.kmpfacelink.model/TrackingModality> // io.github.kmpfacelink.model/HolisticTrackingData.component6|component6(){}[0]
+    final fun component7(): io.github.kmpfacelink.model/ThermalState // io.github.kmpfacelink.model/HolisticTrackingData.component7|component7(){}[0]
+    final fun copy(io.github.kmpfacelink.model/FaceTrackingData? = ..., io.github.kmpfacelink.model/HandTrackingData? = ..., io.github.kmpfacelink.model/BodyTrackingData? = ..., io.github.kmpfacelink.model/ArmTrackingData? = ..., kotlin/Long = ..., kotlin.collections/Set<io.github.kmpfacelink.model/TrackingModality> = ..., io.github.kmpfacelink.model/ThermalState = ...): io.github.kmpfacelink.model/HolisticTrackingData // io.github.kmpfacelink.model/HolisticTrackingData.copy|copy(io.github.kmpfacelink.model.FaceTrackingData?;io.github.kmpfacelink.model.HandTrackingData?;io.github.kmpfacelink.model.BodyTrackingData?;io.github.kmpfacelink.model.ArmTrackingData?;kotlin.Long;kotlin.collections.Set<io.github.kmpfacelink.model.TrackingModality>;io.github.kmpfacelink.model.ThermalState){}[0]
     final fun equals(kotlin/Any?): kotlin/Boolean // io.github.kmpfacelink.model/HolisticTrackingData.equals|equals(kotlin.Any?){}[0]
     final fun hashCode(): kotlin/Int // io.github.kmpfacelink.model/HolisticTrackingData.hashCode|hashCode(){}[0]
     final fun toString(): kotlin/String // io.github.kmpfacelink.model/HolisticTrackingData.toString|toString(){}[0]
@@ -1128,6 +1190,28 @@ final class io.github.kmpfacelink.model/PowerConfig { // io.github.kmpfacelink.m
         final const val DEFAULT_LOW_BATTERY_THRESHOLD // io.github.kmpfacelink.model/PowerConfig.Companion.DEFAULT_LOW_BATTERY_THRESHOLD|{}DEFAULT_LOW_BATTERY_THRESHOLD[0]
             final fun <get-DEFAULT_LOW_BATTERY_THRESHOLD>(): kotlin/Float // io.github.kmpfacelink.model/PowerConfig.Companion.DEFAULT_LOW_BATTERY_THRESHOLD.<get-DEFAULT_LOW_BATTERY_THRESHOLD>|<get-DEFAULT_LOW_BATTERY_THRESHOLD>(){}[0]
     }
+}
+
+final class io.github.kmpfacelink.model/TrackedArm { // io.github.kmpfacelink.model/TrackedArm|null[0]
+    constructor <init>(io.github.kmpfacelink.model/ArmJointPoint, io.github.kmpfacelink.model/ArmJointPoint, io.github.kmpfacelink.model/ArmJointPoint, io.github.kmpfacelink.model/ArmSource) // io.github.kmpfacelink.model/TrackedArm.<init>|<init>(io.github.kmpfacelink.model.ArmJointPoint;io.github.kmpfacelink.model.ArmJointPoint;io.github.kmpfacelink.model.ArmJointPoint;io.github.kmpfacelink.model.ArmSource){}[0]
+
+    final val elbow // io.github.kmpfacelink.model/TrackedArm.elbow|{}elbow[0]
+        final fun <get-elbow>(): io.github.kmpfacelink.model/ArmJointPoint // io.github.kmpfacelink.model/TrackedArm.elbow.<get-elbow>|<get-elbow>(){}[0]
+    final val shoulder // io.github.kmpfacelink.model/TrackedArm.shoulder|{}shoulder[0]
+        final fun <get-shoulder>(): io.github.kmpfacelink.model/ArmJointPoint // io.github.kmpfacelink.model/TrackedArm.shoulder.<get-shoulder>|<get-shoulder>(){}[0]
+    final val source // io.github.kmpfacelink.model/TrackedArm.source|{}source[0]
+        final fun <get-source>(): io.github.kmpfacelink.model/ArmSource // io.github.kmpfacelink.model/TrackedArm.source.<get-source>|<get-source>(){}[0]
+    final val wrist // io.github.kmpfacelink.model/TrackedArm.wrist|{}wrist[0]
+        final fun <get-wrist>(): io.github.kmpfacelink.model/ArmJointPoint // io.github.kmpfacelink.model/TrackedArm.wrist.<get-wrist>|<get-wrist>(){}[0]
+
+    final fun component1(): io.github.kmpfacelink.model/ArmJointPoint // io.github.kmpfacelink.model/TrackedArm.component1|component1(){}[0]
+    final fun component2(): io.github.kmpfacelink.model/ArmJointPoint // io.github.kmpfacelink.model/TrackedArm.component2|component2(){}[0]
+    final fun component3(): io.github.kmpfacelink.model/ArmJointPoint // io.github.kmpfacelink.model/TrackedArm.component3|component3(){}[0]
+    final fun component4(): io.github.kmpfacelink.model/ArmSource // io.github.kmpfacelink.model/TrackedArm.component4|component4(){}[0]
+    final fun copy(io.github.kmpfacelink.model/ArmJointPoint = ..., io.github.kmpfacelink.model/ArmJointPoint = ..., io.github.kmpfacelink.model/ArmJointPoint = ..., io.github.kmpfacelink.model/ArmSource = ...): io.github.kmpfacelink.model/TrackedArm // io.github.kmpfacelink.model/TrackedArm.copy|copy(io.github.kmpfacelink.model.ArmJointPoint;io.github.kmpfacelink.model.ArmJointPoint;io.github.kmpfacelink.model.ArmJointPoint;io.github.kmpfacelink.model.ArmSource){}[0]
+    final fun equals(kotlin/Any?): kotlin/Boolean // io.github.kmpfacelink.model/TrackedArm.equals|equals(kotlin.Any?){}[0]
+    final fun hashCode(): kotlin/Int // io.github.kmpfacelink.model/TrackedArm.hashCode|hashCode(){}[0]
+    final fun toString(): kotlin/String // io.github.kmpfacelink.model/TrackedArm.toString|toString(){}[0]
 }
 
 final class io.github.kmpfacelink.model/TrackedBody { // io.github.kmpfacelink.model/TrackedBody|null[0]

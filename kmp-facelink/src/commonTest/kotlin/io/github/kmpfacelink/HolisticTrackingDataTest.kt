@@ -30,6 +30,7 @@ class HolisticTrackingDataTest {
         assertNull(data.face)
         assertNull(data.hand)
         assertNull(data.body)
+        assertNull(data.arm)
         assertFalse(data.isTracking)
         assertEquals(0L, data.timestampMs)
         assertTrue(data.activeModalities.isEmpty())
@@ -264,6 +265,54 @@ class HolisticTrackerConfigTest {
         assertFalse(config.enableFace)
         assertFalse(config.enableHand)
         assertTrue(config.enableBody)
+    }
+
+    @Test
+    fun fuseBodyAndHandArmDefaultsToFalse() {
+        val config = HolisticTrackerConfig()
+        assertFalse(config.fuseBodyAndHandArm)
+    }
+
+    @Test
+    fun fuseBodyAndHandArmAllowedWhenBothEnabled() {
+        val config = HolisticTrackerConfig(
+            enableHand = true,
+            enableBody = true,
+            fuseBodyAndHandArm = true,
+        )
+        assertTrue(config.fuseBodyAndHandArm)
+    }
+
+    @Test
+    fun fuseBodyAndHandArmRejectsWhenHandDisabled() {
+        val exception = try {
+            HolisticTrackerConfig(
+                enableHand = false,
+                enableBody = true,
+                fuseBodyAndHandArm = true,
+            )
+            null
+        } catch (e: IllegalArgumentException) {
+            e
+        }
+        assertTrue(exception != null, "Expected IllegalArgumentException")
+        assertTrue(checkNotNull(exception.message).contains("fuseBodyAndHandArm"))
+    }
+
+    @Test
+    fun fuseBodyAndHandArmRejectsWhenBodyDisabled() {
+        val exception = try {
+            HolisticTrackerConfig(
+                enableHand = true,
+                enableBody = false,
+                fuseBodyAndHandArm = true,
+            )
+            null
+        } catch (e: IllegalArgumentException) {
+            e
+        }
+        assertTrue(exception != null, "Expected IllegalArgumentException")
+        assertTrue(checkNotNull(exception.message).contains("fuseBodyAndHandArm"))
     }
 
     @Test

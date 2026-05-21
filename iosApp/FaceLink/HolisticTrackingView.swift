@@ -4,6 +4,8 @@ import KMPFaceLink
 
 struct HolisticTrackingView: View {
     @StateObject private var viewModel = HolisticTrackingViewModel()
+    @StateObject private var smoothingSettings = SmoothingSettings()
+    @State private var showSmoothingSheet = false
 
     var body: some View {
         ZStack {
@@ -24,6 +26,17 @@ struct HolisticTrackingView: View {
                 HStack {
                     StatusBadge(text: viewModel.statusText, isTracking: viewModel.isTracking)
                     Spacer()
+                    // Settings button
+                    Button {
+                        showSmoothingSheet = true
+                    } label: {
+                        Image(systemName: "gearshape")
+                            .font(.body)
+                            .foregroundStyle(.primary)
+                            .padding(8)
+                            .background(.ultraThinMaterial, in: Circle())
+                    }
+                    .accessibilityLabel("Smoothing settings")
                     // Modality indicators
                     HStack(spacing: 8) {
                         ModalityDot(label: "F", active: viewModel.faceActive)
@@ -61,6 +74,13 @@ struct HolisticTrackingView: View {
                 .buttonStyle(TrackingButtonStyle(isTracking: viewModel.isTracking))
                 .padding(.bottom)
             }
+        }
+        .sheet(isPresented: $showSmoothingSheet) {
+            SmoothingSettingsView(settings: smoothingSettings) { config in
+                viewModel.updateSmoothing(config)
+                showSmoothingSheet = false
+            }
+            .presentationDetents([.medium, .large])
         }
     }
 }
@@ -128,6 +148,10 @@ class HolisticTrackingViewModel: ObservableObject {
         } else {
             startTracking()
         }
+    }
+
+    func updateSmoothing(_ config: SmoothingConfig) {
+        tracker?.updateSmoothing(config: config)
     }
 
     private func startTracking() {

@@ -5,6 +5,8 @@ import KMPFaceLink
 /// Hand tracking view with camera preview and landmark overlay
 struct HandTrackingView: View {
     @StateObject private var viewModel = HandTrackingViewModel()
+    @StateObject private var smoothingSettings = SmoothingSettings()
+    @State private var showSmoothingSheet = false
 
     var body: some View {
         ZStack {
@@ -19,6 +21,16 @@ struct HandTrackingView: View {
                 HStack {
                     StatusBadge(text: viewModel.statusText, isTracking: viewModel.isTracking)
                     Spacer()
+                    Button {
+                        showSmoothingSheet = true
+                    } label: {
+                        Image(systemName: "gearshape")
+                            .font(.body)
+                            .foregroundStyle(.primary)
+                            .padding(8)
+                            .background(.ultraThinMaterial, in: Circle())
+                    }
+                    .accessibilityLabel("Smoothing settings")
                 }
                 .padding(.horizontal, 16)
 
@@ -65,6 +77,13 @@ struct HandTrackingView: View {
                     .ignoresSafeArea()
             }
         }
+        .sheet(isPresented: $showSmoothingSheet) {
+            SmoothingSettingsView(settings: smoothingSettings) { config in
+                viewModel.updateSmoothing(config)
+                showSmoothingSheet = false
+            }
+            .presentationDetents([.medium, .large])
+        }
     }
 }
 
@@ -106,6 +125,10 @@ class HandTrackingViewModel: ObservableObject {
         } else {
             startTracking()
         }
+    }
+
+    func updateSmoothing(_ config: SmoothingConfig) {
+        tracker?.updateSmoothing(config: config)
     }
 
     private func startTracking() {

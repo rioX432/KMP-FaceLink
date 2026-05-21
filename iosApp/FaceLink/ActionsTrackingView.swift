@@ -3,6 +3,8 @@ import KMPFaceLink
 
 struct ActionsTrackingView: View {
     @StateObject private var viewModel = ActionsTrackingViewModel()
+    @StateObject private var smoothingSettings = SmoothingSettings()
+    @State private var showSmoothingSheet = false
 
     var body: some View {
         ZStack {
@@ -22,6 +24,16 @@ struct ActionsTrackingView: View {
                         FpsOverlayView(frameTimestamp: viewModel.frameTimestamp)
                     }
                     Spacer()
+                    Button {
+                        showSmoothingSheet = true
+                    } label: {
+                        Image(systemName: "gearshape")
+                            .font(.body)
+                            .foregroundStyle(.primary)
+                            .padding(8)
+                            .background(.ultraThinMaterial, in: Circle())
+                    }
+                    .accessibilityLabel("Smoothing settings")
                 }
                 .padding()
 
@@ -76,6 +88,13 @@ struct ActionsTrackingView: View {
                 .buttonStyle(TrackingButtonStyle(isTracking: viewModel.isTracking))
                 .padding(.bottom)
             }
+        }
+        .sheet(isPresented: $showSmoothingSheet) {
+            SmoothingSettingsView(settings: smoothingSettings) { config in
+                viewModel.updateSmoothing(config)
+                showSmoothingSheet = false
+            }
+            .presentationDetents([.medium, .large])
         }
     }
 }
@@ -232,6 +251,10 @@ class ActionsTrackingViewModel: ObservableObject {
 
     func toggleTracking() {
         if isTracking { stopTracking() } else { startTracking() }
+    }
+
+    func updateSmoothing(_ config: SmoothingConfig) {
+        tracker?.updateSmoothing(config: config)
     }
 
     func toggleRecording() {

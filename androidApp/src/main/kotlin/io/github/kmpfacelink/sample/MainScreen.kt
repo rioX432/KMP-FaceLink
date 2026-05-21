@@ -12,6 +12,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import io.github.kmpfacelink.sample.ui.HomeScreen
+import io.github.kmpfacelink.sample.ui.InteractDemoScreen
 import io.github.kmpfacelink.sample.ui.TrackingMode as SharedTrackingMode
 
 /**
@@ -61,6 +62,7 @@ internal fun MainScreen(
         TrackingMode.VOICE -> VoiceTrackingScreen(
             onModeChange = onModeChange,
         )
+        TrackingMode.INTERACT -> InteractDemoScreen()
     }
 }
 
@@ -93,4 +95,5 @@ internal fun SharedTrackingMode.toLocal(): TrackingMode = when (this) {
     SharedTrackingMode.HOLISTIC -> TrackingMode.HOLISTIC
     SharedTrackingMode.ACTIONS -> TrackingMode.ACTIONS
     SharedTrackingMode.VOICE -> TrackingMode.VOICE
+    SharedTrackingMode.INTERACT -> TrackingMode.INTERACT
 }

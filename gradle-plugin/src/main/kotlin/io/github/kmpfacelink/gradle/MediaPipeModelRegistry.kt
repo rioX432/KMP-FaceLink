@@ -1,5 +1,7 @@
 package io.github.kmpfacelink.gradle
 
+import java.io.Serializable
+
 /**
  * Registry of MediaPipe model metadata used for automated downloads.
  *
@@ -16,11 +18,19 @@ public object MediaPipeModelRegistry {
         val urlTemplate: String,
         /** Local filename written to the output directory. */
         val filename: String,
-        /** SHA-256 checksum for integrity verification (empty until populated). */
+        /** SHA-256 checksum for integrity verification (empty string skips verification). */
         val sha256: String,
-    )
+    ) : Serializable {
+        internal companion object {
+            private const val serialVersionUID: Long = 1L
+        }
+    }
 
     private const val BASE_URL = "https://storage.googleapis.com/mediapipe-models"
+
+    // Checksums are empty until populated by downloading models and running:
+    //   shasum -a 256 <model_file>
+    // Empty checksums skip verification (download-only mode).
 
     /** Face landmarker with ARKit-compatible blendshapes. */
     public val faceLandmarker: ModelEntry = ModelEntry(

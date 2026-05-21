@@ -19,6 +19,7 @@ let package = Package(
         .library(name: "KMPFaceLinkNetworking", targets: ["KMPFaceLinkNetworking"]),
         .library(name: "KMPFaceLinkVMC", targets: ["KMPFaceLinkVMC"]),
         .library(name: "KMPFaceLinkIFM", targets: ["KMPFaceLinkIFM"]),
+        .library(name: "KMPFaceLinkInteract", targets: ["KMPFaceLinkInteract"]),
     ],
     targets: [
         .binaryTarget(
@@ -64,6 +65,11 @@ let package = Package(
         .binaryTarget(
             name: "KMPFaceLinkIFM",
             url: "\(repoUrl)/KMPFaceLinkIFM.xcframework.zip",
+            checksum: "CHECKSUM_PLACEHOLDER"
+        ),
+        .binaryTarget(
+            name: "KMPFaceLinkInteract",
+            url: "\(repoUrl)/KMPFaceLinkInteract.xcframework.zip",
             checksum: "CHECKSUM_PLACEHOLDER"
         ),
     ]

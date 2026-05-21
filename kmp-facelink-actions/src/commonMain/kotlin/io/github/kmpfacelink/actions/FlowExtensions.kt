@@ -1,5 +1,6 @@
 package io.github.kmpfacelink.actions
 
+import io.github.kmpfacelink.interact.model.StreamEvent
 import io.github.kmpfacelink.model.FaceTrackingData
 import io.github.kmpfacelink.model.HandTrackingData
 import kotlinx.coroutines.flow.Flow
@@ -24,3 +25,12 @@ public fun Flow<FaceTrackingData>.feedActions(
 public fun Flow<HandTrackingData>.feedActions(
     system: ActionSystem,
 ): Flow<HandTrackingData> = onEach { system.processHand(it) }
+
+/**
+ * Feeds each [StreamEvent] into the [ActionSystem] as a side-effect.
+ * The event flows through unchanged.
+ */
+@JvmName("feedStreamActions")
+public fun Flow<StreamEvent>.feedActions(
+    system: ActionSystem,
+): Flow<StreamEvent> = onEach { system.processStreamEvent(it) }

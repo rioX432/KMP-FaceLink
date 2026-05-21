@@ -1,9 +1,9 @@
-import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 import org.jetbrains.kotlin.gradle.plugin.mpp.apple.XCFramework
 
 plugins {
     alias(libs.plugins.kotlin.multiplatform)
     alias(libs.plugins.android.kotlin.multiplatform.library)
+    alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.dokka)
 }
 
@@ -13,11 +13,6 @@ dokka {
 
 kotlin {
     explicitApi()
-
-    @OptIn(ExperimentalWasmDsl::class)
-    wasmJs {
-        browser()
-    }
 
     android {
         namespace = "io.github.kmpfacelink.actions"
@@ -46,7 +41,9 @@ kotlin {
     sourceSets {
         commonMain.dependencies {
             api(project(":kmp-facelink"))
+            api(project(":kmp-facelink-interact"))
             implementation(libs.kotlinx.coroutines.core)
+            implementation(libs.kotlinx.serialization.json)
         }
 
         commonTest.dependencies {

@@ -18,6 +18,7 @@ internal object TriggerEvaluator {
         is ActionTrigger.GestureTrigger -> evaluateGesture(trigger, handData)
         is ActionTrigger.ExpressionTrigger -> evaluateExpression(trigger, faceData)
         is ActionTrigger.CombinedTrigger -> evaluateCombined(trigger, faceData, handData)
+        is ActionTrigger.StreamEventTrigger -> false // Event-driven, not frame-driven
     }
 
     private fun evaluateGesture(

@@ -324,7 +324,7 @@ tasks.register("validateModuleDependencies") {
         val allowedDependencies = mapOf(
             ":kmp-facelink" to emptySet(),
             ":kmp-facelink-avatar" to setOf(core),
-            ":kmp-facelink-actions" to setOf(core),
+            ":kmp-facelink-actions" to setOf(core, ":kmp-facelink-interact"),
             ":kmp-facelink-voice" to setOf(core),
             ":kmp-facelink-llm" to setOf(core),
             ":kmp-facelink-pipeline" to setOf(

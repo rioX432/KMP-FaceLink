@@ -1,6 +1,7 @@
 package io.github.kmpfacelink.actions
 
 import io.github.kmpfacelink.api.Releasable
+import io.github.kmpfacelink.interact.model.StreamEvent
 import io.github.kmpfacelink.model.FaceTrackingData
 import io.github.kmpfacelink.model.HandTrackingData
 import kotlinx.coroutines.channels.Channel
@@ -14,14 +15,17 @@ import kotlin.concurrent.atomics.ExperimentalAtomicApi
 /**
  * Main API for the action trigger system.
  *
- * Register [ActionBinding]s and feed tracking data via [processFace] / [processHand].
- * Both methods return the list of [ActionEvent]s produced for that frame **and** send
+ * Register [ActionBinding]s and feed tracking data via [processFace] / [processHand],
+ * or stream interaction events via [processStreamEvent].
+ * All methods return the list of [ActionEvent]s produced **and** send
  * them to the [events] flow, so callers can choose whichever consumption style fits best.
  *
  * Tracking data is produced by [io.github.kmpfacelink.api.FaceTracker] and
  * [io.github.kmpfacelink.api.HandTracker] in the core module.
+ * Stream events come from [io.github.kmpfacelink.interact.StreamEventSource] implementations.
  *
  * @see io.github.kmpfacelink.actions.BuiltInTriggers
+ * @see io.github.kmpfacelink.actions.DefaultStreamBindings
  */
 @OptIn(ExperimentalAtomicApi::class)
 public class ActionSystem : Releasable {
@@ -107,6 +111,35 @@ public class ActionSystem : Releasable {
             val pendingEvents = processAllBindings(TrackingSnapshot(latestFace, latestHand), data.timestampMs)
             pendingEvents.forEach { _events.trySend(it) }
             pendingEvents
+        }
+    }
+
+    /**
+     * Process a stream interaction event against all registered
+     * [StreamEventTrigger][ActionTrigger.StreamEventTrigger] bindings.
+     *
+     * Stream event triggers are one-shot: a matching event emits
+     * [ActionEvent.Started] immediately. There is no hold/active/released
+     * lifecycle — the consumer app decides duration from the
+     * [EffectParameter][io.github.kmpfacelink.interact.model.EffectParameter]
+     * attached to the binding.
+     *
+     * @return the list of [ActionEvent]s produced for this event.
+     */
+    public suspend fun processStreamEvent(event: StreamEvent): List<ActionEvent> {
+        return mutex.withLock {
+            if (released.load() != 0) return@withLock emptyList()
+            val result = mutableListOf<ActionEvent>()
+            for ((actionId, binding) in bindings) {
+                val trigger = binding.trigger
+                if (trigger is ActionTrigger.StreamEventTrigger &&
+                    StreamEventMatcher.matches(trigger, event)
+                ) {
+                    result.add(ActionEvent.Started(actionId, event.timestampMs))
+                }
+            }
+            result.forEach { _events.trySend(it) }
+            result
         }
     }
 

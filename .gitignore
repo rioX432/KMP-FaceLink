@@ -49,6 +49,10 @@ progress.txt
 /iosApp/FaceLink.xcodeproj/xcuserdata/
 /iosApp/FaceLink.xcodeproj/project.xcworkspace/xcuserdata/
 
+# Calibration capture tool (XcodeGen output + captured data)
+/tools/calibration/CaptureApp/CaptureApp.xcodeproj/
+/tools/calibration/captures/
+
 # Build & tooling artifacts
 /.build/
 /build.log

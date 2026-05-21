@@ -7,10 +7,6 @@ Get face tracking running on Android in under 5 minutes.
 In your module-level `build.gradle.kts`:
 
 ```kotlin
-plugins {
-    id("io.github.rioX432.facelink") // Automates MediaPipe model downloads
-}
-
 dependencies {
     implementation("io.github.rioX432:kmp-facelink:0.2.0")
     // Optional modules — add only what you need:
@@ -19,43 +15,19 @@ dependencies {
 }
 ```
 
-The Gradle plugin is available from the [Gradle Plugin Portal](https://plugins.gradle.org/plugin/io.github.rioX432.facelink). No additional repository configuration needed.
-
 ## 2. Model Setup
 
-The Gradle plugin automatically downloads the required MediaPipe model files before build. By default, face and hand tracking models are enabled.
-
-### Plugin Configuration (Optional)
-
-```kotlin
-faceLink {
-    faceEnabled.set(true)   // default: true  (~5 MB)
-    handEnabled.set(true)   // default: true  (~12 MB)
-    bodyEnabled.set(false)  // default: false (~8 MB)
-    precision.set("float16") // default: "float16"
-}
-```
-
-The plugin:
-- Downloads only the models you enable
-- Skips re-download when models already exist (with SHA-256 checksum verification)
-- Wires downloads to `preBuild` so they run automatically
-- Generates a `.gitignore` in the model output directory
+MediaPipe requires model files in your `assets/models/` directory. Use one of the manual approaches below to download them.
 
 ### Model Overview
 
-| Model | File | Size (approx) | Enabled by |
-|-------|------|---------------|------------|
-| Face Landmarker | `face_landmarker_v2_with_blendshapes.task` | ~5 MB | `faceEnabled` |
-| Hand Landmarker | `hand_landmarker.task` | ~12 MB | `handEnabled` |
-| Pose Landmarker Lite | `pose_landmarker_lite.task` | ~8 MB | `bodyEnabled` |
+| Model | File | Size (approx) |
+|-------|------|---------------|
+| Face Landmarker | `face_landmarker_v2_with_blendshapes.task` | ~5 MB |
+| Hand Landmarker | `hand_landmarker.task` | ~12 MB |
+| Pose Landmarker Lite | `pose_landmarker_lite.task` | ~8 MB |
 
-> **Only enable models you actually use.** Face-only tracking adds ~5 MB. All three models together add ~25 MB to your APK.
-
-<details>
-<summary>Manual setup (without Gradle plugin)</summary>
-
-If you prefer not to use the Gradle plugin, you can download models manually.
+> **Only include models you actually use.** Face-only tracking adds ~5 MB. All three models together add ~25 MB to your APK.
 
 ### Option A: Gradle Download Task
 
@@ -102,6 +74,32 @@ curl -L -o app/src/main/assets/models/pose_landmarker_lite.task \
 ```
 
 Add `**/src/main/assets/models/*.task` to your `.gitignore`.
+
+<details>
+<summary>Gradle Plugin (coming after first release)</summary>
+
+> **Not yet available.** The Gradle plugin `io.github.rioX432.facelink` exists in the codebase but has not been published to the Gradle Plugin Portal yet. It will be published with the first tagged release. Until then, use the manual setup options above.
+
+Once published, the plugin will automate model downloads:
+
+```kotlin
+plugins {
+    id("io.github.rioX432.facelink")
+}
+
+faceLink {
+    faceEnabled.set(true)   // default: true  (~5 MB)
+    handEnabled.set(true)   // default: true  (~12 MB)
+    bodyEnabled.set(false)  // default: false (~8 MB)
+    precision.set("float16") // default: "float16"
+}
+```
+
+The plugin will:
+- Download only the models you enable
+- Skip re-download when models already exist (with SHA-256 checksum verification)
+- Wire downloads to `preBuild` so they run automatically
+- Generate a `.gitignore` in the model output directory
 
 </details>
 
@@ -231,7 +229,7 @@ lifecycleScope.launch {
 - compileSdk 35 or higher
 - Min SDK 24
 - Camera permission granted at runtime
-- MediaPipe model file in `assets/models/` (handled automatically by the Gradle plugin)
+- MediaPipe model file in `assets/models/` (see Model Setup above)
 
 ## 8. Stream Interaction Demo (INTERACT Mode)
 

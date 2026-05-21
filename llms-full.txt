@@ -489,14 +489,14 @@ source.events.collect { event ->
 }
 ```
 
-## Gradle Plugin
+## Gradle Plugin (Not Yet Published)
 
-Plugin ID: `io.github.rioX432.facelink` (available on [Gradle Plugin Portal](https://plugins.gradle.org/plugin/io.github.rioX432.facelink))
+Plugin ID: `io.github.rioX432.facelink` — exists in the codebase (`gradle-plugin/`) but is **not yet published** to the Gradle Plugin Portal. It will be available after the first tagged release.
 
-Automates MediaPipe model downloads for Android with SHA-256 checksum verification. Replaces manual download tasks.
+Once published, it will automate MediaPipe model downloads for Android with SHA-256 checksum verification:
 
 ```kotlin
-// build.gradle.kts
+// build.gradle.kts (available after first release)
 plugins {
     id("io.github.rioX432.facelink")
 }
@@ -509,7 +509,7 @@ faceLink {
 }
 ```
 
-The plugin registers a `downloadMediaPipeModels` task wired to `preBuild`. Models are downloaded once and skipped on subsequent builds. A `.gitignore` is auto-generated in the model output directory.
+Until then, download models manually — see the [Android Quick Start](https://github.com/rioX432/KMP-FaceLink/blob/master/docs/quick-start-android.md) for instructions.
 
 ## Dependency Setup
 
@@ -517,9 +517,8 @@ The plugin registers a `downloadMediaPipeModels` task wired to `preBuild`. Model
 
 ```kotlin
 // build.gradle.kts
-plugins {
-    id("io.github.rioX432.facelink") // optional — automates model downloads
-}
+// NOTE: The Gradle plugin is not yet published. Download models manually for now.
+// plugins { id("io.github.rioX432.facelink") }  // available after first release
 
 dependencies {
     implementation("io.github.rioX432:kmp-facelink:0.2.0")
@@ -544,7 +543,7 @@ SPM products: KMPFaceLink, KMPFaceLinkAvatar, KMPFaceLinkActions, KMPFaceLinkInt
 
 - Min SDK 24
 - CAMERA permission (runtime request required)
-- MediaPipe model files in `assets/models/` — handled automatically by the Gradle plugin (`io.github.rioX432.facelink`), or download manually
+- MediaPipe model files in `assets/models/` — download manually (the Gradle plugin `io.github.rioX432.facelink` is not yet published; see Android Quick Start)
 - PlatformContext requires both Context and LifecycleOwner
 
 ## iOS Requirements

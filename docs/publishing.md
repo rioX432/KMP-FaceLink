@@ -29,7 +29,7 @@ The publishing pipeline is fully automated via GitHub Actions (`.github/workflow
 | `kmp-facelink-stream` | `io.github.rioX432:kmp-facelink-stream` | -- (JVM only) |
 | `kmp-facelink-vts` | `io.github.rioX432:kmp-facelink-vts` | -- (JVM only) |
 
-The BOM (`kmp-facelink-bom`) is a `java-platform` module that manages versions for all 11 library modules. Consumers can import the BOM via `platform()` and omit version numbers on individual modules. See [Quick Start Integration](quick-start-integration.md) for usage examples.
+The BOM (`kmp-facelink-bom`) is a `java-platform` module that manages versions for all 11 library modules. Android-only consumers can import the BOM via `platform()` and omit version numbers on individual modules. **KMP consumers cannot use `platform()` in `commonMain.dependencies {}`** ([KT-58759](https://youtrack.jetbrains.com/issue/KT-58759)) and should use a version catalog with explicit `version.ref` instead. See [Quick Start Integration](quick-start-integration.md) for usage examples.
 
 ## First-Time Setup Checklist
 

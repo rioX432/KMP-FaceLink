@@ -30,7 +30,7 @@
 
 ## Gradle Plugin (Not Yet Published)
 
-- Plugin ID: `io.github.rioX432.facelink` — exists in the codebase but is **not yet published** to the Gradle Plugin Portal. Will be available after the first tagged release.
+- Plugin ID: `com.anotherball.facelink` — exists in the codebase but is **not yet published** to the Gradle Plugin Portal. Will be available after the first tagged release.
 - Once published: automates MediaPipe model downloads (face, hand, body) with SHA-256 checksum verification
 - Until then: download models manually (see [Android Quick Start](https://github.com/rioX432/KMP-FaceLink/blob/master/docs/quick-start-android.md) for instructions)
 

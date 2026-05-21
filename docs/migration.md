@@ -41,10 +41,10 @@ kmp-facelink = "X.Y+1.Z"
 
 ```kotlin
 // Android-only projects can still use the BOM:
-implementation(platform("io.github.rioX432:kmp-facelink-bom:X.Y+1.Z"))
+implementation(platform("com.anotherball:kmp-facelink-bom:X.Y+1.Z"))
 
 // New modules added (if any)
-implementation("io.github.rioX432:kmp-facelink-newmodule:X.Y+1.Z")
+implementation("com.anotherball:kmp-facelink-newmodule:X.Y+1.Z")
 ```
 
 - Modules removed: none
@@ -91,7 +91,7 @@ kmp-facelink = "0.2.0"
 
 ```kotlin
 // Android-only projects can still use the BOM:
-implementation(platform("io.github.rioX432:kmp-facelink-bom:0.2.0"))
+implementation(platform("com.anotherball:kmp-facelink-bom:0.2.0"))
 ```
 
 - No new modules added

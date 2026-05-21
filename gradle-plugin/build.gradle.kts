@@ -5,7 +5,7 @@ plugins {
     id("com.gradle.plugin-publish") version "2.1.1"
 }
 
-group = "io.github.rioX432"
+group = "com.anotherball"
 version = providers.gradleProperty("VERSION_NAME").getOrElse("0.2.0-SNAPSHOT")
 
 java {
@@ -25,7 +25,7 @@ gradlePlugin {
     vcsUrl.set("https://github.com/rioX432/KMP-FaceLink")
     plugins {
         create("facelink") {
-            id = "io.github.rioX432.facelink"
+            id = "com.anotherball.facelink"
             implementationClass = "io.github.kmpfacelink.gradle.FaceLinkPlugin"
             displayName = "KMP-FaceLink Gradle Plugin"
             description = "Automates MediaPipe model downloads for KMP-FaceLink face, hand, and body tracking"

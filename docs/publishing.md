@@ -16,18 +16,18 @@ The publishing pipeline is fully automated via GitHub Actions (`.github/workflow
 
 | Module | Maven Artifact | SPM Product |
 |--------|---------------|-------------|
-| `kmp-facelink-bom` | `io.github.rioX432:kmp-facelink-bom` | -- (Maven BOM) |
-| `kmp-facelink` | `io.github.rioX432:kmp-facelink` | `KMPFaceLink` |
-| `kmp-facelink-avatar` | `io.github.rioX432:kmp-facelink-avatar` | `KMPFaceLinkAvatar` |
-| `kmp-facelink-actions` | `io.github.rioX432:kmp-facelink-actions` | `KMPFaceLinkActions` |
-| `kmp-facelink-voice` | `io.github.rioX432:kmp-facelink-voice` | `KMPFaceLinkVoice` |
-| `kmp-facelink-llm` | `io.github.rioX432:kmp-facelink-llm` | `KMPFaceLinkLlm` |
-| `kmp-facelink-pipeline` | `io.github.rioX432:kmp-facelink-pipeline` | `KMPFaceLinkPipeline` |
-| `kmp-facelink-networking` | `io.github.rioX432:kmp-facelink-networking` | `KMPFaceLinkNetworking` |
-| `kmp-facelink-vmc` | `io.github.rioX432:kmp-facelink-vmc` | `KMPFaceLinkVMC` |
-| `kmp-facelink-ifm` | `io.github.rioX432:kmp-facelink-ifm` | `KMPFaceLinkIFM` |
-| `kmp-facelink-stream` | `io.github.rioX432:kmp-facelink-stream` | -- (JVM only) |
-| `kmp-facelink-vts` | `io.github.rioX432:kmp-facelink-vts` | -- (JVM only) |
+| `kmp-facelink-bom` | `com.anotherball:kmp-facelink-bom` | -- (Maven BOM) |
+| `kmp-facelink` | `com.anotherball:kmp-facelink` | `KMPFaceLink` |
+| `kmp-facelink-avatar` | `com.anotherball:kmp-facelink-avatar` | `KMPFaceLinkAvatar` |
+| `kmp-facelink-actions` | `com.anotherball:kmp-facelink-actions` | `KMPFaceLinkActions` |
+| `kmp-facelink-voice` | `com.anotherball:kmp-facelink-voice` | `KMPFaceLinkVoice` |
+| `kmp-facelink-llm` | `com.anotherball:kmp-facelink-llm` | `KMPFaceLinkLlm` |
+| `kmp-facelink-pipeline` | `com.anotherball:kmp-facelink-pipeline` | `KMPFaceLinkPipeline` |
+| `kmp-facelink-networking` | `com.anotherball:kmp-facelink-networking` | `KMPFaceLinkNetworking` |
+| `kmp-facelink-vmc` | `com.anotherball:kmp-facelink-vmc` | `KMPFaceLinkVMC` |
+| `kmp-facelink-ifm` | `com.anotherball:kmp-facelink-ifm` | `KMPFaceLinkIFM` |
+| `kmp-facelink-stream` | `com.anotherball:kmp-facelink-stream` | -- (JVM only) |
+| `kmp-facelink-vts` | `com.anotherball:kmp-facelink-vts` | -- (JVM only) |
 
 The BOM (`kmp-facelink-bom`) is a `java-platform` module that manages versions for all 11 library modules. Android-only consumers can import the BOM via `platform()` and omit version numbers on individual modules. **KMP consumers cannot use `platform()` in `commonMain.dependencies {}`** ([KT-58759](https://youtrack.jetbrains.com/issue/KT-58759)) and should use a version catalog with explicit `version.ref` instead. See [Quick Start Integration](quick-start-integration.md) for usage examples.
 
@@ -38,8 +38,8 @@ Before the first release, the repository owner must complete these one-time step
 ### 1. Sonatype OSSRH Account
 
 - [ ] Register at [Sonatype OSSRH](https://s01.oss.sonatype.org/) (or [central.sonatype.com](https://central.sonatype.com/) for the new Central Portal)
-- [ ] Create a new project ticket for the `io.github.rioX432` namespace (or verify domain ownership via the new Central Portal flow)
-- [ ] Wait for namespace approval
+- [ ] Verify the `com.anotherball` namespace via DNS TXT record on `anotherball.com` (Central Portal flow)
+- [ ] Wait for namespace verification
 
 ### 2. GPG Signing Key
 
@@ -107,7 +107,7 @@ The workflow will:
 
 ### 6. Verify
 
-- [ ] Check [Maven Central](https://central.sonatype.com/namespace/io.github.rioX432) for the published artifacts (may take 15-30 minutes to sync)
+- [ ] Check [Maven Central](https://central.sonatype.com/namespace/com.anotherball) for the published artifacts (may take 15-30 minutes to sync)
 - [ ] Check the GitHub Release page for XCFramework downloads
 - [ ] Verify `Package.swift` checksums were updated by the release workflow (check the auto-commit on `master`)
 - [ ] Verify SPM resolution by adding the package in a fresh Xcode project
@@ -122,7 +122,7 @@ To test the publishing configuration locally without actually publishing:
 ./gradlew publishToMavenLocal
 
 # Verify the artifacts were created
-ls ~/.m2/repository/io/github/rioX432/kmp-facelink/
+ls ~/.m2/repository/com/anotherball/kmp-facelink/
 ```
 
 Then in your consuming project, add `mavenLocal()` to the repositories block:
@@ -140,7 +140,7 @@ repositories {
 
 | Property | Value | Purpose |
 |----------|-------|---------|
-| `GROUP` | `io.github.rioX432` | Maven group ID |
+| `GROUP` | `com.anotherball` | Maven group ID |
 | `VERSION_NAME` | `0.1.0` | Artifact version |
 | `POM_URL` | GitHub repo URL | POM project URL |
 | `POM_SCM_URL` | GitHub repo URL | Source control URL |

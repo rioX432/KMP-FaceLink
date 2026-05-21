@@ -75,7 +75,7 @@ tracker.release()
 
 **Key types:**
 - `FaceTrackingData` — blend shapes, head transform, face landmarks, tracking state
-- `HandTrackingData` — per-hand landmarks, gesture, handedness
+- `HandTrackingData` — per-hand landmarks, gesture, handedness (`LEFT`, `RIGHT`, or `UNKNOWN`)
 - `BodyTrackingData` — body pose landmarks, tracking confidence
 - `HolisticTrackingData` — combined face + hands + body
 - `TrackingState` — `IDLE`, `STARTING`, `TRACKING`, `STOPPED`, `ERROR`, `RELEASED`

@@ -15,6 +15,8 @@ struct HomeView: View {
          "High-level action detection built on top of face tracking data."),
         (.voice, "🎤", "Voice",
          "TTS with real-time lip sync blend shapes and speech recognition."),
+        (.interact, "💬", "Interact",
+         "Live stream event feed with mock chat, gifts, raids, and action triggers."),
     ]
 
     var body: some View {

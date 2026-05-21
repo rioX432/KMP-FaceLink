@@ -1,6 +1,7 @@
 package io.github.kmpfacelink.gradle
 
 import org.gradle.testfixtures.ProjectBuilder
+import java.io.File
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -72,5 +73,53 @@ class FaceLinkExtensionTest {
         assertEquals("face_landmarker_v2_with_blendshapes.task", models[0].filename)
         assertEquals("hand_landmarker.task", models[1].filename)
         assertEquals("pose_landmarker_lite.task", models[2].filename)
+    }
+
+    @Test
+    fun `plugin registers downloadMediaPipeModels task`() {
+        val project = ProjectBuilder.builder().build()
+        project.plugins.apply("io.github.rioX432.facelink")
+
+        val task = project.tasks.findByName("downloadMediaPipeModels")
+        assertNotNull(task, "downloadMediaPipeModels task should be registered")
+        assertTrue(task is DownloadMediaPipeModelsTask)
+    }
+
+    @Test
+    fun `buildModelList respects enabled flags`() {
+        val project = ProjectBuilder.builder().build()
+        project.plugins.apply("io.github.rioX432.facelink")
+
+        val ext = project.extensions.getByType(FaceLinkExtension::class.java)
+
+        // Default: face=true, hand=true, body=false
+        val defaultModels = FaceLinkPlugin.buildModelList(ext)
+        assertEquals(2, defaultModels.size)
+        assertEquals("face_landmarker_v2_with_blendshapes.task", defaultModels[0].filename)
+        assertEquals("hand_landmarker.task", defaultModels[1].filename)
+
+        // Enable body, disable face
+        ext.faceEnabled.set(false)
+        ext.bodyEnabled.set(true)
+
+        val customModels = FaceLinkPlugin.buildModelList(ext)
+        assertEquals(2, customModels.size)
+        assertEquals("hand_landmarker.task", customModels[0].filename)
+        assertEquals("pose_landmarker_lite.task", customModels[1].filename)
+    }
+
+    @Test
+    fun `writeGitIgnore creates gitignore in output directory`() {
+        val project = ProjectBuilder.builder().build()
+        project.plugins.apply("io.github.rioX432.facelink")
+
+        val ext = project.extensions.getByType(FaceLinkExtension::class.java)
+        ext.outputDir.set("build/test-gitignore-models")
+
+        FaceLinkPlugin.writeGitIgnore(project, ext)
+
+        val gitIgnore = File(project.projectDir, "build/test-gitignore-models/.gitignore")
+        assertTrue(gitIgnore.exists(), ".gitignore should be created")
+        assertTrue(gitIgnore.readText().contains("*.task"), ".gitignore should exclude .task files")
     }
 }

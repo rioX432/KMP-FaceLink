@@ -88,6 +88,51 @@ abstract interface io.github.kmpfacelink.interact/StreamEventSource { // io.gith
     abstract suspend fun disconnect() // io.github.kmpfacelink.interact/StreamEventSource.disconnect|disconnect(){}[0]
 }
 
+final class io.github.kmpfacelink.interact.mock/MockConfig { // io.github.kmpfacelink.interact.mock/MockConfig|null[0]
+    constructor <init>(kotlin/Long = ..., kotlin/Float = ..., kotlin/Float = ..., kotlin/Float = ..., kotlin/Float = ..., kotlin/Float = ..., kotlin/Float = ...) // io.github.kmpfacelink.interact.mock/MockConfig.<init>|<init>(kotlin.Long;kotlin.Float;kotlin.Float;kotlin.Float;kotlin.Float;kotlin.Float;kotlin.Float){}[0]
+
+    final val channelPointProbability // io.github.kmpfacelink.interact.mock/MockConfig.channelPointProbability|{}channelPointProbability[0]
+        final fun <get-channelPointProbability>(): kotlin/Float // io.github.kmpfacelink.interact.mock/MockConfig.channelPointProbability.<get-channelPointProbability>|<get-channelPointProbability>(){}[0]
+    final val chatProbability // io.github.kmpfacelink.interact.mock/MockConfig.chatProbability|{}chatProbability[0]
+        final fun <get-chatProbability>(): kotlin/Float // io.github.kmpfacelink.interact.mock/MockConfig.chatProbability.<get-chatProbability>|<get-chatProbability>(){}[0]
+    final val followProbability // io.github.kmpfacelink.interact.mock/MockConfig.followProbability|{}followProbability[0]
+        final fun <get-followProbability>(): kotlin/Float // io.github.kmpfacelink.interact.mock/MockConfig.followProbability.<get-followProbability>|<get-followProbability>(){}[0]
+    final val giftProbability // io.github.kmpfacelink.interact.mock/MockConfig.giftProbability|{}giftProbability[0]
+        final fun <get-giftProbability>(): kotlin/Float // io.github.kmpfacelink.interact.mock/MockConfig.giftProbability.<get-giftProbability>|<get-giftProbability>(){}[0]
+    final val intervalMs // io.github.kmpfacelink.interact.mock/MockConfig.intervalMs|{}intervalMs[0]
+        final fun <get-intervalMs>(): kotlin/Long // io.github.kmpfacelink.interact.mock/MockConfig.intervalMs.<get-intervalMs>|<get-intervalMs>(){}[0]
+    final val raidProbability // io.github.kmpfacelink.interact.mock/MockConfig.raidProbability|{}raidProbability[0]
+        final fun <get-raidProbability>(): kotlin/Float // io.github.kmpfacelink.interact.mock/MockConfig.raidProbability.<get-raidProbability>|<get-raidProbability>(){}[0]
+    final val superChatProbability // io.github.kmpfacelink.interact.mock/MockConfig.superChatProbability|{}superChatProbability[0]
+        final fun <get-superChatProbability>(): kotlin/Float // io.github.kmpfacelink.interact.mock/MockConfig.superChatProbability.<get-superChatProbability>|<get-superChatProbability>(){}[0]
+
+    final fun component1(): kotlin/Long // io.github.kmpfacelink.interact.mock/MockConfig.component1|component1(){}[0]
+    final fun component2(): kotlin/Float // io.github.kmpfacelink.interact.mock/MockConfig.component2|component2(){}[0]
+    final fun component3(): kotlin/Float // io.github.kmpfacelink.interact.mock/MockConfig.component3|component3(){}[0]
+    final fun component4(): kotlin/Float // io.github.kmpfacelink.interact.mock/MockConfig.component4|component4(){}[0]
+    final fun component5(): kotlin/Float // io.github.kmpfacelink.interact.mock/MockConfig.component5|component5(){}[0]
+    final fun component6(): kotlin/Float // io.github.kmpfacelink.interact.mock/MockConfig.component6|component6(){}[0]
+    final fun component7(): kotlin/Float // io.github.kmpfacelink.interact.mock/MockConfig.component7|component7(){}[0]
+    final fun copy(kotlin/Long = ..., kotlin/Float = ..., kotlin/Float = ..., kotlin/Float = ..., kotlin/Float = ..., kotlin/Float = ..., kotlin/Float = ...): io.github.kmpfacelink.interact.mock/MockConfig // io.github.kmpfacelink.interact.mock/MockConfig.copy|copy(kotlin.Long;kotlin.Float;kotlin.Float;kotlin.Float;kotlin.Float;kotlin.Float;kotlin.Float){}[0]
+    final fun equals(kotlin/Any?): kotlin/Boolean // io.github.kmpfacelink.interact.mock/MockConfig.equals|equals(kotlin.Any?){}[0]
+    final fun hashCode(): kotlin/Int // io.github.kmpfacelink.interact.mock/MockConfig.hashCode|hashCode(){}[0]
+    final fun toString(): kotlin/String // io.github.kmpfacelink.interact.mock/MockConfig.toString|toString(){}[0]
+}
+
+final class io.github.kmpfacelink.interact.mock/MockStreamEventSource : io.github.kmpfacelink.interact/StreamEventSource { // io.github.kmpfacelink.interact.mock/MockStreamEventSource|null[0]
+    constructor <init>(io.github.kmpfacelink.interact.mock/MockConfig = ..., io.github.kmpfacelink.interact.model/StreamPlatform = ..., kotlin.random/Random = ..., kotlin/Function0<kotlin/Long> = ...) // io.github.kmpfacelink.interact.mock/MockStreamEventSource.<init>|<init>(io.github.kmpfacelink.interact.mock.MockConfig;io.github.kmpfacelink.interact.model.StreamPlatform;kotlin.random.Random;kotlin.Function0<kotlin.Long>){}[0]
+
+    final val connectionState // io.github.kmpfacelink.interact.mock/MockStreamEventSource.connectionState|{}connectionState[0]
+        final fun <get-connectionState>(): kotlinx.coroutines.flow/StateFlow<io.github.kmpfacelink.interact.model/ConnectionState> // io.github.kmpfacelink.interact.mock/MockStreamEventSource.connectionState.<get-connectionState>|<get-connectionState>(){}[0]
+    final val events // io.github.kmpfacelink.interact.mock/MockStreamEventSource.events|{}events[0]
+        final fun <get-events>(): kotlinx.coroutines.flow/Flow<io.github.kmpfacelink.interact.model/StreamEvent> // io.github.kmpfacelink.interact.mock/MockStreamEventSource.events.<get-events>|<get-events>(){}[0]
+    final val platform // io.github.kmpfacelink.interact.mock/MockStreamEventSource.platform|{}platform[0]
+        final fun <get-platform>(): io.github.kmpfacelink.interact.model/StreamPlatform // io.github.kmpfacelink.interact.mock/MockStreamEventSource.platform.<get-platform>|<get-platform>(){}[0]
+
+    final suspend fun connect() // io.github.kmpfacelink.interact.mock/MockStreamEventSource.connect|connect(){}[0]
+    final suspend fun disconnect() // io.github.kmpfacelink.interact.mock/MockStreamEventSource.disconnect|disconnect(){}[0]
+}
+
 final class io.github.kmpfacelink.interact.model/ChannelPointRedemption : io.github.kmpfacelink.interact.model/StreamEvent { // io.github.kmpfacelink.interact.model/ChannelPointRedemption|null[0]
     constructor <init>(io.github.kmpfacelink.interact.model/StreamPlatform, kotlin/Long, kotlin/String, kotlin/String, kotlin/String = ..., kotlin/Int) // io.github.kmpfacelink.interact.model/ChannelPointRedemption.<init>|<init>(io.github.kmpfacelink.interact.model.StreamPlatform;kotlin.Long;kotlin.String;kotlin.String;kotlin.String;kotlin.Int){}[0]
 

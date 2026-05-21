@@ -1,4 +1,5 @@
 pluginManagement {
+    includeBuild("gradle-plugin")
     repositories {
         google()
         mavenCentral()
@@ -28,6 +29,5 @@ include(":kmp-facelink-ifm")
 include(":kmp-facelink-stream")
 include(":kmp-facelink-vts")
 include(":kmp-facelink-bom")
-include(":gradle-plugin")
 include(":sampleShared")
 include(":androidApp")

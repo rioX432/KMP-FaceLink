@@ -356,16 +356,42 @@ actions.events.collect { event -> /* handle */ }
 handTracker.trackingData.collect { actions.processHand(it) }
 ```
 
+## Gradle Plugin
+
+Plugin ID: `io.github.rioX432.facelink` (available on [Gradle Plugin Portal](https://plugins.gradle.org/plugin/io.github.rioX432.facelink))
+
+Automates MediaPipe model downloads for Android with SHA-256 checksum verification. Replaces manual download tasks.
+
+```kotlin
+// build.gradle.kts
+plugins {
+    id("io.github.rioX432.facelink")
+}
+
+faceLink {
+    faceEnabled.set(true)   // default: true  — face_landmarker_v2_with_blendshapes.task (~5 MB)
+    handEnabled.set(true)   // default: true  — hand_landmarker.task (~12 MB)
+    bodyEnabled.set(false)  // default: false — pose_landmarker_lite.task (~8 MB)
+    precision.set("float16") // default: "float16"
+}
+```
+
+The plugin registers a `downloadMediaPipeModels` task wired to `preBuild`. Models are downloaded once and skipped on subsequent builds. A `.gitignore` is auto-generated in the model output directory.
+
 ## Dependency Setup
 
 ### Gradle (Android / KMP)
 
 ```kotlin
 // build.gradle.kts
+plugins {
+    id("io.github.rioX432.facelink") // optional — automates model downloads
+}
+
 dependencies {
-    implementation("io.github.rioX432:kmp-facelink:0.1.0")
-    implementation("io.github.rioX432:kmp-facelink-avatar:0.1.0")   // optional
-    implementation("io.github.rioX432:kmp-facelink-actions:0.1.0")  // optional
+    implementation("io.github.rioX432:kmp-facelink:0.2.0")
+    implementation("io.github.rioX432:kmp-facelink-avatar:0.2.0")   // optional
+    implementation("io.github.rioX432:kmp-facelink-actions:0.2.0")  // optional
 }
 ```
 
@@ -384,7 +410,7 @@ SPM products: KMPFaceLink, KMPFaceLinkAvatar, KMPFaceLinkActions, KMPFaceLinkVoi
 
 - Min SDK 24
 - CAMERA permission (runtime request required)
-- MediaPipe model files in `assets/models/` (face_landmarker_v2_with_blendshapes.task, hand_landmarker.task)
+- MediaPipe model files in `assets/models/` — handled automatically by the Gradle plugin (`io.github.rioX432.facelink`), or download manually
 - PlatformContext requires both Context and LifecycleOwner
 
 ## iOS Requirements
@@ -440,6 +466,7 @@ Task {
 - `kmp-facelink-ifm/` — iFacialMocap protocol module
 - `kmp-facelink-stream/` — WebSocket streaming module
 - `kmp-facelink-vts/` — VTube Studio integration module
+- `gradle-plugin/` — Gradle plugin for automated MediaPipe model downloads
 - `androidApp/` — Android sample app
 - `iosApp/` — iOS sample app (XcodeGen from project.yml)
 - `docs/` — Documentation

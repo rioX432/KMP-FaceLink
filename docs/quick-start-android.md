@@ -7,37 +7,59 @@ Get face tracking running on Android in under 5 minutes.
 In your module-level `build.gradle.kts`:
 
 ```kotlin
+plugins {
+    id("io.github.rioX432.facelink") // Automates MediaPipe model downloads
+}
+
 dependencies {
-    implementation("io.github.rioX432:kmp-facelink:0.1.0")
+    implementation("io.github.rioX432:kmp-facelink:0.2.0")
     // Optional modules — add only what you need:
-    // implementation("io.github.rioX432:kmp-facelink-avatar:0.1.0")
-    // implementation("io.github.rioX432:kmp-facelink-actions:0.1.0")
+    // implementation("io.github.rioX432:kmp-facelink-avatar:0.2.0")
+    // implementation("io.github.rioX432:kmp-facelink-actions:0.2.0")
 }
 ```
 
-> **Note:** KMP-FaceLink is not yet published to Maven Central. Until the first release, build locally with `./gradlew publishToMavenLocal` and add `mavenLocal()` to your `repositories` block. See [Publishing](publishing.md) for details.
+The Gradle plugin is available from the [Gradle Plugin Portal](https://plugins.gradle.org/plugin/io.github.rioX432.facelink). No additional repository configuration needed.
 
 ## 2. Model Setup
 
-KMP-FaceLink on Android uses MediaPipe for on-device inference. Each tracker type requires a corresponding `.task` model file bundled in your app's `src/main/assets/models/` directory.
+The Gradle plugin automatically downloads the required MediaPipe model files before build. By default, face and hand tracking models are enabled.
+
+### Plugin Configuration (Optional)
+
+```kotlin
+faceLink {
+    faceEnabled.set(true)   // default: true  (~5 MB)
+    handEnabled.set(true)   // default: true  (~12 MB)
+    bodyEnabled.set(false)  // default: false (~8 MB)
+    precision.set("float16") // default: "float16"
+}
+```
+
+The plugin:
+- Downloads only the models you enable
+- Skips re-download when models already exist (with SHA-256 checksum verification)
+- Wires downloads to `preBuild` so they run automatically
+- Generates a `.gitignore` in the model output directory
 
 ### Model Overview
 
-| Model | File | Size (approx) | Used by | Download URL |
-|-------|------|---------------|---------|-------------|
-| Face Landmarker | `face_landmarker_v2_with_blendshapes.task` | ~5 MB | `FaceTracker`, `HolisticTracker` (face) | [face_landmarker (float16)][url-face] |
-| Hand Landmarker | `hand_landmarker.task` | ~12 MB | `HandTracker`, `HolisticTracker` (hands) | [hand_landmarker (float16)][url-hand] |
-| Pose Landmarker Lite | `pose_landmarker_lite.task` | ~8 MB | `BodyTracker`, `HolisticTracker` (body) | [pose_landmarker_lite (float16)][url-pose] |
+| Model | File | Size (approx) | Enabled by |
+|-------|------|---------------|------------|
+| Face Landmarker | `face_landmarker_v2_with_blendshapes.task` | ~5 MB | `faceEnabled` |
+| Hand Landmarker | `hand_landmarker.task` | ~12 MB | `handEnabled` |
+| Pose Landmarker Lite | `pose_landmarker_lite.task` | ~8 MB | `bodyEnabled` |
 
-[url-face]: https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/latest/face_landmarker.task
-[url-hand]: https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/latest/hand_landmarker.task
-[url-pose]: https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/latest/pose_landmarker_lite.task
+> **Only enable models you actually use.** Face-only tracking adds ~5 MB. All three models together add ~25 MB to your APK.
 
-> **Only download models you actually use.** If your app only needs face tracking, you only need `face_landmarker_v2_with_blendshapes.task` (~5 MB). All three models together add ~25 MB to your APK.
+<details>
+<summary>Manual setup (without Gradle plugin)</summary>
 
-### Option A: Gradle Download Task (Recommended)
+If you prefer not to use the Gradle plugin, you can download models manually.
 
-Add download tasks to your module's `build.gradle.kts` to automatically fetch models at build time. This is the pattern used by the sample app:
+### Option A: Gradle Download Task
+
+Add download tasks directly to your module's `build.gradle.kts`:
 
 ```kotlin
 val downloadFaceLandmarkerModel by tasks.registering {
@@ -55,70 +77,33 @@ val downloadFaceLandmarkerModel by tasks.registering {
     }
 }
 
-val downloadHandLandmarkerModel by tasks.registering {
-    val modelDir = layout.projectDirectory.dir("src/main/assets/models")
-    val modelFile = modelDir.file("hand_landmarker.task")
-
-    outputs.file(modelFile)
-    doLast {
-        modelDir.asFile.mkdirs()
-        if (!modelFile.asFile.exists()) {
-            val url = "https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/latest/hand_landmarker.task"
-            logger.lifecycle("Downloading MediaPipe hand landmarker model...")
-            ant.invokeMethod("get", mapOf("src" to url, "dest" to modelFile.asFile))
-        }
-    }
-}
-
-val downloadPoseLandmarkerModel by tasks.registering {
-    val modelDir = layout.projectDirectory.dir("src/main/assets/models")
-    val modelFile = modelDir.file("pose_landmarker_lite.task")
-
-    outputs.file(modelFile)
-    doLast {
-        modelDir.asFile.mkdirs()
-        if (!modelFile.asFile.exists()) {
-            val url = "https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/latest/pose_landmarker_lite.task"
-            logger.lifecycle("Downloading MediaPipe pose landmarker model...")
-            ant.invokeMethod("get", mapOf("src" to url, "dest" to modelFile.asFile))
-        }
-    }
-}
-
 // Wire to preBuild — only include the models you need
 tasks.named("preBuild") {
     dependsOn(downloadFaceLandmarkerModel)
-    // dependsOn(downloadHandLandmarkerModel)
-    // dependsOn(downloadPoseLandmarkerModel)
 }
-```
-
-Models are only downloaded once (the task checks for existing files). Add the `models/` directory to `.gitignore` to avoid committing large binaries:
-
-```gitignore
-# MediaPipe model files (downloaded at build time)
-**/src/main/assets/models/*.task
 ```
 
 ### Option B: Manual Download
 
-Download the model files directly with `curl`:
-
 ```bash
 mkdir -p app/src/main/assets/models
 
-# Face tracking (required for FaceTracker)
+# Face tracking
 curl -L -o app/src/main/assets/models/face_landmarker_v2_with_blendshapes.task \
   "https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/latest/face_landmarker.task"
 
-# Hand tracking (required for HandTracker)
+# Hand tracking
 curl -L -o app/src/main/assets/models/hand_landmarker.task \
   "https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/latest/hand_landmarker.task"
 
-# Body tracking (required for BodyTracker)
+# Body tracking
 curl -L -o app/src/main/assets/models/pose_landmarker_lite.task \
   "https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/latest/pose_landmarker_lite.task"
 ```
+
+Add `**/src/main/assets/models/*.task` to your `.gitignore`.
+
+</details>
 
 ### APK Size Impact
 
@@ -130,7 +115,7 @@ All three models together add approximately **25 MB** to your APK. Strategies to
 
 ### Model Version Compatibility
 
-The current library version is tested with MediaPipe Tasks Vision **0.10.33** and the `float16/latest` model variants linked above. Using a different model version or precision variant may cause initialization failures or degraded accuracy. If you pin a specific model version instead of `latest`, ensure it is compatible with the `com.google.mediapipe:tasks-vision` version in your dependency tree.
+The current library version is tested with MediaPipe Tasks Vision **0.10.33** and the `float16/latest` model variants. Using a different model version or precision variant may cause initialization failures or degraded accuracy.
 
 ## 3. Add Permissions
 
@@ -245,7 +230,7 @@ lifecycleScope.launch {
 
 - Min SDK 24
 - Camera permission granted at runtime
-- MediaPipe model file in `assets/models/`
+- MediaPipe model file in `assets/models/` (handled automatically by the Gradle plugin)
 
 ## Next Steps
 

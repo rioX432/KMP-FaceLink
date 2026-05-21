@@ -33,12 +33,18 @@ This document tracks breaking changes between versions of KMP-FaceLink. Use it w
 
 ### Gradle Dependency Changes
 
+```toml
+# gradle/libs.versions.toml
+[versions]
+kmp-facelink = "X.Y+1.Z"
+```
+
 ```kotlin
-// BOM version
+// Android-only projects can still use the BOM:
 implementation(platform("io.github.rioX432:kmp-facelink-bom:X.Y+1.Z"))
 
 // New modules added (if any)
-implementation("io.github.rioX432:kmp-facelink-newmodule")
+implementation("io.github.rioX432:kmp-facelink-newmodule:X.Y+1.Z")
 ```
 
 - Modules removed: none
@@ -77,8 +83,14 @@ implementation("io.github.rioX432:kmp-facelink-newmodule")
 
 ### Gradle Dependency Changes
 
+```toml
+# gradle/libs.versions.toml — bump the version
+[versions]
+kmp-facelink = "0.2.0"
+```
+
 ```kotlin
-// BOM version: 0.1.0 → 0.2.0
+// Android-only projects can still use the BOM:
 implementation(platform("io.github.rioX432:kmp-facelink-bom:0.2.0"))
 ```
 
@@ -93,9 +105,11 @@ implementation(platform("io.github.rioX432:kmp-facelink-bom:0.2.0"))
 
 ## General Migration Tips
 
-1. **Update the BOM first** — always bump the BOM version before individual modules. The BOM ensures all modules use compatible versions.
-   ```kotlin
-   implementation(platform("io.github.rioX432:kmp-facelink-bom:NEW_VERSION"))
+1. **Update the version first** — bump the version in `gradle/libs.versions.toml` (or the BOM for Android-only projects) before anything else. This ensures all modules use compatible versions. Note: `platform()` BOM imports do not work in KMP `commonMain.dependencies {}` ([KT-58759](https://youtrack.jetbrains.com/issue/KT-58759)); use a version catalog with `version.ref` instead.
+   ```toml
+   # gradle/libs.versions.toml
+   [versions]
+   kmp-facelink = "NEW_VERSION"
    ```
 2. **Check deprecated API warnings** — build your project with the current version and resolve all deprecation warnings before upgrading. Deprecated APIs may be removed in the next release.
 3. **Run tests after upgrading** — verify your tracking, avatar, and pipeline integrations still work as expected.

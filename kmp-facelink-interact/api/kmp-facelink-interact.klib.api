@@ -36,6 +36,27 @@ final enum class io.github.kmpfacelink.interact.model/StreamPlatform : kotlin/En
     }
 }
 
+final enum class io.github.kmpfacelink.interact.twitch/TwitchSubscriptionType : kotlin/Enum<io.github.kmpfacelink.interact.twitch/TwitchSubscriptionType> { // io.github.kmpfacelink.interact.twitch/TwitchSubscriptionType|null[0]
+    enum entry CHANNEL_POINTS // io.github.kmpfacelink.interact.twitch/TwitchSubscriptionType.CHANNEL_POINTS|null[0]
+    enum entry CHAT_MESSAGE // io.github.kmpfacelink.interact.twitch/TwitchSubscriptionType.CHAT_MESSAGE|null[0]
+    enum entry CHEER // io.github.kmpfacelink.interact.twitch/TwitchSubscriptionType.CHEER|null[0]
+    enum entry FOLLOW // io.github.kmpfacelink.interact.twitch/TwitchSubscriptionType.FOLLOW|null[0]
+    enum entry GIFT_SUB // io.github.kmpfacelink.interact.twitch/TwitchSubscriptionType.GIFT_SUB|null[0]
+    enum entry RAID // io.github.kmpfacelink.interact.twitch/TwitchSubscriptionType.RAID|null[0]
+    enum entry SUBSCRIBE // io.github.kmpfacelink.interact.twitch/TwitchSubscriptionType.SUBSCRIBE|null[0]
+
+    final val entries // io.github.kmpfacelink.interact.twitch/TwitchSubscriptionType.entries|#static{}entries[0]
+        final fun <get-entries>(): kotlin.enums/EnumEntries<io.github.kmpfacelink.interact.twitch/TwitchSubscriptionType> // io.github.kmpfacelink.interact.twitch/TwitchSubscriptionType.entries.<get-entries>|<get-entries>#static(){}[0]
+
+    final fun valueOf(kotlin/String): io.github.kmpfacelink.interact.twitch/TwitchSubscriptionType // io.github.kmpfacelink.interact.twitch/TwitchSubscriptionType.valueOf|valueOf#static(kotlin.String){}[0]
+    final fun values(): kotlin/Array<io.github.kmpfacelink.interact.twitch/TwitchSubscriptionType> // io.github.kmpfacelink.interact.twitch/TwitchSubscriptionType.values|values#static(){}[0]
+
+    final object Companion { // io.github.kmpfacelink.interact.twitch/TwitchSubscriptionType.Companion|null[0]
+        final val DEFAULT // io.github.kmpfacelink.interact.twitch/TwitchSubscriptionType.Companion.DEFAULT|{}DEFAULT[0]
+            final fun <get-DEFAULT>(): kotlin.collections/Set<io.github.kmpfacelink.interact.twitch/TwitchSubscriptionType> // io.github.kmpfacelink.interact.twitch/TwitchSubscriptionType.Companion.DEFAULT.<get-DEFAULT>|<get-DEFAULT>(){}[0]
+    }
+}
+
 abstract interface io.github.kmpfacelink.interact/StreamEventSource { // io.github.kmpfacelink.interact/StreamEventSource|null[0]
     abstract val connectionState // io.github.kmpfacelink.interact/StreamEventSource.connectionState|{}connectionState[0]
         abstract fun <get-connectionState>(): kotlinx.coroutines.flow/StateFlow<io.github.kmpfacelink.interact.model/ConnectionState> // io.github.kmpfacelink.interact/StreamEventSource.connectionState.<get-connectionState>|<get-connectionState>(){}[0]
@@ -321,6 +342,42 @@ final class io.github.kmpfacelink.interact.model/SuperChat : io.github.kmpfaceli
 
         final fun serializer(): kotlinx.serialization/KSerializer<io.github.kmpfacelink.interact.model/SuperChat> // io.github.kmpfacelink.interact.model/SuperChat.Companion.serializer|serializer(){}[0]
     }
+}
+
+final class io.github.kmpfacelink.interact.twitch/TwitchConfig { // io.github.kmpfacelink.interact.twitch/TwitchConfig|null[0]
+    constructor <init>(kotlin/String, kotlin/String, kotlin/String, kotlin.collections/Set<io.github.kmpfacelink.interact.twitch/TwitchSubscriptionType> = ...) // io.github.kmpfacelink.interact.twitch/TwitchConfig.<init>|<init>(kotlin.String;kotlin.String;kotlin.String;kotlin.collections.Set<io.github.kmpfacelink.interact.twitch.TwitchSubscriptionType>){}[0]
+
+    final val accessToken // io.github.kmpfacelink.interact.twitch/TwitchConfig.accessToken|{}accessToken[0]
+        final fun <get-accessToken>(): kotlin/String // io.github.kmpfacelink.interact.twitch/TwitchConfig.accessToken.<get-accessToken>|<get-accessToken>(){}[0]
+    final val broadcasterId // io.github.kmpfacelink.interact.twitch/TwitchConfig.broadcasterId|{}broadcasterId[0]
+        final fun <get-broadcasterId>(): kotlin/String // io.github.kmpfacelink.interact.twitch/TwitchConfig.broadcasterId.<get-broadcasterId>|<get-broadcasterId>(){}[0]
+    final val clientId // io.github.kmpfacelink.interact.twitch/TwitchConfig.clientId|{}clientId[0]
+        final fun <get-clientId>(): kotlin/String // io.github.kmpfacelink.interact.twitch/TwitchConfig.clientId.<get-clientId>|<get-clientId>(){}[0]
+    final val subscriptions // io.github.kmpfacelink.interact.twitch/TwitchConfig.subscriptions|{}subscriptions[0]
+        final fun <get-subscriptions>(): kotlin.collections/Set<io.github.kmpfacelink.interact.twitch/TwitchSubscriptionType> // io.github.kmpfacelink.interact.twitch/TwitchConfig.subscriptions.<get-subscriptions>|<get-subscriptions>(){}[0]
+
+    final fun component1(): kotlin/String // io.github.kmpfacelink.interact.twitch/TwitchConfig.component1|component1(){}[0]
+    final fun component2(): kotlin/String // io.github.kmpfacelink.interact.twitch/TwitchConfig.component2|component2(){}[0]
+    final fun component3(): kotlin/String // io.github.kmpfacelink.interact.twitch/TwitchConfig.component3|component3(){}[0]
+    final fun component4(): kotlin.collections/Set<io.github.kmpfacelink.interact.twitch/TwitchSubscriptionType> // io.github.kmpfacelink.interact.twitch/TwitchConfig.component4|component4(){}[0]
+    final fun copy(kotlin/String = ..., kotlin/String = ..., kotlin/String = ..., kotlin.collections/Set<io.github.kmpfacelink.interact.twitch/TwitchSubscriptionType> = ...): io.github.kmpfacelink.interact.twitch/TwitchConfig // io.github.kmpfacelink.interact.twitch/TwitchConfig.copy|copy(kotlin.String;kotlin.String;kotlin.String;kotlin.collections.Set<io.github.kmpfacelink.interact.twitch.TwitchSubscriptionType>){}[0]
+    final fun equals(kotlin/Any?): kotlin/Boolean // io.github.kmpfacelink.interact.twitch/TwitchConfig.equals|equals(kotlin.Any?){}[0]
+    final fun hashCode(): kotlin/Int // io.github.kmpfacelink.interact.twitch/TwitchConfig.hashCode|hashCode(){}[0]
+    final fun toString(): kotlin/String // io.github.kmpfacelink.interact.twitch/TwitchConfig.toString|toString(){}[0]
+}
+
+final class io.github.kmpfacelink.interact.twitch/TwitchEventSubSource : io.github.kmpfacelink.interact/StreamEventSource { // io.github.kmpfacelink.interact.twitch/TwitchEventSubSource|null[0]
+    constructor <init>(io.github.kmpfacelink.interact.twitch/TwitchConfig, io.ktor.client/HttpClient = ...) // io.github.kmpfacelink.interact.twitch/TwitchEventSubSource.<init>|<init>(io.github.kmpfacelink.interact.twitch.TwitchConfig;io.ktor.client.HttpClient){}[0]
+
+    final val connectionState // io.github.kmpfacelink.interact.twitch/TwitchEventSubSource.connectionState|{}connectionState[0]
+        final fun <get-connectionState>(): kotlinx.coroutines.flow/StateFlow<io.github.kmpfacelink.interact.model/ConnectionState> // io.github.kmpfacelink.interact.twitch/TwitchEventSubSource.connectionState.<get-connectionState>|<get-connectionState>(){}[0]
+    final val events // io.github.kmpfacelink.interact.twitch/TwitchEventSubSource.events|{}events[0]
+        final fun <get-events>(): kotlinx.coroutines.flow/Flow<io.github.kmpfacelink.interact.model/StreamEvent> // io.github.kmpfacelink.interact.twitch/TwitchEventSubSource.events.<get-events>|<get-events>(){}[0]
+    final val platform // io.github.kmpfacelink.interact.twitch/TwitchEventSubSource.platform|{}platform[0]
+        final fun <get-platform>(): io.github.kmpfacelink.interact.model/StreamPlatform // io.github.kmpfacelink.interact.twitch/TwitchEventSubSource.platform.<get-platform>|<get-platform>(){}[0]
+
+    final suspend fun connect() // io.github.kmpfacelink.interact.twitch/TwitchEventSubSource.connect|connect(){}[0]
+    final suspend fun disconnect() // io.github.kmpfacelink.interact.twitch/TwitchEventSubSource.disconnect|disconnect(){}[0]
 }
 
 final class io.github.kmpfacelink.interact/StreamEventAggregator { // io.github.kmpfacelink.interact/StreamEventAggregator|null[0]

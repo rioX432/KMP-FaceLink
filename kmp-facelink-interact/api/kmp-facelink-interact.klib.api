@@ -6,6 +6,25 @@
 // - Show declarations: true
 
 // Library unique name: <io.github.rioX432:kmp-facelink-interact>
+final enum class io.github.kmpfacelink.interact.model/AvatarAnchor : kotlin/Enum<io.github.kmpfacelink.interact.model/AvatarAnchor> { // io.github.kmpfacelink.interact.model/AvatarAnchor|null[0]
+    enum entry BODY // io.github.kmpfacelink.interact.model/AvatarAnchor.BODY|null[0]
+    enum entry HEAD // io.github.kmpfacelink.interact.model/AvatarAnchor.HEAD|null[0]
+    enum entry LEFT_HAND // io.github.kmpfacelink.interact.model/AvatarAnchor.LEFT_HAND|null[0]
+    enum entry RIGHT_HAND // io.github.kmpfacelink.interact.model/AvatarAnchor.RIGHT_HAND|null[0]
+    enum entry SCREEN // io.github.kmpfacelink.interact.model/AvatarAnchor.SCREEN|null[0]
+
+    final val entries // io.github.kmpfacelink.interact.model/AvatarAnchor.entries|#static{}entries[0]
+        final fun <get-entries>(): kotlin.enums/EnumEntries<io.github.kmpfacelink.interact.model/AvatarAnchor> // io.github.kmpfacelink.interact.model/AvatarAnchor.entries.<get-entries>|<get-entries>#static(){}[0]
+
+    final fun valueOf(kotlin/String): io.github.kmpfacelink.interact.model/AvatarAnchor // io.github.kmpfacelink.interact.model/AvatarAnchor.valueOf|valueOf#static(kotlin.String){}[0]
+    final fun values(): kotlin/Array<io.github.kmpfacelink.interact.model/AvatarAnchor> // io.github.kmpfacelink.interact.model/AvatarAnchor.values|values#static(){}[0]
+
+    final object Companion : kotlinx.serialization.internal/SerializerFactory { // io.github.kmpfacelink.interact.model/AvatarAnchor.Companion|null[0]
+        final fun serializer(): kotlinx.serialization/KSerializer<io.github.kmpfacelink.interact.model/AvatarAnchor> // io.github.kmpfacelink.interact.model/AvatarAnchor.Companion.serializer|serializer(){}[0]
+        final fun serializer(kotlin/Array<out kotlinx.serialization/KSerializer<*>>...): kotlinx.serialization/KSerializer<*> // io.github.kmpfacelink.interact.model/AvatarAnchor.Companion.serializer|serializer(kotlin.Array<out|kotlinx.serialization.KSerializer<*>>...){}[0]
+    }
+}
+
 final enum class io.github.kmpfacelink.interact.model/ConnectionState : kotlin/Enum<io.github.kmpfacelink.interact.model/ConnectionState> { // io.github.kmpfacelink.interact.model/ConnectionState|null[0]
     enum entry CONNECTED // io.github.kmpfacelink.interact.model/ConnectionState.CONNECTED|null[0]
     enum entry CONNECTING // io.github.kmpfacelink.interact.model/ConnectionState.CONNECTING|null[0]
@@ -426,6 +445,124 @@ final class io.github.kmpfacelink.interact/StreamEventAggregator { // io.github.
     final fun removeSource(io.github.kmpfacelink.interact/StreamEventSource) // io.github.kmpfacelink.interact/StreamEventAggregator.removeSource|removeSource(io.github.kmpfacelink.interact.StreamEventSource){}[0]
     final suspend fun connectAll() // io.github.kmpfacelink.interact/StreamEventAggregator.connectAll|connectAll(){}[0]
     final suspend fun disconnectAll() // io.github.kmpfacelink.interact/StreamEventAggregator.disconnectAll|disconnectAll(){}[0]
+}
+
+sealed class io.github.kmpfacelink.interact.model/EffectParameter { // io.github.kmpfacelink.interact.model/EffectParameter|null[0]
+    abstract val durationMs // io.github.kmpfacelink.interact.model/EffectParameter.durationMs|{}durationMs[0]
+        abstract fun <get-durationMs>(): kotlin/Long // io.github.kmpfacelink.interact.model/EffectParameter.durationMs.<get-durationMs>|<get-durationMs>(){}[0]
+    abstract val intensity // io.github.kmpfacelink.interact.model/EffectParameter.intensity|{}intensity[0]
+        abstract fun <get-intensity>(): kotlin/Float // io.github.kmpfacelink.interact.model/EffectParameter.intensity.<get-intensity>|<get-intensity>(){}[0]
+
+    final class ExpressionOverride : io.github.kmpfacelink.interact.model/EffectParameter { // io.github.kmpfacelink.interact.model/EffectParameter.ExpressionOverride|null[0]
+        constructor <init>(kotlin/Long, kotlin/Float, kotlin.collections/Map<io.github.kmpfacelink.model/BlendShape, kotlin/Float>) // io.github.kmpfacelink.interact.model/EffectParameter.ExpressionOverride.<init>|<init>(kotlin.Long;kotlin.Float;kotlin.collections.Map<io.github.kmpfacelink.model.BlendShape,kotlin.Float>){}[0]
+
+        final val blendShapes // io.github.kmpfacelink.interact.model/EffectParameter.ExpressionOverride.blendShapes|{}blendShapes[0]
+            final fun <get-blendShapes>(): kotlin.collections/Map<io.github.kmpfacelink.model/BlendShape, kotlin/Float> // io.github.kmpfacelink.interact.model/EffectParameter.ExpressionOverride.blendShapes.<get-blendShapes>|<get-blendShapes>(){}[0]
+        final val durationMs // io.github.kmpfacelink.interact.model/EffectParameter.ExpressionOverride.durationMs|{}durationMs[0]
+            final fun <get-durationMs>(): kotlin/Long // io.github.kmpfacelink.interact.model/EffectParameter.ExpressionOverride.durationMs.<get-durationMs>|<get-durationMs>(){}[0]
+        final val intensity // io.github.kmpfacelink.interact.model/EffectParameter.ExpressionOverride.intensity|{}intensity[0]
+            final fun <get-intensity>(): kotlin/Float // io.github.kmpfacelink.interact.model/EffectParameter.ExpressionOverride.intensity.<get-intensity>|<get-intensity>(){}[0]
+
+        final fun component1(): kotlin/Long // io.github.kmpfacelink.interact.model/EffectParameter.ExpressionOverride.component1|component1(){}[0]
+        final fun component2(): kotlin/Float // io.github.kmpfacelink.interact.model/EffectParameter.ExpressionOverride.component2|component2(){}[0]
+        final fun component3(): kotlin.collections/Map<io.github.kmpfacelink.model/BlendShape, kotlin/Float> // io.github.kmpfacelink.interact.model/EffectParameter.ExpressionOverride.component3|component3(){}[0]
+        final fun copy(kotlin/Long = ..., kotlin/Float = ..., kotlin.collections/Map<io.github.kmpfacelink.model/BlendShape, kotlin/Float> = ...): io.github.kmpfacelink.interact.model/EffectParameter.ExpressionOverride // io.github.kmpfacelink.interact.model/EffectParameter.ExpressionOverride.copy|copy(kotlin.Long;kotlin.Float;kotlin.collections.Map<io.github.kmpfacelink.model.BlendShape,kotlin.Float>){}[0]
+        final fun equals(kotlin/Any?): kotlin/Boolean // io.github.kmpfacelink.interact.model/EffectParameter.ExpressionOverride.equals|equals(kotlin.Any?){}[0]
+        final fun hashCode(): kotlin/Int // io.github.kmpfacelink.interact.model/EffectParameter.ExpressionOverride.hashCode|hashCode(){}[0]
+        final fun toString(): kotlin/String // io.github.kmpfacelink.interact.model/EffectParameter.ExpressionOverride.toString|toString(){}[0]
+
+        final object $serializer : kotlinx.serialization.internal/GeneratedSerializer<io.github.kmpfacelink.interact.model/EffectParameter.ExpressionOverride> { // io.github.kmpfacelink.interact.model/EffectParameter.ExpressionOverride.$serializer|null[0]
+            final val descriptor // io.github.kmpfacelink.interact.model/EffectParameter.ExpressionOverride.$serializer.descriptor|{}descriptor[0]
+                final fun <get-descriptor>(): kotlinx.serialization.descriptors/SerialDescriptor // io.github.kmpfacelink.interact.model/EffectParameter.ExpressionOverride.$serializer.descriptor.<get-descriptor>|<get-descriptor>(){}[0]
+
+            final fun childSerializers(): kotlin/Array<kotlinx.serialization/KSerializer<*>> // io.github.kmpfacelink.interact.model/EffectParameter.ExpressionOverride.$serializer.childSerializers|childSerializers(){}[0]
+            final fun deserialize(kotlinx.serialization.encoding/Decoder): io.github.kmpfacelink.interact.model/EffectParameter.ExpressionOverride // io.github.kmpfacelink.interact.model/EffectParameter.ExpressionOverride.$serializer.deserialize|deserialize(kotlinx.serialization.encoding.Decoder){}[0]
+            final fun serialize(kotlinx.serialization.encoding/Encoder, io.github.kmpfacelink.interact.model/EffectParameter.ExpressionOverride) // io.github.kmpfacelink.interact.model/EffectParameter.ExpressionOverride.$serializer.serialize|serialize(kotlinx.serialization.encoding.Encoder;io.github.kmpfacelink.interact.model.EffectParameter.ExpressionOverride){}[0]
+        }
+
+        final object Companion { // io.github.kmpfacelink.interact.model/EffectParameter.ExpressionOverride.Companion|null[0]
+            final val $childSerializers // io.github.kmpfacelink.interact.model/EffectParameter.ExpressionOverride.Companion.$childSerializers|{}$childSerializers[0]
+
+            final fun serializer(): kotlinx.serialization/KSerializer<io.github.kmpfacelink.interact.model/EffectParameter.ExpressionOverride> // io.github.kmpfacelink.interact.model/EffectParameter.ExpressionOverride.Companion.serializer|serializer(){}[0]
+        }
+    }
+
+    final class ScreenShake : io.github.kmpfacelink.interact.model/EffectParameter { // io.github.kmpfacelink.interact.model/EffectParameter.ScreenShake|null[0]
+        constructor <init>(kotlin/Long, kotlin/Float, kotlin/Float) // io.github.kmpfacelink.interact.model/EffectParameter.ScreenShake.<init>|<init>(kotlin.Long;kotlin.Float;kotlin.Float){}[0]
+
+        final val amplitude // io.github.kmpfacelink.interact.model/EffectParameter.ScreenShake.amplitude|{}amplitude[0]
+            final fun <get-amplitude>(): kotlin/Float // io.github.kmpfacelink.interact.model/EffectParameter.ScreenShake.amplitude.<get-amplitude>|<get-amplitude>(){}[0]
+        final val durationMs // io.github.kmpfacelink.interact.model/EffectParameter.ScreenShake.durationMs|{}durationMs[0]
+            final fun <get-durationMs>(): kotlin/Long // io.github.kmpfacelink.interact.model/EffectParameter.ScreenShake.durationMs.<get-durationMs>|<get-durationMs>(){}[0]
+        final val intensity // io.github.kmpfacelink.interact.model/EffectParameter.ScreenShake.intensity|{}intensity[0]
+            final fun <get-intensity>(): kotlin/Float // io.github.kmpfacelink.interact.model/EffectParameter.ScreenShake.intensity.<get-intensity>|<get-intensity>(){}[0]
+
+        final fun component1(): kotlin/Long // io.github.kmpfacelink.interact.model/EffectParameter.ScreenShake.component1|component1(){}[0]
+        final fun component2(): kotlin/Float // io.github.kmpfacelink.interact.model/EffectParameter.ScreenShake.component2|component2(){}[0]
+        final fun component3(): kotlin/Float // io.github.kmpfacelink.interact.model/EffectParameter.ScreenShake.component3|component3(){}[0]
+        final fun copy(kotlin/Long = ..., kotlin/Float = ..., kotlin/Float = ...): io.github.kmpfacelink.interact.model/EffectParameter.ScreenShake // io.github.kmpfacelink.interact.model/EffectParameter.ScreenShake.copy|copy(kotlin.Long;kotlin.Float;kotlin.Float){}[0]
+        final fun equals(kotlin/Any?): kotlin/Boolean // io.github.kmpfacelink.interact.model/EffectParameter.ScreenShake.equals|equals(kotlin.Any?){}[0]
+        final fun hashCode(): kotlin/Int // io.github.kmpfacelink.interact.model/EffectParameter.ScreenShake.hashCode|hashCode(){}[0]
+        final fun toString(): kotlin/String // io.github.kmpfacelink.interact.model/EffectParameter.ScreenShake.toString|toString(){}[0]
+
+        final object $serializer : kotlinx.serialization.internal/GeneratedSerializer<io.github.kmpfacelink.interact.model/EffectParameter.ScreenShake> { // io.github.kmpfacelink.interact.model/EffectParameter.ScreenShake.$serializer|null[0]
+            final val descriptor // io.github.kmpfacelink.interact.model/EffectParameter.ScreenShake.$serializer.descriptor|{}descriptor[0]
+                final fun <get-descriptor>(): kotlinx.serialization.descriptors/SerialDescriptor // io.github.kmpfacelink.interact.model/EffectParameter.ScreenShake.$serializer.descriptor.<get-descriptor>|<get-descriptor>(){}[0]
+
+            final fun childSerializers(): kotlin/Array<kotlinx.serialization/KSerializer<*>> // io.github.kmpfacelink.interact.model/EffectParameter.ScreenShake.$serializer.childSerializers|childSerializers(){}[0]
+            final fun deserialize(kotlinx.serialization.encoding/Decoder): io.github.kmpfacelink.interact.model/EffectParameter.ScreenShake // io.github.kmpfacelink.interact.model/EffectParameter.ScreenShake.$serializer.deserialize|deserialize(kotlinx.serialization.encoding.Decoder){}[0]
+            final fun serialize(kotlinx.serialization.encoding/Encoder, io.github.kmpfacelink.interact.model/EffectParameter.ScreenShake) // io.github.kmpfacelink.interact.model/EffectParameter.ScreenShake.$serializer.serialize|serialize(kotlinx.serialization.encoding.Encoder;io.github.kmpfacelink.interact.model.EffectParameter.ScreenShake){}[0]
+        }
+
+        final object Companion { // io.github.kmpfacelink.interact.model/EffectParameter.ScreenShake.Companion|null[0]
+            final fun serializer(): kotlinx.serialization/KSerializer<io.github.kmpfacelink.interact.model/EffectParameter.ScreenShake> // io.github.kmpfacelink.interact.model/EffectParameter.ScreenShake.Companion.serializer|serializer(){}[0]
+        }
+    }
+
+    final class ThrowEffect : io.github.kmpfacelink.interact.model/EffectParameter { // io.github.kmpfacelink.interact.model/EffectParameter.ThrowEffect|null[0]
+        constructor <init>(kotlin/Long, kotlin/Float, io.github.kmpfacelink.interact.model/AvatarAnchor, kotlin/String, kotlin/Int = ...) // io.github.kmpfacelink.interact.model/EffectParameter.ThrowEffect.<init>|<init>(kotlin.Long;kotlin.Float;io.github.kmpfacelink.interact.model.AvatarAnchor;kotlin.String;kotlin.Int){}[0]
+
+        final val anchor // io.github.kmpfacelink.interact.model/EffectParameter.ThrowEffect.anchor|{}anchor[0]
+            final fun <get-anchor>(): io.github.kmpfacelink.interact.model/AvatarAnchor // io.github.kmpfacelink.interact.model/EffectParameter.ThrowEffect.anchor.<get-anchor>|<get-anchor>(){}[0]
+        final val count // io.github.kmpfacelink.interact.model/EffectParameter.ThrowEffect.count|{}count[0]
+            final fun <get-count>(): kotlin/Int // io.github.kmpfacelink.interact.model/EffectParameter.ThrowEffect.count.<get-count>|<get-count>(){}[0]
+        final val durationMs // io.github.kmpfacelink.interact.model/EffectParameter.ThrowEffect.durationMs|{}durationMs[0]
+            final fun <get-durationMs>(): kotlin/Long // io.github.kmpfacelink.interact.model/EffectParameter.ThrowEffect.durationMs.<get-durationMs>|<get-durationMs>(){}[0]
+        final val intensity // io.github.kmpfacelink.interact.model/EffectParameter.ThrowEffect.intensity|{}intensity[0]
+            final fun <get-intensity>(): kotlin/Float // io.github.kmpfacelink.interact.model/EffectParameter.ThrowEffect.intensity.<get-intensity>|<get-intensity>(){}[0]
+        final val objectName // io.github.kmpfacelink.interact.model/EffectParameter.ThrowEffect.objectName|{}objectName[0]
+            final fun <get-objectName>(): kotlin/String // io.github.kmpfacelink.interact.model/EffectParameter.ThrowEffect.objectName.<get-objectName>|<get-objectName>(){}[0]
+
+        final fun component1(): kotlin/Long // io.github.kmpfacelink.interact.model/EffectParameter.ThrowEffect.component1|component1(){}[0]
+        final fun component2(): kotlin/Float // io.github.kmpfacelink.interact.model/EffectParameter.ThrowEffect.component2|component2(){}[0]
+        final fun component3(): io.github.kmpfacelink.interact.model/AvatarAnchor // io.github.kmpfacelink.interact.model/EffectParameter.ThrowEffect.component3|component3(){}[0]
+        final fun component4(): kotlin/String // io.github.kmpfacelink.interact.model/EffectParameter.ThrowEffect.component4|component4(){}[0]
+        final fun component5(): kotlin/Int // io.github.kmpfacelink.interact.model/EffectParameter.ThrowEffect.component5|component5(){}[0]
+        final fun copy(kotlin/Long = ..., kotlin/Float = ..., io.github.kmpfacelink.interact.model/AvatarAnchor = ..., kotlin/String = ..., kotlin/Int = ...): io.github.kmpfacelink.interact.model/EffectParameter.ThrowEffect // io.github.kmpfacelink.interact.model/EffectParameter.ThrowEffect.copy|copy(kotlin.Long;kotlin.Float;io.github.kmpfacelink.interact.model.AvatarAnchor;kotlin.String;kotlin.Int){}[0]
+        final fun equals(kotlin/Any?): kotlin/Boolean // io.github.kmpfacelink.interact.model/EffectParameter.ThrowEffect.equals|equals(kotlin.Any?){}[0]
+        final fun hashCode(): kotlin/Int // io.github.kmpfacelink.interact.model/EffectParameter.ThrowEffect.hashCode|hashCode(){}[0]
+        final fun toString(): kotlin/String // io.github.kmpfacelink.interact.model/EffectParameter.ThrowEffect.toString|toString(){}[0]
+
+        final object $serializer : kotlinx.serialization.internal/GeneratedSerializer<io.github.kmpfacelink.interact.model/EffectParameter.ThrowEffect> { // io.github.kmpfacelink.interact.model/EffectParameter.ThrowEffect.$serializer|null[0]
+            final val descriptor // io.github.kmpfacelink.interact.model/EffectParameter.ThrowEffect.$serializer.descriptor|{}descriptor[0]
+                final fun <get-descriptor>(): kotlinx.serialization.descriptors/SerialDescriptor // io.github.kmpfacelink.interact.model/EffectParameter.ThrowEffect.$serializer.descriptor.<get-descriptor>|<get-descriptor>(){}[0]
+
+            final fun childSerializers(): kotlin/Array<kotlinx.serialization/KSerializer<*>> // io.github.kmpfacelink.interact.model/EffectParameter.ThrowEffect.$serializer.childSerializers|childSerializers(){}[0]
+            final fun deserialize(kotlinx.serialization.encoding/Decoder): io.github.kmpfacelink.interact.model/EffectParameter.ThrowEffect // io.github.kmpfacelink.interact.model/EffectParameter.ThrowEffect.$serializer.deserialize|deserialize(kotlinx.serialization.encoding.Decoder){}[0]
+            final fun serialize(kotlinx.serialization.encoding/Encoder, io.github.kmpfacelink.interact.model/EffectParameter.ThrowEffect) // io.github.kmpfacelink.interact.model/EffectParameter.ThrowEffect.$serializer.serialize|serialize(kotlinx.serialization.encoding.Encoder;io.github.kmpfacelink.interact.model.EffectParameter.ThrowEffect){}[0]
+        }
+
+        final object Companion { // io.github.kmpfacelink.interact.model/EffectParameter.ThrowEffect.Companion|null[0]
+            final val $childSerializers // io.github.kmpfacelink.interact.model/EffectParameter.ThrowEffect.Companion.$childSerializers|{}$childSerializers[0]
+
+            final fun serializer(): kotlinx.serialization/KSerializer<io.github.kmpfacelink.interact.model/EffectParameter.ThrowEffect> // io.github.kmpfacelink.interact.model/EffectParameter.ThrowEffect.Companion.serializer|serializer(){}[0]
+        }
+    }
+
+    final object Companion : kotlinx.serialization.internal/SerializerFactory { // io.github.kmpfacelink.interact.model/EffectParameter.Companion|null[0]
+        final fun serializer(): kotlinx.serialization/KSerializer<io.github.kmpfacelink.interact.model/EffectParameter> // io.github.kmpfacelink.interact.model/EffectParameter.Companion.serializer|serializer(){}[0]
+        final fun serializer(kotlin/Array<out kotlinx.serialization/KSerializer<*>>...): kotlinx.serialization/KSerializer<*> // io.github.kmpfacelink.interact.model/EffectParameter.Companion.serializer|serializer(kotlin.Array<out|kotlinx.serialization.KSerializer<*>>...){}[0]
+    }
 }
 
 sealed class io.github.kmpfacelink.interact.model/StreamEvent { // io.github.kmpfacelink.interact.model/StreamEvent|null[0]

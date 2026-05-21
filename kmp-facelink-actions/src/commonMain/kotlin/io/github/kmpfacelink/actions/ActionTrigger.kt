@@ -51,4 +51,19 @@ public sealed class ActionTrigger {
             }
         }
     }
+
+    /**
+     * Triggers when a matching stream interaction event is received.
+     *
+     * Unlike [GestureTrigger] and [ExpressionTrigger] which are evaluated per-frame,
+     * stream event triggers are evaluated once when a [StreamEvent][io.github.kmpfacelink.interact.model.StreamEvent]
+     * is passed to [ActionSystem.processStreamEvent].
+     *
+     * @property eventType The type of stream event to match.
+     * @property filter Additional filter criteria (default: [StreamEventFilter.Any]).
+     */
+    public data class StreamEventTrigger(
+        val eventType: StreamEventType,
+        val filter: StreamEventFilter = StreamEventFilter.Any,
+    ) : ActionTrigger()
 }

@@ -35,7 +35,9 @@ import io.github.kmpfacelink.util.FaceLinkLogger
  *
  * @property enableFace Whether to enable face tracking
  * @property enableHand Whether to enable hand tracking
- * @property enableBody Whether to enable body tracking
+ * @property enableBody Whether to enable body tracking. Defaults to false because the
+ *           pose model file (~8 MB) is not bundled in the sample app by default.
+ *           Set to true only when the required model file is present in assets.
  * @property faceConfig Configuration for the face tracker (used when [enableFace] is true).
  *           **Note:** [cameraFacing], [thermalPolicy], and [inferenceDelegate] set on this
  *           config are ignored — the top-level values on [HolisticTrackerConfig] take precedence.
@@ -68,7 +70,7 @@ import io.github.kmpfacelink.util.FaceLinkLogger
 public data class HolisticTrackerConfig(
     val enableFace: Boolean = true,
     val enableHand: Boolean = true,
-    val enableBody: Boolean = true,
+    val enableBody: Boolean = false,
     val faceConfig: FaceTrackerConfig = FaceTrackerConfig(),
     val handConfig: HandTrackerConfig = HandTrackerConfig(),
     val bodyConfig: BodyTrackerConfig = BodyTrackerConfig(),

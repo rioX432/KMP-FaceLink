@@ -118,10 +118,19 @@ internal class CompositeHolisticTracker(
         }
 
         try {
-            // Start each tracker (initializes MediaPipe + registers ImageAnalysis with shared camera)
-            faceTracker?.start()
-            handTracker?.start()
-            bodyTracker?.start()
+            // Start each tracker individually; failures degrade gracefully
+            val failures = startSubTrackers()
+
+            if (failures.size == enabledModalities.size) {
+                // All enabled trackers failed — cannot proceed
+                val message = buildAllFailedMessage(failures)
+                FaceLinkLogger.e(TAG, message)
+                _errorMessage.value = message
+                _state.value = TrackingState.ERROR
+                return
+            }
+
+            logPartialFailures(failures)
 
             // Start the shared camera session (binds all registered ImageAnalysis use cases)
             sharedCamera.start(config.cameraFacing, config.analysisWidth, config.analysisHeight)
@@ -130,12 +139,64 @@ internal class CompositeHolisticTracker(
         } catch (e: kotlinx.coroutines.CancellationException) {
             throw e
         } catch (e: Exception) {
-            // Sub-tracker start() can throw various exceptions from MediaPipe/CameraX
-            // initialization; catch broadly to set error state before rethrowing
+            // Camera session or other unexpected failure
             FaceLinkLogger.e(TAG, "Failed to start holistic tracking", e)
             _errorMessage.value = e.message ?: e.toString()
             _state.value = TrackingState.ERROR
             throw e
+        }
+    }
+
+    /**
+     * Attempts to start each enabled sub-tracker, catching individual failures.
+     * Returns a list of (modality, exception) pairs for trackers that failed.
+     */
+    private suspend fun startSubTrackers(): List<Pair<TrackingModality, Exception>> {
+        val failures = mutableListOf<Pair<TrackingModality, Exception>>()
+        faceTracker?.let {
+            tryStartTracker(TrackingModality.FACE) { it.start() }?.let { failures.add(it) }
+        }
+        handTracker?.let {
+            tryStartTracker(TrackingModality.HAND) { it.start() }?.let { failures.add(it) }
+        }
+        bodyTracker?.let {
+            tryStartTracker(TrackingModality.BODY) { it.start() }?.let { failures.add(it) }
+        }
+        return failures
+    }
+
+    private suspend fun tryStartTracker(
+        modality: TrackingModality,
+        startAction: suspend () -> Unit,
+    ): Pair<TrackingModality, Exception>? {
+        return try {
+            startAction()
+            null
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            FaceLinkLogger.e(TAG, "$modality tracker failed to start", e)
+            modality to e
+        }
+    }
+
+    private fun buildAllFailedMessage(
+        failures: List<Pair<TrackingModality, Exception>>,
+    ): String {
+        val details = failures.joinToString("; ") { (mod, ex) ->
+            "$mod: ${ex.message ?: ex.toString()}"
+        }
+        return "All enabled trackers failed to start: $details"
+    }
+
+    private fun logPartialFailures(
+        failures: List<Pair<TrackingModality, Exception>>,
+    ) {
+        for ((modality, exception) in failures) {
+            FaceLinkLogger.w(
+                TAG,
+                "$modality tracker disabled: ${exception.message ?: exception.toString()}",
+            )
         }
     }
 

@@ -1,6 +1,8 @@
 package io.github.kmpfacelink.internal
 
 import android.graphics.Bitmap
+import android.os.Handler
+import android.os.Looper
 import android.os.SystemClock
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageAnalysis
@@ -11,7 +13,9 @@ import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.content.ContextCompat
 import io.github.kmpfacelink.api.PlatformContext
 import io.github.kmpfacelink.model.CameraFacing
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.withContext
 import java.util.concurrent.CancellationException
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ExecutionException
@@ -75,8 +79,6 @@ internal class SharedCameraSession(
             CameraFacing.BACK -> CameraSelector.DEFAULT_BACK_CAMERA
         }
 
-        provider.unbindAll()
-
         val preview = surfaceProvider?.let { sp ->
             Preview.Builder()
                 .setResolutionSelector(CameraXManager.buildPreviewResolutionSelector())
@@ -90,7 +92,11 @@ internal class SharedCameraSession(
             .build()
             .also { it.setAnalyzer(analysisExecutor, ::processFrame) }
 
-        bindUseCases(provider, cameraSelector, preview, imageAnalysis)
+        // CameraX unbindAll/bindToLifecycle require the main thread
+        withContext(Dispatchers.Main.immediate) {
+            provider.unbindAll()
+            bindUseCases(provider, cameraSelector, preview, imageAnalysis)
+        }
     }
 
     /**
@@ -153,8 +159,17 @@ internal class SharedCameraSession(
         )
     }
 
+    /**
+     * Unbinds all CameraX use cases, dispatching to the main thread if needed.
+     * Safe to call from any thread (including non-suspend release paths).
+     */
     fun stop() {
-        cameraProvider?.unbindAll()
+        val provider = cameraProvider ?: return
+        if (Looper.myLooper() == Looper.getMainLooper()) {
+            provider.unbindAll()
+        } else {
+            mainHandler.post { provider.unbindAll() }
+        }
     }
 
     fun release() {
@@ -181,4 +196,8 @@ internal class SharedCameraSession(
                 ContextCompat.getMainExecutor(platformContext.context),
             )
         }
+
+    private companion object {
+        private val mainHandler = Handler(Looper.getMainLooper())
+    }
 }

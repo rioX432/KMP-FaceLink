@@ -1,5 +1,7 @@
 package io.github.kmpfacelink.internal
 
+import android.os.Handler
+import android.os.Looper
 import android.util.Size
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageAnalysis
@@ -11,7 +13,9 @@ import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.content.ContextCompat
 import io.github.kmpfacelink.api.PlatformContext
 import io.github.kmpfacelink.model.CameraFacing
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.withContext
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 
@@ -33,6 +37,18 @@ internal class CameraXManager(
         val provider = getCameraProvider()
         cameraProvider = provider
 
+        // CameraX bindToLifecycle/unbindAll require the main thread
+        withContext(Dispatchers.Main.immediate) {
+            bindCamera(provider, cameraFacing, imageAnalysis, surfaceProvider)
+        }
+    }
+
+    private fun bindCamera(
+        provider: ProcessCameraProvider,
+        cameraFacing: CameraFacing,
+        imageAnalysis: ImageAnalysis,
+        surfaceProvider: Preview.SurfaceProvider?,
+    ) {
         val cameraSelector = when (cameraFacing) {
             CameraFacing.FRONT -> CameraSelector.DEFAULT_FRONT_CAMERA
             CameraFacing.BACK -> CameraSelector.DEFAULT_BACK_CAMERA
@@ -59,8 +75,17 @@ internal class CameraXManager(
         }
     }
 
+    /**
+     * Unbinds all CameraX use cases, dispatching to the main thread if needed.
+     * Safe to call from any thread (including non-suspend release paths).
+     */
     fun unbindAll() {
-        cameraProvider?.unbindAll()
+        val provider = cameraProvider ?: return
+        if (Looper.myLooper() == Looper.getMainLooper()) {
+            provider.unbindAll()
+        } else {
+            mainHandler.post { provider.unbindAll() }
+        }
     }
 
     private suspend fun getCameraProvider(): ProcessCameraProvider =
@@ -79,6 +104,8 @@ internal class CameraXManager(
         }
 
     companion object {
+        private val mainHandler = Handler(Looper.getMainLooper())
+
         private val previewResolutionSelector = ResolutionSelector.Builder()
             .setAspectRatioStrategy(AspectRatioStrategy.RATIO_4_3_FALLBACK_AUTO_STRATEGY)
             .build()

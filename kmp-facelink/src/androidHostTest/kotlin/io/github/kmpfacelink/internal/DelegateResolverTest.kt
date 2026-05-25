@@ -29,7 +29,8 @@ class DelegateResolverTest {
     }
 
     @Test
-    fun resolveAutoReturnsGpuThenCpuFallback() {
+    fun resolveAutoWithNoNpuReturnsGpuThenCpuFallback() {
+        // Under Robolectric, no NPU vendor is detected
         val chain = DelegateResolver.resolve(InferenceDelegate.AUTO)
 
         assertEquals(listOf(Delegate.GPU, Delegate.CPU), chain)
@@ -114,5 +115,74 @@ class DelegateResolverTest {
         }
 
         assertEquals("created-with-CPU", result)
+    }
+
+    // -- NPU-specific tests --
+
+    @Test
+    fun resolveNpuWithNoVendorChainEndsCpu() {
+        // Under Robolectric: no NPU vendor, chain falls back to GPU -> CPU
+        val chain = DelegateResolver.resolve(InferenceDelegate.NPU)
+
+        assertEquals(Delegate.CPU, chain.last())
+    }
+
+    @Test
+    fun resolveAutoWithNoVendorChainDoesNotContainNpu() {
+        // Under Robolectric: no NPU detected, AUTO should not include NPU
+        val chain = DelegateResolver.resolve(InferenceDelegate.AUTO)
+
+        assertTrue(
+            Delegate.NPU !in chain,
+            "AUTO chain should not include NPU when no vendor detected",
+        )
+    }
+
+    @Test
+    fun createWithFallbackNpuPreferenceFallsToGpuWhenNoVendor() {
+        // Under Robolectric: NPU preference with no vendor detected resolves to GPU -> CPU
+        val result = DelegateResolver.createWithFallback(InferenceDelegate.NPU) { delegate ->
+            "created-with-${delegate.name}"
+        }
+
+        // First in chain is GPU (since no NPU vendor found)
+        assertEquals("created-with-GPU", result)
+    }
+
+    @Test
+    fun createWithFallbackNpuPreferenceGpuFailsFallsToCpu() {
+        // NPU preference, no vendor: chain is GPU -> CPU, GPU fails
+        val result = DelegateResolver.createWithFallback(InferenceDelegate.NPU) { delegate ->
+            if (delegate == Delegate.GPU) {
+                throw RuntimeException("GPU not available")
+            }
+            "created-with-${delegate.name}"
+        }
+
+        assertEquals("created-with-CPU", result)
+    }
+
+    @Test
+    fun createWithFallbackAutoGpuFailsFallsToCpu() {
+        // AUTO mode without NPU: chain is GPU -> CPU, GPU fails
+        val result = DelegateResolver.createWithFallback(InferenceDelegate.AUTO) { delegate ->
+            if (delegate == Delegate.GPU) {
+                throw RuntimeException("GPU not available")
+            }
+            "created-with-${delegate.name}"
+        }
+
+        assertEquals("created-with-CPU", result)
+    }
+
+    @Test
+    fun createWithFallbackNpuPreferenceAllFailThrowsLast() {
+        val exception = assertFailsWith<RuntimeException> {
+            DelegateResolver.createWithFallback(InferenceDelegate.NPU) { delegate ->
+                throw RuntimeException("${delegate.name} failed")
+            }
+        }
+
+        assertTrue(exception.message?.contains("CPU") == true)
     }
 }

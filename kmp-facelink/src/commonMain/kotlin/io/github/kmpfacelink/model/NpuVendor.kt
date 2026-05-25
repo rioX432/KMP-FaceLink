@@ -8,6 +8,7 @@ package io.github.kmpfacelink.model
  *
  * - [QUALCOMM]: Qualcomm QNN / AI Engine Direct (Snapdragon 8 Gen 1+, 7 Gen 3+)
  * - [MEDIATEK]: MediaTek NeuroPilot (Dimensity 7300+)
+ * - [GOOGLE_TENSOR]: Google AICore (Tensor G3+)
  * - [NONE]: No supported NPU vendor detected, or not on Android
  */
 public enum class NpuVendor {
@@ -16,6 +17,9 @@ public enum class NpuVendor {
 
     /** MediaTek NeuroPilot runtime. */
     MEDIATEK,
+
+    /** Google AICore runtime (Tensor G3, G4). */
+    GOOGLE_TENSOR,
 
     /** No supported NPU vendor detected. */
     NONE,

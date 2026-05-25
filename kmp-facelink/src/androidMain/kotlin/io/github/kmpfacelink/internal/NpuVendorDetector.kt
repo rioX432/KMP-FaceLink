@@ -12,6 +12,7 @@ private const val TAG = "NpuVendorDetector"
  * Supports:
  * - **Qualcomm**: Snapdragon SoCs with QNN / AI Engine Direct (8 Gen 1+, 7 Gen 3+)
  * - **MediaTek**: Dimensity SoCs with NeuroPilot (7300+)
+ * - **Google Tensor**: Tensor G3+ SoCs with Google AICore
  *
  * Detection uses [Build.HARDWARE] and [Build.SOC_MODEL] (API 31+) to identify
  * the chipset vendor. This does not guarantee that the LiteRT vendor delegate
@@ -40,6 +41,9 @@ internal object NpuVendorDetector {
         // MediaTek SoCs typically have "mt" prefix in hardware string
         if (isMediaTek(hardware)) return NpuVendor.MEDIATEK
 
+        // Google Tensor SoCs use "gs" prefix (gs101, gs201, gs301, zuma, etc.)
+        if (isGoogleTensor(hardware)) return NpuVendor.GOOGLE_TENSOR
+
         // API 31+ provides explicit SoC model info
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             return detectFromSocModel()
@@ -53,6 +57,7 @@ internal object NpuVendorDetector {
         return when {
             socModel.contains("sm") || socModel.contains("qcom") -> NpuVendor.QUALCOMM
             socModel.contains("mt") || socModel.contains("dimensity") -> NpuVendor.MEDIATEK
+            socModel.contains("tensor") -> NpuVendor.GOOGLE_TENSOR
             else -> NpuVendor.NONE
         }
     }
@@ -62,4 +67,7 @@ internal object NpuVendorDetector {
 
     internal fun isMediaTek(hardware: String): Boolean =
         hardware.startsWith("mt") || hardware.contains("mediatek")
+
+    internal fun isGoogleTensor(hardware: String): Boolean =
+        hardware.startsWith("gs") || hardware.contains("zuma") || hardware.contains("tensor")
 }

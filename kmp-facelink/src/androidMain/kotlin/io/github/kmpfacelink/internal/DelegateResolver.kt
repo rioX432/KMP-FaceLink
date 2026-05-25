@@ -19,16 +19,38 @@ internal object DelegateResolver {
     /**
      * Returns an ordered fallback chain of [Delegate] values for the given [InferenceDelegate].
      *
-     * - [InferenceDelegate.AUTO] / [InferenceDelegate.GPU]: GPU -> CPU
+     * - [InferenceDelegate.AUTO]: NPU -> GPU -> CPU (if NPU detected), GPU -> CPU (otherwise)
+     * - [InferenceDelegate.GPU]: GPU -> CPU
      * - [InferenceDelegate.NPU]: NPU -> GPU -> CPU (on supported devices)
      * - [InferenceDelegate.CPU]: CPU only
      */
     fun resolve(preference: InferenceDelegate): List<Delegate> {
         return when (preference) {
-            InferenceDelegate.AUTO -> listOf(Delegate.GPU, Delegate.CPU)
+            InferenceDelegate.AUTO -> resolveAuto()
             InferenceDelegate.GPU -> listOf(Delegate.GPU, Delegate.CPU)
             InferenceDelegate.CPU -> listOf(Delegate.CPU)
             InferenceDelegate.NPU -> resolveNpu()
+        }
+    }
+
+    /**
+     * Resolves the AUTO delegate preference.
+     *
+     * Auto-detects the device's NPU vendor and includes [Delegate.NPU] in the
+     * fallback chain when a supported NPU is available. Otherwise falls back
+     * to GPU -> CPU.
+     */
+    private fun resolveAuto(): List<Delegate> {
+        val vendor = NpuVendorDetector.detect()
+        return if (vendor != NpuVendor.NONE) {
+            FaceLinkLogger.d(
+                TAG,
+                "AUTO mode — $vendor NPU detected. Chain: NPU -> GPU -> CPU.",
+            )
+            listOf(Delegate.NPU, Delegate.GPU, Delegate.CPU)
+        } else {
+            FaceLinkLogger.d(TAG, "AUTO mode — no NPU detected. Chain: GPU -> CPU.")
+            listOf(Delegate.GPU, Delegate.CPU)
         }
     }
 
@@ -87,18 +109,36 @@ internal object DelegateResolver {
         for (delegate in chain) {
             try {
                 val result = factory(delegate)
-                if (delegate != chain.first()) {
-                    FaceLinkLogger.w(TAG, "Using ${delegate.name} delegate (fallback from ${chain.first().name})")
-                } else {
-                    FaceLinkLogger.d(TAG, "Using ${delegate.name} delegate")
-                }
+                logDelegateSuccess(delegate, chain)
                 return result
             } catch (@Suppress("TooGenericExceptionCaught") e: RuntimeException) {
-                FaceLinkLogger.w(TAG, "${delegate.name} delegate failed", e)
+                logDelegateFailure(delegate, e)
                 lastException = e
             }
         }
 
         throw lastException ?: RuntimeException("No delegates available for $preference")
+    }
+
+    private fun logDelegateSuccess(delegate: Delegate, chain: List<Delegate>) {
+        if (delegate == Delegate.NPU) {
+            val vendor = NpuVendorDetector.detect()
+            FaceLinkLogger.d(TAG, "NPU delegate activated: vendor=$vendor")
+        } else if (delegate != chain.first()) {
+            FaceLinkLogger.w(
+                TAG,
+                "Using ${delegate.name} delegate (fallback from ${chain.first().name})",
+            )
+        } else {
+            FaceLinkLogger.d(TAG, "Using ${delegate.name} delegate")
+        }
+    }
+
+    private fun logDelegateFailure(delegate: Delegate, e: RuntimeException) {
+        if (delegate == Delegate.NPU) {
+            FaceLinkLogger.w(TAG, "NPU delegate failed, falling back to GPU", e)
+        } else {
+            FaceLinkLogger.w(TAG, "${delegate.name} delegate failed", e)
+        }
     }
 }

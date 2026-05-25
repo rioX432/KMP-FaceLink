@@ -940,6 +940,7 @@ public final class io/github/kmpfacelink/model/LiftingStrategy : java/lang/Enum 
 }
 
 public final class io/github/kmpfacelink/model/NpuVendor : java/lang/Enum {
+	public static final field GOOGLE_TENSOR Lio/github/kmpfacelink/model/NpuVendor;
 	public static final field MEDIATEK Lio/github/kmpfacelink/model/NpuVendor;
 	public static final field NONE Lio/github/kmpfacelink/model/NpuVendor;
 	public static final field QUALCOMM Lio/github/kmpfacelink/model/NpuVendor;

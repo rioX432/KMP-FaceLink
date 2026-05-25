@@ -296,6 +296,7 @@ final enum class io.github.kmpfacelink.model/LiftingStrategy : kotlin/Enum<io.gi
 }
 
 final enum class io.github.kmpfacelink.model/NpuVendor : kotlin/Enum<io.github.kmpfacelink.model/NpuVendor> { // io.github.kmpfacelink.model/NpuVendor|null[0]
+    enum entry GOOGLE_TENSOR // io.github.kmpfacelink.model/NpuVendor.GOOGLE_TENSOR|null[0]
     enum entry MEDIATEK // io.github.kmpfacelink.model/NpuVendor.MEDIATEK|null[0]
     enum entry NONE // io.github.kmpfacelink.model/NpuVendor.NONE|null[0]
     enum entry QUALCOMM // io.github.kmpfacelink.model/NpuVendor.QUALCOMM|null[0]

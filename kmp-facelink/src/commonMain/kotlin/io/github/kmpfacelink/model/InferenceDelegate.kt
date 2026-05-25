@@ -19,11 +19,11 @@ package io.github.kmpfacelink.model
  */
 public enum class InferenceDelegate {
     /**
-     * Automatic delegate selection with fallback chain: GPU → CPU.
+     * Automatic delegate selection with best-available acceleration.
      *
-     * This is the default and matches the existing behavior.
-     * On Android, the tracker first attempts GPU inference; if the GPU delegate
-     * is unavailable (e.g. missing OpenGL ES 3.1+), it transparently falls back to CPU.
+     * This is the default. On Android, the tracker auto-detects NPU hardware and
+     * includes NPU at the head of the fallback chain when supported
+     * (NPU → GPU → CPU). If no NPU is detected, falls back to GPU → CPU.
      */
     AUTO,
 
@@ -45,6 +45,7 @@ public enum class InferenceDelegate {
      * runtime is available:
      * - **Qualcomm**: QNN / AI Engine Direct (Snapdragon 8 Gen 1+, 7 Gen 3+)
      * - **MediaTek**: NeuroPilot (Dimensity 7300+)
+     * - **Google Tensor**: AICore (Tensor G3+)
      *
      * Falls back to GPU → CPU when the NPU delegate is unavailable or fails to
      * initialize. NPU inference provides significant power efficiency gains (3-5x

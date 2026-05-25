@@ -76,6 +76,63 @@ class NpuVendorDetectorTest {
         assertFalse(NpuVendorDetector.isMediaTek("amt123"))
     }
 
+    // -- isGoogleTensor tests --
+
+    @Test
+    fun isGoogleTensorDetectsGsPrefix() {
+        assertTrue(NpuVendorDetector.isGoogleTensor("gs101"))
+    }
+
+    @Test
+    fun isGoogleTensorDetectsGs201() {
+        assertTrue(NpuVendorDetector.isGoogleTensor("gs201"))
+    }
+
+    @Test
+    fun isGoogleTensorDetectsGs301() {
+        assertTrue(NpuVendorDetector.isGoogleTensor("gs301"))
+    }
+
+    @Test
+    fun isGoogleTensorDetectsZuma() {
+        assertTrue(NpuVendorDetector.isGoogleTensor("zuma"))
+    }
+
+    @Test
+    fun isGoogleTensorDetectsZumaB4() {
+        assertTrue(NpuVendorDetector.isGoogleTensor("zuma_b4"))
+    }
+
+    @Test
+    fun isGoogleTensorDetectsTensorString() {
+        assertTrue(NpuVendorDetector.isGoogleTensor("tensor"))
+    }
+
+    @Test
+    fun isGoogleTensorDetectsTensorContained() {
+        assertTrue(NpuVendorDetector.isGoogleTensor("google_tensor_g4"))
+    }
+
+    @Test
+    fun isGoogleTensorReturnsFalseForQualcomm() {
+        assertFalse(NpuVendorDetector.isGoogleTensor("qcom"))
+    }
+
+    @Test
+    fun isGoogleTensorReturnsFalseForMediaTek() {
+        assertFalse(NpuVendorDetector.isGoogleTensor("mt6893"))
+    }
+
+    @Test
+    fun isGoogleTensorReturnsFalseForEmpty() {
+        assertFalse(NpuVendorDetector.isGoogleTensor(""))
+    }
+
+    @Test
+    fun isGoogleTensorReturnsFalseForExynos() {
+        assertFalse(NpuVendorDetector.isGoogleTensor("exynos"))
+    }
+
     // detect() depends on android.os.Build which requires Robolectric shadow setup.
-    // The pure string-matching logic (isQualcomm/isMediaTek) is tested above.
+    // The pure string-matching logic (isQualcomm/isMediaTek/isGoogleTensor) is tested above.
 }

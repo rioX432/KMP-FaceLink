@@ -17,8 +17,10 @@ import io.github.kmpfacelink.model.TrackedBody
 import io.github.kmpfacelink.util.BodyLandmarkSmoother
 import io.github.kmpfacelink.util.FaceLinkLogger
 import io.github.kmpfacelink.util.FrameThrottler
+import io.github.kmpfacelink.util.PoseLiftingStrategy
 import io.github.kmpfacelink.util.PowerModeManager
 import io.github.kmpfacelink.util.createBodySmoother
+import io.github.kmpfacelink.util.createLiftingStrategy
 import io.github.kmpfacelink.util.createSmoother
 import io.github.kmpfacelink.util.withLock
 import kotlin.concurrent.atomics.ExperimentalAtomicApi
@@ -44,6 +46,7 @@ internal class MediaPipeBodyTracker(
     PreviewableBodyTracker {
 
     private var smoother: BodyLandmarkSmoother? = config.createSmoother()
+    private val poseLiftingStrategy: PoseLiftingStrategy? = config.body3DConfig.createLiftingStrategy()
     private var poseLandmarker: PoseLandmarker? = null
 
     private val batteryMonitor = AndroidBatteryMonitor(platformContext.context)
@@ -174,7 +177,10 @@ internal class MediaPipeBodyTracker(
         var bodies = mutableListOf<TrackedBody>()
 
         for (i in result.landmarks().indices) {
-            val landmarks = BodyLandmarkMapper.mapLandmarks(result.landmarks()[i])
+            var landmarks = BodyLandmarkMapper.mapLandmarks(result.landmarks()[i])
+            if (poseLiftingStrategy != null) {
+                landmarks = poseLiftingStrategy.estimateDepth(landmarks)
+            }
             bodies.add(TrackedBody(landmarks = landmarks))
         }
 

@@ -13,8 +13,10 @@ import io.github.kmpfacelink.model.SmoothingConfig
 import io.github.kmpfacelink.model.TrackedBody
 import io.github.kmpfacelink.util.BodyLandmarkSmoother
 import io.github.kmpfacelink.util.FrameThrottler
+import io.github.kmpfacelink.util.PoseLiftingStrategy
 import io.github.kmpfacelink.util.PowerModeManager
 import io.github.kmpfacelink.util.createBodySmoother
+import io.github.kmpfacelink.util.createLiftingStrategy
 import io.github.kmpfacelink.util.createSmoother
 import io.github.kmpfacelink.util.withLock
 import platform.CoreMedia.CMSampleBufferGetImageBuffer
@@ -39,6 +41,7 @@ internal class VisionBodyTracker(
     BodyTracker {
 
     private var smoother: BodyLandmarkSmoother? = config.createSmoother()
+    private val poseLiftingStrategy: PoseLiftingStrategy? = config.body3DConfig.createLiftingStrategy()
     private val bodyPoseRequest = VNDetectHumanBodyPoseRequest()
     private val sequenceHandler = VNSequenceRequestHandler()
 
@@ -109,7 +112,9 @@ internal class VisionBodyTracker(
         val observations = detectBodies(pixelBuffer, timestampMs) ?: return
 
         var bodies = observations.map { observation ->
-            TrackedBody(landmarks = VisionBodyLandmarkMapper.mapLandmarks(observation))
+            val landmarks = VisionBodyLandmarkMapper.mapLandmarks(observation)
+            val liftedLandmarks = poseLiftingStrategy?.estimateDepth(landmarks) ?: landmarks
+            TrackedBody(landmarks = liftedLandmarks)
         }
 
         // Apply smoothing (protected by lock)

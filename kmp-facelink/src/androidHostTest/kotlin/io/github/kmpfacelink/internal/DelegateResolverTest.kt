@@ -36,8 +36,9 @@ class DelegateResolverTest {
     }
 
     @Test
-    fun resolveNpuReturnsGpuThenCpuFallback() {
-        // NPU is not yet supported by MediaPipe, so it falls back to GPU -> CPU
+    fun resolveNpuWithNoVendorDetectedFallsBackToGpuCpu() {
+        // Under Robolectric, NpuVendorDetector returns NONE (no NPU hardware)
+        // so the chain falls back to GPU -> CPU
         val chain = DelegateResolver.resolve(InferenceDelegate.NPU)
 
         assertEquals(listOf(Delegate.GPU, Delegate.CPU), chain)

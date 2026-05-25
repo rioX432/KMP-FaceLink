@@ -135,6 +135,14 @@ final class io.github.kmpfacelink.actions.effect/EffectBinding { // io.github.km
     final fun toString(): kotlin/String // io.github.kmpfacelink.actions.effect/EffectBinding.toString|toString(){}[0]
 }
 
+final class io.github.kmpfacelink.actions.effect/EffectBindingBuilder { // io.github.kmpfacelink.actions.effect/EffectBindingBuilder|null[0]
+    constructor <init>() // io.github.kmpfacelink.actions.effect/EffectBindingBuilder.<init>|<init>(){}[0]
+
+    final fun onExpression(io.github.kmpfacelink.model/BlendShape, kotlin/Float = ..., io.github.kmpfacelink.actions/ThresholdDirection = ..., kotlin/Function1<io.github.kmpfacelink.actions.effect/EffectDeclarationScope, kotlin/Unit>) // io.github.kmpfacelink.actions.effect/EffectBindingBuilder.onExpression|onExpression(io.github.kmpfacelink.model.BlendShape;kotlin.Float;io.github.kmpfacelink.actions.ThresholdDirection;kotlin.Function1<io.github.kmpfacelink.actions.effect.EffectDeclarationScope,kotlin.Unit>){}[0]
+    final fun onGesture(io.github.kmpfacelink.model/HandGesture, io.github.kmpfacelink.model/Handedness? = ..., kotlin/Float = ..., kotlin/Function1<io.github.kmpfacelink.actions.effect/EffectDeclarationScope, kotlin/Unit>) // io.github.kmpfacelink.actions.effect/EffectBindingBuilder.onGesture|onGesture(io.github.kmpfacelink.model.HandGesture;io.github.kmpfacelink.model.Handedness?;kotlin.Float;kotlin.Function1<io.github.kmpfacelink.actions.effect.EffectDeclarationScope,kotlin.Unit>){}[0]
+    final fun onStreamEvent(io.github.kmpfacelink.actions/StreamEventType, io.github.kmpfacelink.actions/StreamEventFilter = ..., kotlin/Function1<io.github.kmpfacelink.actions.effect/EffectDeclarationScope, kotlin/Unit>) // io.github.kmpfacelink.actions.effect/EffectBindingBuilder.onStreamEvent|onStreamEvent(io.github.kmpfacelink.actions.StreamEventType;io.github.kmpfacelink.actions.StreamEventFilter;kotlin.Function1<io.github.kmpfacelink.actions.effect.EffectDeclarationScope,kotlin.Unit>){}[0]
+}
+
 final class io.github.kmpfacelink.actions.effect/EffectBindingEngine { // io.github.kmpfacelink.actions.effect/EffectBindingEngine|null[0]
     constructor <init>(io.github.kmpfacelink.actions/ActionSystem) // io.github.kmpfacelink.actions.effect/EffectBindingEngine.<init>|<init>(io.github.kmpfacelink.actions.ActionSystem){}[0]
 
@@ -145,8 +153,22 @@ final class io.github.kmpfacelink.actions.effect/EffectBindingEngine { // io.git
     final suspend fun bind(io.github.kmpfacelink.actions.effect/EffectBinding) // io.github.kmpfacelink.actions.effect/EffectBindingEngine.bind|bind(io.github.kmpfacelink.actions.effect.EffectBinding){}[0]
     final suspend fun clear() // io.github.kmpfacelink.actions.effect/EffectBindingEngine.clear|clear(){}[0]
     final suspend fun register(io.github.kmpfacelink.actions.effect/EffectBinding) // io.github.kmpfacelink.actions.effect/EffectBindingEngine.register|register(io.github.kmpfacelink.actions.effect.EffectBinding){}[0]
+    final suspend fun registerAll(kotlin.collections/List<io.github.kmpfacelink.actions.effect/EffectBinding>) // io.github.kmpfacelink.actions.effect/EffectBindingEngine.registerAll|registerAll(kotlin.collections.List<io.github.kmpfacelink.actions.effect.EffectBinding>){}[0]
     final suspend fun unbind(kotlin/String) // io.github.kmpfacelink.actions.effect/EffectBindingEngine.unbind|unbind(kotlin.String){}[0]
     final suspend fun unregister(kotlin/String): kotlin/Boolean // io.github.kmpfacelink.actions.effect/EffectBindingEngine.unregister|unregister(kotlin.String){}[0]
+}
+
+final class io.github.kmpfacelink.actions.effect/EffectDeclarationScope { // io.github.kmpfacelink.actions.effect/EffectDeclarationScope|null[0]
+    constructor <init>(kotlin/String) // io.github.kmpfacelink.actions.effect/EffectDeclarationScope.<init>|<init>(kotlin.String){}[0]
+
+    final fun blendMode(io.github.kmpfacelink.actions.effect/EffectBlendMode) // io.github.kmpfacelink.actions.effect/EffectDeclarationScope.blendMode|blendMode(io.github.kmpfacelink.actions.effect.EffectBlendMode){}[0]
+    final fun cooldown(kotlin/Long) // io.github.kmpfacelink.actions.effect/EffectDeclarationScope.cooldown|cooldown(kotlin.Long){}[0]
+    final fun debounce(kotlin/Long) // io.github.kmpfacelink.actions.effect/EffectDeclarationScope.debounce|debounce(kotlin.Long){}[0]
+    final fun emit(io.github.kmpfacelink.interact.model/EffectParameter) // io.github.kmpfacelink.actions.effect/EffectDeclarationScope.emit|emit(io.github.kmpfacelink.interact.model.EffectParameter){}[0]
+    final fun lifecycle(io.github.kmpfacelink.actions.effect/EffectLifecycleMode) // io.github.kmpfacelink.actions.effect/EffectDeclarationScope.lifecycle|lifecycle(io.github.kmpfacelink.actions.effect.EffectLifecycleMode){}[0]
+    final fun maxConcurrent(kotlin/Int) // io.github.kmpfacelink.actions.effect/EffectDeclarationScope.maxConcurrent|maxConcurrent(kotlin.Int){}[0]
+    final fun priority(kotlin/Int) // io.github.kmpfacelink.actions.effect/EffectDeclarationScope.priority|priority(kotlin.Int){}[0]
+    final fun scaleWithDuration(kotlin/Long = ...) // io.github.kmpfacelink.actions.effect/EffectDeclarationScope.scaleWithDuration|scaleWithDuration(kotlin.Long){}[0]
 }
 
 final class io.github.kmpfacelink.actions.effect/EffectEmission { // io.github.kmpfacelink.actions.effect/EffectEmission|null[0]
@@ -729,6 +751,12 @@ sealed class io.github.kmpfacelink.actions/StreamEventFilter { // io.github.kmpf
     }
 }
 
+final object io.github.kmpfacelink.actions.effect/BuiltInEffectBindings { // io.github.kmpfacelink.actions.effect/BuiltInEffectBindings|null[0]
+    final fun celebrationPack(): kotlin.collections/List<io.github.kmpfacelink.actions.effect/EffectBinding> // io.github.kmpfacelink.actions.effect/BuiltInEffectBindings.celebrationPack|celebrationPack(){}[0]
+    final fun expressionPack(): kotlin.collections/List<io.github.kmpfacelink.actions.effect/EffectBinding> // io.github.kmpfacelink.actions.effect/BuiltInEffectBindings.expressionPack|expressionPack(){}[0]
+    final fun streamPack(): kotlin.collections/List<io.github.kmpfacelink.actions.effect/EffectBinding> // io.github.kmpfacelink.actions.effect/BuiltInEffectBindings.streamPack|streamPack(){}[0]
+}
+
 final object io.github.kmpfacelink.actions/DefaultStreamBindings { // io.github.kmpfacelink.actions/DefaultStreamBindings|null[0]
     final fun channelPointExpression(kotlin/String, kotlin.collections/Map<io.github.kmpfacelink.model/BlendShape, kotlin/Float>): io.github.kmpfacelink.actions/ActionBinding // io.github.kmpfacelink.actions/DefaultStreamBindings.channelPointExpression|channelPointExpression(kotlin.String;kotlin.collections.Map<io.github.kmpfacelink.model.BlendShape,kotlin.Float>){}[0]
     final fun giftThrow(kotlin/Double = ...): io.github.kmpfacelink.actions/ActionBinding // io.github.kmpfacelink.actions/DefaultStreamBindings.giftThrow|giftThrow(kotlin.Double){}[0]
@@ -745,6 +773,7 @@ final fun (kotlinx.coroutines.flow/Flow<io.github.kmpfacelink.model/FaceTracking
 final fun (kotlinx.coroutines.flow/Flow<io.github.kmpfacelink.model/FaceTrackingData>).io.github.kmpfacelink.actions.record/record(io.github.kmpfacelink.actions.record/TrackingRecorder): kotlinx.coroutines.flow/Flow<io.github.kmpfacelink.model/FaceTrackingData> // io.github.kmpfacelink.actions.record/record|record@kotlinx.coroutines.flow.Flow<io.github.kmpfacelink.model.FaceTrackingData>(io.github.kmpfacelink.actions.record.TrackingRecorder){}[0]
 final fun (kotlinx.coroutines.flow/Flow<io.github.kmpfacelink.model/FaceTrackingData>).io.github.kmpfacelink.actions/feedActions(io.github.kmpfacelink.actions/ActionSystem): kotlinx.coroutines.flow/Flow<io.github.kmpfacelink.model/FaceTrackingData> // io.github.kmpfacelink.actions/feedActions|feedActions@kotlinx.coroutines.flow.Flow<io.github.kmpfacelink.model.FaceTrackingData>(io.github.kmpfacelink.actions.ActionSystem){}[0]
 final fun (kotlinx.coroutines.flow/Flow<io.github.kmpfacelink.model/HandTrackingData>).io.github.kmpfacelink.actions/feedActions(io.github.kmpfacelink.actions/ActionSystem): kotlinx.coroutines.flow/Flow<io.github.kmpfacelink.model/HandTrackingData> // io.github.kmpfacelink.actions/feedActions|feedActions@kotlinx.coroutines.flow.Flow<io.github.kmpfacelink.model.HandTrackingData>(io.github.kmpfacelink.actions.ActionSystem){}[0]
+final fun io.github.kmpfacelink.actions.effect/effectBindings(kotlin/Function1<io.github.kmpfacelink.actions.effect/EffectBindingBuilder, kotlin/Unit>): kotlin.collections/List<io.github.kmpfacelink.actions.effect/EffectBinding> // io.github.kmpfacelink.actions.effect/effectBindings|effectBindings(kotlin.Function1<io.github.kmpfacelink.actions.effect.EffectBindingBuilder,kotlin.Unit>){}[0]
 final fun io.github.kmpfacelink.actions.emotion/angryTrigger(kotlin/Float = ..., kotlin/Float = ...): io.github.kmpfacelink.actions/ActionTrigger // io.github.kmpfacelink.actions.emotion/angryTrigger|angryTrigger(kotlin.Float;kotlin.Float){}[0]
 final fun io.github.kmpfacelink.actions.emotion/disgustedTrigger(kotlin/Float = ..., kotlin/Float = ...): io.github.kmpfacelink.actions/ActionTrigger // io.github.kmpfacelink.actions.emotion/disgustedTrigger|disgustedTrigger(kotlin.Float;kotlin.Float){}[0]
 final fun io.github.kmpfacelink.actions.emotion/fearTrigger(kotlin/Float = ..., kotlin/Float = ..., kotlin/Float = ..., kotlin/Float = ...): io.github.kmpfacelink.actions/ActionTrigger // io.github.kmpfacelink.actions.emotion/fearTrigger|fearTrigger(kotlin.Float;kotlin.Float;kotlin.Float;kotlin.Float){}[0]

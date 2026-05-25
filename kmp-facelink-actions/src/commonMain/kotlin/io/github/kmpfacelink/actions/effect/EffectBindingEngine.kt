@@ -30,6 +30,7 @@ internal data class ActiveEffect(
  *
  * @property actionSystem The action system whose events drive effect emission.
  */
+@Suppress("TooManyFunctions") // Engine class aggregates registration + event processing + blend logic
 public class EffectBindingEngine(
     private val actionSystem: ActionSystem,
 ) {
@@ -57,6 +58,13 @@ public class EffectBindingEngine(
             if (binding.bindingId !in activeEffects) {
                 activeEffects[binding.bindingId] = mutableListOf()
             }
+        }
+    }
+
+    /** Register multiple [EffectBinding]s at once. */
+    public suspend fun registerAll(bindings: List<EffectBinding>) {
+        for (binding in bindings) {
+            register(binding)
         }
     }
 

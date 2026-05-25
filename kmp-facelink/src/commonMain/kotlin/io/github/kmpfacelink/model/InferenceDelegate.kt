@@ -19,11 +19,11 @@ package io.github.kmpfacelink.model
  */
 public enum class InferenceDelegate {
     /**
-     * Automatic delegate selection with best-available acceleration.
+     * Automatic delegate selection (GPU �� CPU).
      *
-     * This is the default. On Android, the tracker auto-detects NPU hardware and
-     * includes NPU at the head of the fallback chain when supported
-     * (NPU → GPU → CPU). If no NPU is detected, falls back to GPU → CPU.
+     * This is the default. Uses GPU with CPU fallback for maximum compatibility.
+     * NPU is NOT auto-activated — use [NPU] explicitly to opt in to hardware
+     * neural acceleration.
      */
     AUTO,
 

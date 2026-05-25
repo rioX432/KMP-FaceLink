@@ -19,9 +19,9 @@ internal object DelegateResolver {
     /**
      * Returns an ordered fallback chain of [Delegate] values for the given [InferenceDelegate].
      *
-     * - [InferenceDelegate.AUTO]: NPU -> GPU -> CPU (if NPU detected), GPU -> CPU (otherwise)
+     * - [InferenceDelegate.AUTO]: GPU -> CPU (conservative default; opt in to NPU explicitly)
      * - [InferenceDelegate.GPU]: GPU -> CPU
-     * - [InferenceDelegate.NPU]: NPU -> GPU -> CPU (on supported devices)
+     * - [InferenceDelegate.NPU]: NPU -> GPU -> CPU (on supported devices, explicit opt-in)
      * - [InferenceDelegate.CPU]: CPU only
      */
     fun resolve(preference: InferenceDelegate): List<Delegate> {
@@ -36,22 +36,12 @@ internal object DelegateResolver {
     /**
      * Resolves the AUTO delegate preference.
      *
-     * Auto-detects the device's NPU vendor and includes [Delegate.NPU] in the
-     * fallback chain when a supported NPU is available. Otherwise falls back
-     * to GPU -> CPU.
+     * Uses GPU -> CPU as the conservative default to avoid unexpected behavior
+     * changes on NPU-equipped devices. Users who want NPU acceleration should
+     * explicitly set [InferenceDelegate.NPU].
      */
     private fun resolveAuto(): List<Delegate> {
-        val vendor = NpuVendorDetector.detect()
-        return if (vendor != NpuVendor.NONE) {
-            FaceLinkLogger.d(
-                TAG,
-                "AUTO mode — $vendor NPU detected. Chain: NPU -> GPU -> CPU.",
-            )
-            listOf(Delegate.NPU, Delegate.GPU, Delegate.CPU)
-        } else {
-            FaceLinkLogger.d(TAG, "AUTO mode — no NPU detected. Chain: GPU -> CPU.")
-            listOf(Delegate.GPU, Delegate.CPU)
-        }
+        return listOf(Delegate.GPU, Delegate.CPU)
     }
 
     /**

@@ -135,6 +135,20 @@ final class io.github.kmpfacelink.actions.effect/EffectBinding { // io.github.km
     final fun toString(): kotlin/String // io.github.kmpfacelink.actions.effect/EffectBinding.toString|toString(){}[0]
 }
 
+final class io.github.kmpfacelink.actions.effect/EffectBindingEngine { // io.github.kmpfacelink.actions.effect/EffectBindingEngine|null[0]
+    constructor <init>(io.github.kmpfacelink.actions/ActionSystem) // io.github.kmpfacelink.actions.effect/EffectBindingEngine.<init>|<init>(io.github.kmpfacelink.actions.ActionSystem){}[0]
+
+    final val effects // io.github.kmpfacelink.actions.effect/EffectBindingEngine.effects|{}effects[0]
+        final fun <get-effects>(): kotlinx.coroutines.flow/Flow<io.github.kmpfacelink.actions.effect/EffectEmission> // io.github.kmpfacelink.actions.effect/EffectBindingEngine.effects.<get-effects>|<get-effects>(){}[0]
+
+    final fun processedEvents(): kotlinx.coroutines.flow/Flow<io.github.kmpfacelink.actions/ActionEvent> // io.github.kmpfacelink.actions.effect/EffectBindingEngine.processedEvents|processedEvents(){}[0]
+    final suspend fun bind(io.github.kmpfacelink.actions.effect/EffectBinding) // io.github.kmpfacelink.actions.effect/EffectBindingEngine.bind|bind(io.github.kmpfacelink.actions.effect.EffectBinding){}[0]
+    final suspend fun clear() // io.github.kmpfacelink.actions.effect/EffectBindingEngine.clear|clear(){}[0]
+    final suspend fun register(io.github.kmpfacelink.actions.effect/EffectBinding) // io.github.kmpfacelink.actions.effect/EffectBindingEngine.register|register(io.github.kmpfacelink.actions.effect.EffectBinding){}[0]
+    final suspend fun unbind(kotlin/String) // io.github.kmpfacelink.actions.effect/EffectBindingEngine.unbind|unbind(kotlin.String){}[0]
+    final suspend fun unregister(kotlin/String): kotlin/Boolean // io.github.kmpfacelink.actions.effect/EffectBindingEngine.unregister|unregister(kotlin.String){}[0]
+}
+
 final class io.github.kmpfacelink.actions.effect/EffectEmission { // io.github.kmpfacelink.actions.effect/EffectEmission|null[0]
     constructor <init>(kotlin/String, io.github.kmpfacelink.interact.model/EffectParameter, kotlin/Long, io.github.kmpfacelink.actions.effect/EmissionState) // io.github.kmpfacelink.actions.effect/EffectEmission.<init>|<init>(kotlin.String;io.github.kmpfacelink.interact.model.EffectParameter;kotlin.Long;io.github.kmpfacelink.actions.effect.EmissionState){}[0]
 

@@ -4,7 +4,7 @@
 [![Maven Central](https://img.shields.io/maven-central/v/com.anotherball/kmp-facelink)](https://central.sonatype.com/namespace/com.anotherball)
 [![Kotlin](https://img.shields.io/badge/Kotlin-2.3.10-7F52FF.svg?logo=kotlin)](https://kotlinlang.org)
 [![Platforms](https://img.shields.io/badge/Platforms-Android%20%7C%20iOS%20%7C%20JVM%20%7C%20Wasm-blue)](https://kotlinlang.org/docs/multiplatform.html)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![API Docs](https://img.shields.io/badge/API%20Docs-Dokka-blue)](https://anotherball.github.io/KMP-FaceLink/)
 [![Coverage](https://img.shields.io/badge/Coverage-Report-brightgreen)](https://github.com/AnotherBall/KMP-FaceLink/actions/workflows/ci.yml)
 
@@ -25,6 +25,8 @@ Unified face, hand & body tracking SDK for Kotlin Multiplatform — one API, bot
 | `kmp-facelink-ifm` | iFacialMocap protocol output for VTube Studio | **Stable** |
 | `kmp-facelink-stream` | WebSocket streaming server for phone-as-tracker | **Experimental** |
 | `kmp-facelink-vts` | VTube Studio Plugin API direct integration | **Stable** |
+| `kmp-facelink-interact` | Stream interaction events (Twitch EventSub, YouTube Live Chat) bridged to the action system | **Stable** |
+| `kmp-facelink-compose` | Compose Multiplatform `remember*` helpers for tracker lifecycle | **Stable** |
 
 ## Tech Stack
 

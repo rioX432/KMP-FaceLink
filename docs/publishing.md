@@ -33,6 +33,24 @@ The publishing pipeline is fully automated via GitHub Actions (`.github/workflow
 
 The BOM (`kmp-facelink-bom`) is a `java-platform` module that manages versions for all 13 library modules. Android-only consumers can import the BOM via `platform()` and omit version numbers on individual modules. **KMP consumers cannot use `platform()` in `commonMain.dependencies {}`** ([KT-58759](https://youtrack.jetbrains.com/issue/KT-58759)) and should use a version catalog with explicit `version.ref` instead. See [Quick Start Integration](quick-start-integration.md) for usage examples.
 
+## GitHub Packages (private Maven)
+
+In addition to Maven Central, every publishable module can be published to **GitHub Packages** (`https://maven.pkg.github.com/anotherball/KMP-FaceLink`) via `.github/workflows/publish-github-packages.yml`. This is the channel used by private consumers (e.g. persona-native-viewer) to resolve `com.anotherball:kmp-facelink:*` without `mavenLocal()`.
+
+- **Triggers**: pushing a `v*` tag, or manual `workflow_dispatch`.
+- **Runner**: `macos-15` with `scripts/setup-whisper-ios.sh` — required because `kmp-facelink-voice` has an iOS `whisper.cpp` cinterop, so the iOS klib publications cannot be built on Linux.
+- **Auth**: the built-in `GITHUB_TOKEN` (`permissions: packages: write`), injected explicitly into the Gradle process as `GITHUB_TOKEN` / `GITHUB_ACTOR`.
+- **No signing**: GitHub Packages does not require GPG signatures, so `GPG_*` is not passed and the `Sign` tasks are guarded off on the GitHub Packages publish path (no `.asc` artifacts are produced).
+
+### Re-publishing the same version
+
+GitHub Packages **rejects overwriting an already-published release version** of a Maven artifact (HTTP 409). To iterate:
+
+- For test/iteration, publish a `-SNAPSHOT` version (SNAPSHOTs may be overwritten), or
+- Bump `VERSION_NAME` in `gradle.properties` for each immutable release.
+
+Always run a test publish first via `workflow_dispatch` (prerelease tag or SNAPSHOT), verify the artifacts, then push the production `v*` tag.
+
 ## First-Time Setup Checklist
 
 Before the first release, the repository owner must complete these one-time steps:

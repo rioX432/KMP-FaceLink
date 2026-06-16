@@ -5,7 +5,7 @@
 // - Show manifest properties: true
 // - Show declarations: true
 
-// Library unique name: <io.github.rioX432:kmp-facelink-networking>
+// Library unique name: <com.anotherball:kmp-facelink-networking>
 final class io.github.kmpfacelink.networking.discovery/DiscoveredService { // io.github.kmpfacelink.networking.discovery/DiscoveredService|null[0]
     constructor <init>(kotlin/String, kotlin/String, kotlin/String?, kotlin/Int) // io.github.kmpfacelink.networking.discovery/DiscoveredService.<init>|<init>(kotlin.String;kotlin.String;kotlin.String?;kotlin.Int){}[0]
 

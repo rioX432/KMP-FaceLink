@@ -17,11 +17,11 @@
   ],
   "author": {
     "name": "KMP-FaceLink",
-    "url": "https://github.com/rioX432/KMP-FaceLink"
+    "url": "https://github.com/AnotherBall/KMP-FaceLink"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/rioX432/KMP-FaceLink.git",
+    "url": "https://github.com/AnotherBall/KMP-FaceLink.git",
     "directory": "unity-plugin"
   },
   "license": "Apache-2.0",

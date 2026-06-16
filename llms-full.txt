@@ -509,7 +509,7 @@ faceLink {
 }
 ```
 
-Until then, download models manually — see the [Android Quick Start](https://github.com/rioX432/KMP-FaceLink/blob/master/docs/quick-start-android.md) for instructions.
+Until then, download models manually — see the [Android Quick Start](https://github.com/AnotherBall/KMP-FaceLink/blob/master/docs/quick-start-android.md) for instructions.
 
 ## Dependency Setup
 
@@ -533,7 +533,7 @@ dependencies {
 ```swift
 // Package.swift
 dependencies: [
-    .package(url: "https://github.com/rioX432/KMP-FaceLink", from: "0.1.0"),
+    .package(url: "https://github.com/AnotherBall/KMP-FaceLink", from: "0.1.0"),
 ]
 ```
 

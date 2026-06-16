@@ -89,7 +89,7 @@ repositories {
 
 1. Open your project in Xcode
 2. Go to **File > Add Package Dependencies...**
-3. Enter the repository URL: `https://github.com/rioX432/KMP-FaceLink`
+3. Enter the repository URL: `https://github.com/AnotherBall/KMP-FaceLink`
 4. Select the version rule (e.g., **Up to Next Major Version** from `0.2.0`)
 5. Choose the libraries you need:
    - `KMPFaceLink` — Core tracking
@@ -106,7 +106,7 @@ repositories {
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/rioX432/KMP-FaceLink", from: "0.2.0"),
+    .package(url: "https://github.com/AnotherBall/KMP-FaceLink", from: "0.2.0"),
 ],
 targets: [
     .target(
@@ -176,7 +176,7 @@ tracker.start()
 
 ## API Reference
 
-Full API documentation is available at: https://rioX432.github.io/KMP-FaceLink/
+Full API documentation is available at: https://anotherball.github.io/KMP-FaceLink/
 
 ## Next Steps
 

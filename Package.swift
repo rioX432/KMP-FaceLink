@@ -2,7 +2,7 @@
 import PackageDescription
 
 let version = "0.2.0"
-let repoUrl = "https://github.com/rioX432/KMP-FaceLink/releases/download/v\(version)"
+let repoUrl = "https://github.com/AnotherBall/KMP-FaceLink/releases/download/v\(version)"
 
 let package = Package(
     name: "KMPFaceLink",

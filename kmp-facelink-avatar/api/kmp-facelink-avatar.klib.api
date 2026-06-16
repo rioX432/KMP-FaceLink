@@ -5,7 +5,7 @@
 // - Show manifest properties: true
 // - Show declarations: true
 
-// Library unique name: <io.github.rioX432:kmp-facelink-avatar>
+// Library unique name: <com.anotherball:kmp-facelink-avatar>
 final enum class io.github.kmpfacelink.avatar/UnifiedExpression : kotlin/Enum<io.github.kmpfacelink.avatar/UnifiedExpression> { // io.github.kmpfacelink.avatar/UnifiedExpression|null[0]
     enum entry BROW_DOWN // io.github.kmpfacelink.avatar/UnifiedExpression.BROW_DOWN|null[0]
     enum entry BROW_DOWN_LEFT // io.github.kmpfacelink.avatar/UnifiedExpression.BROW_DOWN_LEFT|null[0]

@@ -19,7 +19,7 @@ Define the version once in `gradle/libs.versions.toml` and reference it across a
 
 ```toml
 [versions]
-kmp-facelink = "0.1.0"
+kmp-facelink = "0.2.0"
 
 [libraries]
 kmp-facelink = { module = "com.anotherball:kmp-facelink", version.ref = "kmp-facelink" }
@@ -57,7 +57,7 @@ If your project is Android-only (not KMP), the BOM aligns all module versions au
 
 ```kotlin
 dependencies {
-    implementation(platform("com.anotherball:kmp-facelink-bom:0.1.0"))
+    implementation(platform("com.anotherball:kmp-facelink-bom:0.2.0"))
     implementation("com.anotherball:kmp-facelink")          // No version needed
     implementation("com.anotherball:kmp-facelink-avatar")   // No version needed
     implementation("com.anotherball:kmp-facelink-actions")  // No version needed
@@ -69,7 +69,7 @@ dependencies {
 
 ```kotlin
 dependencies {
-    implementation("com.anotherball:kmp-facelink:0.1.0")
+    implementation("com.anotherball:kmp-facelink:0.2.0")
 }
 ```
 
@@ -90,7 +90,7 @@ repositories {
 1. Open your project in Xcode
 2. Go to **File > Add Package Dependencies...**
 3. Enter the repository URL: `https://github.com/rioX432/KMP-FaceLink`
-4. Select the version rule (e.g., **Up to Next Major Version** from `0.1.0`)
+4. Select the version rule (e.g., **Up to Next Major Version** from `0.2.0`)
 5. Choose the libraries you need:
    - `KMPFaceLink` — Core tracking
    - `KMPFaceLinkAvatar` — Live2D/VRM parameter mapping
@@ -106,7 +106,7 @@ repositories {
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/rioX432/KMP-FaceLink", from: "0.1.0"),
+    .package(url: "https://github.com/rioX432/KMP-FaceLink", from: "0.2.0"),
 ],
 targets: [
     .target(

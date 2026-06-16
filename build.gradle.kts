@@ -127,6 +127,18 @@ subprojects {
 
         afterEvaluate {
             extensions.configure<PublishingExtension> {
+                repositories {
+                    maven {
+                        name = "GitHubPackages"
+                        url = uri("https://maven.pkg.github.com/anotherball/KMP-FaceLink")
+                        credentials {
+                            username = (findProperty("gpr.user") as String?)
+                                ?: System.getenv("GITHUB_ACTOR")
+                            password = (findProperty("gpr.key") as String?)
+                                ?: System.getenv("GITHUB_TOKEN")
+                        }
+                    }
+                }
                 publications.withType<MavenPublication>().configureEach {
                     artifact(javadocJar)
                     pom {
@@ -161,6 +173,14 @@ subprojects {
                 if (signingKeyId != null) {
                     useInMemoryPgpKeys(signingKeyId, signingKey, signingPassword)
                     sign(extensions.getByType<PublishingExtension>().publications)
+                }
+            }
+
+            // GitHub Packages does not require GPG signatures. Skip Sign tasks when the
+            // task graph targets the GitHubPackages repository to avoid mixing .asc files.
+            tasks.withType<Sign>().configureEach {
+                onlyIf {
+                    gradle.taskGraph.allTasks.none { it.name.contains("GitHubPackages") }
                 }
             }
         }

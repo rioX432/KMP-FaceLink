@@ -6,12 +6,35 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+- `kmp-facelink-interact` module: `StreamEvent` model and aggregator for live-stream interaction events (24e4642)
+- Twitch EventSub WebSocket source (`TwitchEventSubSource`) for chat, follows, subs, and raids (1dada7f)
+- YouTube Live Chat source (`YouTubeLiveChatSource`) via REST polling (3c6b1c1)
+- Bridge from `StreamEvent` to the action system with effect parameters (445397e)
+- `MockStreamEventSource` and `InteractDemoScreen` for sample-app demos (17cf8be, fcae77a)
+- `kmp-facelink-compose` module: `remember*` helpers for tracker lifecycle in Compose Multiplatform (64bf2a2)
+- Effect binding system: `EffectBinding` model, `EffectBindingEngine` (ActionEvent → EffectEmission), `effectBindings {}` DSL, and `BuiltInEffectBindings` presets (abc7a6a, 668eece, 4283ba5)
+- Arm fusion combining body pose and hand tracking (0b1154e)
+- `PoseLiftingStrategy` wired into the body tracking pipeline (a5eff95)
+- NPU delegate activation in `DelegateResolver` with Google Tensor support (9ffa8a4)
+- Gradle plugin scaffold with DSL extension, model registry, and checksum-verified model download task (4a209cd, 3557605)
+- ARKit–MediaPipe simultaneous capture tool for blend shape calibration (a612545)
+- Per-blendshape accuracy benchmark and error report (c9c3bdb)
+- GitHub Packages publishing workflow with signing isolated from the GH publish path (7a3820d, 2877db6)
+- Test coverage for `withIntensity()`, the pose lifting pipeline, and the iOS Vision tracker detection pipeline (a407282, 2500a90)
+
 ### Changed
 - **BREAKING**: Migrate Maven namespace from `io.github.rioX432` to `com.anotherball` — update all dependency coordinates and Gradle plugin ID (#879)
+- Rewrite remaining `rioX432` ownership and namespace references to `anotherball` (580a753)
+- Upgrade MediaPipe Tasks Vision to 0.10.35 and add `Delegate.NPU` to the fallback chain (747286c)
+- Make the NPU delegate opt-in only; `AUTO` now resolves GPU → CPU for safety (7dd12c9)
+- Dispatch CameraX calls to the main thread in `CameraXManager` and `SharedCameraSession` (770af3e)
 - Lower compileSdk from 36 to 35 across all modules — no SDK 36 APIs were used, and 36 forced downstream projects to upgrade unnecessarily
 - Downgrade AndroidX dependencies to last compileSdk-35-compatible versions: core-ktx 1.16.0, CameraX 1.5.1, activity-compose 1.10.1, lifecycle 2.9.0, Compose BOM 2025.12.00
 
 ### Fixed
+- Fix `HolisticTracker` crash when a model file is missing (5a68e12)
+- Fix iOS missing `StatusBadge`/`TrackingButtonStyle` and wire `SmoothingSettingsView` (7284a03)
 - Clarify that the Gradle plugin (`com.anotherball.facelink`) is not yet published to the Gradle Plugin Portal; docs now default to manual model setup (#875)
 
 ## [v0.2.0] — 2026-05-20

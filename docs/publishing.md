@@ -6,7 +6,7 @@ This document describes how to publish KMP-FaceLink to Maven Central (Android/JV
 
 The publishing pipeline is fully automated via GitHub Actions (`.github/workflows/release.yml`). Pushing a `v*` tag triggers:
 
-1. **Maven Central** — all 11 library modules are published to Sonatype OSSRH, then the staging repository is closed and released.
+1. **Maven Central** — all 14 modules are published to Sonatype OSSRH, then the staging repository is closed and released.
 2. **XCFramework builds** — each iOS-capable module is built into a release XCFramework and zipped.
 3. **GitHub Release** — XCFramework zips are attached to the release with SHA-256 checksums.
 4. **Package.swift update** — `scripts/update-package-swift.py` rewrites checksums in `Package.swift` so SPM consumers get the correct binaries.
@@ -20,6 +20,8 @@ The publishing pipeline is fully automated via GitHub Actions (`.github/workflow
 | `kmp-facelink` | `com.anotherball:kmp-facelink` | `KMPFaceLink` |
 | `kmp-facelink-avatar` | `com.anotherball:kmp-facelink-avatar` | `KMPFaceLinkAvatar` |
 | `kmp-facelink-actions` | `com.anotherball:kmp-facelink-actions` | `KMPFaceLinkActions` |
+| `kmp-facelink-interact` | `com.anotherball:kmp-facelink-interact` | `KMPFaceLinkInteract` |
+| `kmp-facelink-compose` | `com.anotherball:kmp-facelink-compose` | -- (not yet exposed via SPM) |
 | `kmp-facelink-voice` | `com.anotherball:kmp-facelink-voice` | `KMPFaceLinkVoice` |
 | `kmp-facelink-llm` | `com.anotherball:kmp-facelink-llm` | `KMPFaceLinkLlm` |
 | `kmp-facelink-pipeline` | `com.anotherball:kmp-facelink-pipeline` | `KMPFaceLinkPipeline` |
@@ -29,7 +31,7 @@ The publishing pipeline is fully automated via GitHub Actions (`.github/workflow
 | `kmp-facelink-stream` | `com.anotherball:kmp-facelink-stream` | -- (JVM only) |
 | `kmp-facelink-vts` | `com.anotherball:kmp-facelink-vts` | -- (JVM only) |
 
-The BOM (`kmp-facelink-bom`) is a `java-platform` module that manages versions for all 11 library modules. Android-only consumers can import the BOM via `platform()` and omit version numbers on individual modules. **KMP consumers cannot use `platform()` in `commonMain.dependencies {}`** ([KT-58759](https://youtrack.jetbrains.com/issue/KT-58759)) and should use a version catalog with explicit `version.ref` instead. See [Quick Start Integration](quick-start-integration.md) for usage examples.
+The BOM (`kmp-facelink-bom`) is a `java-platform` module that manages versions for all 13 library modules. Android-only consumers can import the BOM via `platform()` and omit version numbers on individual modules. **KMP consumers cannot use `platform()` in `commonMain.dependencies {}`** ([KT-58759](https://youtrack.jetbrains.com/issue/KT-58759)) and should use a version catalog with explicit `version.ref` instead. See [Quick Start Integration](quick-start-integration.md) for usage examples.
 
 ## First-Time Setup Checklist
 
@@ -141,7 +143,7 @@ repositories {
 | Property | Value | Purpose |
 |----------|-------|---------|
 | `GROUP` | `com.anotherball` | Maven group ID |
-| `VERSION_NAME` | `0.1.0` | Artifact version |
+| `VERSION_NAME` | `0.2.0` | Artifact version |
 | `POM_URL` | GitHub repo URL | POM project URL |
 | `POM_SCM_URL` | GitHub repo URL | Source control URL |
 | `POM_SCM_CONNECTION` | `scm:git:git://...` | Read-only SCM connection |

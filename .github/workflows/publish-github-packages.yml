@@ -1,0 +1,54 @@
+name: Publish to GitHub Packages
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+concurrency:
+  group: publish-github-packages-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  JAVA_VERSION: '17'
+  JAVA_DISTRIBUTION: 'zulu'
+
+jobs:
+  publish:
+    name: Publish to GitHub Packages
+    # macos-15 is required: kmp-facelink-voice has iOS whisper.cpp cinterop, so
+    # publishing the iOS klib publications needs macOS + the whisper setup script.
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-java@v5
+        with:
+          distribution: ${{ env.JAVA_DISTRIBUTION }}
+          java-version: ${{ env.JAVA_VERSION }}
+
+      - uses: gradle/actions/setup-gradle@v5
+
+      - uses: actions/cache@v5
+        with:
+          path: ~/.konan
+          key: konan-${{ runner.os }}-${{ hashFiles('gradle/libs.versions.toml') }}
+          restore-keys: konan-${{ runner.os }}-
+
+      - name: Setup whisper.cpp for iOS
+        run: ./scripts/setup-whisper-ios.sh
+
+      - name: Publish to GitHub Packages
+        run: ./gradlew publishAllPublicationsToGitHubPackagesRepository --no-daemon --stacktrace
+        env:
+          # GITHUB_TOKEN must be injected explicitly — it is not exported to the
+          # process environment by default. GITHUB_ACTOR is the publishing username.
+          # GPG_* is intentionally omitted: GitHub Packages requires no signature,
+          # and the Sign tasks are guarded off on the GitHubPackages publish path.
+          GITHUB_ACTOR: ${{ github.actor }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

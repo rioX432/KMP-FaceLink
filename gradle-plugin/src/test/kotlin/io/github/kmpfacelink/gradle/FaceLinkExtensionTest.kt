@@ -13,7 +13,7 @@ class FaceLinkExtensionTest {
     @Test
     fun `plugin registers faceLink extension`() {
         val project = ProjectBuilder.builder().build()
-        project.plugins.apply("io.github.rioX432.facelink")
+        project.plugins.apply("com.anotherball.facelink")
 
         val extension = project.extensions.findByName("faceLink")
         assertNotNull(extension, "faceLink extension should be registered")
@@ -23,7 +23,7 @@ class FaceLinkExtensionTest {
     @Test
     fun `extension has correct convention defaults`() {
         val project = ProjectBuilder.builder().build()
-        project.plugins.apply("io.github.rioX432.facelink")
+        project.plugins.apply("com.anotherball.facelink")
 
         val ext = project.extensions.getByType(FaceLinkExtension::class.java)
 
@@ -38,7 +38,7 @@ class FaceLinkExtensionTest {
     @Test
     fun `extension properties can be overridden`() {
         val project = ProjectBuilder.builder().build()
-        project.plugins.apply("io.github.rioX432.facelink")
+        project.plugins.apply("com.anotherball.facelink")
 
         val ext = project.extensions.getByType(FaceLinkExtension::class.java)
         ext.faceEnabled.set(false)
@@ -78,7 +78,7 @@ class FaceLinkExtensionTest {
     @Test
     fun `plugin registers downloadMediaPipeModels task`() {
         val project = ProjectBuilder.builder().build()
-        project.plugins.apply("io.github.rioX432.facelink")
+        project.plugins.apply("com.anotherball.facelink")
 
         val task = project.tasks.findByName("downloadMediaPipeModels")
         assertNotNull(task, "downloadMediaPipeModels task should be registered")
@@ -88,7 +88,7 @@ class FaceLinkExtensionTest {
     @Test
     fun `buildModelList respects enabled flags`() {
         val project = ProjectBuilder.builder().build()
-        project.plugins.apply("io.github.rioX432.facelink")
+        project.plugins.apply("com.anotherball.facelink")
 
         val ext = project.extensions.getByType(FaceLinkExtension::class.java)
 
@@ -111,7 +111,7 @@ class FaceLinkExtensionTest {
     @Test
     fun `writeGitIgnore creates gitignore in output directory`() {
         val project = ProjectBuilder.builder().build()
-        project.plugins.apply("io.github.rioX432.facelink")
+        project.plugins.apply("com.anotherball.facelink")
 
         val ext = project.extensions.getByType(FaceLinkExtension::class.java)
         ext.outputDir.set("build/test-gitignore-models")

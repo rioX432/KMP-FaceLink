@@ -5,7 +5,7 @@
 // - Show manifest properties: true
 // - Show declarations: true
 
-// Library unique name: <io.github.rioX432:kmp-facelink-llm>
+// Library unique name: <com.anotherball:kmp-facelink-llm>
 final enum class io.github.kmpfacelink.llm/ModelFormat : kotlin/Enum<io.github.kmpfacelink.llm/ModelFormat> { // io.github.kmpfacelink.llm/ModelFormat|null[0]
     enum entry GGUF // io.github.kmpfacelink.llm/ModelFormat.GGUF|null[0]
     enum entry LITERT_LM // io.github.kmpfacelink.llm/ModelFormat.LITERT_LM|null[0]

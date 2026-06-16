@@ -5,7 +5,7 @@
 // - Show manifest properties: true
 // - Show declarations: true
 
-// Library unique name: <io.github.rioX432:kmp-facelink-ifm>
+// Library unique name: <com.anotherball:kmp-facelink-ifm>
 final enum class io.github.kmpfacelink.ifm/DataVersion : kotlin/Enum<io.github.kmpfacelink.ifm/DataVersion> { // io.github.kmpfacelink.ifm/DataVersion|null[0]
     enum entry V1 // io.github.kmpfacelink.ifm/DataVersion.V1|null[0]
     enum entry V2 // io.github.kmpfacelink.ifm/DataVersion.V2|null[0]

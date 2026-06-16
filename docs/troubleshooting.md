@@ -484,7 +484,7 @@ If your issue is not covered here:
 1. **Check the error message.** Collect `tracker.errorMessage` and `tracker.state` — the error string often contains the root cause.
 2. **Check platform logs.** Android: Logcat with tags `MediaPipeFaceTracker`, `DelegateResolver`, `CameraXManager`. iOS: Xcode console for ARKit/Vision errors.
 3. **Review the sample apps.** The `androidApp/` and `iosApp/` directories contain working integration examples.
-4. **Open a GitHub issue** at [KMP-FaceLink Issues](https://github.com/rioX432/KMP-FaceLink/issues) with:
+4. **Open a GitHub issue** at [KMP-FaceLink Issues](https://github.com/AnotherBall/KMP-FaceLink/issues) with:
    - Platform and OS version
    - Device model
    - Full error message / stack trace

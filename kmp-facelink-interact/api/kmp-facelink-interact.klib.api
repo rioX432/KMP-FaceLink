@@ -5,7 +5,7 @@
 // - Show manifest properties: true
 // - Show declarations: true
 
-// Library unique name: <io.github.rioX432:kmp-facelink-interact>
+// Library unique name: <com.anotherball:kmp-facelink-interact>
 final enum class io.github.kmpfacelink.interact.model/AvatarAnchor : kotlin/Enum<io.github.kmpfacelink.interact.model/AvatarAnchor> { // io.github.kmpfacelink.interact.model/AvatarAnchor|null[0]
     enum entry BODY // io.github.kmpfacelink.interact.model/AvatarAnchor.BODY|null[0]
     enum entry HEAD // io.github.kmpfacelink.interact.model/AvatarAnchor.HEAD|null[0]

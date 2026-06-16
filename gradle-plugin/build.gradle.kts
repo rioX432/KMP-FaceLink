@@ -21,8 +21,8 @@ kotlin {
 }
 
 gradlePlugin {
-    website.set("https://github.com/rioX432/KMP-FaceLink")
-    vcsUrl.set("https://github.com/rioX432/KMP-FaceLink")
+    website.set("https://github.com/AnotherBall/KMP-FaceLink")
+    vcsUrl.set("https://github.com/AnotherBall/KMP-FaceLink")
     plugins {
         create("facelink") {
             id = "com.anotherball.facelink"

@@ -11,7 +11,7 @@ import java.io.File
  * Apply in a consumer project:
  * ```
  * plugins {
- *     id("io.github.rioX432.facelink")
+ *     id("com.anotherball.facelink")
  * }
  * ```
  */

@@ -98,7 +98,7 @@ git push origin master --tags
 ### 5. Monitor the release
 
 The `vX.Y.Z` tag push triggers the Release workflow. Monitor progress at:
-`https://github.com/rioX432/KMP-FaceLink/actions/workflows/release.yml`
+`https://github.com/AnotherBall/KMP-FaceLink/actions/workflows/release.yml`
 
 The workflow will:
 1. Publish all modules to Maven Central staging, then close and release the staging repository
@@ -113,7 +113,7 @@ The workflow will:
 - [ ] Check the GitHub Release page for XCFramework downloads
 - [ ] Verify `Package.swift` checksums were updated by the release workflow (check the auto-commit on `master`)
 - [ ] Verify SPM resolution by adding the package in a fresh Xcode project
-- [ ] Check API docs at https://rioX432.github.io/KMP-FaceLink/
+- [ ] Check API docs at https://anotherball.github.io/KMP-FaceLink/
 
 ## Local Development
 
@@ -150,8 +150,8 @@ repositories {
 | `POM_SCM_DEV_CONNECTION` | `scm:git:ssh://...` | Developer SCM connection |
 | `POM_LICENCE_NAME` | `MIT License` | License name |
 | `POM_LICENCE_URL` | MIT URL | License URL |
-| `POM_DEVELOPER_ID` | `rioX432` | Developer identifier |
-| `POM_DEVELOPER_NAME` | `rioX432` | Developer display name |
+| `POM_DEVELOPER_ID` | `anotherball` | Developer identifier |
+| `POM_DEVELOPER_NAME` | `anotherball` | Developer display name |
 
 ### Environment Variables (CI)
 

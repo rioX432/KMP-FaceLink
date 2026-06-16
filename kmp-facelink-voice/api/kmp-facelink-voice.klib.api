@@ -5,7 +5,7 @@
 // - Show manifest properties: true
 // - Show declarations: true
 
-// Library unique name: <io.github.rioX432:kmp-facelink-voice>
+// Library unique name: <com.anotherball:kmp-facelink-voice>
 final enum class io.github.kmpfacelink.voice.lipsync/LipSyncEngineType : kotlin/Enum<io.github.kmpfacelink.voice.lipsync/LipSyncEngineType> { // io.github.kmpfacelink.voice.lipsync/LipSyncEngineType|null[0]
     enum entry DEFAULT // io.github.kmpfacelink.voice.lipsync/LipSyncEngineType.DEFAULT|null[0]
     enum entry ENHANCED_AMPLITUDE // io.github.kmpfacelink.voice.lipsync/LipSyncEngineType.ENHANCED_AMPLITUDE|null[0]

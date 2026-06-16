@@ -5,7 +5,7 @@
 // - Show manifest properties: true
 // - Show declarations: true
 
-// Library unique name: <io.github.rioX432:kmp-facelink-pipeline>
+// Library unique name: <com.anotherball:kmp-facelink-pipeline>
 abstract fun interface io.github.kmpfacelink.pipeline.expression/ExpressionMapper { // io.github.kmpfacelink.pipeline.expression/ExpressionMapper|null[0]
     abstract fun map(io.github.kmpfacelink.actions.emotion/Emotion, kotlin/Float): kotlin.collections/Map<io.github.kmpfacelink.model/BlendShape, kotlin/Float> // io.github.kmpfacelink.pipeline.expression/ExpressionMapper.map|map(io.github.kmpfacelink.actions.emotion.Emotion;kotlin.Float){}[0]
 }

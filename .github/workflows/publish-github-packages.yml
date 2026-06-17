@@ -2,6 +2,8 @@ name: Publish to GitHub Packages
 
 on:
   push:
+    branches:
+      - master
     tags:
       - 'v*'
   workflow_dispatch:
@@ -21,9 +23,11 @@ env:
 jobs:
   publish:
     name: Publish to GitHub Packages
-    # macos-15 is required: kmp-facelink-voice has iOS whisper.cpp cinterop, so
-    # publishing the iOS klib publications needs macOS + the whisper setup script.
-    runs-on: macos-15
+    # self-hosted macOS ARM64 is required: kmp-facelink-voice has iOS whisper.cpp
+    # cinterop, so publishing the iOS klib publications needs macOS + the whisper
+    # setup script and the Kotlin/Native toolchain.
+    runs-on: [ self-hosted, macOS, ARM64 ]
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v6
 
@@ -31,6 +35,8 @@ jobs:
         with:
           distribution: ${{ env.JAVA_DISTRIBUTION }}
           java-version: ${{ env.JAVA_VERSION }}
+
+      - uses: android-actions/setup-android@v3
 
       - uses: gradle/actions/setup-gradle@v5
 
@@ -40,11 +46,32 @@ jobs:
           key: konan-${{ runner.os }}-${{ hashFiles('gradle/libs.versions.toml') }}
           restore-keys: konan-${{ runner.os }}-
 
+      - name: Set up local.properties
+        run: echo "sdk.dir=$ANDROID_HOME" > local.properties
+
       - name: Setup whisper.cpp for iOS
         run: ./scripts/setup-whisper-ios.sh
 
+      - name: Resolve publish version
+        id: ver
+        # Tag pushes (v*) publish the release version verbatim. Every other
+        # trigger (master push, manual dispatch) publishes a mutable -SNAPSHOT so
+        # GitHub Packages does not reject a repeated upload of the same version.
+        run: |
+          BASE=$(grep '^VERSION_NAME=' gradle.properties | cut -d '=' -f2 | tr -d '[:space:]')
+          if [ "${{ github.ref_type }}" = "tag" ]; then
+            VERSION="$BASE"
+          else
+            VERSION="${BASE}-SNAPSHOT"
+          fi
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "Publishing version: $VERSION"
+
       - name: Publish to GitHub Packages
-        run: ./gradlew publishAllPublicationsToGitHubPackagesRepository --no-daemon --stacktrace
+        run: >-
+          ./gradlew publishAllPublicationsToGitHubPackagesRepository
+          -PVERSION_NAME=${{ steps.ver.outputs.version }}
+          --no-daemon --stacktrace
         env:
           # GITHUB_TOKEN must be injected explicitly — it is not exported to the
           # process environment by default. GITHUB_ACTOR is the publishing username.

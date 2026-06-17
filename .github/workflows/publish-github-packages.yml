@@ -7,6 +7,11 @@ on:
     tags:
       - 'v*'
   workflow_dispatch:
+    inputs:
+      version:
+        description: "Explicit version to publish (e.g. 0.2.0). Leave empty to auto-resolve: tag push = release version, otherwise -SNAPSHOT."
+        required: false
+        default: ""
 
 permissions:
   contents: read
@@ -25,9 +30,10 @@ jobs:
     name: Publish to GitHub Packages
     # self-hosted macOS ARM64 is required: kmp-facelink-voice has iOS whisper.cpp
     # cinterop, so publishing the iOS klib publications needs macOS + the whisper
-    # setup script and the Kotlin/Native toolchain.
+    # setup script and the Kotlin/Native toolchain. ~/.konan persists on the
+    # self-hosted runner between jobs, so no actions/cache step is needed.
     runs-on: [ self-hosted, macOS, ARM64 ]
-    timeout-minutes: 60
+    timeout-minutes: 90
     steps:
       - uses: actions/checkout@v6
 
@@ -40,12 +46,6 @@ jobs:
 
       - uses: gradle/actions/setup-gradle@v5
 
-      - uses: actions/cache@v5
-        with:
-          path: ~/.konan
-          key: konan-${{ runner.os }}-${{ hashFiles('gradle/libs.versions.toml') }}
-          restore-keys: konan-${{ runner.os }}-
-
       - name: Set up local.properties
         run: echo "sdk.dir=$ANDROID_HOME" > local.properties
 
@@ -54,12 +54,14 @@ jobs:
 
       - name: Resolve publish version
         id: ver
-        # Tag pushes (v*) publish the release version verbatim. Every other
-        # trigger (master push, manual dispatch) publishes a mutable -SNAPSHOT so
-        # GitHub Packages does not reject a repeated upload of the same version.
+        # Priority: explicit workflow_dispatch input > tag (release version) >
+        # otherwise a mutable -SNAPSHOT, so repeated master pushes never collide.
         run: |
           BASE=$(grep '^VERSION_NAME=' gradle.properties | cut -d '=' -f2 | tr -d '[:space:]')
-          if [ "${{ github.ref_type }}" = "tag" ]; then
+          INPUT="${{ inputs.version }}"
+          if [ -n "$INPUT" ]; then
+            VERSION="$INPUT"
+          elif [ "${{ github.ref_type }}" = "tag" ]; then
             VERSION="$BASE"
           else
             VERSION="${BASE}-SNAPSHOT"

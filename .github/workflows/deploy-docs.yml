@@ -6,16 +6,17 @@ on:
       - master
   workflow_dispatch:
 
+# GitHub Pages is disabled at the organization level for this repository, so the
+# Dokka HTML is published as a build artifact instead of being deployed to Pages.
+# When an org owner enables Pages (Settings -> Pages -> Source: GitHub Actions),
+# switch the final step back to actions/upload-pages-artifact + actions/deploy-pages
+# and restore the `pages`/`id-token` permissions and the `github-pages` environment.
 permissions:
   contents: read
-  pages: write
-  id-token: write
 
-# Allow only one concurrent Pages deployment; let in-progress runs finish so a
-# deployment is never left half-applied.
 concurrency:
-  group: pages
-  cancel-in-progress: false
+  group: deploy-docs-${{ github.ref }}
+  cancel-in-progress: true
 
 env:
   JAVA_VERSION: '17'
@@ -23,12 +24,9 @@ env:
 
 jobs:
   deploy-docs:
-    name: Deploy Dokka Docs
+    name: Generate Dokka Docs
     runs-on: [ self-hosted, macOS, ARM64 ]
     timeout-minutes: 60
-    environment:
-      name: github-pages
-      url: ${{ steps.deploy.outputs.page_url }}
     steps:
       - uses: actions/checkout@v6
 
@@ -56,12 +54,10 @@ jobs:
       - name: Generate Dokka HTML
         run: ./gradlew dokkaGenerate
 
-      - uses: actions/configure-pages@v5
-
-      - uses: actions/upload-pages-artifact@v3
+      - name: Upload Dokka HTML as artifact
+        uses: actions/upload-artifact@v4
         with:
+          name: dokka-html
           path: build/dokka/html
-
-      - name: Deploy to GitHub Pages
-        id: deploy
-        uses: actions/deploy-pages@v4
+          retention-days: 14
+          if-no-files-found: error

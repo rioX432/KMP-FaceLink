@@ -36,7 +36,7 @@ internal fun getResultFaceCountJs(result: JsFaceLandmarkerResult): Int =
  * Returns the number of blend shape categories for the given face.
  */
 internal fun getBlendShapeCountJs(result: JsFaceLandmarkerResult, faceIndex: Int): Int =
-    js("(result.faceBlendshapes && result.faceBlendshapes[faceIndex] ? result.faceBlendshapes[faceIndex].length : 0)")
+    js("(result.faceBlendshapes && result.faceBlendshapes[faceIndex] && result.faceBlendshapes[faceIndex].categories ? result.faceBlendshapes[faceIndex].categories.length : 0)")
 
 /**
  * Returns the category name of the blend shape at the given index.
@@ -46,7 +46,7 @@ internal fun getBlendShapeNameJs(
     faceIndex: Int,
     shapeIndex: Int,
 ): String =
-    js("result.faceBlendshapes[faceIndex][shapeIndex].categoryName")
+    js("result.faceBlendshapes[faceIndex].categories[shapeIndex].categoryName")
 
 /**
  * Returns the score of the blend shape at the given index.
@@ -56,7 +56,7 @@ internal fun getBlendShapeScoreJs(
     faceIndex: Int,
     shapeIndex: Int,
 ): Float =
-    js("result.faceBlendshapes[faceIndex][shapeIndex].score")
+    js("result.faceBlendshapes[faceIndex].categories[shapeIndex].score")
 
 // -- Landmark accessors --
 

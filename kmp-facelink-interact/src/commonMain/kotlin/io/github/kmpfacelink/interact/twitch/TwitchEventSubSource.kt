@@ -41,6 +41,8 @@ import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.put
 import kotlinx.serialization.json.putJsonObject
+import kotlin.concurrent.atomics.AtomicInt
+import kotlin.concurrent.atomics.ExperimentalAtomicApi
 import kotlin.coroutines.coroutineContext
 
 /**
@@ -56,6 +58,7 @@ import kotlin.coroutines.coroutineContext
  * @param config Twitch API configuration.
  * @param httpClient Optional Ktor HttpClient (must have WebSockets installed).
  */
+@OptIn(ExperimentalAtomicApi::class)
 public class TwitchEventSubSource(
     private val config: TwitchConfig,
     private val httpClient: HttpClient = createDefaultClient(),
@@ -66,7 +69,7 @@ public class TwitchEventSubSource(
     private val _connectionState = MutableStateFlow(ConnectionState.DISCONNECTED)
     private var connectionScope: CoroutineScope? = null
     private var connectionJob: Job? = null
-    private var reconnectAttempts = 0
+    private val reconnectAttempts = AtomicInt(0)
 
     override val events: Flow<StreamEvent> = _events.asSharedFlow()
     override val connectionState: StateFlow<ConnectionState> = _connectionState.asStateFlow()
@@ -84,7 +87,7 @@ public class TwitchEventSubSource(
         connectionScope?.cancel()
         connectionScope = null
         connectionJob = null
-        reconnectAttempts = 0
+        reconnectAttempts.store(0)
         _connectionState.value = ConnectionState.DISCONNECTED
     }
 
@@ -106,7 +109,7 @@ public class TwitchEventSubSource(
         }
         subscribeToEvents(sessionId)
         _connectionState.value = ConnectionState.CONNECTED
-        reconnectAttempts = 0
+        reconnectAttempts.store(0)
         receiveLoop(session)
     }
 
@@ -167,13 +170,14 @@ public class TwitchEventSubSource(
 
     private suspend fun handleUnexpectedDisconnect() {
         if (_connectionState.value == ConnectionState.DISCONNECTED) return
-        if (reconnectAttempts >= MAX_RECONNECT_ATTEMPTS) {
+        val attempt = reconnectAttempts.load()
+        if (attempt >= MAX_RECONNECT_ATTEMPTS) {
             _connectionState.value = ConnectionState.DISCONNECTED
             return
         }
         _connectionState.value = ConnectionState.RECONNECTING
-        val delayMs = calculateBackoff(reconnectAttempts)
-        reconnectAttempts++
+        val delayMs = calculateBackoff(attempt)
+        reconnectAttempts.store(attempt + 1)
         delay(delayMs)
         connectionScope?.launch { connectWebSocket(EVENTSUB_WSS_URL) }
     }

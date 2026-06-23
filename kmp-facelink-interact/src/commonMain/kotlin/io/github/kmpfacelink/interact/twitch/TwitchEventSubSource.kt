@@ -4,6 +4,7 @@ import io.github.kmpfacelink.interact.StreamEventSource
 import io.github.kmpfacelink.interact.model.ConnectionState
 import io.github.kmpfacelink.interact.model.StreamEvent
 import io.github.kmpfacelink.interact.model.StreamPlatform
+import io.github.kmpfacelink.util.FaceLinkLogger
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.websocket.WebSockets
@@ -97,7 +98,8 @@ public class TwitchEventSubSource(
             httpClient.webSocket(url) { handleSession(this) }
         } catch (e: CancellationException) {
             throw e
-        } catch (_: Exception) {
+        } catch (e: Exception) {
+            FaceLinkLogger.w(TAG, "WebSocket connection failed, will reconnect", e)
             handleUnexpectedDisconnect()
         }
     }
@@ -133,9 +135,11 @@ public class TwitchEventSubSource(
             }
         } catch (e: CancellationException) {
             throw e
-        } catch (_: ClosedReceiveChannelException) {
+        } catch (e: ClosedReceiveChannelException) {
+            FaceLinkLogger.w(TAG, "Receive channel closed, will reconnect", e)
             handleUnexpectedDisconnect()
-        } catch (_: IOException) {
+        } catch (e: IOException) {
+            FaceLinkLogger.w(TAG, "Network failure in receive loop, will reconnect", e)
             handleUnexpectedDisconnect()
         }
     }
@@ -246,11 +250,13 @@ private fun JsonObject.sessionId(): String? =
         ?.get("session")?.jsonObject
         ?.get("id")?.jsonPrimitive?.content
 
+@Suppress("TooGenericExceptionCaught")
 private fun parseTimestamp(timestamp: String?): Long {
     if (timestamp == null) return FALLBACK_TIMESTAMP_MS
     return try {
         parseRfc3339(timestamp)
-    } catch (@Suppress("TooGenericExceptionCaught") _: Exception) {
+    } catch (e: Exception) {
+        FaceLinkLogger.w(TAG, "Failed to parse RFC-3339 timestamp '$timestamp', using fallback", e)
         FALLBACK_TIMESTAMP_MS
     }
 }
@@ -311,6 +317,7 @@ private fun createDefaultClient(): HttpClient = HttpClient {
 // Actual timestamps come from the Twitch EventSub message metadata.
 private const val FALLBACK_TIMESTAMP_MS = 0L
 
+private const val TAG = "TwitchEventSubSource"
 private const val EVENTSUB_WSS_URL = "wss://eventsub.wss.twitch.tv/ws"
 private const val HELIX_SUBSCRIPTIONS_URL =
     "https://api.twitch.tv/helix/eventsub/subscriptions"

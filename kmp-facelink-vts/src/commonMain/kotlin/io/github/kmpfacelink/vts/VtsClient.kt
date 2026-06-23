@@ -1,6 +1,7 @@
 package io.github.kmpfacelink.vts
 
 import io.github.kmpfacelink.api.Releasable
+import io.github.kmpfacelink.util.FaceLinkLogger
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.websocket.WebSockets
 import io.ktor.client.plugins.websocket.webSocket
@@ -309,10 +310,12 @@ public class VtsClient(
             }
         } catch (e: CancellationException) {
             throw e
-        } catch (_: ClosedReceiveChannelException) {
+        } catch (e: ClosedReceiveChannelException) {
             // WebSocket channel closed normally
-        } catch (_: IOException) {
+            FaceLinkLogger.d(TAG, "Receive loop ended: channel closed normally (${e.message})")
+        } catch (e: IOException) {
             // Network-level connection failure
+            FaceLinkLogger.w(TAG, "Receive loop ended: network failure", e)
         } finally {
             mutex.withLock { session = null }
         }
@@ -333,5 +336,6 @@ public class VtsClient(
     }
 }
 
+private const val TAG = "VtsClient"
 private const val DEFAULT_MAX_RETRIES = 3
 private const val DEFAULT_RETRY_DELAY_MS = 1000L

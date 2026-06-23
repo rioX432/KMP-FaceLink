@@ -4,6 +4,7 @@ import io.github.kmpfacelink.interact.StreamEventSource
 import io.github.kmpfacelink.interact.model.ConnectionState
 import io.github.kmpfacelink.interact.model.StreamEvent
 import io.github.kmpfacelink.interact.model.StreamPlatform
+import io.github.kmpfacelink.util.FaceLinkLogger
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.request.get
@@ -89,7 +90,8 @@ public class YouTubeLiveChatSource(
                 delay(intervalMs)
             } catch (e: CancellationException) {
                 throw e
-            } catch (_: Exception) {
+            } catch (e: Exception) {
+                FaceLinkLogger.w(TAG, "Poll failed, will retry", e)
                 handlePollError()
             }
         }
@@ -143,7 +145,8 @@ public class YouTubeLiveChatSource(
         val token = config.accessToken ?: return null
         return try {
             fetchActiveBroadcastChatId(token)
-        } catch (_: Exception) {
+        } catch (e: Exception) {
+            FaceLinkLogger.w(TAG, "Failed to resolve live chat id", e)
             null
         }
     }
@@ -185,7 +188,8 @@ private fun extractTimestamp(item: JsonObject): Long {
 private fun parseIso8601(input: String): Long {
     return try {
         parseIso8601Parts(input)
-    } catch (_: Exception) {
+    } catch (e: Exception) {
+        FaceLinkLogger.w(TAG, "Failed to parse ISO-8601 timestamp '$input', using fallback", e)
         FALLBACK_TIMESTAMP_MS
     }
 }
@@ -242,6 +246,7 @@ private data class PollResult(
     val items: List<JsonObject>,
 )
 
+private const val TAG = "YouTubeLiveChatSource"
 private const val LIVE_CHAT_MESSAGES_URL =
     "https://www.googleapis.com/youtube/v3/liveChat/messages"
 private const val LIVE_BROADCASTS_URL =

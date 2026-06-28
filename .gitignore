@@ -3,18 +3,12 @@
 /local.properties
 /.idea
 .DS_Store
-/build
+# Gradle build output — all modules (global pattern, no per-module list to maintain)
+**/build/
 /captures
 .externalNativeBuild
 .cxx
 local.properties
-/kmp-facelink/build
-/kmp-facelink-actions/build
-/kmp-facelink-avatar/build
-/kmp-facelink-effects/build
-/androidApp/build
-/gradle-plugin/build
-/sampleShared/build
 *.hprof
 .kotlin/
 progress.txt
@@ -32,20 +26,9 @@ progress.txt
 
 # Live2D SDK and model files (downloaded via scripts/setup-live2d.sh)
 /live2d/
-/kmp-facelink-live2d/build
-/kmp-facelink-stream/build
-/kmp-facelink-voice/build
-/kmp-facelink-rive/build
-/kmp-facelink-llm/build
-/kmp-facelink-pipeline/build
-/kmp-facelink-networking/build
-/kmp-facelink-vmc/build
-/kmp-facelink-ifm/build
-/kmp-facelink-vts/build
 /androidApp/src/main/assets/live2d/
 /iosApp/FaceLink/Resources/Live2D/
 /iosApp/Live2DConfig.generated.xcconfig
-/iosApp/build
 /iosApp/FaceLink.xcodeproj/xcuserdata/
 /iosApp/FaceLink.xcodeproj/project.xcworkspace/xcuserdata/
 

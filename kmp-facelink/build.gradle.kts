@@ -33,6 +33,11 @@ kotlin {
             }
         }
         withHostTestBuilder {}
+        withDeviceTestBuilder {
+            sourceSetTreeName = "test"
+        }.configure {
+            instrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        }
     }
 
     val xcf = XCFramework("KMPFaceLink")
@@ -93,6 +98,12 @@ kotlin {
             implementation(libs.kotlin.test)
             implementation(libs.junit)
             implementation(libs.robolectric)
+        }
+
+        getByName("androidDeviceTest").dependencies {
+            implementation(libs.androidx.test.runner)
+            implementation(libs.androidx.test.junit)
+            implementation(libs.androidx.test.core)
         }
     }
 }

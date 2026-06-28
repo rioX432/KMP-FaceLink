@@ -75,24 +75,46 @@ internal data class DepthNormalization(
  */
 internal enum class DepthDelegate { GPU, CPU }
 
+/** Element type of the model's input/output tensors. */
+internal enum class DepthIoType { FLOAT32, UINT8 }
+
+/**
+ * Affine quantization parameters for a uint8 tensor: `real = (q - zeroPoint) * scale`, and
+ * `q = round(real / scale) + zeroPoint`. Used only when [DepthEstimatorConfig.ioType] is
+ * [DepthIoType.UINT8]; the values come from the model's tensor metadata.
+ */
+internal data class QuantParams(val scale: Float, val zeroPoint: Int)
+
 /**
  * Configuration for the monocular depth estimator.
  *
  * Defaults target **Depth Anything V2 Small** (the recommended model from the #898 research:
- * Apache-2.0, ImageNet normalization, 518x518 input). The input/output tensor layout is assumed
- * NHWC; this and the normalization constants MUST be validated against the actual `.tflite`
- * metadata during on-device benchmarking before relying on the output.
+ * Apache-2.0, ImageNet normalization). Verified against the official Qualcomm AI Hub `.tflite`:
+ * input `image [1,518,518,3]` float32 (NHWC) and output `depth_estimates [1,518,518,1]` float32,
+ * so the NHWC layout and the square input-resolution output are confirmed. The ImageNet
+ * normalization constants are not encoded in the model and should be sanity-checked on output.
+ *
+ * The model is loaded from [modelFilePath] when set (e.g. a model downloaded at runtime), otherwise
+ * from the app assets at [modelAssetPath].
  */
 internal data class DepthEstimatorConfig(
     val modelAssetPath: String = DEFAULT_MODEL_ASSET_PATH,
+    val modelFilePath: String? = null,
     val inputSize: Int = DEFAULT_INPUT_SIZE,
     val delegate: DepthDelegate = DepthDelegate.GPU,
     val cpuThreads: Int = DEFAULT_CPU_THREADS,
     val normalization: DepthNormalization = DepthNormalization.IMAGENET,
+    val ioType: DepthIoType = DepthIoType.FLOAT32,
+    val inputQuant: QuantParams? = null,
+    val outputQuant: QuantParams? = null,
 ) {
     init {
         require(inputSize > 0) { "inputSize must be positive, was $inputSize" }
         require(cpuThreads > 0) { "cpuThreads must be positive, was $cpuThreads" }
+        if (ioType == DepthIoType.UINT8) {
+            requireNotNull(inputQuant) { "inputQuant is required for UINT8 models" }
+            requireNotNull(outputQuant) { "outputQuant is required for UINT8 models" }
+        }
     }
 
     internal companion object {

@@ -15,6 +15,8 @@ dokka {
 kotlin {
     explicitApi()
 
+    jvm()
+
     android {
         namespace = "io.github.kmpfacelink.compose"
         compileSdk = 35

@@ -6,12 +6,41 @@ Last updated: 2026-06-28
 
 ## Status
 
-Research complete — **conditional GO**, pending on-device latency validation (PoC).
-Scope of this document: model survey, candidate selection, license screening, and
-integration design. **No prototype code and no on-device benchmark numbers are
-included** — the 30 ms decision criterion (#898/#892) requires real-device
-measurement on a Snapdragon 7 Gen 1+ class device, which must be done in the PoC
-phase before committing to full implementation.
+PoC built and **benchmarked on-device** — the float TFLite model **fails the 30 ms gate**
+(see "On-Device Benchmark Results" below). Net: **NO-GO for DA-V2 Small float via GPU**;
+revisit with a quantized/NPU path or a lighter model before integrating.
+
+(Original research scope: model survey, candidate selection, license screening, integration
+design. Latency was UNVERIFIED at authoring time and has now been measured.)
+
+## On-Device Benchmark Results (2026-06-28)
+
+Measured with the `DepthBenchmarkTest` instrumented harness (`androidDeviceTest`) using the
+official Qualcomm AI Hub **Depth Anything V2 Small, float TFLite** (`depth_anything_v2.tflite`,
+input `image[1,518,518,3]` → output `depth_estimates[1,518,518,1]`), 5 warmup + 30 measured runs.
+
+**Device: Samsung Galaxy S25 (SM-S938Z), Snapdragon 8 Elite — a flagship, *faster* than the
+30 ms target's Snapdragon 7 Gen 1.**
+
+| Delegate (LiteRT 2.1.5 `CompiledModel`) | p50 | p95 | Output sanity |
+|---|---|---|---|
+| GPU (`Accelerator.GPU`) | **101.5 ms** | 113.3 ms | 268324 values, range ≈ [2.85, 5.50], not degenerate |
+| CPU (`Accelerator.CPU`) | 2895.7 ms | 2920.8 ms | matches GPU range — inference is correct |
+
+**Verdict against #898 criteria:**
+- Target **< 30 ms (GPU, SD 7 Gen 1)**. Actual **101.5 ms on a faster SD 8 Elite** → ~3.4× over
+  budget on a flagship; a mid-range 7 Gen 1 would be worse. This also exceeds the explicit
+  **abort threshold (> 50 ms)**.
+- Output is correct and meaningful (single-channel 518×518 depth, non-degenerate, GPU≈CPU).
+- **Conclusion: NO-GO for the float DA-V2 Small model on the LiteRT GPU delegate.**
+
+**Why and what's left to try (not yet measured):**
+- Only the **float** TFLite is published; the **w8a16 quantized** export exists solely as QNN DLC /
+  ONNX (no TFLite). The research-cited ~12.5 ms figure was **NPU (QNN/HTP)**, not GPU — so the
+  fast path needs the **NPU + quantized (QNN)** route, which the current `.tflite` cannot exercise.
+- Next levers before abandoning: (a) quantized model on `Accelerator.NPU`/QNN; (b) a lighter model
+  (MiDaS small, 256×256); (c) run depth at a **reduced cadence** (e.g. 5–10 fps, decoupled) instead
+  of every frame, accepting lower temporal resolution for the depth channel.
 
 ---
 

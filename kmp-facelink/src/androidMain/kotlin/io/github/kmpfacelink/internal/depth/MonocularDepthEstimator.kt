@@ -79,12 +79,17 @@ internal enum class DepthDelegate { GPU, CPU }
  * Configuration for the monocular depth estimator.
  *
  * Defaults target **Depth Anything V2 Small** (the recommended model from the #898 research:
- * Apache-2.0, ImageNet normalization, 518x518 input). The input/output tensor layout is assumed
- * NHWC; this and the normalization constants MUST be validated against the actual `.tflite`
- * metadata during on-device benchmarking before relying on the output.
+ * Apache-2.0, ImageNet normalization). Verified against the official Qualcomm AI Hub `.tflite`:
+ * input `image [1,518,518,3]` float32 (NHWC) and output `depth_estimates [1,518,518,1]` float32,
+ * so the NHWC layout and the square input-resolution output are confirmed. The ImageNet
+ * normalization constants are not encoded in the model and should be sanity-checked on output.
+ *
+ * The model is loaded from [modelFilePath] when set (e.g. a model downloaded at runtime), otherwise
+ * from the app assets at [modelAssetPath].
  */
 internal data class DepthEstimatorConfig(
     val modelAssetPath: String = DEFAULT_MODEL_ASSET_PATH,
+    val modelFilePath: String? = null,
     val inputSize: Int = DEFAULT_INPUT_SIZE,
     val delegate: DepthDelegate = DepthDelegate.GPU,
     val cpuThreads: Int = DEFAULT_CPU_THREADS,

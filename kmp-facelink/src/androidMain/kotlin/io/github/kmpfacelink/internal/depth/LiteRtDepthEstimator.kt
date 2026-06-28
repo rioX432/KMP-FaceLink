@@ -96,11 +96,12 @@ internal class LiteRtDepthEstimator private constructor(
             executor: ExecutorService,
         ): LiteRtDepthEstimator {
             val accelerator = if (config.delegate == DepthDelegate.GPU) Accelerator.GPU else Accelerator.CPU
-            val model = CompiledModel.create(
-                context.assets,
-                config.modelAssetPath,
-                CompiledModel.Options(accelerator),
-            )
+            val options = CompiledModel.Options(accelerator)
+            val model = if (config.modelFilePath != null) {
+                CompiledModel.create(config.modelFilePath, options)
+            } else {
+                CompiledModel.create(context.assets, config.modelAssetPath, options)
+            }
             // PoC assumption: the depth map is square at input resolution (true for Depth Anything
             // V2). The actual output shape must be confirmed against the model on-device (#898);
             // runInference logs a warning if the produced map size contradicts this assumption.

@@ -27,6 +27,10 @@ internal interface MonocularDepthEstimator {
     /**
      * Runs depth inference on [bitmap].
      *
+     * **Blocks the calling thread** until inference completes on the worker thread — call from a
+     * background coroutine/worker, never the main thread. Must **not** be called concurrently with
+     * [release]; doing so may throw once the worker executor is shut down.
+     *
      * @return a row-major depth map of length [outputWidth] * [outputHeight]. Values are
      *   relative (affine-invariant) — only their ordering is meaningful, not absolute distance.
      */
@@ -62,7 +66,13 @@ internal data class DepthNormalization(
     }
 }
 
-/** Compute unit the depth model runs on. Keep GPU for MediaPipe and use CPU here to avoid contention. */
+/**
+ * Compute unit the depth model runs on.
+ *
+ * Defaults to [GPU] (best throughput for the depth model). The dedicated worker thread keeps depth
+ * inference off MediaPipe's threads, but both still share one physical GPU — if GPU contention with
+ * MediaPipe degrades tracking, switch to [CPU] to keep the GPU dedicated to MediaPipe.
+ */
 internal enum class DepthDelegate { GPU, CPU }
 
 /**

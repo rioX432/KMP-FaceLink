@@ -41,21 +41,23 @@ internal object DepthImagePreprocessor {
         normalization: DepthNormalization,
     ): FloatArray {
         val scaled = Bitmap.createScaledBitmap(bitmap, inputSize, inputSize, true)
-        val pixels = IntArray(inputSize * inputSize)
-        scaled.getPixels(pixels, 0, inputSize, 0, 0, inputSize, inputSize)
+        try {
+            val pixels = IntArray(inputSize * inputSize)
+            scaled.getPixels(pixels, 0, inputSize, 0, 0, inputSize, inputSize)
 
-        val output = FloatArray(inputSize * inputSize * CHANNELS)
-        var i = 0
-        for (pixel in pixels) {
-            val (r, g, b) = normalizeRgb(pixel, normalization)
-            output[i++] = r
-            output[i++] = g
-            output[i++] = b
+            val output = FloatArray(inputSize * inputSize * CHANNELS)
+            var i = 0
+            for (pixel in pixels) {
+                val (r, g, b) = normalizeRgb(pixel, normalization)
+                output[i++] = r
+                output[i++] = g
+                output[i++] = b
+            }
+            return output
+        } finally {
+            if (scaled !== bitmap) {
+                scaled.recycle()
+            }
         }
-
-        if (scaled !== bitmap) {
-            scaled.recycle()
-        }
-        return output
     }
 }

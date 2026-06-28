@@ -14,6 +14,8 @@ internal object DepthImagePreprocessor {
 
     private const val CHANNELS = 3
     private const val MAX_CHANNEL_VALUE = 255f
+    private const val UINT8_MIN = 0
+    private const val UINT8_MAX = 255
 
     /**
      * Normalizes a single ARGB [pixel] into `[r, g, b]` using [normalization].
@@ -59,5 +61,43 @@ internal object DepthImagePreprocessor {
                 scaled.recycle()
             }
         }
+    }
+
+    /**
+     * Resizes [bitmap] to [inputSize] x [inputSize] and returns affine-quantized uint8 RGB pixels
+     * (NHWC) for a uint8 model. Pixels are taken in the `[0, 1]` domain (`pixel / 255`) then
+     * quantized as `q = round(real / quant.scale) + quant.zeroPoint`, clamped to `[0, 255]`.
+     */
+    fun toInputBytes(
+        bitmap: Bitmap,
+        inputSize: Int,
+        quant: QuantParams,
+    ): ByteArray {
+        val scaled = Bitmap.createScaledBitmap(bitmap, inputSize, inputSize, true)
+        try {
+            val pixels = IntArray(inputSize * inputSize)
+            scaled.getPixels(pixels, 0, inputSize, 0, 0, inputSize, inputSize)
+
+            val output = ByteArray(inputSize * inputSize * CHANNELS)
+            var i = 0
+            for (pixel in pixels) {
+                val r = ((pixel shr 16) and 0xFF) / MAX_CHANNEL_VALUE
+                val g = ((pixel shr 8) and 0xFF) / MAX_CHANNEL_VALUE
+                val b = (pixel and 0xFF) / MAX_CHANNEL_VALUE
+                output[i++] = quantize(r, quant)
+                output[i++] = quantize(g, quant)
+                output[i++] = quantize(b, quant)
+            }
+            return output
+        } finally {
+            if (scaled !== bitmap) {
+                scaled.recycle()
+            }
+        }
+    }
+
+    private fun quantize(real: Float, quant: QuantParams): Byte {
+        val q = Math.round(real / quant.scale) + quant.zeroPoint
+        return q.coerceIn(UINT8_MIN, UINT8_MAX).toByte()
     }
 }

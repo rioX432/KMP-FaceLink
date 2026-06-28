@@ -4,6 +4,7 @@ import android.content.Context
 import android.graphics.Bitmap
 import com.google.ai.edge.litert.Accelerator
 import com.google.ai.edge.litert.CompiledModel
+import com.google.ai.edge.litert.TensorBuffer
 import io.github.kmpfacelink.util.FaceLinkLogger
 import java.util.concurrent.Callable
 import java.util.concurrent.ExecutorService
@@ -35,19 +36,36 @@ internal class LiteRtDepthEstimator private constructor(
     }
 
     private fun runInference(bitmap: Bitmap): FloatArray {
-        val pixels = DepthImagePreprocessor.toInputFloats(bitmap, config.inputSize, config.normalization)
         val inputs = model.createInputBuffers()
         try {
             val outputs = model.createOutputBuffers()
             try {
-                inputs[0].writeFloat(pixels)
+                writeInput(inputs[0], bitmap)
                 model.run(inputs, outputs)
-                return outputs[0].readFloat().also(::verifyShapeOnce)
+                return readOutput(outputs[0]).also(::verifyShapeOnce)
             } finally {
                 outputs.forEach { it.close() }
             }
         } finally {
             inputs.forEach { it.close() }
+        }
+    }
+
+    private fun writeInput(buffer: TensorBuffer, bitmap: Bitmap) {
+        when (config.ioType) {
+            DepthIoType.FLOAT32 ->
+                buffer.writeFloat(DepthImagePreprocessor.toInputFloats(bitmap, config.inputSize, config.normalization))
+            DepthIoType.UINT8 ->
+                buffer.writeInt8(DepthImagePreprocessor.toInputBytes(bitmap, config.inputSize, config.inputQuant!!))
+        }
+    }
+
+    private fun readOutput(buffer: TensorBuffer): FloatArray = when (config.ioType) {
+        DepthIoType.FLOAT32 -> buffer.readFloat()
+        DepthIoType.UINT8 -> {
+            val quant = config.outputQuant!!
+            val raw = buffer.readInt8()
+            FloatArray(raw.size) { (((raw[it].toInt() and BYTE_MASK) - quant.zeroPoint)) * quant.scale }
         }
     }
 
@@ -76,6 +94,7 @@ internal class LiteRtDepthEstimator private constructor(
     internal companion object {
         private const val TAG = "LiteRtDepthEstimator"
         private const val THREAD_NAME = "facelink-depth"
+        private const val BYTE_MASK = 0xFF
 
         /** Builds an estimator on its owning thread. Throws if the model asset cannot be loaded. */
         fun create(context: Context, config: DepthEstimatorConfig): LiteRtDepthEstimator {

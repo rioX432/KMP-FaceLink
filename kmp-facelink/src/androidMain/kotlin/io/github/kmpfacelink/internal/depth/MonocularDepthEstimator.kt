@@ -75,6 +75,16 @@ internal data class DepthNormalization(
  */
 internal enum class DepthDelegate { GPU, CPU }
 
+/** Element type of the model's input/output tensors. */
+internal enum class DepthIoType { FLOAT32, UINT8 }
+
+/**
+ * Affine quantization parameters for a uint8 tensor: `real = (q - zeroPoint) * scale`, and
+ * `q = round(real / scale) + zeroPoint`. Used only when [DepthEstimatorConfig.ioType] is
+ * [DepthIoType.UINT8]; the values come from the model's tensor metadata.
+ */
+internal data class QuantParams(val scale: Float, val zeroPoint: Int)
+
 /**
  * Configuration for the monocular depth estimator.
  *
@@ -94,10 +104,17 @@ internal data class DepthEstimatorConfig(
     val delegate: DepthDelegate = DepthDelegate.GPU,
     val cpuThreads: Int = DEFAULT_CPU_THREADS,
     val normalization: DepthNormalization = DepthNormalization.IMAGENET,
+    val ioType: DepthIoType = DepthIoType.FLOAT32,
+    val inputQuant: QuantParams? = null,
+    val outputQuant: QuantParams? = null,
 ) {
     init {
         require(inputSize > 0) { "inputSize must be positive, was $inputSize" }
         require(cpuThreads > 0) { "cpuThreads must be positive, was $cpuThreads" }
+        if (ioType == DepthIoType.UINT8) {
+            requireNotNull(inputQuant) { "inputQuant is required for UINT8 models" }
+            requireNotNull(outputQuant) { "outputQuant is required for UINT8 models" }
+        }
     }
 
     internal companion object {

@@ -34,10 +34,25 @@ class DepthBenchmarkTest {
         val args = InstrumentationRegistry.getArguments()
         val modelPath = stageModel(context, args.getString("modelPath"))
         val inputSize = args.getString("inputSize")?.toInt() ?: DepthEstimatorConfig.DEFAULT_INPUT_SIZE
+        // Optional uint8 quantized mode: pass quant=uint8 plus inScale/inZero/outScale/outZero.
+        val quant = args.getString("quant") == "uint8"
+        val inputQuant = if (quant) QuantParams(arg(args, "inScale"), arg(args, "inZero").toInt()) else null
+        val outputQuant = if (quant) QuantParams(arg(args, "outScale"), arg(args, "outZero").toInt()) else null
         for (delegate in listOf(DepthDelegate.GPU, DepthDelegate.CPU)) {
-            runBenchmark(context, delegate, modelPath, inputSize)
+            val config = DepthEstimatorConfig(
+                delegate = delegate,
+                modelFilePath = modelPath,
+                inputSize = inputSize,
+                ioType = if (quant) DepthIoType.UINT8 else DepthIoType.FLOAT32,
+                inputQuant = inputQuant,
+                outputQuant = outputQuant,
+            )
+            runBenchmark(context, config)
         }
     }
+
+    private fun arg(args: android.os.Bundle, key: String): Float =
+        requireNotNull(args.getString(key)) { "missing instrumentation arg: $key" }.toFloat()
 
     private fun stageModel(context: Context, sourcePath: String?): String? {
         if (sourcePath == null) return null
@@ -50,13 +65,10 @@ class DepthBenchmarkTest {
         return dest.absolutePath
     }
 
-    private fun runBenchmark(context: Context, delegate: DepthDelegate, modelPath: String?, inputSize: Int) {
-        val estimator = createMonocularDepthEstimator(
-            context,
-            DepthEstimatorConfig(delegate = delegate, modelFilePath = modelPath, inputSize = inputSize),
-        )
+    private fun runBenchmark(context: Context, config: DepthEstimatorConfig) {
+        val estimator = createMonocularDepthEstimator(context, config)
         assumeNotNull(
-            "Depth model asset absent — skipping ($delegate). Place the .tflite to benchmark.",
+            "Depth model absent — skipping (${config.delegate}). Supply modelPath to benchmark.",
             estimator,
         )
         requireNotNull(estimator)
@@ -73,7 +85,7 @@ class DepthBenchmarkTest {
                 latenciesMs[i] = (System.nanoTime() - start) / NANOS_PER_MS
             }
             frame.recycle()
-            logResult(delegate, latenciesMs, sample, estimator.outputWidth, estimator.outputHeight)
+            logResult(config.delegate, latenciesMs, sample, estimator.outputWidth, estimator.outputHeight)
         } finally {
             estimator.release()
         }

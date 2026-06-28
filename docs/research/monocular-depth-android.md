@@ -10,8 +10,10 @@ PoC built and **benchmarked on-device** (see "On-Device Benchmark Results" below
 - **DA-V2 Small float: NO-GO** — 101.5 ms GPU (~3.4× over the 30 ms budget on a flagship).
 - **MiDaS float: 16.0 ms GPU on the flagship** — clears the gate there, but likely borderline/over
   on the mid-range SD 7 Gen 1 target. Lower accuracy than DA-V2.
-- **Strongest remaining candidate: w8a8 quantized MiDaS** (15 MB TFLite, uint8) — needs a uint8
-  estimator path, not yet measured.
+- **MiDaS w8a8: 20.1 ms GPU / 54.7 ms CPU** — quantization does **not** speed up the GPU delegate
+  (float runs natively); its win is on CPU/NPU. The NPU path needs QNN (not TFLite).
+- **Net: MiDaS float on GPU is the fastest TFLite option but not safely under budget on mid-range.**
+  Closing the gap needs the NPU/QNN runtime or a reduced depth cadence.
 
 (Original research scope: model survey, candidate selection, license screening, integration
 design. Latency was UNVERIFIED at authoring time and has now been measured.)
@@ -31,13 +33,29 @@ input `image[1,518,518,3]` → output `depth_estimates[1,518,518,1]`), 5 warmup 
 | DA-V2 Small float | 518² | CPU | 2895.7 ms | 2920.8 ms | matches GPU — inference correct |
 | **MiDaS float** | 256² | GPU | **16.0 ms** | 19.5 ms | 65536 vals, range ≈ [161, 821], not degenerate |
 | MiDaS float | 256² | CPU | 201.3 ms | 213.0 ms | matches GPU — inference correct |
+| MiDaS w8a8 (uint8) | 256² | GPU | 20.1 ms | 25.9 ms | not degenerate |
+| MiDaS w8a8 (uint8) | 256² | CPU | **54.7 ms** | 64.5 ms | not degenerate |
 
 MiDaS float (`image[1,256,256,3]`→`depth_estimates[1,256,256,1]`, NHWC float32) is **~6.4× faster**
-than DA-V2 Small float and **clears 30 ms on the flagship GPU**. Caveat: this is the SD 8 Elite;
-on the actual **SD 7 Gen 1 target** (Adreno 644 vs 830, roughly 3–4× slower GPU) MiDaS float would
-likely land ~50–65 ms — **borderline/over budget**. The **w8a8 quantized MiDaS** TFLite (uint8 I/O,
-15 MB; unlike DA-V2 which ships no quantized TFLite) is the strongest remaining candidate but needs
-a uint8 code path in the estimator (current impl is float-only) and is **not yet measured**.
+than DA-V2 Small float and **clears 30 ms on the flagship GPU**.
+
+**Key finding — quantization does not help on the GPU delegate.** w8a8 MiDaS on GPU (20.1 ms) is
+*slightly slower* than float MiDaS on GPU (16.0 ms): the LiteRT GPU delegate runs float natively, so
+8-bit weights bring no speedup there. Quantization's win shows up on **CPU** (201 → 55 ms, ~3.7×) —
+and the real target for w8a8 is the **NPU**, which requires the QNN DLC export (not TFLite) and is
+therefore **out of reach via LiteRT's TFLite GPU/CPU path**.
+
+**Caveats / remaining unknowns:**
+- All numbers are SD 8 Elite. On the **SD 7 Gen 1 target** (Adreno 644 vs 830, ~3–4× slower GPU),
+  MiDaS float GPU would likely land ~50–65 ms — **borderline/over the 30 ms budget**.
+- MiDaS is **lower accuracy** than DA-V2 (speed/quality tradeoff).
+- The w8a8 GPU output range looked off vs CPU (a delegate dequant quirk); latency is the valid
+  takeaway, not the quantized GPU depth values.
+
+**Net recommendation:** the fastest viable TFLite path is **MiDaS float on GPU** (~16 ms flagship),
+but it is **not safely under budget on the mid-range target**. Closing the gap needs one of:
+(a) the **NPU/QNN** path (different runtime, not this TFLite integration), or (b) running depth at a
+**reduced cadence** (e.g. 10–15 fps, decoupled from tracking) rather than per-frame.
 
 **Verdict against #898 criteria:**
 - Target **< 30 ms (GPU, SD 7 Gen 1)**. Actual **101.5 ms on a faster SD 8 Elite** → ~3.4× over

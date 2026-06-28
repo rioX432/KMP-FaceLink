@@ -69,6 +69,7 @@ kotlin {
         androidMain.dependencies {
             implementation(libs.kotlinx.coroutines.android)
             implementation(libs.mediapipe.tasks.vision)
+            implementation(libs.litert)
             implementation(libs.camerax.core)
             implementation(libs.camerax.camera2)
             implementation(libs.camerax.lifecycle)

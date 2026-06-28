@@ -31,9 +31,11 @@ class DepthBenchmarkTest {
         // a filesystem path via the `modelPath` instrumentation argument (adb push it first). It is
         // staged into the app's internal files dir because LiteRT's native loader cannot open the
         // external-storage path directly under scoped storage.
-        val modelPath = stageModel(context, InstrumentationRegistry.getArguments().getString("modelPath"))
+        val args = InstrumentationRegistry.getArguments()
+        val modelPath = stageModel(context, args.getString("modelPath"))
+        val inputSize = args.getString("inputSize")?.toInt() ?: DepthEstimatorConfig.DEFAULT_INPUT_SIZE
         for (delegate in listOf(DepthDelegate.GPU, DepthDelegate.CPU)) {
-            runBenchmark(context, delegate, modelPath)
+            runBenchmark(context, delegate, modelPath, inputSize)
         }
     }
 
@@ -48,10 +50,10 @@ class DepthBenchmarkTest {
         return dest.absolutePath
     }
 
-    private fun runBenchmark(context: Context, delegate: DepthDelegate, modelPath: String?) {
+    private fun runBenchmark(context: Context, delegate: DepthDelegate, modelPath: String?, inputSize: Int) {
         val estimator = createMonocularDepthEstimator(
             context,
-            DepthEstimatorConfig(delegate = delegate, modelFilePath = modelPath),
+            DepthEstimatorConfig(delegate = delegate, modelFilePath = modelPath, inputSize = inputSize),
         )
         assumeNotNull(
             "Depth model asset absent — skipping ($delegate). Place the .tflite to benchmark.",

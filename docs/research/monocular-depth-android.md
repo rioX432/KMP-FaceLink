@@ -6,9 +6,12 @@ Last updated: 2026-06-28
 
 ## Status
 
-PoC built and **benchmarked on-device** — the float TFLite model **fails the 30 ms gate**
-(see "On-Device Benchmark Results" below). Net: **NO-GO for DA-V2 Small float via GPU**;
-revisit with a quantized/NPU path or a lighter model before integrating.
+PoC built and **benchmarked on-device** (see "On-Device Benchmark Results" below):
+- **DA-V2 Small float: NO-GO** — 101.5 ms GPU (~3.4× over the 30 ms budget on a flagship).
+- **MiDaS float: 16.0 ms GPU on the flagship** — clears the gate there, but likely borderline/over
+  on the mid-range SD 7 Gen 1 target. Lower accuracy than DA-V2.
+- **Strongest remaining candidate: w8a8 quantized MiDaS** (15 MB TFLite, uint8) — needs a uint8
+  estimator path, not yet measured.
 
 (Original research scope: model survey, candidate selection, license screening, integration
 design. Latency was UNVERIFIED at authoring time and has now been measured.)
@@ -22,10 +25,19 @@ input `image[1,518,518,3]` → output `depth_estimates[1,518,518,1]`), 5 warmup 
 **Device: Samsung Galaxy S25 (SM-S938Z), Snapdragon 8 Elite — a flagship, *faster* than the
 30 ms target's Snapdragon 7 Gen 1.**
 
-| Delegate (LiteRT 2.1.5 `CompiledModel`) | p50 | p95 | Output sanity |
-|---|---|---|---|
-| GPU (`Accelerator.GPU`) | **101.5 ms** | 113.3 ms | 268324 values, range ≈ [2.85, 5.50], not degenerate |
-| CPU (`Accelerator.CPU`) | 2895.7 ms | 2920.8 ms | matches GPU range — inference is correct |
+| Model (LiteRT 2.1.5 `CompiledModel`) | Input | Delegate | p50 | p95 | Output sanity |
+|---|---|---|---|---|---|
+| DA-V2 Small float | 518² | GPU | **101.5 ms** | 113.3 ms | 268324 vals, range ≈ [2.85, 5.50], not degenerate |
+| DA-V2 Small float | 518² | CPU | 2895.7 ms | 2920.8 ms | matches GPU — inference correct |
+| **MiDaS float** | 256² | GPU | **16.0 ms** | 19.5 ms | 65536 vals, range ≈ [161, 821], not degenerate |
+| MiDaS float | 256² | CPU | 201.3 ms | 213.0 ms | matches GPU — inference correct |
+
+MiDaS float (`image[1,256,256,3]`→`depth_estimates[1,256,256,1]`, NHWC float32) is **~6.4× faster**
+than DA-V2 Small float and **clears 30 ms on the flagship GPU**. Caveat: this is the SD 8 Elite;
+on the actual **SD 7 Gen 1 target** (Adreno 644 vs 830, roughly 3–4× slower GPU) MiDaS float would
+likely land ~50–65 ms — **borderline/over budget**. The **w8a8 quantized MiDaS** TFLite (uint8 I/O,
+15 MB; unlike DA-V2 which ships no quantized TFLite) is the strongest remaining candidate but needs
+a uint8 code path in the estimator (current impl is float-only) and is **not yet measured**.
 
 **Verdict against #898 criteria:**
 - Target **< 30 ms (GPU, SD 7 Gen 1)**. Actual **101.5 ms on a faster SD 8 Elite** → ~3.4× over

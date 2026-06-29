@@ -122,11 +122,12 @@ class HolisticTrackingDataTest {
 class HolisticTrackerConfigTest {
 
     @Test
-    fun defaultConfigEnablesAllModalities() {
+    fun defaultConfigEnablesFaceAndHandButNotBody() {
         val config = HolisticTrackerConfig()
         assertTrue(config.enableFace)
         assertTrue(config.enableHand)
-        assertTrue(config.enableBody)
+        // Body tracking defaults to false (see HolisticTrackerConfig.enableBody KDoc).
+        assertFalse(config.enableBody)
     }
 
     @Test

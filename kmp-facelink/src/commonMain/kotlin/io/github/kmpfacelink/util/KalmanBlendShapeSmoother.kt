@@ -40,7 +40,7 @@ internal class KalmanBlendShapeSmoother(
             return scratch
         }
 
-        val dt = (timestampMs - lastTimestampMs) / MILLIS_PER_SECOND
+        val dt = (timestampMs - lastTimestampMs) / TimeConstants.MILLIS_PER_SECOND_F
         lastTimestampMs = timestampMs
 
         scratch.clear()
@@ -170,7 +170,4 @@ internal class KalmanBlendShapeSmoother(
         }
     }
 
-    private companion object {
-        private const val MILLIS_PER_SECOND = 1000f
-    }
 }

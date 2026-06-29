@@ -49,9 +49,9 @@ internal class OneEuroFilter(
             return scratch
         }
 
-        val dt = (timestampMs - lastTimestampMs) / MILLIS_PER_SECOND
+        val dt = (timestampMs - lastTimestampMs) / TimeConstants.MILLIS_PER_SECOND_F
         lastTimestampMs = timestampMs
-        val predictionSeconds = predictionMs / MILLIS_PER_SECOND
+        val predictionSeconds = predictionMs / TimeConstants.MILLIS_PER_SECOND_F
 
         scratch.clear()
         for ((shape, rawValue) in data) {
@@ -100,8 +100,4 @@ internal class OneEuroFilter(
         alpha * x + (1f - alpha) * xPrev
 
     private data class ShapeState(val x: Float, val dx: Float)
-
-    companion object {
-        private const val MILLIS_PER_SECOND = 1000f
-    }
 }

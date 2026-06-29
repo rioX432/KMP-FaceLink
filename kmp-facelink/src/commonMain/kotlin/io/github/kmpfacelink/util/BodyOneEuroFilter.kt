@@ -52,7 +52,7 @@ internal class BodyOneEuroFilter(
             return bodies
         }
 
-        val dt = (timestampMs - lastTimestampMs) / MS_PER_SECOND
+        val dt = (timestampMs - lastTimestampMs) / TimeConstants.MILLIS_PER_SECOND_F
         lastTimestampMs = timestampMs
 
         return bodies.mapIndexed { index, body -> smoothBody(index, body, dt) }
@@ -112,8 +112,4 @@ internal class BodyOneEuroFilter(
         alpha * x + (1f - alpha) * xPrev
 
     private class AxisState(var x: Float, var dx: Float)
-
-    private companion object {
-        private const val MS_PER_SECOND = 1000f
-    }
 }

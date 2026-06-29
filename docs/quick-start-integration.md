@@ -1,8 +1,8 @@
 # Quick-Start Integration Guide
 
-Add KMP-FaceLink to your project via Maven Central (Android/JVM) or Swift Package Manager (iOS).
+Add KMP-FaceLink to your project via GitHub Packages (Android/JVM/Wasm) or Swift Package Manager (iOS).
 
-> **Note:** KMP-FaceLink is not yet published to Maven Central or SPM. The publishing infrastructure (Gradle signing, Sonatype nexus-publish, GitHub Actions release workflow, SPM binary targets) is fully configured and will activate on the first `v*` tag push. Until then, build locally with `./gradlew publishToMavenLocal` and add `mavenLocal()` to your repositories. See [Publishing](publishing.md) for the full release checklist.
+> **Versioning:** Every merge to `master` publishes a unique, immutable version of the form `0.<minor>.<UTC YYYYMMDDHHMM>` (e.g. `0.3.202606290230`) to GitHub Packages and creates a matching GitHub Release with the iOS XCFrameworks. Pick the latest version from [Packages](https://github.com/orgs/AnotherBall/packages?repo_name=KMP-FaceLink) (Maven) or [Releases](https://github.com/AnotherBall/KMP-FaceLink/releases) (SPM). See [Publishing](publishing.md) for details.
 
 ## Requirements
 
@@ -75,13 +75,22 @@ dependencies {
 
 ### Repository
 
-KMP-FaceLink is published to Maven Central. No additional repository configuration is needed if you already have `mavenCentral()` in your `repositories` block:
+KMP-FaceLink is published to **GitHub Packages**. Add the Maven repository and authenticate with a GitHub token that has the `read:packages` scope (GitHub Packages requires authentication even for public packages):
 
 ```kotlin
 repositories {
-    mavenCentral()
+    mavenCentral() // for transitive dependencies
+    maven {
+        url = uri("https://maven.pkg.github.com/AnotherBall/KMP-FaceLink")
+        credentials {
+            username = providers.gradleProperty("gpr.user").orNull ?: System.getenv("GITHUB_ACTOR")
+            password = providers.gradleProperty("gpr.key").orNull ?: System.getenv("GITHUB_TOKEN")
+        }
+    }
 }
 ```
+
+Provide `gpr.user` / `gpr.key` in `~/.gradle/gradle.properties` (or `GITHUB_ACTOR` / `GITHUB_TOKEN` env vars in CI).
 
 ## iOS (Swift Package Manager)
 

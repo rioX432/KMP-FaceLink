@@ -1,16 +1,20 @@
 # Publishing
 
-This document describes how to publish KMP-FaceLink to Maven Central (Android/JVM/Wasm) and GitHub Releases + SPM (iOS).
+This document describes how KMP-FaceLink is published to **GitHub Packages** (Android/JVM/Wasm Maven artifacts) and **GitHub Releases + SPM** (iOS XCFrameworks).
+
+> Maven Central, Gradle Plugin Portal, and GPG signing were intentionally removed. GitHub Packages is the sole Maven channel; SPM via `Package.swift` is the sole iOS channel.
 
 ## Architecture Overview
 
-The publishing pipeline is fully automated via GitHub Actions (`.github/workflows/release.yml`). Pushing a `v*` tag triggers:
+Publishing is fully automated via GitHub Actions (`.github/workflows/publish-github-packages.yml`). **Every merge to `master`** triggers:
 
-1. **Maven Central** — all 14 modules are published to Sonatype OSSRH, then the staging repository is closed and released.
-2. **XCFramework builds** — each iOS-capable module is built into a release XCFramework and zipped.
-3. **GitHub Release** — XCFramework zips are attached to the release with SHA-256 checksums.
-4. **Package.swift update** — `scripts/update-package-swift.py` rewrites checksums in `Package.swift` so SPM consumers get the correct binaries.
-5. **Dokka docs** — API documentation is generated and deployed to GitHub Pages.
+1. **Version resolution** — `0.<minor>.<UTC YYYYMMDDHHMM>` (MAJOR.MINOR from `VERSION_NAME`, patch replaced by a UTC timestamp). Each merge yields a unique, immutable version, so there are no `-SNAPSHOT` artifacts and no 409 conflicts.
+2. **GitHub Packages** — all publishable modules are published to `https://maven.pkg.github.com/AnotherBall/KMP-FaceLink`.
+3. **XCFramework builds** — each iOS-capable module is built into a release XCFramework and zipped.
+4. **GitHub Release** — a `v<version>` release is created at the built commit with the XCFramework zips attached.
+5. **Package.swift** — `scripts/generate-package-swift.py` regenerates the manifest from the release assets, pointing each binary target at the GitHub REST API asset URL (required because this is a **private** repo — public `releases/download/...` URLs are not resolvable by SwiftPM). The manifest is committed to `master` with `[skip ci]` (so the auto-commit does not re-trigger the workflow), and the `v<version>` tag is force-moved onto that commit so SwiftPM consumers resolving the tag read the correct manifest.
+
+`workflow_dispatch` is also available for manual publishing, optionally with an explicit `version` input (e.g. `0.3.0`) instead of the auto timestamp.
 
 ### Published Modules
 
@@ -31,111 +35,44 @@ The publishing pipeline is fully automated via GitHub Actions (`.github/workflow
 | `kmp-facelink-stream` | `com.anotherball:kmp-facelink-stream` | -- (JVM only) |
 | `kmp-facelink-vts` | `com.anotherball:kmp-facelink-vts` | -- (JVM only) |
 
-The BOM (`kmp-facelink-bom`) is a `java-platform` module that manages versions for all 13 library modules. Android-only consumers can import the BOM via `platform()` and omit version numbers on individual modules. **KMP consumers cannot use `platform()` in `commonMain.dependencies {}`** ([KT-58759](https://youtrack.jetbrains.com/issue/KT-58759)) and should use a version catalog with explicit `version.ref` instead. See [Quick Start Integration](quick-start-integration.md) for usage examples.
+The BOM (`kmp-facelink-bom`) is a `java-platform` module managing versions for all library modules. Android-only consumers can import it via `platform()`; **KMP consumers cannot use `platform()` in `commonMain.dependencies {}`** ([KT-58759](https://youtrack.jetbrains.com/issue/KT-58759)) and should use a version catalog with explicit `version.ref`. See [Quick Start Integration](quick-start-integration.md).
 
-## GitHub Packages (private Maven)
+## CI Details
 
-In addition to Maven Central, every publishable module can be published to **GitHub Packages** (`https://maven.pkg.github.com/anotherball/KMP-FaceLink`) via `.github/workflows/publish-github-packages.yml`. This is the channel used by private consumers (e.g. persona-native-viewer) to resolve `com.anotherball:kmp-facelink:*` without `mavenLocal()`.
+- **Triggers**: push to `master`, or manual `workflow_dispatch` (optional explicit `version`).
+- **Runner**: `self-hosted, macOS, ARM64` with `scripts/setup-whisper-ios.sh` — required because `kmp-facelink-voice` has an iOS `whisper.cpp` cinterop, so the iOS klib publications cannot be built on Linux.
+- **Auth**: the built-in `GITHUB_TOKEN` (`permissions: packages: write` / `contents: write`), injected explicitly into the Gradle process as `GITHUB_TOKEN` / `GITHUB_ACTOR`.
+- **No signing**: GitHub Packages does not require GPG signatures, so no `Sign` tasks run and no `.asc` artifacts are produced.
 
-- **Triggers**: pushing a `v*` tag, or manual `workflow_dispatch`.
-- **Runner**: `macos-15` with `scripts/setup-whisper-ios.sh` — required because `kmp-facelink-voice` has an iOS `whisper.cpp` cinterop, so the iOS klib publications cannot be built on Linux.
-- **Auth**: the built-in `GITHUB_TOKEN` (`permissions: packages: write`), injected explicitly into the Gradle process as `GITHUB_TOKEN` / `GITHUB_ACTOR`.
-- **No signing**: GitHub Packages does not require GPG signatures, so `GPG_*` is not passed and the `Sign` tasks are guarded off on the GitHub Packages publish path (no `.asc` artifacts are produced).
+### Why timestamp versions
 
-### Re-publishing the same version
+GitHub Packages **rejects overwriting an already-published release version** of a Maven artifact (HTTP 409). The `0.<minor>.<UTC timestamp>` scheme guarantees a fresh version on every merge, avoiding both `-SNAPSHOT` mutability and 409 conflicts. To cut a clean named release, run `workflow_dispatch` with an explicit `version` (e.g. `0.3.0`).
 
-GitHub Packages **rejects overwriting an already-published release version** of a Maven artifact (HTTP 409). To iterate:
+## Releasing
 
-- For test/iteration, publish a `-SNAPSHOT` version (SNAPSHOTs may be overwritten), or
-- Bump `VERSION_NAME` in `gradle.properties` for each immutable release.
+### Automatic (default)
 
-Always run a test publish first via `workflow_dispatch` (prerelease tag or SNAPSHOT), verify the artifacts, then push the production `v*` tag.
+Merge a PR to `master`. The workflow publishes `0.<minor>.<timestamp>` to GitHub Packages, builds the XCFrameworks, and creates the matching GitHub Release. No manual steps.
 
-## First-Time Setup Checklist
+### Manual / named version
 
-Before the first release, the repository owner must complete these one-time steps:
+1. (Optional) bump `VERSION_NAME` in `gradle.properties` to change the `MAJOR.MINOR` base.
+2. Trigger the workflow manually:
+   ```bash
+   gh workflow run publish-github-packages.yml --ref master -f version=0.3.0
+   ```
 
-### 1. Sonatype OSSRH Account
+### Verify
 
-- [ ] Register at [Sonatype OSSRH](https://s01.oss.sonatype.org/) (or [central.sonatype.com](https://central.sonatype.com/) for the new Central Portal)
-- [ ] Verify the `com.anotherball` namespace via DNS TXT record on `anotherball.com` (Central Portal flow)
-- [ ] Wait for namespace verification
-
-### 2. GPG Signing Key
-
-- [ ] Generate a GPG key: `gpg --full-generate-key` (RSA 4096, no expiry or long expiry)
-- [ ] Export the key ID: `gpg --list-keys --keyid-format long`
-- [ ] Export the private key in ASCII armor: `gpg --export-secret-keys --armor <KEY_ID>`
-- [ ] Publish the public key to a keyserver: `gpg --keyserver keyserver.ubuntu.com --send-keys <KEY_ID>`
-
-### 3. GitHub Secrets
-
-Add these secrets to the repository (Settings > Secrets and variables > Actions):
-
-| Secret | Description |
-|--------|-------------|
-| `OSSRH_USERNAME` | Sonatype OSSRH username |
-| `OSSRH_PASSWORD` | Sonatype OSSRH password (or token) |
-| `GPG_KEY_ID` | Last 8 characters of the GPG key fingerprint |
-| `GPG_KEY` | Full ASCII-armored private key (output of `gpg --export-secret-keys --armor`) |
-| `GPG_PASSPHRASE` | Passphrase for the GPG key |
-
-### 4. GitHub Pages
-
-- [ ] Enable GitHub Pages in repository settings (Settings > Pages > Source: GitHub Actions)
-
-## Releasing a Version
-
-### 1. Update the version
-
-Edit `gradle.properties`:
-
-```properties
-VERSION_NAME=X.Y.Z
-```
-
-### 2. Update CHANGELOG.md
-
-Add a section for the new version with a summary of changes.
-
-### 3. Update docs/migration.md
-
-If this release contains breaking changes, deprecated API removals, or new requirements:
-- Add a migration section for this version in `docs/migration.md`
-- Verify the deprecated API removal schedule is accurate
-
-### 4. Commit and tag
-
-```bash
-git add gradle.properties CHANGELOG.md docs/migration.md
-git commit -m "Release vX.Y.Z"
-git tag vX.Y.Z
-git push origin master --tags
-```
-
-### 5. Monitor the release
-
-The `vX.Y.Z` tag push triggers the Release workflow. Monitor progress at:
-`https://github.com/AnotherBall/KMP-FaceLink/actions/workflows/release.yml`
-
-The workflow will:
-1. Publish all modules to Maven Central staging, then close and release the staging repository
-2. Build XCFrameworks for each iOS module
-3. Create a GitHub Release with XCFramework zips and checksums
-4. Update `Package.swift` checksums and commit to `master` automatically
-5. Deploy Dokka documentation to GitHub Pages
-
-### 6. Verify
-
-- [ ] Check [Maven Central](https://central.sonatype.com/namespace/com.anotherball) for the published artifacts (may take 15-30 minutes to sync)
-- [ ] Check the GitHub Release page for XCFramework downloads
-- [ ] Verify `Package.swift` checksums were updated by the release workflow (check the auto-commit on `master`)
-- [ ] Verify SPM resolution by adding the package in a fresh Xcode project
+- [ ] Check [Packages](https://github.com/orgs/AnotherBall/packages?repo_name=KMP-FaceLink) for the published Maven artifacts
+- [ ] Check the [Releases](https://github.com/AnotherBall/KMP-FaceLink/releases) page for XCFramework downloads
+- [ ] Verify the `Update Package.swift for v<version> [skip ci]` commit landed on `master` and the `v<version>` tag points at it
+- [ ] Verify SPM resolution by adding the package in a fresh Xcode project (with an authenticated GitHub token, since the repo is private)
 - [ ] Check API docs at https://anotherball.github.io/KMP-FaceLink/
 
 ## Local Development
 
-To test the publishing configuration locally without actually publishing:
+Test the publishing configuration locally without publishing to GitHub Packages:
 
 ```bash
 # Publish all modules to the local Maven repository (~/.m2/repository/)
@@ -161,7 +98,7 @@ repositories {
 | Property | Value | Purpose |
 |----------|-------|---------|
 | `GROUP` | `com.anotherball` | Maven group ID |
-| `VERSION_NAME` | `0.2.0` | Artifact version |
+| `VERSION_NAME` | `0.3.0` | `MAJOR.MINOR` base for the timestamp version |
 | `POM_URL` | GitHub repo URL | POM project URL |
 | `POM_SCM_URL` | GitHub repo URL | Source control URL |
 | `POM_SCM_CONNECTION` | `scm:git:git://...` | Read-only SCM connection |
@@ -175,56 +112,28 @@ repositories {
 
 | Variable | Source | Purpose |
 |----------|--------|---------|
-| `OSSRH_USERNAME` | GitHub Secret | Sonatype authentication |
-| `OSSRH_PASSWORD` | GitHub Secret | Sonatype authentication |
-| `GPG_KEY_ID` | GitHub Secret | Signing key identifier |
-| `GPG_KEY` | GitHub Secret | ASCII-armored private key |
-| `GPG_PASSPHRASE` | GitHub Secret | Key passphrase |
+| `GITHUB_TOKEN` | Built-in (`secrets.GITHUB_TOKEN`) | GitHub Packages auth + release creation |
+| `GITHUB_ACTOR` | Built-in (`github.actor`) | Publishing username |
 
 ## Troubleshooting
 
-### Staging repository fails to close
+### Package.swift Generation
 
-Sonatype's validation rules may reject the staging repository. Common reasons:
-- Missing POM metadata (description, SCM, license, developer) -- already configured in `build.gradle.kts`
-- Missing source or javadoc JARs -- javadoc JAR is configured; KMP generates source JARs automatically
-- Signature verification failure -- ensure the GPG public key is published to a keyserver
-
-Check the staging repository at https://s01.oss.sonatype.org/#stagingRepositories for detailed error messages.
-
-### Package.swift Checksum Management
-
-`Package.swift` in the repository contains `CHECKSUM_PLACEHOLDER` values for all binary XCFramework targets. **This is intentional.** The placeholders are replaced with real SHA-256 checksums during the release workflow.
+`Package.swift` is regenerated from the GitHub Release assets on every run by `scripts/generate-package-swift.py`.
 
 **How it works:**
 
-1. The release workflow builds each XCFramework and zips it
-2. `sha256sum` computes checksums for all zip files
-3. `scripts/update-package-swift.py` replaces placeholders (or previous checksums) and the version string in `Package.swift`
-4. The workflow commits the updated `Package.swift` back to `master`
+1. The workflow builds each XCFramework and zips it, then creates the release with the zips attached
+2. `gh api /repos/<repo>/releases/tags/<tag>` is dumped to `release.json`
+3. `scripts/generate-package-swift.py Package.swift <version> release.json release-assets` regenerates the manifest: for each framework it reads the REST API asset URL from `release.json` and computes the SHA-256 of the local zip
+4. The manifest is committed to `master` with `[skip ci]` and the tag is force-moved onto that commit
 
-The script handles both fresh placeholders and re-runs (already-replaced checksums), so it is idempotent.
+Binary target URLs use the API asset form `https://api.github.com/repos/<repo>/releases/assets/<id>.zip` because the repo is **private** (SwiftPM authenticates via token / `.netrc`).
 
-**Modules covered** (9 XCFrameworks):
+**Frameworks covered** (10 XCFrameworks):
 
-`KMPFaceLink`, `KMPFaceLinkAvatar`, `KMPFaceLinkActions`, `KMPFaceLinkVoice`, `KMPFaceLinkLlm`, `KMPFaceLinkPipeline`, `KMPFaceLinkNetworking`, `KMPFaceLinkVMC`, `KMPFaceLinkIFM`
+`KMPFaceLink`, `KMPFaceLinkAvatar`, `KMPFaceLinkActions`, `KMPFaceLinkVoice`, `KMPFaceLinkLlm`, `KMPFaceLinkPipeline`, `KMPFaceLinkNetworking`, `KMPFaceLinkVMC`, `KMPFaceLinkIFM`, `KMPFaceLinkInteract`
 
-**Manual checksum update (for local testing):**
+**If the commit / tag move fails:**
 
-```bash
-# Build the XCFramework
-./gradlew :kmp-facelink:assembleKMPFaceLinkXCFramework
-
-# Zip and compute checksum
-cd kmp-facelink/build/XCFrameworks/release
-zip -r KMPFaceLink.xcframework.zip KMPFaceLink.xcframework
-shasum -a 256 KMPFaceLink.xcframework.zip
-
-# Replace the checksum in Package.swift manually, or use the script:
-echo "<checksum>  KMPFaceLink.xcframework.zip" > checksums.txt
-python3 scripts/update-package-swift.py Package.swift checksums.txt vX.Y.Z-local
-```
-
-**If the auto-commit fails:**
-
-The workflow uses `github-actions[bot]` to push the commit. If branch protection rules block the push, download the `Package-swift` artifact from the workflow run and commit it manually.
+The workflow pushes as `github-actions[bot]`. If branch protection blocks it, the release and its assets are still created; re-run the `create-release` job, or generate `Package.swift` locally with `generate-package-swift.py` against the release JSON, commit it to `master`, and force-move the tag manually.

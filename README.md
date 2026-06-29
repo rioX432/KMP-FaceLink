@@ -1,7 +1,7 @@
 # KMP-FaceLink
 
 [![CI](https://github.com/AnotherBall/KMP-FaceLink/actions/workflows/ci.yml/badge.svg)](https://github.com/AnotherBall/KMP-FaceLink/actions/workflows/ci.yml)
-[![Maven Central](https://img.shields.io/maven-central/v/com.anotherball/kmp-facelink)](https://central.sonatype.com/namespace/com.anotherball)
+[![Release](https://img.shields.io/github/v/release/AnotherBall/KMP-FaceLink)](https://github.com/AnotherBall/KMP-FaceLink/releases)
 [![Kotlin](https://img.shields.io/badge/Kotlin-2.3.10-7F52FF.svg?logo=kotlin)](https://kotlinlang.org)
 [![Platforms](https://img.shields.io/badge/Platforms-Android%20%7C%20iOS%20%7C%20JVM%20%7C%20Wasm-blue)](https://kotlinlang.org/docs/multiplatform.html)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)

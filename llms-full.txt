@@ -2,7 +2,7 @@
 
 > Unified face, hand, and body tracking SDK for Kotlin Multiplatform. One API across Android (MediaPipe + CameraX), iOS (ARKit + Vision), JVM/Desktop (ONNX Runtime), and Wasm (MediaPipe JS). Provides 52 ARKit-compatible blend shapes, head transform, hand landmarks, gesture classification, and body pose estimation via a reactive Kotlin Flow API.
 
-KMP-FaceLink is an MIT-licensed open-source library published as `com.anotherball:kmp-facelink` on Maven Central. It is designed to be modular: import only the modules you need.
+KMP-FaceLink is an MIT-licensed open-source library published as `com.anotherball:kmp-facelink` on GitHub Packages (iOS via Swift Package Manager). It is designed to be modular: import only the modules you need.
 
 ## Platform Support
 

@@ -8,20 +8,8 @@ plugins {
     alias(libs.plugins.kotlin.serialization) apply false
     alias(libs.plugins.detekt)
     alias(libs.plugins.dokka)
-    alias(libs.plugins.nexus.publish)
     alias(libs.plugins.kover) apply false
     alias(libs.plugins.binary.compatibility.validator)
-}
-
-nexusPublishing {
-    repositories {
-        sonatype {
-            nexusUrl.set(uri("https://s01.oss.sonatype.org/service/local/"))
-            snapshotRepositoryUrl.set(uri("https://s01.oss.sonatype.org/content/repositories/snapshots/"))
-            username.set(providers.environmentVariable("OSSRH_USERNAME"))
-            password.set(providers.environmentVariable("OSSRH_PASSWORD"))
-        }
-    }
 }
 
 apiValidation {
@@ -116,7 +104,6 @@ subprojects {
 
     if (name in publishableModules) {
         apply(plugin = "maven-publish")
-        apply(plugin = "signing")
 
         group = property("GROUP").toString()
         version = property("VERSION_NAME").toString()
@@ -163,24 +150,6 @@ subprojects {
                             developerConnection.set(property("POM_SCM_DEV_CONNECTION").toString())
                         }
                     }
-                }
-            }
-
-            extensions.configure<SigningExtension> {
-                val signingKeyId = providers.environmentVariable("GPG_KEY_ID").orNull
-                val signingKey = providers.environmentVariable("GPG_KEY").orNull
-                val signingPassword = providers.environmentVariable("GPG_PASSPHRASE").orNull
-                if (signingKeyId != null) {
-                    useInMemoryPgpKeys(signingKeyId, signingKey, signingPassword)
-                    sign(extensions.getByType<PublishingExtension>().publications)
-                }
-            }
-
-            // GitHub Packages does not require GPG signatures. Skip Sign tasks when the
-            // task graph targets the GitHubPackages repository to avoid mixing .asc files.
-            tasks.withType<Sign>().configureEach {
-                onlyIf {
-                    gradle.taskGraph.allTasks.none { it.name.contains("GitHubPackages") }
                 }
             }
         }

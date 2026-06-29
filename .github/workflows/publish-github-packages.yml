@@ -138,8 +138,10 @@ jobs:
       - name: Set up local.properties
         run: echo "sdk.dir=$ANDROID_HOME" > local.properties
 
+      # Always run: kmp-facelink-pipeline (and any module depending on
+      # kmp-facelink-voice) compiles voice's iosMain, which needs the whisper.cpp
+      # cinterop. Restricting this to the voice module breaks dependents.
       - name: Setup whisper.cpp for iOS
-        if: matrix.module.name == 'kmp-facelink-voice'
         run: ./scripts/setup-whisper-ios.sh
 
       - name: Build XCFramework

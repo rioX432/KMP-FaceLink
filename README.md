@@ -73,3 +73,7 @@ Full API documentation is available at **[anotherball.github.io/KMP-FaceLink](ht
 - [`llms-full.txt`](llms-full.txt) — Detailed API reference with all module signatures and usage examples
 
 ## [Changelog](CHANGELOG.md)
+
+## Security
+
+For security issues, see [SECURITY.md](SECURITY.md).

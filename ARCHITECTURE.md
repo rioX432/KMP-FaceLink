@@ -121,7 +121,7 @@ graph TD
 
 | Module | Targets | Stability | Description |
 |--------|---------|-----------|-------------|
-| `kmp-facelink` | Android, iOS, JVM, Wasm | **Stable** | Core face/hand/body tracking with N-euro Predictor smoothing |
+| `kmp-facelink` | Android, iOS, JVM, Wasm | **Stable** | Core face/hand/body tracking with N-euro Predictor smoothing and depth-aware hand Z-axis correction |
 | `kmp-facelink-avatar` | Android, iOS, Wasm | **Stable** | BlendShape → Live2D / VRM / VRChat parameter mapping |
 | `kmp-facelink-actions` | Android, iOS, Wasm | **Stable** | Gesture triggers, emotion classification, tracking recording |
 | `kmp-facelink-voice` | Android, iOS | **Experimental** | TTS (OpenAI, ElevenLabs, Voicevox), ASR (Whisper), lip sync |
@@ -133,7 +133,7 @@ graph TD
 | `kmp-facelink-stream` | JVM only | **Experimental** | WebSocket/WebRTC streaming server |
 | `kmp-facelink-vts` | JVM only | **Stable** | VTube Studio Plugin API via WebSocket |
 | `kmp-facelink-interact` | Common only | **Stable** | Stream event aggregation (Twitch EventSub, YouTube Live Chat) |
-| `kmp-facelink-compose` | Android, iOS | **Stable** | Compose Multiplatform `remember*` helpers for tracker lifecycle |
+| `kmp-facelink-compose` | Android, iOS, JVM | **Stable** | Compose Multiplatform `remember*` helpers for tracker lifecycle (incl. Compose Desktop) |
 | `kmp-facelink-bom` | — | **Stable** | Bill of Materials (dependency version alignment) |
 
 ## Source Set Layout
@@ -146,7 +146,7 @@ Each library module follows this pattern:
   ├── commonTest/      # Unit tests
   ├── androidMain/     # Android platform implementation
   ├── iosMain/         # iOS platform implementation
-  ├── jvmMain/         # JVM/ONNX implementation (core only)
+  ├── jvmMain/         # JVM implementation (core uses ONNX; compose targets Compose Desktop)
   ├── nonMobileMain/   # Shared JVM + Wasm no-op stubs
   └── wasmJsMain/      # Wasm/JS via MediaPipe JS interop
 ```

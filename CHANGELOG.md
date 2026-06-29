@@ -6,7 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.3.0] — 2026-06-29
+
 ### Added
+- `DepthAwareHandLifter`: depth-map hand Z-axis correction with `ABSOLUTE`/`WRIST_RELATIVE` modes (8f5c032)
+- Monocular depth estimation for Android: `MonocularDepthEstimator` interface and `LiteRtDepthEstimator` backed by LiteRT 2.x (2bec41c)
+- On-device depth benchmark harness with file-path model loading and uint8 quantized path (00c103b, f6c7ca6)
+- `jvm()` / Compose Desktop target for `kmp-facelink-compose` (74459e3)
 - `kmp-facelink-interact` module: `StreamEvent` model and aggregator for live-stream interaction events (24e4642)
 - Twitch EventSub WebSocket source (`TwitchEventSubSource`) for chat, follows, subs, and raids (1dada7f)
 - YouTube Live Chat source (`YouTubeLiveChatSource`) via REST polling (3c6b1c1)
@@ -31,9 +37,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Dispatch CameraX calls to the main thread in `CameraXManager` and `SharedCameraSession` (770af3e)
 - Lower compileSdk from 36 to 35 across all modules — no SDK 36 APIs were used, and 36 forced downstream projects to upgrade unnecessarily
 - Downgrade AndroidX dependencies to last compileSdk-35-compatible versions: core-ktx 1.16.0, CameraX 1.5.1, activity-compose 1.10.1, lifecycle 2.9.0, Compose BOM 2025.12.00
+- Migrate CI to self-hosted macOS runners; publish snapshots and docs on master push (34ff6d3)
+- Publish Dokka HTML as a build artifact instead of GitHub Pages (org Pages disabled) (a250479)
+- Allow an explicit version input for the GitHub Packages publish workflow; drop the redundant konan cache on self-hosted runners (64f4a08)
+- Benchmark MiDaS float vs DA-V2 and add an `inputSize` argument to the depth harness (4fc3fb8)
+- Log silent catch blocks in the interact and vts sources to aid debugging (4998c76)
 
 ### Fixed
 - Fix `HolisticTracker` crash when a model file is missing (5a68e12)
+- Fix a data race on the `TwitchEventSubSource` reconnect counter via `AtomicInt` (e514678)
+- Fix wasmJs `faceBlendshapes` extraction to read the nested `.categories` array (e5e8bc8)
+- Fix a bitmap leak in the depth PoC and clarify delegate/threading docs (1e83627)
 - Fix iOS missing `StatusBadge`/`TrackingButtonStyle` and wire `SmoothingSettingsView` (7284a03)
 - Clarify that the Gradle plugin (`com.anotherball.facelink`) is not yet published to the Gradle Plugin Portal; docs now default to manual model setup (#875)
 

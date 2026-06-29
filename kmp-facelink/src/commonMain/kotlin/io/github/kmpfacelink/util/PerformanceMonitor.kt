@@ -113,7 +113,7 @@ public class PerformanceMonitor(
         if (timestampCount < MIN_FRAMES_FOR_FPS) return 0.0
         val oldest = timestamps[(timestampHead - timestampCount + windowSize) % windowSize]
         val newest = timestamps[(timestampHead - 1 + windowSize) % windowSize]
-        val elapsedSeconds = (newest - oldest) / MS_PER_SECOND
+        val elapsedSeconds = (newest - oldest) / TimeConstants.MILLIS_PER_SECOND_D
         if (elapsedSeconds <= 0.0) return 0.0
         return (timestampCount - 1) / elapsedSeconds
     }
@@ -142,7 +142,6 @@ public class PerformanceMonitor(
         public const val DEFAULT_WINDOW_SIZE: Int = 120
 
         private const val MIN_FRAMES_FOR_FPS = 2
-        private const val MS_PER_SECOND = 1000.0
         private const val P95_RATIO = 0.95
         private const val INVALID_TIMESTAMP = Long.MIN_VALUE
     }

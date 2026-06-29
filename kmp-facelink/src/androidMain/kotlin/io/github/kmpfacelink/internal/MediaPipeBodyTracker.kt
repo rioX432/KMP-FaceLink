@@ -110,10 +110,9 @@ internal class MediaPipeBodyTracker(
         powerModeManager?.release()
     }
 
-    override fun buildDetectionCallbacks(): DetectionCallbacks {
-        val landmarker = poseLandmarker
-        return DetectionCallbacks(
-            isLandmarkerReady = landmarker != null,
+    override fun buildDetectionCallbacks(): DetectionCallbacks =
+        detectionCallbacks(
+            landmarker = poseLandmarker,
             shouldProcess = { ts ->
                 if (powerModeManager != null) {
                     powerModeManager.shouldProcess(ts)
@@ -121,9 +120,7 @@ internal class MediaPipeBodyTracker(
                     frameThrottler.shouldProcess(ts, thermalMonitor.thermalState.value)
                 }
             },
-            detectAsync = { mpImage, ts -> landmarker!!.detectAsync(mpImage, ts) },
-        )
-    }
+        ) { mpImage, ts -> detectAsync(mpImage, ts) }
 
     @Suppress("UNUSED_PARAMETER") // SharedFrameHandler signature
     override fun onSharedFrameReceived(

@@ -109,7 +109,7 @@ internal class PowerModeManager(
      */
     fun shouldProcess(timestampMs: Long): Boolean {
         val targetFps = effectiveFps
-        val minIntervalMs = MILLIS_PER_SECOND / targetFps
+        val minIntervalMs = TimeConstants.MILLIS_PER_SECOND_L / targetFps
         val elapsed = timestampMs - lastProcessedMs.load()
         if (elapsed < minIntervalMs) return false
 
@@ -173,7 +173,6 @@ internal class PowerModeManager(
     }
 
     internal companion object {
-        internal const val MILLIS_PER_SECOND = 1000L
         internal const val MIN_IDLE_FPS = 5
         private const val HALF_DIVISOR = 2
         private const val QUARTER_DIVISOR = 4

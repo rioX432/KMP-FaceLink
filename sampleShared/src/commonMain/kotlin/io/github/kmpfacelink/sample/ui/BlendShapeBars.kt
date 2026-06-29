@@ -94,7 +94,7 @@ private fun BlendShapeBarRow(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .height(18.dp),
+            .height(16.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(

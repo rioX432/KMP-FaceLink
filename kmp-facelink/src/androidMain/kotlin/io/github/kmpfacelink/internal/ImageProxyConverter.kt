@@ -91,32 +91,42 @@ internal class ImageProxyConverter {
         if (rowStride == expectedRowBytes) {
             buffer.rewind()
             dest.copyPixelsFromBuffer(buffer)
-        } else {
-            val requiredCapacity = expectedRowBytes * fullHeight
-            val packed = if (packedBufferCapacity >= requiredCapacity) {
-                packedBuffer!!.also { it.clear() }
-            } else {
-                java.nio.ByteBuffer.allocateDirect(requiredCapacity).also {
-                    packedBuffer = it
-                    packedBufferCapacity = requiredCapacity
-                }
-            }
-            val row = if (rowDataCapacity >= rowStride) {
-                rowData!!
-            } else {
-                ByteArray(rowStride).also {
-                    rowData = it
-                    rowDataCapacity = rowStride
-                }
-            }
-            buffer.rewind()
-            for (y in 0 until fullHeight) {
-                val bytesToRead = if (y < fullHeight - 1) rowStride else expectedRowBytes
-                buffer.get(row, 0, bytesToRead)
-                packed.put(row, 0, expectedRowBytes)
-            }
-            packed.rewind()
-            dest.copyPixelsFromBuffer(packed)
+            return
+        }
+
+        val packed = obtainPackedBuffer(expectedRowBytes * fullHeight)
+        val row = obtainRowBuffer(rowStride)
+        buffer.rewind()
+        for (y in 0 until fullHeight) {
+            val bytesToRead = if (y < fullHeight - 1) rowStride else expectedRowBytes
+            buffer.get(row, 0, bytesToRead)
+            packed.put(row, 0, expectedRowBytes)
+        }
+        packed.rewind()
+        dest.copyPixelsFromBuffer(packed)
+    }
+
+    /** Returns a cleared direct buffer of at least [requiredCapacity] bytes, reusing the cached one when large enough. */
+    private fun obtainPackedBuffer(requiredCapacity: Int): java.nio.ByteBuffer {
+        val cached = packedBuffer
+        if (cached != null && packedBufferCapacity >= requiredCapacity) {
+            return cached.also { it.clear() }
+        }
+        return java.nio.ByteBuffer.allocateDirect(requiredCapacity).also {
+            packedBuffer = it
+            packedBufferCapacity = requiredCapacity
+        }
+    }
+
+    /** Returns a row scratch array of at least [rowStride] bytes, reusing the cached one when large enough. */
+    private fun obtainRowBuffer(rowStride: Int): ByteArray {
+        val cached = rowData
+        if (cached != null && rowDataCapacity >= rowStride) {
+            return cached
+        }
+        return ByteArray(rowStride).also {
+            rowData = it
+            rowDataCapacity = rowStride
         }
     }
 

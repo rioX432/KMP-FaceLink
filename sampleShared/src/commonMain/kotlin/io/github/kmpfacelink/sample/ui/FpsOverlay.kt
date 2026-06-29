@@ -64,6 +64,6 @@ fun FpsOverlay(
         style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Monospace),
         modifier = modifier
             .background(SampleColors.Overlay)
-            .padding(horizontal = 6.dp, vertical = 2.dp),
+            .padding(horizontal = 8.dp, vertical = 4.dp),
     )
 }

@@ -39,7 +39,7 @@ internal class CategoryAwareSmoother(
             return scratch
         }
 
-        val dt = (timestampMs - lastTimestampMs) / MILLIS_PER_SECOND
+        val dt = (timestampMs - lastTimestampMs) / TimeConstants.MILLIS_PER_SECOND_F
         lastTimestampMs = timestampMs
 
         scratch.clear()
@@ -116,8 +116,4 @@ internal class CategoryAwareSmoother(
     private data class ShapeState(val x: Float, val dx: Float)
 
     private data class FilterParams(val minCutoff: Float, val beta: Float, val dCutoff: Float)
-
-    private companion object {
-        private const val MILLIS_PER_SECOND = 1000f
-    }
 }

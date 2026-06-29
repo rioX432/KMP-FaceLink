@@ -55,15 +55,17 @@ internal class LiteRtDepthEstimator private constructor(
         when (config.ioType) {
             DepthIoType.FLOAT32 ->
                 buffer.writeFloat(DepthImagePreprocessor.toInputFloats(bitmap, config.inputSize, config.normalization))
-            DepthIoType.UINT8 ->
-                buffer.writeInt8(DepthImagePreprocessor.toInputBytes(bitmap, config.inputSize, config.inputQuant!!))
+            DepthIoType.UINT8 -> {
+                val quant = requireNotNull(config.inputQuant) { "inputQuant is required for UINT8 io type" }
+                buffer.writeInt8(DepthImagePreprocessor.toInputBytes(bitmap, config.inputSize, quant))
+            }
         }
     }
 
     private fun readOutput(buffer: TensorBuffer): FloatArray = when (config.ioType) {
         DepthIoType.FLOAT32 -> buffer.readFloat()
         DepthIoType.UINT8 -> {
-            val quant = config.outputQuant!!
+            val quant = requireNotNull(config.outputQuant) { "outputQuant is required for UINT8 io type" }
             val raw = buffer.readInt8()
             FloatArray(raw.size) { (((raw[it].toInt() and BYTE_MASK) - quant.zeroPoint)) * quant.scale }
         }

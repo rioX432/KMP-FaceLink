@@ -44,6 +44,22 @@ internal class DetectionCallbacks(
 )
 
 /**
+ * Builds [DetectionCallbacks] for the given nullable [landmarker], centralizing the
+ * null-safe dispatch shared by all MediaPipe trackers. The [landmarker] is snapshotted
+ * once so readiness and dispatch observe a consistent value; [detect] is invoked only
+ * while it is non-null, so no force-unwrap is required at the call sites.
+ */
+internal fun <T : Any> detectionCallbacks(
+    landmarker: T?,
+    shouldProcess: (Long) -> Boolean,
+    detect: T.(MPImage, Long) -> Unit,
+): DetectionCallbacks = DetectionCallbacks(
+    isLandmarkerReady = landmarker != null,
+    shouldProcess = shouldProcess,
+    detectAsync = { image, timestampMs -> landmarker?.detect(image, timestampMs) },
+)
+
+/**
  * Encapsulates the camera pipeline logic shared by all MediaPipe-based trackers.
  *
  * Handles camera setup (shared vs independent), frame throttling, ImageProxy conversion,
@@ -85,7 +101,9 @@ internal class CameraPipelineHelper(
                 config.analysisHeight,
                 onImageProxy,
             )
-            cameraManager!!.startCamera(
+            requireNotNull(cameraManager) {
+                "cameraManager must be set when no shared camera session is active"
+            }.startCamera(
                 cameraFacing = config.cameraFacing,
                 imageAnalysis = imageAnalysis,
                 surfaceProvider = config.surfaceProvider,

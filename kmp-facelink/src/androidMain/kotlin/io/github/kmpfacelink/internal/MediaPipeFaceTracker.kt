@@ -232,12 +232,9 @@ internal class MediaPipeFaceTracker(
 
     @Suppress("UNUSED_PARAMETER") // SharedFrameHandler signature
     private fun processSharedFrame(bitmap: android.graphics.Bitmap, width: Int, height: Int, timestampMs: Long) {
-        val landmarker = faceLandmarker
-        val callbacks = DetectionCallbacks(
-            isLandmarkerReady = landmarker != null,
-            shouldProcess = ::shouldProcessFrame,
-            detectAsync = { mpImage, ts -> landmarker!!.detectAsync(mpImage, ts) },
-        )
+        val callbacks = detectionCallbacks(faceLandmarker, ::shouldProcessFrame) { mpImage, ts ->
+            detectAsync(mpImage, ts)
+        }
         cameraPipeline.processSharedFrame(
             bitmap = bitmap,
             width = width,
@@ -248,12 +245,9 @@ internal class MediaPipeFaceTracker(
     }
 
     private fun processFrame(imageProxy: ImageProxy) {
-        val landmarker = faceLandmarker
-        val callbacks = DetectionCallbacks(
-            isLandmarkerReady = landmarker != null,
-            shouldProcess = ::shouldProcessFrame,
-            detectAsync = { mpImage, ts -> landmarker!!.detectAsync(mpImage, ts) },
-        )
+        val callbacks = detectionCallbacks(faceLandmarker, ::shouldProcessFrame) { mpImage, ts ->
+            detectAsync(mpImage, ts)
+        }
         cameraPipeline.processFrame(
             imageProxy = imageProxy,
             trackingState = mutableState.value,

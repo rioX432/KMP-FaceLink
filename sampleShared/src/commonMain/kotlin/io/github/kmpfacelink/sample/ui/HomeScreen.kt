@@ -68,7 +68,7 @@ private fun HomeHeader() {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 20.dp, vertical = 16.dp),
+            .padding(horizontal = 16.dp, vertical = 16.dp),
     ) {
         Text(
             text = "KMP-FaceLink",
@@ -137,7 +137,7 @@ private fun FeatureCard(
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
-            Spacer(modifier = Modifier.height(2.dp))
+            Spacer(modifier = Modifier.height(4.dp))
             Text(
                 text = card.description,
                 color = SampleColors.TextTertiary,

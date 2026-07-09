@@ -939,6 +939,15 @@ public final class io/github/kmpfacelink/model/LiftingStrategy : java/lang/Enum 
 	public static fun values ()[Lio/github/kmpfacelink/model/LiftingStrategy;
 }
 
+public final class io/github/kmpfacelink/model/LiveLinkBlendShapes {
+	public static final field COUNT I
+	public static final field INSTANCE Lio/github/kmpfacelink/model/LiveLinkBlendShapes;
+	public final fun getNames ()Ljava/util/List;
+	public final fun getOrder ()Ljava/util/List;
+	public final fun lower (Ljava/util/Map;)[F
+	public final fun ordinalToLiveLinkIndex ()[I
+}
+
 public final class io/github/kmpfacelink/model/NpuVendor : java/lang/Enum {
 	public static final field GOOGLE_TENSOR Lio/github/kmpfacelink/model/NpuVendor;
 	public static final field MEDIATEK Lio/github/kmpfacelink/model/NpuVendor;

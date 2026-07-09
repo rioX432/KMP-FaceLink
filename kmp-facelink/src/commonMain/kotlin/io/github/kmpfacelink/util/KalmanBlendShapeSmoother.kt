@@ -169,5 +169,4 @@ internal class KalmanBlendShapeSmoother(
             )
         }
     }
-
 }

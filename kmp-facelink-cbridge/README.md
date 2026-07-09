@@ -33,3 +33,79 @@ The Kotlin facade (`FaceLinkBridgeFacade`) wraps KMP-FaceLink's AAR and provides
 | Handedness | `int32` | 4 bytes |
 | Hand count | `int32` | 4 bytes |
 | **Hands total (2 hands)** | | **516 bytes** |
+
+## Blendshape ordering
+
+The bridge exposes the 52 blendshapes in **two orderings**. Both are `float[52]`;
+the only difference is the meaning of each index.
+
+| API (iOS / Android) | Order | Use |
+|---|---|---|
+| `KmpFaceLink_GetLatestBlendShapes` / `getLatestBlendShapes()` | Legacy: `BlendShape.ordinal` (anatomical groups) | Existing Unity/RN/Flutter consumers. **Stable binary contract — unchanged.** |
+| `KmpFaceLink_GetLatestBlendShapesLiveLink` / `getLatestBlendShapesLiveLink()` | **ARKit Live Link Face** wire order | avatar-core and other Live Link consumers. |
+
+The Live Link order is the single source of truth defined in
+`kmp-facelink/.../model/LiveLinkBlendShapes.kt` and is the canonical ARKit Live Link
+Face wire order — identical to Unreal Engine's `ELiveLinkFaceBlendShape` enum and the
+Live Link Face CSV/UDP column order. Channels are mapped **by name** (`BlendShape.arKitName`),
+never by enum ordinal. Channels the active tracker does not produce (e.g. `tongueOut`
+on Android/MediaPipe) are **0-filled**.
+
+Live Link channel order (index → name):
+
+| # | Name | # | Name | # | Name | # | Name |
+|---|---|---|---|---|---|---|---|
+| 0 | eyeBlinkLeft | 13 | eyeWideRight | 26 | mouthFrownRight | 39 | mouthUpperUpLeft |
+| 1 | eyeLookDownLeft | 14 | jawForward | 27 | mouthDimpleLeft | 40 | mouthUpperUpRight |
+| 2 | eyeLookInLeft | 15 | jawLeft | 28 | mouthDimpleRight | 41 | browDownLeft |
+| 3 | eyeLookOutLeft | 16 | jawRight | 29 | mouthStretchLeft | 42 | browDownRight |
+| 4 | eyeLookUpLeft | 17 | jawOpen | 30 | mouthStretchRight | 43 | browInnerUp |
+| 5 | eyeSquintLeft | 18 | mouthClose | 31 | mouthRollLower | 44 | browOuterUpLeft |
+| 6 | eyeWideLeft | 19 | mouthFunnel | 32 | mouthRollUpper | 45 | browOuterUpRight |
+| 7 | eyeBlinkRight | 20 | mouthPucker | 33 | mouthShrugLower | 46 | cheekPuff |
+| 8 | eyeLookDownRight | 21 | mouthLeft | 34 | mouthShrugUpper | 47 | cheekSquintLeft |
+| 9 | eyeLookInRight | 22 | mouthRight | 35 | mouthPressLeft | 48 | cheekSquintRight |
+| 10 | eyeLookOutRight | 23 | mouthSmileLeft | 36 | mouthPressRight | 49 | noseSneerLeft |
+| 11 | eyeLookUpRight | 24 | mouthSmileRight | 37 | mouthLowerDownLeft | 50 | noseSneerRight |
+| 12 | eyeSquintRight | 25 | mouthFrownLeft | 38 | mouthLowerDownRight | 51 | tongueOut |
+
+## Head transform contract
+
+`KmpFaceLink_GetLatestHeadTransform` / `getLatestHeadTransform()` return **6 floats**:
+
+```
+[ pitch, yaw, roll, posX, posY, posZ ]
+```
+
+| Field | Unit | Meaning |
+|---|---|---|
+| pitch | **degrees** | rotation about X (nod up/down) |
+| yaw | **degrees** | rotation about Y (turn left/right) |
+| roll | **degrees** | rotation about Z (tilt) |
+| posX | **meters** | translation along X (right = +) |
+| posY | **meters** | translation along Y (up = +) |
+| posZ | **meters** | translation along Z (forward = −Z) |
+
+- **Rotation unit:** degrees (NOT radians). Euler angles, **ZYX** extraction order,
+  derived from the tracker's 4×4 transform via `TransformUtils.fromMatrix`
+  (`pitch = atan2(r21, r22)`, `yaw = atan2(-r20, sy)`, `roll = atan2(r10, r00)`,
+  each × `180/π`).
+- **Handedness:** right-handed (+X right, +Y up, −Z forward), inherited from the
+  platform matrix; no per-platform axis flipping is applied by KMP-FaceLink.
+- **Origin:** the tracker's session/world origin.
+  - iOS (ARKit): `ARFaceAnchor.transform`, metric **meters**, ARKit world origin.
+  - Android (MediaPipe): `facialTransformationMatrixes` (column-major), metric
+    camera-centric canonical space.
+- **Neutral / identity baseline:** an identity pose yields `[0, 0, 0, 0, 0, 0]`.
+  There is no automatic re-centering — values are the raw pose relative to the
+  tracker origin.
+- **Consumer conversion:** degrees→radians (`deg × π/180`) and any axis remapping
+  are done by the consumer adapter (e.g. avatar-core), NOT by this bridge. Example:
+  `yaw = 10°` → `0.17453293 rad`.
+
+## Conformance fixture
+
+`conformance/live_link_conformance.json` is the shared golden fixture (input →
+expected Live Link blendshape array + head values). Both this bridge and the
+avatar-core adapter assert against it so the seam cannot silently drift. See
+`conformance/README.md`.

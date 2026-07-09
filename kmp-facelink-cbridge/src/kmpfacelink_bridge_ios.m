@@ -30,9 +30,15 @@ static bool _tracking = false;
 
 // Face data buffer (protected by _faceLock)
 static os_unfair_lock _faceLock = OS_UNFAIR_LOCK_INIT;
-static float _blendShapes[52];
-static float _headTransform[6]; // pitch, yaw, roll, posX, posY, posZ
+static float _blendShapes[52];          // legacy: indexed by BlendShape.ordinal (anatomical order)
+static float _blendShapesLiveLink[52];  // ARKit Live Link Face wire order (see LiveLinkBlendShapes)
+static float _headTransform[6];         // pitch, yaw, roll (degrees), posX, posY, posZ (meters)
 static int64_t _faceTimestamp = 0;
+
+// Permutation: _liveLinkIndex[ordinal] = Live Link channel index.
+// Filled once at init from the shared Kotlin LiveLinkBlendShapes (single source of truth).
+static int _liveLinkIndex[52];
+static bool _liveLinkIndexReady = false;
 
 // Hand data buffer (protected by _handLock)
 static os_unfair_lock _handLock = OS_UNFAIR_LOCK_INIT;
@@ -43,13 +49,31 @@ static int64_t _handTimestamp = 0;
 
 // -- Helpers --
 
+// Loads the ordinal -> Live Link channel permutation from the shared Kotlin object.
+// Called once (lazily) so the native reorder never re-implements the mapping.
+static void ensureLiveLinkIndex(void) {
+    if (_liveLinkIndexReady) return;
+    KMPFaceLinkKotlinIntArray *perm = [[KMPFaceLinkLiveLinkBlendShapes shared] ordinalToLiveLinkIndex];
+    for (int i = 0; i < 52; i++) {
+        int32_t v = [perm getIndex:i];
+        _liveLinkIndex[i] = (v >= 0 && v < 52) ? v : i;
+    }
+    _liveLinkIndexReady = true;
+}
+
 static void copyBlendShapesToBuffer(NSDictionary<KMPFaceLinkBlendShape *, NSNumber *> *blendShapeMap) {
     if (blendShapeMap == nil) return;
+    ensureLiveLinkIndex();
+    // Absent channels (e.g. a channel ARKit did not report this frame) stay 0-filled.
+    memset(_blendShapes, 0, sizeof(_blendShapes));
+    memset(_blendShapesLiveLink, 0, sizeof(_blendShapesLiveLink));
     for (KMPFaceLinkBlendShape *shape in blendShapeMap) {
         NSNumber *value = blendShapeMap[shape];
         int32_t idx = shape.ordinal;
         if (idx >= 0 && idx < 52) {
-            _blendShapes[idx] = value ? value.floatValue : 0.0f;
+            float v = value ? value.floatValue : 0.0f;
+            _blendShapes[idx] = v;
+            _blendShapesLiveLink[_liveLinkIndex[idx]] = v;
         }
     }
 }
@@ -100,8 +124,10 @@ bool KmpFaceLink_Initialize(bool enableFace, bool enableHands) {
     }
 
     memset(_blendShapes, 0, sizeof(_blendShapes));
+    memset(_blendShapesLiveLink, 0, sizeof(_blendShapesLiveLink));
     memset(_headTransform, 0, sizeof(_headTransform));
     memset(_handLandmarks, 0, sizeof(_handLandmarks));
+    ensureLiveLinkIndex();
 
     _initialized = true;
     return true;
@@ -219,6 +245,14 @@ void KmpFaceLink_GetLatestBlendShapes(float* blendShapes, int count) {
     os_unfair_lock_unlock(&_faceLock);
 }
 
+void KmpFaceLink_GetLatestBlendShapesLiveLink(float* blendShapes, int count) {
+    if (blendShapes == NULL || count <= 0) return;
+    int copyCount = count < 52 ? count : 52;
+    os_unfair_lock_lock(&_faceLock);
+    memcpy(blendShapes, _blendShapesLiveLink, copyCount * sizeof(float));
+    os_unfair_lock_unlock(&_faceLock);
+}
+
 void KmpFaceLink_GetLatestHeadTransform(float* transform, int count) {
     if (transform == NULL || count < 6) return;
     os_unfair_lock_lock(&_faceLock);
@@ -251,7 +285,7 @@ void KmpFaceLink_GetHandLandmarks(int handIndex, float* landmarks, int count) {
 }
 
 int KmpFaceLink_GetHandedness(int handIndex) {
-    if (handIndex < 0 || handIndex >= 2) return 1;
+    if (handIndex < 0 || handIndex >= 2) return 2; // 2 = unknown (no such hand)
     os_unfair_lock_lock(&_handLock);
     int result = _handedness[handIndex];
     os_unfair_lock_unlock(&_handLock);

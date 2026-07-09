@@ -75,8 +75,11 @@ internal class CameraPipelineHelper(
     private val analysisExecutor: Executor,
 ) {
 
-    /** Currently in-flight bitmap for independent camera path. */
-    internal val inFlightBitmap: AtomicReference<Bitmap?> = AtomicReference(null)
+    /** A bitmap dispatched for detection, tagged with the timestamp it was submitted under. */
+    private class InFlightFrame(val timestampMs: Long, val bitmap: Bitmap)
+
+    /** Currently in-flight frame for the independent camera path. */
+    private val inFlightBitmap: AtomicReference<InFlightFrame?> = AtomicReference(null)
 
     @Volatile
     internal var lastImageWidth: Int = 0
@@ -182,6 +185,24 @@ internal class CameraPipelineHelper(
     }
 
     /**
+     * Returns the in-flight frame bitmap for [timestampMs] without releasing it, or null if none is
+     * tracked *for that timestamp*.
+     *
+     * Intended for reading pixels (e.g. depth estimation) inside a result callback *before*
+     * [returnBitmapAfterResult] returns the bitmap to the pool. The bitmap must not be mutated and is
+     * only valid until [returnBitmapAfterResult] is called for the same result. On the independent
+     * path the timestamp is validated so that if a newer frame has already been dispatched (the
+     * single-in-flight assumption momentarily does not hold), null is returned and depth is safely
+     * skipped for this frame rather than sampled from the wrong bitmap.
+     */
+    internal fun peekInFlightBitmap(timestampMs: Long): Bitmap? =
+        if (sharedCameraSession != null) {
+            sharedCameraSession.peekInFlightBitmap(timestampMs)
+        } else {
+            inFlightBitmap.get()?.takeIf { it.timestampMs == timestampMs }?.bitmap
+        }
+
+    /**
      * Returns the in-flight bitmap after a MediaPipe result callback completes.
      * Handles both shared (ref-counted) and independent (AtomicReference) camera paths.
      */
@@ -189,7 +210,7 @@ internal class CameraPipelineHelper(
         if (sharedCameraSession != null) {
             sharedCameraSession.returnInFlightBitmap(timestampMs)
         } else {
-            inFlightBitmap.getAndSet(null)?.let { imageConverter.returnBitmap(it) }
+            inFlightBitmap.getAndSet(null)?.let { imageConverter.returnBitmap(it.bitmap) }
         }
     }
 
@@ -213,13 +234,14 @@ internal class CameraPipelineHelper(
         callbacks: DetectionCallbacks,
     ) {
         val mpImage = BitmapImageBuilder(bitmap).build()
-        inFlightBitmap.set(bitmap)
+        val frame = InFlightFrame(timestampMs, bitmap)
+        inFlightBitmap.set(frame)
 
         try {
             callbacks.detectAsync(mpImage, timestampMs)
         } catch (e: Exception) {
             FaceLinkLogger.w(tag, "detectAsync failed", e)
-            if (inFlightBitmap.compareAndSet(bitmap, null)) {
+            if (inFlightBitmap.compareAndSet(frame, null)) {
                 imageConverter.returnBitmap(bitmap)
             }
         }

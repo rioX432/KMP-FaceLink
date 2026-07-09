@@ -100,6 +100,13 @@ internal class SharedCameraSession(
     }
 
     /**
+     * Returns the in-flight bitmap for [timestampMs] without releasing it, or null if none is
+     * tracked. Callers must not mutate it and must still call [returnInFlightBitmap] afterwards;
+     * this only lets a handler read pixels (e.g. for depth estimation) before the ref-count drops.
+     */
+    fun peekInFlightBitmap(timestampMs: Long): Bitmap? = inFlightBitmaps[timestampMs]?.bitmap
+
+    /**
      * Called by each handler's MediaPipe result callback to signal that it is done
      * with the shared bitmap for the given timestamp.
      * When all handlers have signaled, the bitmap is returned to the pool.

@@ -29,6 +29,14 @@ package io.github.kmpfacelink.model
  *           Defaults to [HandPoseRevision.AUTO], which selects the best revision for the
  *           current iOS version (revision 2 on iOS 26+, revision 1 on older versions).
  *           Has no effect on Android.
+ * @property depthEnhancement When true, corrects each hand landmark's [HandLandmarkPoint.z] using a
+ *           monocular depth map sampled at the landmark position.
+ *           **Android (MediaPipe) only** — the depth estimator is an Android-only component, so this
+ *           flag is a no-op on iOS (Vision), Wasm, and other platforms, which keep their existing z.
+ *           Requires the depth model asset to be present; when it is absent the estimator is
+ *           unavailable and depth silently stays off (no crash). Gesture recognition is unaffected:
+ *           gestures are classified before depth correction. Opt-in; defaults to false so behavior is
+ *           unchanged without explicit configuration.
  */
 public data class HandTrackerConfig(
     val smoothingConfig: SmoothingConfig = SmoothingConfig.Ema(),
@@ -44,6 +52,7 @@ public data class HandTrackerConfig(
     val analysisWidth: Int = DEFAULT_ANALYSIS_WIDTH,
     val analysisHeight: Int = DEFAULT_ANALYSIS_HEIGHT,
     val handPoseRevision: HandPoseRevision = HandPoseRevision.AUTO,
+    val depthEnhancement: Boolean = false,
 ) {
     init {
         require(maxHands in 1..2) { "maxHands must be 1 or 2, was $maxHands" }

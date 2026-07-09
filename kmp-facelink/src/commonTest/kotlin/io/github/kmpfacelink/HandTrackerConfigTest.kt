@@ -20,6 +20,24 @@ class HandTrackerConfigTest {
     }
 
     @Test
+    fun depthEnhancementDisabledByDefault() {
+        assertEquals(false, HandTrackerConfig().depthEnhancement)
+    }
+
+    @Test
+    fun depthEnhancementCanBeEnabled() {
+        val config = HandTrackerConfig(depthEnhancement = true)
+        assertTrue(config.depthEnhancement)
+    }
+
+    @Test
+    fun copyPreservesDepthEnhancement() {
+        val config = HandTrackerConfig(depthEnhancement = true).copy(maxHands = 1)
+        assertTrue(config.depthEnhancement)
+        assertEquals(1, config.maxHands)
+    }
+
+    @Test
     fun maxHandsOneIsValid() {
         val config = HandTrackerConfig(maxHands = 1)
         assertEquals(1, config.maxHands)

@@ -36,6 +36,10 @@ internal class LiteRtDepthEstimator private constructor(
     }
 
     private fun runInference(bitmap: Bitmap): FloatArray {
+        // Guard the narrow window where this task was enqueued just before release()'s close task:
+        // both run on the same single-thread executor, so a true here means model.close() is queued
+        // ahead of or already applied to the model — never touch it. Thrown here, caught by callers.
+        check(!released.get()) { "runInference skipped: estimator released" }
         val inputs = model.createInputBuffers()
         try {
             val outputs = model.createOutputBuffers()

@@ -9,11 +9,16 @@ import com.google.mediapipe.tasks.vision.handlandmarker.HandLandmarker
 import com.google.mediapipe.tasks.vision.handlandmarker.HandLandmarkerResult
 import io.github.kmpfacelink.api.HandTracker
 import io.github.kmpfacelink.api.PlatformContext
+import io.github.kmpfacelink.internal.depth.HandDepthEnhancer
 import io.github.kmpfacelink.model.CameraFacing
+import io.github.kmpfacelink.model.HandGesture
+import io.github.kmpfacelink.model.HandLandmarkPoint
 import io.github.kmpfacelink.model.HandTrackerConfig
 import io.github.kmpfacelink.model.HandTrackingData
+import io.github.kmpfacelink.model.Handedness
 import io.github.kmpfacelink.model.SmoothingConfig
 import io.github.kmpfacelink.model.TrackedHand
+import io.github.kmpfacelink.util.DepthMap
 import io.github.kmpfacelink.util.FaceLinkLogger
 import io.github.kmpfacelink.util.FrameThrottler
 import io.github.kmpfacelink.util.GestureClassifier
@@ -51,6 +56,13 @@ internal class MediaPipeHandTracker(
 
     private var smoother: HandLandmarkSmoother? = config.createSmoother()
     private var handLandmarker: HandLandmarker? = null
+
+    // Android-only depth Z-axis correction (#899). Created once on first start when opt-in via
+    // config.depthEnhancement and a depth model is available; null keeps tracking unchanged.
+    // Volatile: read on the MediaPipe result-callback thread, written on start/release.
+    @Volatile
+    private var depthEnhancer: HandDepthEnhancer? = null
+    private var depthEnhancerInitialized = false
 
     private val batteryMonitor = AndroidBatteryMonitor(platformContext.context)
     private val powerModeManager: PowerModeManager? = config.powerMode?.let { mode ->
@@ -101,6 +113,25 @@ internal class MediaPipeHandTracker(
         handLandmarker = DelegateResolver.createWithFallback(config.inferenceDelegate) { delegate ->
             createLandmarker(delegate)
         }
+        initDepthEnhancerIfNeeded()
+    }
+
+    // Created lazily once (not per camera switch), and only when depth enhancement is opted in.
+    private fun initDepthEnhancerIfNeeded() {
+        if (!config.depthEnhancement || depthEnhancerInitialized) return
+        depthEnhancerInitialized = true
+        val enhancer = HandDepthEnhancer.create(platformContext.context)
+        depthEnhancer = enhancer
+        when {
+            enhancer == null ->
+                FaceLinkLogger.w(TAG, "depthEnhancement requested but no depth model available; disabled")
+            // initLandmarker runs outside pipelineLock; if release() won the race, release the
+            // just-created estimator here so its native worker thread cannot leak.
+            isReleased() -> {
+                enhancer.release()
+                depthEnhancer = null
+            }
+        }
     }
 
     override fun closeLandmarker() {
@@ -111,6 +142,8 @@ internal class MediaPipeHandTracker(
     override fun performExtraRelease() {
         batteryMonitor.release()
         powerModeManager?.release()
+        depthEnhancer?.release()
+        depthEnhancer = null
     }
 
     override fun buildDetectionCallbacks(): DetectionCallbacks =
@@ -165,16 +198,18 @@ internal class MediaPipeHandTracker(
         result: HandLandmarkerResult,
         @Suppress("UNUSED_PARAMETER") input: com.google.mediapipe.framework.image.MPImage,
     ) {
-        cameraPipeline.returnBitmapAfterResult(result.timestampMs())
-
         val timestampMs = result.timestampMs()
+
+        // Sample the depth map while the frame bitmap is still in-flight, then release it.
+        val depthMap = estimateDepthForResult(timestampMs)
+        cameraPipeline.returnBitmapAfterResult(timestampMs)
 
         if (result.landmarks().isEmpty()) {
             mutableTrackingData.tryEmit(HandTrackingData.notTracking(timestampMs))
             return
         }
 
-        var hands = buildTrackedHands(result)
+        var hands = buildTrackedHands(result, depthMap)
 
         // Apply smoothing (protected by lock)
         val processedHands = pipelineLock.withLock {
@@ -195,38 +230,59 @@ internal class MediaPipeHandTracker(
         mutableTrackingData.tryEmit(data)
     }
 
-    private fun buildTrackedHands(result: HandLandmarkerResult): MutableList<TrackedHand> {
+    /**
+     * Runs depth inference for the current frame, or returns null when depth enhancement is
+     * disabled/unavailable or the frame bitmap is no longer in-flight. Must run before
+     * [CameraPipelineHelper.returnBitmapAfterResult] so the bitmap is still valid.
+     */
+    private fun estimateDepthForResult(timestampMs: Long): DepthMap? {
+        val enhancer = depthEnhancer ?: return null
+        val bitmap = cameraPipeline.peekInFlightBitmap(timestampMs) ?: return null
+        return enhancer.estimateDepth(bitmap)
+    }
+
+    private fun buildTrackedHands(
+        result: HandLandmarkerResult,
+        depthMap: DepthMap?,
+    ): MutableList<TrackedHand> {
         val hands = mutableListOf<TrackedHand>()
         for (i in result.landmarks().indices) {
             val landmarks = HandLandmarkMapper.mapLandmarks(result.landmarks()[i])
-
-            val handedness = if (result.handednesses().isNotEmpty() && i < result.handednesses().size) {
-                val category = result.handednesses()[i]
-                if (category.isNotEmpty()) {
-                    HandLandmarkMapper.mapHandedness(category[0].categoryName())
-                } else {
-                    io.github.kmpfacelink.model.Handedness.UNKNOWN
-                }
-            } else {
-                io.github.kmpfacelink.model.Handedness.UNKNOWN
-            }
-
-            val (gesture, confidence) = if (config.enableGestureRecognition) {
-                GestureClassifier.classify(landmarks)
-            } else {
-                io.github.kmpfacelink.model.HandGesture.NONE to 0f
-            }
+            // Classify gesture on the original z BEFORE depth correction, so enhanced z cannot
+            // change gesture results (acceptance: gesture recognition unaffected).
+            val (gesture, confidence) = classifyGesture(landmarks)
+            val corrected = depthMap?.let { depthEnhancer?.enhance(landmarks, it) } ?: landmarks
 
             hands.add(
                 TrackedHand(
-                    handedness = handedness,
-                    landmarks = landmarks,
+                    handedness = resolveHandedness(result, i),
+                    landmarks = corrected,
                     gesture = gesture,
                     gestureConfidence = confidence,
                 ),
             )
         }
         return hands
+    }
+
+    private fun classifyGesture(
+        landmarks: List<HandLandmarkPoint>,
+    ): Pair<HandGesture, Float> = if (config.enableGestureRecognition) {
+        GestureClassifier.classify(landmarks)
+    } else {
+        HandGesture.NONE to 0f
+    }
+
+    private fun resolveHandedness(result: HandLandmarkerResult, index: Int): Handedness {
+        if (result.handednesses().isEmpty() || index >= result.handednesses().size) {
+            return Handedness.UNKNOWN
+        }
+        val category = result.handednesses()[index]
+        return if (category.isNotEmpty()) {
+            HandLandmarkMapper.mapHandedness(category[0].categoryName())
+        } else {
+            Handedness.UNKNOWN
+        }
     }
 
     companion object {

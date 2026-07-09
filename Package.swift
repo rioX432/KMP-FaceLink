@@ -1,7 +1,7 @@
 // swift-tools-version: 5.9
 import PackageDescription
 
-let version = "0.3.202606290701"
+let version = "0.3.202607090932"
 
 let package = Package(
     name: "KMPFaceLink",
@@ -23,53 +23,53 @@ let package = Package(
     targets: [
         .binaryTarget(
             name: "KMPFaceLink",
-            url: "https://api.github.com/repos/AnotherBall/KMP-FaceLink/releases/assets/460889300.zip",
-            checksum: "4af086a611595d3ca06b64f1f2b2440a9d16219dd9df34cf2a6c8c288e32ff0f"
+            url: "https://api.github.com/repos/AnotherBall/KMP-FaceLink/releases/assets/471234198.zip",
+            checksum: "eedbac109bcb76fe85d9384cd12860ed6fd0aff7742895ec20c5d7540b62c4b4"
         ),
         .binaryTarget(
             name: "KMPFaceLinkAvatar",
-            url: "https://api.github.com/repos/AnotherBall/KMP-FaceLink/releases/assets/460889301.zip",
-            checksum: "8eeac145a84630886622e3717b97407d655db75170ce1a708ee8b88a48d99d08"
+            url: "https://api.github.com/repos/AnotherBall/KMP-FaceLink/releases/assets/471234197.zip",
+            checksum: "ef9adb83ed9cb94b263ef0b3d45ac0d26d29db8d92a31a8f3d2b95c473894cc2"
         ),
         .binaryTarget(
             name: "KMPFaceLinkActions",
-            url: "https://api.github.com/repos/AnotherBall/KMP-FaceLink/releases/assets/460889302.zip",
-            checksum: "d5b216145187c65438420ebf9768d55f57257a11b4d38a3783788e45e7426f1b"
+            url: "https://api.github.com/repos/AnotherBall/KMP-FaceLink/releases/assets/471234192.zip",
+            checksum: "e2139c8ed73a686f6fbff1008d36209f4b829164b4f821725b4664bbfbf4b72e"
         ),
         .binaryTarget(
             name: "KMPFaceLinkVoice",
-            url: "https://api.github.com/repos/AnotherBall/KMP-FaceLink/releases/assets/460889347.zip",
-            checksum: "ea50818e23177bc0d1ae712920f8a5622e811314b17cca9e7593603d4fb09d0b"
+            url: "https://api.github.com/repos/AnotherBall/KMP-FaceLink/releases/assets/471234226.zip",
+            checksum: "214087eb1fc2563a285c783a6f8909b2ac61f34ed45d23195cd51c85db31690f"
         ),
         .binaryTarget(
             name: "KMPFaceLinkLlm",
-            url: "https://api.github.com/repos/AnotherBall/KMP-FaceLink/releases/assets/460889324.zip",
-            checksum: "e160fefb6d371c12984eb3339c0e0c6e6d89a04a6d0a74385bc1f63fc21178e5"
+            url: "https://api.github.com/repos/AnotherBall/KMP-FaceLink/releases/assets/471234213.zip",
+            checksum: "2242f260e55946a1702bdc3c4af7aa8e71cccc7b52142af83373055d0d21fb63"
         ),
         .binaryTarget(
             name: "KMPFaceLinkPipeline",
-            url: "https://api.github.com/repos/AnotherBall/KMP-FaceLink/releases/assets/460889341.zip",
-            checksum: "e1f98b6f5e0ddc68a17abec283aefce33c5f669a8adfa36d0eebcbc683f0dfe4"
+            url: "https://api.github.com/repos/AnotherBall/KMP-FaceLink/releases/assets/471234216.zip",
+            checksum: "d86360d74cf117adacaa8709972549f2c27659a93fe4c9daf1f285ae5cddddef"
         ),
         .binaryTarget(
             name: "KMPFaceLinkNetworking",
-            url: "https://api.github.com/repos/AnotherBall/KMP-FaceLink/releases/assets/460889336.zip",
-            checksum: "cf850b6886066178fba1779ab242292346169144efe98af95eb4c9e047fcddbf"
+            url: "https://api.github.com/repos/AnotherBall/KMP-FaceLink/releases/assets/471234215.zip",
+            checksum: "1d750fa3398cc4b77d049c717a395bba7347497966f8ecc9dec93a02635c1ead"
         ),
         .binaryTarget(
             name: "KMPFaceLinkVMC",
-            url: "https://api.github.com/repos/AnotherBall/KMP-FaceLink/releases/assets/460889343.zip",
-            checksum: "c2df08afe4ecffa681c627b88fd266a73ad12ac7b21f48d909c9db6c4d052b8c"
+            url: "https://api.github.com/repos/AnotherBall/KMP-FaceLink/releases/assets/471234218.zip",
+            checksum: "35d5bf44307b0510e65e9f2e6221866b93801ef4e8de8a8249952f9a00027add"
         ),
         .binaryTarget(
             name: "KMPFaceLinkIFM",
-            url: "https://api.github.com/repos/AnotherBall/KMP-FaceLink/releases/assets/460889304.zip",
-            checksum: "465346277a000996f7de0b4ce761e78771b837b0463e04360f581355fbe66ef8"
+            url: "https://api.github.com/repos/AnotherBall/KMP-FaceLink/releases/assets/471234195.zip",
+            checksum: "b75e505a55faa8feae29319d3de6e50afb01602a4f0e25903258510a70d44610"
         ),
         .binaryTarget(
             name: "KMPFaceLinkInteract",
-            url: "https://api.github.com/repos/AnotherBall/KMP-FaceLink/releases/assets/460889303.zip",
-            checksum: "d8c1919898f3e600d99ad44198c36f0c7d508a6cda042cef7d01e66e550a783c"
+            url: "https://api.github.com/repos/AnotherBall/KMP-FaceLink/releases/assets/471234194.zip",
+            checksum: "d2d6a8768e303ddc635e74b2507338fd2bb66b13258ca207728599923e20c3a0"
         ),
     ]
 )

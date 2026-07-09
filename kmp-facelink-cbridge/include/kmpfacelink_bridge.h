@@ -38,10 +38,29 @@ bool KmpFaceLink_IsTracking(void);
 int64_t KmpFaceLink_GetLatestFaceTimestamp(void);
 
 // Copies up to `count` blend shape floats (max 52) into the caller's buffer.
+//
+// LEGACY ordering: indexed by KMP-FaceLink's BlendShape.ordinal (anatomical groups:
+// eyes, jaw, mouth, brow, cheek, nose, tongue). The channel ORDER is a stable binary
+// contract — kept unchanged. (Absent channels are 0-filled per frame; in practice the
+// tracker emits all 52 every frame, so this is not observable.) Prefer
+// KmpFaceLink_GetLatestBlendShapesLiveLink for new consumers.
 void KmpFaceLink_GetLatestBlendShapes(float* blendShapes, int count);
 
-// Copies 6 head transform floats (pitch, yaw, roll, posX, posY, posZ) into the buffer.
-// `count` must be >= 6.
+// Copies up to `count` blend shape floats (max 52) into the caller's buffer, in
+// canonical ARKit Live Link Face wire order (== Apple ARFaceAnchor.BlendShapeLocation
+// declaration order == Unreal ELiveLinkFaceBlendShape). Channel 0 = eyeBlinkLeft ...
+// channel 51 = tongueOut. Mapped BY NAME, never by ordinal. Channels the tracker does
+// not produce (e.g. tongueOut on Android/MediaPipe) are 0-filled.
+// This is the ordering avatar-core and other Live Link consumers expect.
+void KmpFaceLink_GetLatestBlendShapesLiveLink(float* blendShapes, int count);
+
+// Copies 6 head transform floats into the buffer. `count` must be >= 6.
+// Layout: [pitch, yaw, roll, posX, posY, posZ].
+//   - pitch/yaw/roll: Euler angles in DEGREES (ZYX order), right-handed.
+//   - posX/posY/posZ: translation in METERS, right-handed camera/world space
+//     (+X right, +Y up, -Z forward), origin = tracker session origin.
+// Neutral / identity pose = all six values 0. Degrees->radians and any axis remap
+// are the consumer adapter's responsibility. See README.md "Head transform contract".
 void KmpFaceLink_GetLatestHeadTransform(float* transform, int count);
 
 // -- Hand tracking --

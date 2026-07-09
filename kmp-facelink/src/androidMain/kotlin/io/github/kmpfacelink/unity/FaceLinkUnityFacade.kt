@@ -9,6 +9,8 @@ import io.github.kmpfacelink.api.createHandTracker
 import io.github.kmpfacelink.model.BlendShape
 import io.github.kmpfacelink.model.FaceTrackingData
 import io.github.kmpfacelink.model.HandTrackingData
+import io.github.kmpfacelink.model.Handedness
+import io.github.kmpfacelink.model.LiveLinkBlendShapes
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -106,7 +108,20 @@ public class FaceLinkUnityFacade(
     }
 
     /**
+     * Returns the 52 blend shape values in canonical ARKit **Live Link Face** wire
+     * order (see [LiveLinkBlendShapes]), mapped **by name** — never by enum ordinal.
+     * Channels the tracker does not produce (e.g. `tongueOut` on Android/MediaPipe)
+     * are 0-filled. Returns null if no face data is available.
+     */
+    public fun getLatestBlendShapesLiveLink(): FloatArray? {
+        val data = latestFaceData.get() ?: return null
+        return LiveLinkBlendShapes.lower(data.blendShapes)
+    }
+
+    /**
      * Returns head transform as 6 floats: [pitch, yaw, roll, posX, posY, posZ].
+     * Rotations are Euler degrees; positions are meters in a right-handed camera-space
+     * frame. See kmp-facelink-cbridge/README.md for the full contract.
      * Returns null if no face data is available.
      */
     public fun getLatestHeadTransform(): FloatArray? {
@@ -138,11 +153,11 @@ public class FaceLinkUnityFacade(
         return handLandmarksToArray(hands[handIndex].landmarks)
     }
 
-    /** Returns 0 for LEFT, 1 for RIGHT, 2 for UNKNOWN. */
+    /** Returns 0 for LEFT, 1 for RIGHT, 2 for UNKNOWN (also when no such hand exists). */
     public fun getHandedness(handIndex: Int): Int {
-        val data = latestHandData.get() ?: return 1
+        val data = latestHandData.get() ?: return Handedness.UNKNOWN.ordinal
         val hands = data.hands
-        if (handIndex < 0 || handIndex >= hands.size) return 1
+        if (handIndex < 0 || handIndex >= hands.size) return Handedness.UNKNOWN.ordinal
         return hands[handIndex].handedness.ordinal
     }
 

@@ -1610,6 +1610,19 @@ sealed class io.github.kmpfacelink.model/ThermalPolicy { // io.github.kmpfacelin
     }
 }
 
+final object io.github.kmpfacelink.model/LiveLinkBlendShapes { // io.github.kmpfacelink.model/LiveLinkBlendShapes|null[0]
+    final const val COUNT // io.github.kmpfacelink.model/LiveLinkBlendShapes.COUNT|{}COUNT[0]
+        final fun <get-COUNT>(): kotlin/Int // io.github.kmpfacelink.model/LiveLinkBlendShapes.COUNT.<get-COUNT>|<get-COUNT>(){}[0]
+
+    final val names // io.github.kmpfacelink.model/LiveLinkBlendShapes.names|{}names[0]
+        final fun <get-names>(): kotlin.collections/List<kotlin/String> // io.github.kmpfacelink.model/LiveLinkBlendShapes.names.<get-names>|<get-names>(){}[0]
+    final val order // io.github.kmpfacelink.model/LiveLinkBlendShapes.order|{}order[0]
+        final fun <get-order>(): kotlin.collections/List<io.github.kmpfacelink.model/BlendShape> // io.github.kmpfacelink.model/LiveLinkBlendShapes.order.<get-order>|<get-order>(){}[0]
+
+    final fun lower(kotlin.collections/Map<io.github.kmpfacelink.model/BlendShape, kotlin/Float>): kotlin/FloatArray // io.github.kmpfacelink.model/LiveLinkBlendShapes.lower|lower(kotlin.collections.Map<io.github.kmpfacelink.model.BlendShape,kotlin.Float>){}[0]
+    final fun ordinalToLiveLinkIndex(): kotlin/IntArray // io.github.kmpfacelink.model/LiveLinkBlendShapes.ordinalToLiveLinkIndex|ordinalToLiveLinkIndex(){}[0]
+}
+
 final object io.github.kmpfacelink.util/FaceLinkLogger { // io.github.kmpfacelink.util/FaceLinkLogger|null[0]
     final fun d(kotlin/String, kotlin/String) // io.github.kmpfacelink.util/FaceLinkLogger.d|d(kotlin.String;kotlin.String){}[0]
     final fun e(kotlin/String, kotlin/String, kotlin/Throwable? = ...) // io.github.kmpfacelink.util/FaceLinkLogger.e|e(kotlin.String;kotlin.String;kotlin.Throwable?){}[0]

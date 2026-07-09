@@ -190,6 +190,8 @@ Face tracking via MediaPipe JS interop with gaze estimation. Hand and body track
 | Unity | `unity-plugin/` | C# facade (`FaceLinkUnityFacade`) with UPM package format |
 | C Bridge | `kmp-facelink-cbridge/` | C interop layer for native binding generation |
 
+**Further reading:** [avatar-core Raw-Tracking Seam](docs/avatar-core-seam.md) — how avatar-core consumers (e.g. Avvy) tap the cbridge raw-tracking output while full-SDK consumers keep the tracking → `kmp-facelink-avatar` → `kmp-facelink-stream` stack.
+
 ## Build System
 
 - **Gradle** (Kotlin DSL) with 16 subprojects

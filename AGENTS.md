@@ -56,7 +56,7 @@ Modules with platform code: `kmp-facelink` (android/ios/jvm/wasmJs), `kmp-faceli
 Pure common modules: `kmp-facelink-pipeline`, `kmp-facelink-vmc`, `kmp-facelink-ifm`
 Wasm-enabled common modules: `kmp-facelink-avatar`, `kmp-facelink-actions` (commonMain + wasmJsMain)
 JVM-only modules: `kmp-facelink-stream`, `kmp-facelink-vts` (JVM target only, no Android/iOS)
-Wasm modules: `kmp-facelink`, `kmp-facelink-avatar`, `kmp-facelink-actions` include `wasmJs` target (face tracking functional via MediaPipe JS interop; hand/body tracking are no-op stubs; mapping/actions are fully functional)
+Wasm modules: `kmp-facelink`, `kmp-facelink-avatar`, `kmp-facelink-actions` include `wasmJs` target (face/hand/body tracking functional via MediaPipe JS interop; holistic is a no-op stub; smoothing and depth estimation are not available on Wasm; mapping/actions are fully functional)
 Note: `kmp-facelink` has `jvmMain` (ONNX Runtime + JavaCV) and `nonMobileMain` (shared no-op stubs for JVM + Wasm) source sets.
 Note: `kmp-facelink-llm` includes platform-specific inference engines (llama.cpp on Android, Apple Foundation Models on iOS 26+) for on-device LLM.
 

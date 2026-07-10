@@ -53,7 +53,9 @@ Unified face, hand & body tracking SDK for Kotlin Multiplatform — one API, bot
 ### Wasm/JS (Experimental)
 - Supported modules: `kmp-facelink`, `kmp-facelink-avatar`, `kmp-facelink-actions`
 - Kotlin/Wasm target (`wasmJs`) — requires a browser with [WebAssembly GC](https://developer.mozilla.org/en-US/docs/WebAssembly/GC) support (Chrome 119+, Firefox 120+)
-- Face tracking functional via MediaPipe JS interop (with gaze estimation); hand/body tracking are no-op stubs; avatar mapping and action triggers are fully functional
+- Face (with gaze estimation), hand, and body tracking functional via MediaPipe JS interop (`MediaPipeWasmFaceTracker` / `MediaPipeWasmHandTracker` / `MediaPipeWasmBodyTracker`); avatar mapping and action triggers are fully functional
+- Remaining gaps: holistic tracking is a no-op stub, smoothing (`SmoothingConfig` filters) is not yet implemented on the Wasm trackers, and there is no depth estimation (Android-only)
+- Host page must set `globalThis.__faceLinkVision` to the loaded `@mediapipe/tasks-vision` module before starting a tracker
 - See [docs/research/kotlin-wasm-web-target.md](docs/research/kotlin-wasm-web-target.md) for roadmap
 
 ## Quick Start

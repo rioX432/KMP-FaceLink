@@ -94,6 +94,11 @@ kotlin {
             implementation(libs.kotlinx.coroutines.test)
         }
 
+        jvmTest.dependencies {
+            // Parses the shared cbridge conformance fixture (JsonElement API only, no serialization plugin needed).
+            implementation(libs.kotlinx.serialization.json)
+        }
+
         getByName("androidHostTest").dependencies {
             implementation(libs.kotlin.test)
             implementation(libs.junit)
@@ -106,4 +111,16 @@ kotlin {
             implementation(libs.androidx.test.core)
         }
     }
+}
+
+// Expose the shared cross-repo conformance fixture (kmp-facelink-cbridge/conformance/) to
+// LiveLinkConformanceFixtureTest so the golden file and LiveLinkBlendShapes cannot drift.
+// The fixture is declared as a task input so editing it re-runs the test (no stale cache hit).
+tasks.named<Test>("jvmTest") {
+    val conformanceFixture = rootProject.layout.projectDirectory
+        .file("kmp-facelink-cbridge/conformance/live_link_conformance.json")
+    inputs.file(conformanceFixture)
+        .withPropertyName("liveLinkConformanceFixture")
+        .withPathSensitivity(PathSensitivity.NONE)
+    systemProperty("kmpfacelink.conformance.fixture", conformanceFixture.asFile.absolutePath)
 }

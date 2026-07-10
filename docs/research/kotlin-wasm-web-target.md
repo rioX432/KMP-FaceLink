@@ -2,7 +2,7 @@
 
 ## Status
 
-**Experimental** — face tracking is implemented via MediaPipe JS interop; hand/body tracking are no-op stubs.
+**Experimental** — face, hand, and body tracking are implemented via MediaPipe JS interop (`MediaPipeWasmFaceTracker` / `MediaPipeWasmHandTracker` / `MediaPipeWasmBodyTracker`). Remaining gaps: holistic tracking is a no-op stub, smoothing (`SmoothingConfig` filters) is not yet implemented on the Wasm trackers, and depth estimation is not available (Android-only).
 
 ## Kotlin/Wasm Maturity (as of Kotlin 2.2.0)
 
@@ -19,7 +19,7 @@
 
 | Module | Status | Notes |
 |---|---|---|
-| `kmp-facelink` | Compiles | Face tracking via MediaPipe JS interop; hand/body are no-op stubs |
+| `kmp-facelink` | Compiles | Face/hand/body tracking via MediaPipe JS interop; holistic is a no-op stub |
 | `kmp-facelink-avatar` | Compiles | Pure common code, no platform actuals needed |
 | `kmp-facelink-actions` | Compiles | Pure common code, no platform actuals needed |
 
@@ -30,7 +30,10 @@
 - `currentThreadId()` — returns `1L` (single-threaded)
 - `FaceLinkLogger` — delegates to `console.warn`/`console.error`/`console.log`
 - `FaceTrackerFactory` — returns `MediaPipeWasmFaceTracker` (real tracking via MediaPipe JS)
-- Hand/body tracker factories — return `NoOp*Tracker` stubs that emit `TrackingState.ERROR`
+- `HandTrackerFactory` — returns `MediaPipeWasmHandTracker` (real tracking via MediaPipe JS)
+- `BodyTrackerFactory` — returns `MediaPipeWasmBodyTracker` (real tracking via MediaPipe JS)
+- `HolisticTrackerFactory` — returns the `NoOpHolisticTracker` stub (the remaining Wasm no-op)
+- `WebGpuCapability` — detects the available GPU backend (WebGPU / WebGL / none) and WebNN device type
 
 ## Modules NOT Yet Targetable
 
@@ -59,11 +62,12 @@ Replaced no-op face tracker with `MediaPipeWasmFaceTracker`:
 
 **Host page requirement:** Must set `globalThis.__faceLinkVision` to the loaded `@mediapipe/tasks-vision` module before starting the tracker.
 
-### Phase 2: Hand & Body Tracking
+### Phase 2: Hand & Body Tracking (Done)
 
-- MediaPipe Hand Landmarker JS for hand tracking
-- MediaPipe Pose Landmarker JS for body tracking
-- Same pattern as face tracking
+- `MediaPipeWasmHandTracker` — MediaPipe Hand Landmarker JS for hand tracking
+- `MediaPipeWasmBodyTracker` — MediaPipe Pose Landmarker JS for body tracking
+- Same pattern (and same `globalThis.__faceLinkVision` host-page requirement) as face tracking
+- Not yet ported: smoothing (`SmoothingConfig` filters) and the holistic tracker
 
 ### Phase 3: Protocol Modules
 

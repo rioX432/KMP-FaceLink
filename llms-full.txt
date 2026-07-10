@@ -11,7 +11,7 @@ KMP-FaceLink is an MIT-licensed open-source library published as `com.anotherbal
 | Android (SDK 24+) | MediaPipe Face Landmarker | MediaPipe Hand Landmarker | MediaPipe Pose Landmarker | CameraX |
 | iOS (17.0+) | ARKit (TrueDepth camera) | Vision (VNDetectHumanHandPoseRequest) | Vision (VNDetectHumanBodyPoseRequest) | AVCaptureSession |
 | JVM/Desktop | ONNX Runtime (OpenSeeFace) | ONNX Runtime | ONNX Runtime | Webcam via JavaCV |
-| Wasm/JS | MediaPipe JS interop | Stub (no-op) | Stub (no-op) | Browser WebAssembly GC |
+| Wasm/JS | MediaPipe Face Landmarker (JS interop) | MediaPipe Hand Landmarker (JS interop) | MediaPipe Pose Landmarker (JS interop) | Browser WebAssembly GC |
 
 ## Core Module: kmp-facelink
 

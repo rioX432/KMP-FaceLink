@@ -180,7 +180,15 @@ Face tracking via ONNX Runtime + JavaCV. Hand and body tracking are no-op stubs.
 
 ### Wasm (MediaPipe JS)
 
-Face tracking via MediaPipe JS interop with gaze estimation. Hand and body tracking are no-op stubs. Avatar mapping and action triggers are fully functional.
+| Tracker | Engine | Details |
+|---------|--------|---------|
+| Face | `MediaPipeWasmFaceTracker` | Face Landmarker JS interop with gaze estimation |
+| Hand | `MediaPipeWasmHandTracker` | Hand Landmarker JS interop |
+| Body | `MediaPipeWasmBodyTracker` | Pose Landmarker JS interop |
+
+Avatar mapping and action triggers are fully functional. WebGPU delegate detection is handled by `WebGpuCapability`. The host page must set `globalThis.__faceLinkVision` to the loaded `@mediapipe/tasks-vision` module before starting a tracker.
+
+Remaining gaps: holistic tracking is a no-op stub (`NoOpHolisticTracker`), smoothing (`SmoothingConfig` filters) is not yet implemented on the Wasm trackers, and depth estimation is not available (Android-only).
 
 ## Cross-Platform Bridges
 

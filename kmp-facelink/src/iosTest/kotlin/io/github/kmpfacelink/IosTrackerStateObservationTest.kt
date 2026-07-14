@@ -83,12 +83,13 @@ class IosTrackerStateObservationTest {
     // -- Enabled modalities --
 
     @Test
-    fun holisticTrackerReportsAllModalitiesEnabledByDefault() {
+    fun holisticTrackerReportsDefaultModalities() {
         val tracker = createHolisticTracker(context)
         val modalities = tracker.enabledModalities
         assertTrue(modalities.contains(TrackingModality.FACE))
         assertTrue(modalities.contains(TrackingModality.HAND))
-        assertTrue(modalities.contains(TrackingModality.BODY))
+        // Body tracking defaults to false (see HolisticTrackerConfig.enableBody KDoc).
+        assertTrue(!modalities.contains(TrackingModality.BODY))
         tracker.release()
     }
 

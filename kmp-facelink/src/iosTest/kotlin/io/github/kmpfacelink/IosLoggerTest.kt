@@ -4,10 +4,10 @@ import io.github.kmpfacelink.util.FaceLinkLogger
 import kotlin.test.Test
 
 /**
- * Tests for iOS [FaceLinkLogger] backed by NSLog.
+ * Tests for iOS [FaceLinkLogger] backed by println.
  *
  * These tests verify that logging calls do not throw on iOS.
- * Actual log output goes to NSLog and cannot be captured here.
+ * Actual log output goes to stdout and cannot be captured here.
  */
 class IosLoggerTest {
 

@@ -32,7 +32,11 @@ kotlin {
                 file("consumer-proguard-rules.pro")
             }
         }
-        withHostTestBuilder {}
+        withHostTestBuilder {}.configure {
+            // android.util.Log is called from HolisticTrackerConfig's init path
+            // (FaceLinkLogger); host-JVM unit tests need no-op stubs for it.
+            isReturnDefaultValues = true
+        }
         withDeviceTestBuilder {
             sourceSetTreeName = "test"
         }.configure {

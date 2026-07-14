@@ -1,0 +1,16 @@
+public final class io/github/kmpfacelink/compose/RememberBodyTrackerKt {
+	public static final fun rememberBodyTracker (Lio/github/kmpfacelink/model/BodyTrackerConfig;ZLandroidx/compose/runtime/Composer;II)Lio/github/kmpfacelink/api/BodyTracker;
+}
+
+public final class io/github/kmpfacelink/compose/RememberFaceTrackerKt {
+	public static final fun rememberFaceTracker (Lio/github/kmpfacelink/model/FaceTrackerConfig;ZLandroidx/compose/runtime/Composer;II)Lio/github/kmpfacelink/api/FaceTracker;
+}
+
+public final class io/github/kmpfacelink/compose/RememberHandTrackerKt {
+	public static final fun rememberHandTracker (Lio/github/kmpfacelink/model/HandTrackerConfig;ZLandroidx/compose/runtime/Composer;II)Lio/github/kmpfacelink/api/HandTracker;
+}
+
+public final class io/github/kmpfacelink/compose/RememberHolisticTrackerKt {
+	public static final fun rememberHolisticTracker (Lio/github/kmpfacelink/model/HolisticTrackerConfig;ZLandroidx/compose/runtime/Composer;II)Lio/github/kmpfacelink/api/HolisticTracker;
+}
+

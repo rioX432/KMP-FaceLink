@@ -10,8 +10,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Capability, provenance, fallback, offline-inference, and opt-in pipeline-performance contracts
 - Internal shared guided-capture harness and Android/iOS evaluation applications
 - `sdkQualityCheck` source/API/platform/capture/privacy gate and separate authorized private replay lane
-- Source-only paired-calibration evaluator tests in `sdkQualityCheck`; biometric golden parity
-  remains an explicit authorized local lane
+- Dependency-free paired-calibration parser/metric contract tests in `sdkQualityCheck`; the
+  NumPy evaluator and biometric golden parity remain an explicit authorized local lane
 
 ### Changed
 - **BREAKING (unpublished worktree):** add constructor properties to `FaceTrackerConfig`, `PerformanceConfig`, `FaceTrackingData`, and `TrackedFace`; consumers must recompile rather than swap binaries
@@ -20,6 +20,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Pin JVM OpenSeeFace FP32 inputs to one upstream revision and verify model digests and ONNX contracts before camera access; unqualified INT8 output is no longer selected at runtime
 
 ### Fixed
+- Reject tracked raster capture formats even when they appear outside a conventionally private
+  directory, with ordinary-path JPEG/PNG/WebP/DNG mutation controls
 - Decode the actual OpenSeeFace landmark output (`[1,198,28,28]`, grouped confidence/row/column channels) instead of casting it to a rank-2 interleaved 27×27 layout
 - Read face radius from the detection model's second `output` channel and use `maxpool` only for local-maximum suppression
 - Package pinned JVM model resources in publication jobs and exercise both models with synthetic zero-input contract tests

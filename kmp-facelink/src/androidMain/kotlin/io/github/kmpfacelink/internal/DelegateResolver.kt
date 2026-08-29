@@ -16,6 +16,12 @@ private const val TAG = "DelegateResolver"
  */
 internal object DelegateResolver {
 
+    /** Value created by the fallback chain together with the delegate that actually succeeded. */
+    internal data class Resolved<T>(
+        val value: T,
+        val delegate: Delegate,
+    )
+
     /**
      * Returns an ordered fallback chain of [Delegate] values for the given [InferenceDelegate].
      *
@@ -92,7 +98,16 @@ internal object DelegateResolver {
     fun <T> createWithFallback(
         preference: InferenceDelegate,
         factory: (Delegate) -> T,
-    ): T {
+    ): T = createResolvedWithFallback(preference, factory).value
+
+    /**
+     * Executes [factory] like [createWithFallback], retaining the actual successful delegate.
+     * This is the provenance authority when AUTO or an explicit accelerator falls back.
+     */
+    fun <T> createResolvedWithFallback(
+        preference: InferenceDelegate,
+        factory: (Delegate) -> T,
+    ): Resolved<T> {
         val chain = resolve(preference)
         var lastException: RuntimeException? = null
 
@@ -100,7 +115,7 @@ internal object DelegateResolver {
             try {
                 val result = factory(delegate)
                 logDelegateSuccess(delegate, chain)
-                return result
+                return Resolved(result, delegate)
             } catch (@Suppress("TooGenericExceptionCaught") e: RuntimeException) {
                 logDelegateFailure(delegate, e)
                 lastException = e

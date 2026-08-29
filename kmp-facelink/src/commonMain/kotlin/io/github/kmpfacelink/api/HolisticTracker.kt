@@ -150,7 +150,7 @@ public interface HolisticTracker : Releasable {
      * If the tracker is currently tracking, it will stop, switch the camera, and restart.
      * If the tracker is stopped or idle, the new facing will be applied on the next [start].
      *
-     * Note: On iOS, face tracking always uses the front TrueDepth camera regardless of this
+     * Note: On iOS, face tracking always uses the front camera regardless of this
      * setting. Switching to [CameraFacing.BACK] when face tracking is enabled will throw
      * [UnsupportedOperationException].
      *

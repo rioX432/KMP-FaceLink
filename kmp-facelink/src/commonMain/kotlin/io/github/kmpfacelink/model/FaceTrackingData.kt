@@ -25,6 +25,9 @@ package io.github.kmpfacelink.model
  *           When tracking, contains at least one entry; index 0 corresponds to the primary face
  *           represented by the top-level single-face properties.
  * @property thermalState Current device thermal state at the time of this frame.
+ * @property contextEpoch Immutable runtime context captured with the estimator input.
+ *           Tracking frames produced by provenance-aware implementations include this snapshot;
+ *           pre-start, error, and legacy frames may omit it and fail closed in capability matching.
  */
 public data class FaceTrackingData(
     val blendShapes: BlendShapeData,
@@ -37,6 +40,7 @@ public data class FaceTrackingData(
     val isTracking: Boolean,
     val faces: List<TrackedFace> = emptyList(),
     val thermalState: ThermalState = ThermalState.NOMINAL,
+    val contextEpoch: TrackingContextEpoch? = null,
 ) {
     public companion object {
         /**

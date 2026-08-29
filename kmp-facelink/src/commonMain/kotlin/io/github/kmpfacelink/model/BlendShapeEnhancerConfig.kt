@@ -12,7 +12,11 @@ public sealed class BlendShapeEnhancerConfig {
     public data object None : BlendShapeEnhancerConfig()
 
     /**
-     * Default enhancement using geometric landmark solvers.
+     * Experimental enhancement using geometric landmark solvers.
+     *
+     * This is an explicit opt-in configuration, not the [FaceTrackerConfig] default. Individual
+     * solvers have different evidence scopes and must not be treated as generally more accurate
+     * than the estimator output solely because this configuration is enabled.
      *
      * @property sensitivityOverrides Per-shape sensitivity multipliers.
      *           Values > 1 amplify weak signals. Applied after geometric blending.

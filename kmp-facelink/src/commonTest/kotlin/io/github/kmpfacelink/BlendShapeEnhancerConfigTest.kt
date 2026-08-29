@@ -2,13 +2,20 @@ package io.github.kmpfacelink
 
 import io.github.kmpfacelink.model.BlendShape
 import io.github.kmpfacelink.model.BlendShapeEnhancerConfig
+import io.github.kmpfacelink.model.FaceTrackerConfig
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertIs
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 import kotlin.test.fail
 
 class BlendShapeEnhancerConfigTest {
+
+    @Test
+    fun faceTrackerDoesNotEnableExperimentalEnhancerByDefault() {
+        assertIs<BlendShapeEnhancerConfig.None>(FaceTrackerConfig().enhancerConfig)
+    }
 
     @Test
     fun noneIsSingleton() {

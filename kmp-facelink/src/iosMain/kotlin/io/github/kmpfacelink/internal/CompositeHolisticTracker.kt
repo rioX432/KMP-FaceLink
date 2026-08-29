@@ -27,7 +27,7 @@ import kotlin.concurrent.atomics.ExperimentalAtomicApi
 
 /**
  * iOS implementation of [HolisticTracker] that composes:
- * - ARKit face tracker (TrueDepth sensor, independent)
+ * - ARKit face tracker (front-camera ARSession, independent)
  * - Vision hand + body trackers sharing one [SharedVisionCaptureSession] (RGB camera)
  *
  * ARKit and AVCaptureSession use different camera sensors, so they can run simultaneously.
@@ -247,7 +247,7 @@ internal class CompositeHolisticTracker(
             // ARKit face tracking only supports front camera
             if (config.enableFace && facing == CameraFacing.BACK) {
                 throw UnsupportedOperationException(
-                    "Cannot switch to back camera: ARKit face tracking requires TrueDepth front camera",
+                    "Cannot switch to back camera: this ARKit face tracker uses the front camera",
                 )
             }
             val wasTracking = _state.value == TrackingState.TRACKING

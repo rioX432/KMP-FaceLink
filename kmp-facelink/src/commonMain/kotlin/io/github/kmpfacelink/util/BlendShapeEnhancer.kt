@@ -61,9 +61,11 @@ internal class BlendShapeEnhancer(
     }
 
     /**
-     * Blend geometric solver values with ML values.
-     * - Near-zero shapes: max(geometric, ml) — geometric is strictly better
-     * - Low-accuracy shapes: weighted blend — both signals contribute
+     * Blend explicitly enabled geometric candidates with estimator values.
+     * - Near-zero estimator shapes: use the larger value from the two signals
+     * - Other configured shapes: combine both signals with the configured weight
+     *
+     * This algorithmic choice does not assert that the geometric signal is more accurate.
      */
     private fun applyGeometricOverrides(
         result: MutableMap<BlendShape, Float>,
@@ -111,7 +113,7 @@ internal class BlendShapeEnhancer(
                 is BlendShapeEnhancerConfig.Default -> BlendShapeEnhancer(config)
             }
 
-        /** Shapes where ML almost always returns ~0. Use max(geometric, ml). */
+        /** Shapes assigned to the explicitly enabled max-combination path. */
         private val nearZeroSolvers: Map<BlendShape, (List<FaceLandmark>) -> Float> = mapOf(
             BlendShape.CHEEK_PUFF to LandmarkSolvers::solveCheekPuff,
             BlendShape.CHEEK_SQUINT_LEFT to CheekBrowSolvers::solveCheekSquintLeft,
@@ -122,7 +124,7 @@ internal class BlendShapeEnhancer(
             BlendShape.NOSE_SNEER_RIGHT to LandmarkSolvers::solveNoseSneerRight,
         )
 
-        /** Shapes with low but non-zero ML accuracy. Use weighted blend. */
+        /** Shapes assigned to the explicitly enabled weighted-combination path. */
         private val lowAccuracySolvers: Map<BlendShape, (List<FaceLandmark>) -> Float> = mapOf(
             BlendShape.BROW_DOWN_LEFT to CheekBrowSolvers::solveBrowDownLeft,
             BlendShape.BROW_DOWN_RIGHT to CheekBrowSolvers::solveBrowDownRight,

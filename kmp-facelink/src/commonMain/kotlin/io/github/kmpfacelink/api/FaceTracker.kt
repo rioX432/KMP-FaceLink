@@ -1,10 +1,12 @@
 package io.github.kmpfacelink.api
 
 import io.github.kmpfacelink.model.CameraFacing
+import io.github.kmpfacelink.model.FacePipelinePerformanceEvent
 import io.github.kmpfacelink.model.FaceTrackingData
 import io.github.kmpfacelink.model.SmoothingConfig
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.emptyFlow
 
 /**
  * Unified face tracking interface.
@@ -44,6 +46,21 @@ import kotlinx.coroutines.flow.StateFlow
 public interface FaceTracker : Releasable {
 
     /**
+     * Opt-in local evaluation events. Empty unless performance instrumentation was enabled in the
+     * tracker configuration. iOS boundaries begin at ARKit callback entry; they are not ARKit
+     * inference, camera, consumer, or render latency.
+     */
+    public val performanceEvents: Flow<FacePipelinePerformanceEvent>
+        get() = emptyFlow()
+
+    /**
+     * Bounded snapshot for deterministic local aggregation after [stop]. Empty when instrumentation
+     * is disabled. A new measurement tracker should reject a snapshot whose first sequence is not
+     * one, because that means the configured buffer was too small for the run.
+     */
+    public fun performanceEventsSnapshot(): List<FacePipelinePerformanceEvent> = emptyList()
+
+    /**
      * Stream of face tracking data, emitted for each processed frame.
      * Emits [FaceTrackingData.notTracking] when no face is detected.
      *
@@ -77,7 +94,7 @@ public interface FaceTracker : Releasable {
      * The message contains a platform-specific description of what went wrong:
      * - Android: MediaPipe model loading failures, CameraX binding errors, or missing camera hardware.
      * - iOS: ARKit session errors (`NSError.localizedDescription`), Vision framework failures,
-     *   or missing TrueDepth camera.
+     *   or unavailable ARKit face-tracking support.
      *
      * This value is **not** automatically cleared when [start] is called again after an error.
      * Consumers should rely on [state] transitions (ERROR -> STARTING -> TRACKING) rather than
@@ -162,7 +179,7 @@ public interface FaceTracker : Releasable {
      *
      * @param facing The camera direction to switch to
      * @throws UnsupportedOperationException if the requested camera is not available
-     *         (e.g., iOS ARKit face tracking only supports the front TrueDepth camera)
+     *         (e.g., this iOS ARKit face tracker uses the front camera only)
      * @throws IllegalStateException if called after [release]
      */
     public suspend fun switchCamera(facing: CameraFacing)

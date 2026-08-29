@@ -52,6 +52,6 @@ public data class HeadTransform(
 
 private fun FloatArray?.contentEquals(other: FloatArray?): Boolean {
     if (this === other) return true
-    if (this == null || other == null) return this == other
+    if (this == null || other == null) return false
     return this.contentEquals(other)
 }

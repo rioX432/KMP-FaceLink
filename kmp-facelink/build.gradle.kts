@@ -120,11 +120,24 @@ kotlin {
 // Expose the shared cross-repo conformance fixture (kmp-facelink-cbridge/conformance/) to
 // LiveLinkConformanceFixtureTest so the golden file and LiveLinkBlendShapes cannot drift.
 // The fixture is declared as a task input so editing it re-runs the test (no stale cache hit).
-tasks.named<Test>("jvmTest") {
+val standardJvmTest = tasks.named<Test>("jvmTest") {
     val conformanceFixture = rootProject.layout.projectDirectory
         .file("kmp-facelink-cbridge/conformance/live_link_conformance.json")
     inputs.file(conformanceFixture)
         .withPropertyName("liveLinkConformanceFixture")
         .withPathSensitivity(PathSensitivity.NONE)
     systemProperty("kmpfacelink.conformance.fixture", conformanceFixture.asFile.absolutePath)
+    // Private biometric replay is a separately authorized local quality lane. It must not appear
+    // as a green test case in the source-only PR gate.
+    filter.excludeTestsMatching("*CheekPuffContourFrozenRuleTest*")
+}
+
+tasks.register<Test>("privateCheekPuffQualityCheck") {
+    group = "verification"
+    description = "Replay the frozen cheek-puff rule against locally authorized private inputs"
+    dependsOn("jvmTestClasses")
+    testClassesDirs = standardJvmTest.get().testClassesDirs
+    classpath = standardJvmTest.get().classpath
+    filter.includeTestsMatching("*CheekPuffContourFrozenRuleTest*")
+    shouldRunAfter(standardJvmTest)
 }

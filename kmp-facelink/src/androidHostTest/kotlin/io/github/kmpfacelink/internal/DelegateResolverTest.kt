@@ -89,6 +89,17 @@ class DelegateResolverTest {
     }
 
     @Test
+    fun createResolvedWithFallbackReportsActualDelegate() {
+        val resolved = DelegateResolver.createResolvedWithFallback(InferenceDelegate.AUTO) { delegate ->
+            if (delegate == Delegate.GPU) throw RuntimeException("GPU not available")
+            "created-with-${delegate.name}"
+        }
+
+        assertEquals("created-with-CPU", resolved.value)
+        assertEquals(Delegate.CPU, resolved.delegate)
+    }
+
+    @Test
     fun createWithFallbackThrowsWhenAllDelegatesFail() {
         assertFailsWith<RuntimeException> {
             DelegateResolver.createWithFallback(InferenceDelegate.GPU) { delegate ->

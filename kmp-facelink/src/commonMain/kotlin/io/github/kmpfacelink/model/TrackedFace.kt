@@ -9,6 +9,7 @@ package io.github.kmpfacelink.model
  * @property gazeData Estimated gaze direction, or null if unavailable.
  * @property landmarks Raw face landmarks (478 MediaPipe points on Android, empty on iOS).
  * @property confidence Detection confidence (0.0–1.0).
+ * @property provenance Exact runtime conditions that produced this face's values.
  */
 public data class TrackedFace(
     val faceIndex: Int,
@@ -17,4 +18,5 @@ public data class TrackedFace(
     val gazeData: GazeData? = null,
     val landmarks: List<FaceLandmark> = emptyList(),
     val confidence: Float = 1.0f,
+    val provenance: FaceObservationProvenance? = null,
 )

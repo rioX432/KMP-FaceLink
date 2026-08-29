@@ -50,6 +50,16 @@ from typing import Any, Iterable
 
 import numpy as np
 
+from calibration_contract import (
+    AnalysisWindow,
+    FrameAnalysisWindow,
+    clip01,
+    paired_difference_statistics,
+    parse_frame_window,
+    parse_window,
+    sign,
+)
+
 
 DISCLAIMER = (
     "ARKit cheekPuff is a paired reference signal, not physical ground truth. "
@@ -91,24 +101,6 @@ OFF_THRESHOLD = 0.20
 LIFT_NARROW_MAX = 1.0
 ON_DELAY_MS = 350
 MIN_CALIBRATION_FRAMES = 15
-
-
-@dataclass(frozen=True)
-class AnalysisWindow:
-    """Inclusive window in seconds relative to the first landmark frame."""
-
-    label: str
-    start_seconds: float
-    end_seconds: float
-
-
-@dataclass(frozen=True)
-class FrameAnalysisWindow:
-    """Inclusive window in exported frame-index space."""
-
-    label: str
-    start_frame: int
-    end_frame: int
 
 
 @dataclass(frozen=True)
@@ -186,74 +178,6 @@ class LandmarkArtifact:
     timestamps: np.ndarray
     transforms: np.ndarray | None
     rotation_mode: str
-
-
-def parse_window(value: str) -> AnalysisWindow:
-    """Parse ``LABEL:START_SECONDS:END_SECONDS``."""
-    parts = value.split(":")
-    if len(parts) != 3:
-        raise argparse.ArgumentTypeError(
-            "window must use LABEL:START_SECONDS:END_SECONDS"
-        )
-    label = parts[0].strip()
-    if not label:
-        raise argparse.ArgumentTypeError("window label must not be empty")
-    try:
-        start = float(parts[1])
-        end = float(parts[2])
-    except ValueError as error:
-        raise argparse.ArgumentTypeError(
-            "window start and end must be numeric"
-        ) from error
-    if not math.isfinite(start) or not math.isfinite(end):
-        raise argparse.ArgumentTypeError("window bounds must be finite")
-    if start < 0.0:
-        raise argparse.ArgumentTypeError("window start must be zero or greater")
-    if end <= start:
-        raise argparse.ArgumentTypeError("window end must be greater than start")
-    return AnalysisWindow(label, start, end)
-
-
-def parse_frame_window(value: str) -> FrameAnalysisWindow:
-    """Parse ``LABEL:START_FRAME:END_FRAME`` with inclusive bounds."""
-    parts = value.split(":")
-    if len(parts) != 3:
-        raise argparse.ArgumentTypeError(
-            "frame window must use LABEL:START_FRAME:END_FRAME"
-        )
-    label = parts[0].strip()
-    if not label:
-        raise argparse.ArgumentTypeError("frame-window label must not be empty")
-    try:
-        start = int(parts[1])
-        end = int(parts[2])
-    except ValueError as error:
-        raise argparse.ArgumentTypeError(
-            "frame-window start and end must be integers"
-        ) from error
-    if start < 0:
-        raise argparse.ArgumentTypeError(
-            "frame-window start must be zero or greater"
-        )
-    if end < start:
-        raise argparse.ArgumentTypeError(
-            "frame-window end must be greater than or equal to start"
-        )
-    return FrameAnalysisWindow(label, start, end)
-
-
-def clip01(value: float) -> float:
-    """Match the Kotlin detector's scalar ``coerceIn(0, 1)``."""
-    return min(1.0, max(0.0, value))
-
-
-def sign(value: float) -> float:
-    """Return -1, 0, or +1 without NumPy scalar serialization."""
-    if value > 0.0:
-        return 1.0
-    if value < 0.0:
-        return -1.0
-    return 0.0
 
 
 def extract_features(
@@ -831,29 +755,7 @@ def agreement_statistics(
     geometric: np.ndarray, reference: np.ndarray
 ) -> dict[str, float | int | None]:
     """Describe paired difference without assigning either signal as truth."""
-    valid = np.isfinite(geometric) & np.isfinite(reference)
-    first = np.asarray(geometric[valid], dtype=np.float64)
-    second = np.asarray(reference[valid], dtype=np.float64)
-    if len(first) == 0:
-        return {
-            "paired_count": 0,
-            "mean_absolute_difference": None,
-            "root_mean_square_difference": None,
-            "mean_signed_difference_geometric_minus_arkit": None,
-            "pearson_correlation": None,
-        }
-    difference = first - second
-    if np.std(first) < 1e-9 or np.std(second) < 1e-9:
-        correlation: float | None = None
-    else:
-        correlation = float(np.corrcoef(first, second)[0, 1])
-    return {
-        "paired_count": int(len(first)),
-        "mean_absolute_difference": float(np.mean(np.abs(difference))),
-        "root_mean_square_difference": float(np.sqrt(np.mean(difference**2))),
-        "mean_signed_difference_geometric_minus_arkit": float(np.mean(difference)),
-        "pearson_correlation": correlation,
-    }
+    return paired_difference_statistics(geometric, reference)
 
 
 def fraction(values: np.ndarray) -> float | None:

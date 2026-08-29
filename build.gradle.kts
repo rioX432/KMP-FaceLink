@@ -495,12 +495,12 @@ val testSdkDocumentation by tasks.registering(Exec::class) {
 
 val testCalibrationTooling by tasks.registering(Exec::class) {
     group = "verification"
-    description = "Run source-only paired-calibration parser and metric contract tests"
+    description = "Run dependency-free paired-calibration parser and metric contract tests"
     commandLine(
         "python3",
         "-m",
         "unittest",
-        "tools/calibration/tests/test_evaluate_cheekpuff_geometry.py",
+        "tools/calibration/tests/test_calibration_contract.py",
     )
 }
 

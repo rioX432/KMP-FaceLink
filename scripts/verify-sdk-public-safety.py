@@ -29,12 +29,23 @@ FORBIDDEN_BASENAMES = frozenset(
     }
 )
 FORBIDDEN_SUFFIXES = (
+    ".avif",
+    ".bmp",
+    ".dng",
+    ".gif",
+    ".heif",
     ".mov",
     ".mp4",
     ".heic",
+    ".jpeg",
+    ".jpg",
     ".npy",
     ".npz",
+    ".png",
     ".p12",
+    ".tif",
+    ".tiff",
+    ".webp",
     ".mobileprovision",
 )
 

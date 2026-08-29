@@ -35,10 +35,23 @@ class PublicSafetyPathTest(unittest.TestCase):
             MODULE.rejection_reason("keys/development.p12"),
         )
 
+    def test_rejects_raster_captures_in_ordinary_paths(self):
+        for path in (
+            "fixtures/face.jpg",
+            "docs/frame.jpeg",
+            "androidApp/src/main/res/drawable/capture.png",
+            "assets/preview.webp",
+            "camera/raw-frame.dng",
+        ):
+            with self.subTest(path=path):
+                self.assertEqual(
+                    "capture media or private credential suffix",
+                    MODULE.rejection_reason(path),
+                )
+
     def test_allows_source_and_aggregate_fixtures(self):
         self.assertIsNone(MODULE.rejection_reason("kmp-facelink/src/commonTest/aggregate.json"))
         self.assertIsNone(MODULE.rejection_reason("docs/architecture.svg"))
-        self.assertIsNone(MODULE.rejection_reason("androidApp/src/main/res/drawable/logo.png"))
 
 
 if __name__ == "__main__":

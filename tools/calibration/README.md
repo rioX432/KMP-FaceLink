@@ -1,23 +1,31 @@
-# Calibration Capture Tool
+# Legacy Paired-Capture Research Tool
 
-Records ARKit face blendshape ground truth and front-camera RGB frames simultaneously, producing paired datasets for ARKit-to-MediaPipe parameter calibration.
+Records ARKit face blendshape output and front-camera RGB frames simultaneously, producing paired datasets for ARKit-to-MediaPipe comparison and calibration research.
+
+This folder is retained only to reproduce historical paired-capture analyses. It is not the current
+recording application and must not be used as an SDK quality or product-readiness gate. New guided
+recording uses the shared internal `kmp-facelink-capture` module through `captureApp` (Android) and
+`captureIosApp` (iOS). Any new physical recording, participant involvement, or biometric-data use
+requires the separate human authorization and privacy protocol.
 
 ## Components
 
 | Component | Description |
 |---|---|
-| `CaptureApp/` | iOS app (SwiftUI + ARKit) for dual recording |
+| `CaptureApp/` | Legacy iOS paired-capture app retained for historical reproduction |
 | `process_captures.py` | Offline MediaPipe processing of captured RGB frames |
-| `benchmark.py` | Per-blendshape accuracy benchmark and error report |
+| `benchmark.py` | Per-blendshape agreement benchmark and difference report |
+| `paired_timeline.py` | Slide-ready paired timelines and JSON summaries for one session |
+| `CAPTURE_RUNBOOK.md` | Archived protocol for the legacy app; not current capture guidance |
 | `optimize.py` | Automated parameter sweep for BlendShapeEnhancer defaults |
 | `train_predictor.py` | Train TFLite neural blendshape predictor (landmarks -> 52 ARKit shapes) |
 | `requirements.txt` | Python dependencies |
 
-## Quick Start
+## Historical Reproduction Only
 
 ### 1. Build the iOS Capture App
 
-Requires Xcode 16+ and [XcodeGen](https://github.com/yonaskolb/XcodeGen).
+Requires Xcode 16+, XcodeGen, and iOS 16+ for this legacy target.
 
 ```bash
 cd CaptureApp
@@ -25,16 +33,23 @@ xcodegen generate
 open CaptureApp.xcodeproj
 ```
 
-Set your signing team in Xcode, then build and run on a device with a TrueDepth camera (iPhone X or later).
+Set your signing team in Xcode, then build and run on an iPhone or iPad that
+satisfies the app's declared A12-or-later capability. On iOS/iPadOS 14 and
+later, ARKit face tracking supports Apple Neural Engine devices; the app's
+runtime `ARFaceTrackingConfiguration.isSupported` check is authoritative.
+The current guided capture workflow is not documented by this legacy runbook.
 
 ### 2. Capture Sessions
 
 1. Launch the app on device
-2. Enter **subject name** and **lighting notes**
+2. Enter a non-identifying **participant pseudonym** and lighting notes; never enter a real name
 3. Tap **Track** to start ARKit face tracking
 4. Tap **Record** to begin capturing frames
-5. Follow the capture protocol below
-6. Tap **Stop** then **Export** to save the session
+5. Record one protocol clip, then tap **Stop** and **Export**
+6. Repeat for the next clip (do not record all clips as one session)
+
+The app samples at up to 30 fps and keeps JPEG-compressed frames in memory until export.
+Export each short clip before starting the next one.
 
 Sessions are saved to the app's Documents directory under `captures/session_{timestamp}/`.
 
@@ -59,22 +74,30 @@ captures/session_20260521_143022/
 # Install dependencies
 pip install -r requirements.txt
 
-# Download the face landmarker model
-wget -O face_landmarker_v2.task \
-  https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/latest/face_landmarker.task
-
 # Process a session
-python process_captures.py path/to/session_20260521_143022/
+python process_captures.py path/to/session_20260521_143022/ \
+  --delegate cpu \
+  --model ../../androidApp/src/main/assets/models/face_landmarker_v2_with_blendshapes.task
 ```
 
-This produces `mediapipe_blendshapes.csv` alongside `arkit_blendshapes.csv` in the session directory.
+This produces `mediapipe_blendshapes.csv`, `mediapipe_landmarks.npz`, and
+`mediapipe_processing.json` alongside `arkit_blendshapes.csv` in the session
+directory. The compressed NPZ contains `landmarks` as float32 `[N, 478, 3]`,
+`facial_transformation_matrices` as float32 `[N, 4, 4]` in MediaPipe's emitted
+layout (without transposition), plus aligned `frame_indices` (int32) and
+`timestamps` (float64) for the same successfully processed frames as the
+MediaPipe CSV. The JSON sidecar records the MediaPipe and Python versions,
+delegate, model path and SHA-256, processed/skipped frame counts, artifact
+SHA-256, and the landmark and transformation-matrix shapes and dtypes.
+Offline processing defaults to the CPU delegate for deterministic runs and macOS compatibility.
+Pass `--delegate gpu` only when that host's MediaPipe GPU delegate has been verified.
 
-### 5. Run Accuracy Benchmark
+### 5. Run Agreement Benchmark
 
-After processing one or more sessions, run the benchmark to compare ARKit vs MediaPipe blendshape accuracy:
+After processing one or more sessions, run the benchmark to compare paired ARKit and MediaPipe output:
 
 ```bash
-# Basic report (generates reports/accuracy_report.md)
+# Basic report (generates reports/agreement_report.md)
 python benchmark.py --captures captures/ --output reports/
 
 # With scatter plots (generates reports/plots/*.png)
@@ -84,105 +107,46 @@ python benchmark.py --captures captures/ --output reports/ --plots
 The benchmark:
 - Loads all `session_*` directories from the captures folder
 - Aligns ARKit and MediaPipe frames by nearest timestamp (16ms tolerance)
-- Computes per-blendshape MAE, RMSE, Pearson correlation, max error, and range ratio
-- Classifies blendshapes into categories: good (MAE < 0.03), acceptable (0.03-0.08), low-accuracy (0.08-0.15), near-zero (correlation < 0.5)
-- Outputs a ranked Markdown report and optional scatter plots
+- Computes per-blendshape mean absolute difference, RMSE, Pearson correlation, max difference, and range ratio
+- Assigns descriptive review bands for triage; these are not validated accuracy grades
+- Outputs a ranked Markdown agreement report and optional scatter plots
 
-### 6. Optimize BlendShapeEnhancer Parameters
+ARKit is a reference signal in this workflow, not ground truth. The app pairs an
+ARKit live result with RGB saved from the same `didUpdate` callback; MediaPipe is
+then run on that saved RGB. Paired measurements can show agreement,
+disagreement, response range, and timing, but this does not mean that one
+identical image was fed into both estimators. The workflow cannot by itself
+establish either system's physical accuracy or explain why the systems differ.
 
-After benchmarking identifies problematic blendshapes, run the optimizer to find better default values for sensitivity and dead zone overrides:
-
-```bash
-# Optimize using captured data
-python optimize.py --captures captures/ --output optimized_params.json
-
-# Dry run with synthetic data (verify pipeline without real captures)
-python optimize.py --dry-run
-
-# Cross-validation (80/20 train/test split to check generalization)
-python optimize.py --captures captures/ --validate
-```
-
-The optimizer uses `scipy.optimize.differential_evolution` to minimize weighted MAE against ARKit ground truth. It optimizes:
-- `geometricBlendWeight` (range 0.3-1.0)
-- Per-shape `sensitivityOverrides` for the 10 worst shapes (range 0.5-5.0)
-- Per-shape `deadZoneOverrides` for the 10 worst shapes (range 0.0-0.1)
-
-Output is `optimized_params.json` containing the optimized values and improvement metrics. Use these to update `BlendShapeEnhancerConfig.kt` defaults.
-
-### 7. Train Neural Blendshape Predictor (Research)
-
-Train a custom TFLite model that predicts 52 ARKit blendshape coefficients directly from 478 MediaPipe face landmarks. This is a research spike — see [docs/research/neural-blendshape-predictor.md](../../docs/research/neural-blendshape-predictor.md) for the full integration strategy.
+For a slide-ready time series from one processed session, select up to four
+blendshapes and optionally mark explicit analysis windows:
 
 ```bash
-# Dry run with synthetic data (verify pipeline)
-python train_predictor.py --dry-run
-
-# Train on captured data
-python train_predictor.py --captures captures/
-
-# Train with leave-one-subject-out cross-validation
-python train_predictor.py --captures captures/ --cross-subject
+python paired_timeline.py captures/session_20260817_001122 \
+  --blendshapes cheekPuff mouthPucker \
+  --window neutral:0:2 \
+  --window puff_1:2:5 \
+  --window puff_2:7:10 \
+  --output reports/cheek_puff
 ```
 
-The training script:
-- Extracts 478 MediaPipe face landmarks from captured RGB frames
-- Uses ARKit blendshapes as ground truth labels
-- Trains a 3-layer FC network (1434 -> 256 -> 128 -> 52) with weighted MSE loss
-- Converts to TFLite float16 and benchmarks inference latency
-- Compares accuracy against a geometric solver baseline (ridge regression)
-- Checks success criteria: >= 15% MAE improvement, <= 5ms latency, <= 1MB model, cross-subject generalization within 20%
+This writes `paired_timeline.png`, an editable `paired_timeline.svg`, and
+`paired_summary.json`. Window times are seconds from the first aligned pair and
+are analyst annotations, not automatically detected expression boundaries.
 
-Output is saved to `neural_predictor/` containing the TFLite model, Keras model, and training results JSON.
+## Withdrawn optimization guidance
 
-## Capture Protocol
+`optimize.py` and `train_predictor.py` are retained as historical prototypes only. Their previous
+README recipes have been removed because they used ARKit values as optimization/teacher targets,
+split correlated frames rather than independent participant/session units in the ordinary path,
+and attached arbitrary success thresholds. Their output must not update SDK defaults, qualify a
+model, or support an accuracy/generalization claim. A future reference-distillation experiment
+requires a preregistered independent participant/session split, explicit missing-data accounting,
+and review of the private biometric-data protocol.
 
-Follow this sequence for each session to produce useful calibration data:
-
-### Phase 1: Neutral Rest (5 seconds)
-- Look straight at the camera with a relaxed, neutral expression
-- Establishes baseline blendshape values
-
-### Phase 2: Individual Blendshape Activation (60 seconds)
-- Exaggerate each of these expressions one at a time, holding for ~3 seconds:
-  1. **Cheek puff** — inflate both cheeks
-  2. **Nose sneer left/right** — wrinkle nose to each side
-  3. **Brow down left/right** — furrow each brow independently
-  4. **Brow inner up** — raise inner brows (worried expression)
-  5. **Jaw open** — wide open mouth
-  6. **Eye wide left/right** — open each eye wide independently
-  7. **Mouth pucker** — pucker lips forward
-  8. **Tongue out** — extend tongue
-
-### Phase 3: Natural Expressions (30 seconds)
-- Cycle through natural expressions:
-  - Talking (count 1-10 out loud)
-  - Smiling, laughing
-  - Surprised, confused
-  - Frowning, angry
-  - Winking (each eye)
-
-### Phase 4: Head Rotation (20 seconds)
-- Slowly rotate head through full range:
-  - Yaw: look left → center → right
-  - Pitch: look up → center → down
-  - Roll: tilt head left → center → right
-
-### Phase 5: Lighting Variation (15 seconds)
-- If possible, change lighting during capture:
-  - Turn off overhead light
-  - Move to window (side-lit)
-  - Use phone flashlight from different angles
-- Note the lighting condition in the session metadata
-
-## Minimum Dataset Requirements
-
-| Parameter | Target |
-|---|---|
-| Subjects | 3+ (varied skin tones, facial structure) |
-| Sessions per subject | 5 (varied lighting, times of day) |
-| Frames per session | ~1000 (at 30fps, ~33 seconds of capture) |
-| Total paired frames | 15,000+ |
+The old fixed “minimum dataset” table is also withdrawn. Participant/session counts and acceptance
+thresholds must be derived from the product's tolerated false activation/miss costs after a pilot;
+frame count is not an independent sample count.
 
 ## Output Format
 
@@ -194,9 +158,12 @@ timestamp,browDownLeft,browDownRight,browInnerUp,...,tongueOut
 
 ### mediapipe_blendshapes.csv
 ```csv
-frame_index,timestamp,_neutral,browDownLeft,browDownRight,...,tongueOut
-0,1716300000.123456,0.012345,0.038000,0.035000,...,0.000000
+frame_index,timestamp,_neutral,browDownLeft,browDownRight,...,mouthPucker
+0,1716300000.123456,0.012345,0.038000,0.035000,...,0.104000
 ```
+
+`tongueOut` is intentionally absent from this MediaPipe example. The benchmark
+reports it as ARKit-only when it is present in the captured ARKit CSV.
 
 ### timestamps.csv
 ```csv
@@ -211,10 +178,12 @@ frame_index,timestamp
     "app_version": "1.0.0",
     "capture_date": "2026-05-21T14:30:22Z",
     "device_model": "iPhone15,2",
-    "device_name": "Rio's iPhone",
     "frame_count": 1024,
     "ios_version": "18.5",
     "notes": "Overhead fluorescent lighting, afternoon",
-    "subject_name": "subject_01"
+    "subject_name": "participant_01"
 }
 ```
+
+`subject_name` is a legacy schema key. Its value must be a non-identifying pseudonym. The legacy
+exporter no longer writes the user-assigned device name.

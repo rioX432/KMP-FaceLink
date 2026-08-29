@@ -14,7 +14,9 @@ targets:
     settings:
       base:
         SWIFT_VERSION: "5.9"
-        TARGETED_DEVICE_FAMILY: "1"  # iPhone only (TrueDepth required)
+        # ARFaceTrackingConfiguration supports Apple Neural Engine devices on
+        # iOS/iPadOS 14+. Keep the runtime isSupported guard as the authority.
+        TARGETED_DEVICE_FAMILY: "1,2"
     info:
       path: CaptureApp/Info.plist
       properties:
@@ -22,4 +24,11 @@ targets:
         UIRequiredDeviceCapabilities:
           - arkit
           - iphone-ipad-minimum-performance-a12
+        # The RGB encoder below normalizes ARKit's camera buffer for portrait.
+        # Lock the measurement UI so rotations cannot silently change that contract.
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
+        UISupportedInterfaceOrientations~ipad:
+          - UIInterfaceOrientationPortrait
+        UIRequiresFullScreen: true
         UILaunchScreen: {}

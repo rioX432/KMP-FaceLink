@@ -1,5 +1,7 @@
 import ARKit
 import Combine
+import CoreImage
+import ImageIO
 
 /// Manages ARKit face tracking and dual recording of blendshapes + RGB frames.
 ///
@@ -21,7 +23,11 @@ final class CaptureSession: NSObject, ObservableObject {
     @Published var isRecording = false
     @Published var frameCount = 0
     @Published var elapsedTime: TimeInterval = 0
-    @Published var trackingState: String = "Not started"
+    @Published var trackingState: String = ARFaceTrackingConfiguration.isSupported
+        ? "Face tracking supported — not started"
+        : "ARKit face tracking is not supported"
+
+    let isFaceTrackingSupported = ARFaceTrackingConfiguration.isSupported
 
     // MARK: - Captured Data
 
@@ -32,19 +38,26 @@ final class CaptureSession: NSObject, ObservableObject {
     let arSession = ARSession()
     private var recordingStartTime: TimeInterval = 0
     private var displayLink: CADisplayLink?
+    private var lastCapturedTimestamp: TimeInterval?
+
+    private static let targetCaptureFps = 30.0
+    private static let minimumFrameInterval = 1.0 / targetCaptureFps
+    private static let jpegQuality: CGFloat = 0.92
+    private static let ciContext = CIContext()
 
     // MARK: - Lifecycle
 
     override init() {
         super.init()
         arSession.delegate = self
+        print("ARFaceTrackingConfiguration.isSupported=\(isFaceTrackingSupported)")
     }
 
     // MARK: - Tracking Control
 
     func startTracking() {
-        guard ARFaceTrackingConfiguration.isSupported else {
-            trackingState = "TrueDepth camera not available"
+        guard isFaceTrackingSupported else {
+            trackingState = "ARKit face tracking is not supported"
             return
         }
 
@@ -73,6 +86,7 @@ final class CaptureSession: NSObject, ObservableObject {
         frameCount = 0
         elapsedTime = 0
         recordingStartTime = CACurrentMediaTime()
+        lastCapturedTimestamp = nil
         isRecording = true
 
         startElapsedTimer()
@@ -110,71 +124,24 @@ final class CaptureSession: NSObject, ObservableObject {
         elapsedTime = CACurrentMediaTime() - recordingStartTime
     }
 
-    // MARK: - Pixel Buffer Copy
+    // MARK: - Frame Encoding
 
-    /// Deep-copy a CVPixelBuffer so the original can be recycled by ARKit.
-    private static func copyPixelBuffer(_ source: CVPixelBuffer) -> CVPixelBuffer? {
-        let width = CVPixelBufferGetWidth(source)
-        let height = CVPixelBufferGetHeight(source)
-        let pixelFormat = CVPixelBufferGetPixelFormatType(source)
-
-        var destination: CVPixelBuffer?
-        let status = CVPixelBufferCreate(
-            kCFAllocatorDefault,
-            width,
-            height,
-            pixelFormat,
-            nil,
-            &destination
-        )
-        guard status == kCVReturnSuccess, let dest = destination else {
+    /// Encode while the ARFrame still owns the pixel buffer. The resulting
+    /// Data is independent of ARKit's buffer lifecycle and is much smaller
+    /// than retaining an uncompressed CVPixelBuffer for every frame.
+    private static func encodeJPEG(_ pixelBuffer: CVPixelBuffer) -> Data? {
+        let image = CIImage(cvPixelBuffer: pixelBuffer).oriented(.right)
+        guard let colorSpace = CGColorSpace(name: CGColorSpace.sRGB) else {
             return nil
         }
-
-        CVPixelBufferLockBaseAddress(source, .readOnly)
-        CVPixelBufferLockBaseAddress(dest, [])
-        defer {
-            CVPixelBufferUnlockBaseAddress(source, .readOnly)
-            CVPixelBufferUnlockBaseAddress(dest, [])
-        }
-
-        let planeCount = CVPixelBufferGetPlaneCount(source)
-        if planeCount > 0 {
-            for plane in 0..<planeCount {
-                guard let srcAddr = CVPixelBufferGetBaseAddressOfPlane(source, plane),
-                      let dstAddr = CVPixelBufferGetBaseAddressOfPlane(dest, plane) else {
-                    continue
-                }
-                let srcStride = CVPixelBufferGetBytesPerRowOfPlane(source, plane)
-                let dstStride = CVPixelBufferGetBytesPerRowOfPlane(dest, plane)
-                let height = CVPixelBufferGetHeightOfPlane(source, plane)
-                let rowBytes = min(srcStride, dstStride)
-                for row in 0..<height {
-                    memcpy(
-                        dstAddr.advanced(by: row * dstStride),
-                        srcAddr.advanced(by: row * srcStride),
-                        rowBytes
-                    )
-                }
-            }
-        } else {
-            guard let srcAddr = CVPixelBufferGetBaseAddress(source),
-                  let dstAddr = CVPixelBufferGetBaseAddress(dest) else {
-                return nil
-            }
-            let srcStride = CVPixelBufferGetBytesPerRow(source)
-            let dstStride = CVPixelBufferGetBytesPerRow(dest)
-            let rowBytes = min(srcStride, dstStride)
-            for row in 0..<height {
-                memcpy(
-                    dstAddr.advanced(by: row * dstStride),
-                    srcAddr.advanced(by: row * srcStride),
-                    rowBytes
-                )
-            }
-        }
-
-        return dest
+        let qualityKey = CIImageRepresentationOption(
+            rawValue: kCGImageDestinationLossyCompressionQuality as String
+        )
+        return ciContext.jpegRepresentation(
+            of: image,
+            colorSpace: colorSpace,
+            options: [qualityKey: jpegQuality]
+        )
     }
 }
 
@@ -189,15 +156,20 @@ extension CaptureSession: ARSessionDelegate {
         }
         guard let currentFrame = session.currentFrame else { return }
 
-        // Deep-copy the pixel buffer because ARKit recycles it on the next frame.
-        guard let copiedBuffer = Self.copyPixelBuffer(currentFrame.capturedImage) else {
+        if let previous = lastCapturedTimestamp,
+           currentFrame.timestamp - previous < Self.minimumFrameInterval {
             return
         }
+
+        guard let jpegData = Self.encodeJPEG(currentFrame.capturedImage) else {
+            return
+        }
+        lastCapturedTimestamp = currentFrame.timestamp
 
         let frame = CapturedFrame(
             timestamp: currentFrame.timestamp,
             blendShapes: faceAnchor.blendShapes,
-            pixelBuffer: copiedBuffer
+            jpegData: jpegData
         )
 
         DispatchQueue.main.async { [weak self] in

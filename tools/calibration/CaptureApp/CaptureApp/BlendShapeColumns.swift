@@ -60,8 +60,21 @@ enum BlendShapeColumns {
         .tongueOut
     ]
 
-    /// Column names for CSV header, matching `allLocations` order.
-    static let columnNames: [String] = allLocations.map { $0.rawValue }
+    /// Column names for CSV header, matching MediaPipe's Left/Right spelling.
+    ///
+    /// ARKit raw values use `_L`/`_R` suffixes (for example `browDown_L`),
+    /// while MediaPipe uses `Left`/`Right` (`browDownLeft`). Keeping a shared
+    /// schema makes the 51 semantically common outputs directly comparable.
+    static let columnNames: [String] = allLocations.map { location in
+        let rawName = location.rawValue
+        if rawName.hasSuffix("_L") {
+            return String(rawName.dropLast(2)) + "Left"
+        }
+        if rawName.hasSuffix("_R") {
+            return String(rawName.dropLast(2)) + "Right"
+        }
+        return rawName
+    }
 
     /// CSV header line: "timestamp,browDownLeft,browDownRight,..."
     static var csvHeader: String {

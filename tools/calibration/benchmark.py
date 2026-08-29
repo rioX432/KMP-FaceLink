@@ -1,9 +1,13 @@
 #!/usr/bin/env python3
 """
-Per-blendshape accuracy benchmark comparing ARKit ground truth vs MediaPipe.
+Per-blendshape agreement benchmark comparing paired ARKit and MediaPipe output.
 
 Loads paired CSVs from capture sessions, aligns timestamps, computes
-per-blendshape error metrics, and generates a ranked accuracy report.
+per-blendshape difference metrics, and generates a ranked agreement report.
+
+ARKit is a reference signal here, not ground truth. Its live result is paired
+with RGB saved from the same ``didUpdate`` callback and processed by MediaPipe
+later; this does not mean identical RGB input was fed to both estimators.
 
 Usage:
     python benchmark.py --captures captures/ --output reports/
@@ -24,19 +28,58 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-# Blendshape classification thresholds (by MAE)
-THRESHOLD_GOOD = 0.03
-THRESHOLD_ACCEPTABLE = 0.08
-THRESHOLD_LOW_ACCURACY = 0.15
+# Agreement review thresholds (by mean absolute difference).
+# These are triage bands, not validated accuracy grades.
+THRESHOLD_CLOSE = 0.03
+THRESHOLD_MODERATE = 0.08
+THRESHOLD_LARGE = 0.15
 
-# Near-zero classification threshold (by Pearson correlation)
-THRESHOLD_NEAR_ZERO_CORRELATION = 0.5
+# Low-correlation review threshold (by Pearson correlation).
+THRESHOLD_LOW_CORRELATION = 0.5
 
 # Timestamp alignment tolerance in seconds (~1 frame at 60fps)
 ALIGNMENT_TOLERANCE_SEC = 0.016
 
 # Columns to exclude from blendshape comparison
 METADATA_COLUMNS = {"timestamp", "frame_index", "_neutral"}
+PRESENCE_METADATA_COLUMNS = {"timestamp", "frame_index"}
+
+
+def canonicalize_blendshape_name(name: str) -> str:
+    """Convert ARKit's raw ``_L``/``_R`` suffixes to MediaPipe names.
+
+    ``ARFaceAnchor.BlendShapeLocation.rawValue`` uses names such as
+    ``browDown_L`` while MediaPipe emits ``browDownLeft``. Non-sided names and
+    metadata columns are returned unchanged.
+    """
+    if name.endswith("_L"):
+        return f"{name[:-2]}Left"
+    if name.endswith("_R"):
+        return f"{name[:-2]}Right"
+    return name
+
+
+def canonicalize_blendshape_columns(
+    frame: pd.DataFrame, source: str
+) -> pd.DataFrame:
+    """Return a copy whose blendshape columns use the shared canonical schema."""
+    canonical_columns = [canonicalize_blendshape_name(name) for name in frame.columns]
+    duplicates = sorted(
+        {
+            name
+            for index, name in enumerate(canonical_columns)
+            if name in canonical_columns[:index]
+        }
+    )
+    if duplicates:
+        duplicate_list = ", ".join(duplicates)
+        raise ValueError(
+            f"{source} columns collide after canonicalization: {duplicate_list}"
+        )
+
+    canonical = frame.copy()
+    canonical.columns = canonical_columns
+    return canonical
 
 
 def load_session(
@@ -52,8 +95,14 @@ def load_session(
     if not arkit_path.exists() or not mediapipe_path.exists():
         return None
 
-    arkit = pd.read_csv(arkit_path)
-    mediapipe = pd.read_csv(mediapipe_path)
+    try:
+        arkit = canonicalize_blendshape_columns(pd.read_csv(arkit_path), "ARKit")
+        mediapipe = canonicalize_blendshape_columns(
+            pd.read_csv(mediapipe_path), "MediaPipe"
+        )
+    except ValueError as error:
+        print(f"  Warning: {error} in {session_dir.name}, skipping", file=sys.stderr)
+        return None
 
     if "timestamp" not in arkit.columns or "timestamp" not in mediapipe.columns:
         print(
@@ -100,7 +149,7 @@ def find_common_blendshapes(
 
 
 def compute_metrics(arkit: pd.Series, mediapipe: pd.Series) -> dict[str, float]:
-    """Compute per-blendshape accuracy metrics between paired series."""
+    """Compute per-blendshape agreement metrics between paired series."""
     errors = (arkit - mediapipe).astype(float)
     abs_errors = errors.abs()
 
@@ -131,26 +180,27 @@ def compute_metrics(arkit: pd.Series, mediapipe: pd.Series) -> dict[str, float]:
     }
 
 
-def classify_blendshape(mae: float, correlation: float) -> str:
-    """Classify a blendshape into accuracy categories."""
-    if correlation < THRESHOLD_NEAR_ZERO_CORRELATION:
-        return "near-zero"
-    if mae < THRESHOLD_GOOD:
-        return "good"
-    if mae < THRESHOLD_ACCEPTABLE:
-        return "acceptable"
-    if mae < THRESHOLD_LOW_ACCURACY:
-        return "low-accuracy"
-    return "near-zero"
+def classify_agreement(mae: float, correlation: float) -> str:
+    """Assign a descriptive review band without claiming physical accuracy."""
+    if correlation < THRESHOLD_LOW_CORRELATION:
+        return "low-correlation"
+    if mae < THRESHOLD_CLOSE:
+        return "close"
+    if mae < THRESHOLD_MODERATE:
+        return "moderate-difference"
+    if mae < THRESHOLD_LARGE:
+        return "large-difference"
+    return "very-large-difference"
 
 
 def run_benchmark(
     captures_dir: Path,
-) -> tuple[dict[str, dict[str, float]], int, int]:
+) -> tuple[dict[str, dict[str, float]], int, int, set[str], set[str]]:
     """Run benchmark across all sessions in the captures directory.
 
     Returns:
-        (metrics_by_blendshape, total_sessions, total_frames)
+        (metrics_by_blendshape, total_sessions, total_frames,
+         arkit_only_columns, mediapipe_only_columns)
     """
     session_dirs = sorted(
         d for d in captures_dir.iterdir() if d.is_dir() and d.name.startswith("session_")
@@ -165,6 +215,8 @@ def run_benchmark(
     all_mediapipe: dict[str, list[float]] = {}
     total_sessions = 0
     total_frames = 0
+    arkit_only_columns: set[str] = set()
+    mediapipe_only_columns: set[str] = set()
 
     for session_dir in session_dirs:
         print(f"Loading {session_dir.name}...")
@@ -174,6 +226,10 @@ def run_benchmark(
 
         arkit_df, mediapipe_df = result
         blendshapes = find_common_blendshapes(arkit_df, mediapipe_df)
+        arkit_columns = set(arkit_df.columns) - PRESENCE_METADATA_COLUMNS
+        mediapipe_columns = set(mediapipe_df.columns) - PRESENCE_METADATA_COLUMNS
+        arkit_only_columns.update(arkit_columns - mediapipe_columns)
+        mediapipe_only_columns.update(mediapipe_columns - arkit_columns)
 
         for bs in blendshapes:
             if bs not in all_arkit:
@@ -198,7 +254,13 @@ def run_benchmark(
         metrics[bs] = compute_metrics(arkit_series, mediapipe_series)
 
     print(f"\nProcessed {total_sessions} sessions, {total_frames} total frames")
-    return metrics, total_sessions, total_frames
+    return (
+        metrics,
+        total_sessions,
+        total_frames,
+        arkit_only_columns,
+        mediapipe_only_columns,
+    )
 
 
 def generate_report(
@@ -206,29 +268,37 @@ def generate_report(
     total_sessions: int,
     total_frames: int,
     output_dir: Path,
+    arkit_only_columns: set[str] | None = None,
+    mediapipe_only_columns: set[str] | None = None,
 ) -> Path:
-    """Generate accuracy_report.md in the output directory."""
+    """Generate agreement_report.md in the output directory."""
     output_dir.mkdir(parents=True, exist_ok=True)
-    report_path = output_dir / "accuracy_report.md"
+    report_path = output_dir / "agreement_report.md"
 
     # Rank by MAE (worst first)
     ranked = sorted(metrics.items(), key=lambda x: x[1]["mae"], reverse=True)
 
     # Classify all blendshapes
     categories: dict[str, list[str]] = {
-        "near-zero": [],
-        "low-accuracy": [],
-        "acceptable": [],
-        "good": [],
+        "low-correlation": [],
+        "close": [],
+        "moderate-difference": [],
+        "large-difference": [],
+        "very-large-difference": [],
     }
     for bs, m in ranked:
-        cat = classify_blendshape(m["mae"], m["correlation"])
+        cat = classify_agreement(m["mae"], m["correlation"])
         categories[cat].append(bs)
 
     now = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
 
     lines: list[str] = []
-    lines.append("# ARKit vs MediaPipe Blendshape Accuracy Report")
+    lines.append("# ARKit vs MediaPipe Blendshape Agreement Report")
+    lines.append("")
+    lines.append(
+        "> ARKit is the reference signal, not ground truth. These metrics describe "
+        "agreement on paired frames and do not establish either system's physical accuracy."
+    )
     lines.append("")
     lines.append("## Summary")
     lines.append("")
@@ -238,37 +308,64 @@ def generate_report(
     lines.append(f"- **Blendshapes compared**: {len(metrics)}")
     lines.append("")
 
+    arkit_only = sorted(arkit_only_columns or set())
+    mediapipe_only = sorted(mediapipe_only_columns or set())
+    lines.append("### Output Schema Differences")
+    lines.append("")
+    lines.append(
+        "These are presence differences, not accuracy judgments. "
+        "Only columns shared by both systems are compared below."
+    )
+    lines.append("")
+    lines.append(
+        "- **ARKit only**: "
+        + (", ".join(f"`{name}`" for name in arkit_only) if arkit_only else "*(none)*")
+    )
+    lines.append(
+        "- **MediaPipe only**: "
+        + (
+            ", ".join(f"`{name}`" for name in mediapipe_only)
+            if mediapipe_only
+            else "*(none)*"
+        )
+    )
+    lines.append("")
+
     # Category counts
     lines.append("### Category Distribution")
     lines.append("")
     lines.append("| Category | Count | Criteria |")
     lines.append("|---|---|---|")
     lines.append(
-        f"| Near-zero (geometric solver candidates) | {len(categories['near-zero'])} "
-        f"| correlation < {THRESHOLD_NEAR_ZERO_CORRELATION} or MAE >= {THRESHOLD_LOW_ACCURACY} |"
+        f"| Low correlation (manual review) | {len(categories['low-correlation'])} "
+        f"| correlation < {THRESHOLD_LOW_CORRELATION} |"
     )
     lines.append(
-        f"| Low-accuracy | {len(categories['low-accuracy'])} "
-        f"| MAE {THRESHOLD_ACCEPTABLE}-{THRESHOLD_LOW_ACCURACY} |"
+        f"| Close | {len(categories['close'])} "
+        f"| mean absolute difference < {THRESHOLD_CLOSE} |"
     )
     lines.append(
-        f"| Acceptable | {len(categories['acceptable'])} "
-        f"| MAE {THRESHOLD_GOOD}-{THRESHOLD_ACCEPTABLE} |"
+        f"| Moderate difference | {len(categories['moderate-difference'])} "
+        f"| mean absolute difference {THRESHOLD_CLOSE}-{THRESHOLD_MODERATE} |"
     )
     lines.append(
-        f"| Good | {len(categories['good'])} "
-        f"| MAE < {THRESHOLD_GOOD} |"
+        f"| Large difference | {len(categories['large-difference'])} "
+        f"| mean absolute difference {THRESHOLD_MODERATE}-{THRESHOLD_LARGE} |"
+    )
+    lines.append(
+        f"| Very large difference | {len(categories['very-large-difference'])} "
+        f"| mean absolute difference >= {THRESHOLD_LARGE} |"
     )
     lines.append("")
 
     # Full ranked table
-    lines.append("## Ranked Blendshapes (worst MAE first)")
+    lines.append("## Ranked Blendshapes (largest mean absolute difference first)")
     lines.append("")
     lines.append("| Rank | Blendshape | MAE | RMSE | Correlation | Max Error "
                  "| ARKit Range | MP Range | Range Ratio | Category |")
     lines.append("|---|---|---|---|---|---|---|---|---|---|")
     for rank, (bs, m) in enumerate(ranked, start=1):
-        cat = classify_blendshape(m["mae"], m["correlation"])
+        cat = classify_agreement(m["mae"], m["correlation"])
         lines.append(
             f"| {rank} | {bs} | {m['mae']:.4f} | {m['rmse']:.4f} "
             f"| {m['correlation']:.3f} | {m['max_error']:.4f} "
@@ -282,13 +379,20 @@ def generate_report(
     lines.append("")
 
     category_descriptions = {
-        "near-zero": "Near-zero (geometric solver candidates)",
-        "low-accuracy": "Low-accuracy",
-        "acceptable": "Acceptable",
-        "good": "Good",
+        "low-correlation": "Low correlation (manual review)",
+        "close": "Close",
+        "moderate-difference": "Moderate difference",
+        "large-difference": "Large difference",
+        "very-large-difference": "Very large difference",
     }
 
-    for cat_key in ["near-zero", "low-accuracy", "acceptable", "good"]:
+    for cat_key in [
+        "low-correlation",
+        "close",
+        "moderate-difference",
+        "large-difference",
+        "very-large-difference",
+    ]:
         shapes = categories[cat_key]
         lines.append(f"### {category_descriptions[cat_key]} ({len(shapes)})")
         lines.append("")
@@ -368,9 +472,9 @@ def generate_plots(
         hi = max(arkit_vals.max(), mp_vals.max())
         ax.plot([lo, hi], [lo, hi], "r--", linewidth=1, alpha=0.7, label="y=x")
 
-        cat = classify_blendshape(m["mae"], m["correlation"])
+        cat = classify_agreement(m["mae"], m["correlation"])
         ax.set_title(f"{bs}\nMAE={m['mae']:.4f}  r={m['correlation']:.3f}  [{cat}]")
-        ax.set_xlabel("ARKit (ground truth)")
+        ax.set_xlabel("ARKit reference")
         ax.set_ylabel("MediaPipe")
         ax.legend(loc="upper left")
         ax.set_aspect("equal", adjustable="box")
@@ -385,7 +489,7 @@ def generate_plots(
 def parse_args() -> argparse.Namespace:
     """Parse command-line arguments."""
     parser = argparse.ArgumentParser(
-        description="Per-blendshape accuracy benchmark: ARKit vs MediaPipe.",
+        description="Per-blendshape agreement benchmark: ARKit vs MediaPipe.",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog=__doc__,
     )
@@ -420,19 +524,32 @@ def main() -> None:
 
     output_dir = args.output.resolve()
 
-    metrics, total_sessions, total_frames = run_benchmark(captures_dir)
-    generate_report(metrics, total_sessions, total_frames, output_dir)
+    (
+        metrics,
+        total_sessions,
+        total_frames,
+        arkit_only_columns,
+        mediapipe_only_columns,
+    ) = run_benchmark(captures_dir)
+    generate_report(
+        metrics,
+        total_sessions,
+        total_frames,
+        output_dir,
+        arkit_only_columns,
+        mediapipe_only_columns,
+    )
 
     if args.plots:
         generate_plots(metrics, captures_dir, output_dir)
 
-    # Print top-10 worst blendshapes to stdout
+    # Print the top-10 largest differences to stdout.
     ranked = sorted(metrics.items(), key=lambda x: x[1]["mae"], reverse=True)
-    print("\nTop 10 worst blendshapes by MAE:")
+    print("\nTop 10 largest blendshape differences by MAE:")
     print(f"{'Rank':<5} {'Blendshape':<30} {'MAE':<8} {'Corr':<8} {'Category'}")
     print("-" * 70)
     for i, (bs, m) in enumerate(ranked[:10], start=1):
-        cat = classify_blendshape(m["mae"], m["correlation"])
+        cat = classify_agreement(m["mae"], m["correlation"])
         print(f"{i:<5} {bs:<30} {m['mae']:<8.4f} {m['correlation']:<8.3f} {cat}")
 
 

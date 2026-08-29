@@ -92,7 +92,7 @@ struct ContentView: View {
 
     private var metadataFields: some View {
         VStack(spacing: 8) {
-            TextField("Subject name", text: $subjectName)
+            TextField("Participant pseudonym (never a real name)", text: $subjectName)
                 .textFieldStyle(.roundedBorder)
                 .autocorrectionDisabled()
 
@@ -125,7 +125,7 @@ struct ContentView: View {
             .frame(maxWidth: .infinity)
         }
         .buttonStyle(.bordered)
-        .disabled(captureSession.isRecording)
+        .disabled(captureSession.isRecording || !captureSession.isFaceTrackingSupported)
     }
 
     private var recordButton: some View {
@@ -198,7 +198,7 @@ struct ContentView: View {
         let subject = subjectName.isEmpty ? "unknown" : subjectName
         let notes = lightingNotes
 
-        // Export on background thread to avoid blocking UI during JPEG encoding
+        // Export on a background thread to avoid blocking the UI during file I/O.
         DispatchQueue.global(qos: .userInitiated).async {
             do {
                 let documentsDir = FileManager.default.urls(

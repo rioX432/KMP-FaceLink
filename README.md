@@ -8,15 +8,16 @@
 [![API Docs](https://img.shields.io/badge/API%20Docs-Dokka-blue)](https://anotherball.github.io/KMP-FaceLink/)
 [![Coverage](https://img.shields.io/badge/Coverage-Report-brightgreen)](https://github.com/AnotherBall/KMP-FaceLink/actions/workflows/ci.yml)
 
-Unified face, hand & body tracking SDK for Kotlin Multiplatform — one API, both platforms.
+Unified face, hand & body tracking SDK for Kotlin Multiplatform — one API across platforms. The
+shared API does not imply equal estimator capability or measured quality on every platform.
 
 ## Modules
 
 | Module | Purpose | Stability |
 |---|---|---|
-| `kmp-facelink` | Core face, hand & body tracking API (Android, iOS, JVM/ONNX, Wasm) with N-euro Predictor smoothing | **Stable** |
+| `kmp-facelink` | Core face, hand & body tracking API (Android, iOS, JVM/ONNX, Wasm) with N-euro Predictor smoothing | **Stable API** |
 | `kmp-facelink-avatar` | BlendShape → Live2D / VRM parameter mapping (+ Wasm) | **Stable** |
-| `kmp-facelink-actions` | Gesture/expression triggers, emotion classification, recording (+ Wasm) | **Stable** |
+| `kmp-facelink-actions` | Gesture/expression/stream-event triggers, emotion classification, recording | **Stable** |
 | `kmp-facelink-voice` | TTS, ASR, multilingual lip sync | **Experimental** |
 | `kmp-facelink-llm` | LLM streaming API (cloud + on-device) with hybrid routing | **Experimental** |
 | `kmp-facelink-pipeline` | AI avatar pipeline: Voice → LLM → TTS → LipSync → Expression | **Experimental** |
@@ -27,6 +28,12 @@ Unified face, hand & body tracking SDK for Kotlin Multiplatform — one API, bot
 | `kmp-facelink-vts` | VTube Studio Plugin API direct integration | **Stable** |
 | `kmp-facelink-interact` | Stream interaction events (Twitch EventSub, YouTube Live Chat) bridged to the action system | **Stable** |
 | `kmp-facelink-compose` | Compose Multiplatform `remember*` helpers for tracker lifecycle | **Stable** |
+
+Stability labels describe API intent. They do not claim device qualification, expression accuracy,
+runtime performance, or production adoption. `kmp-facelink-capture`, `captureApp`, and
+`captureIosApp` are internal measurement tooling and are not published SDK coordinates.
+The JVM/OpenSeeFace estimator is mechanically contract-tested but its expression quality and
+performance remain experimental and require Tier 3 qualification.
 
 ## Tech Stack
 
@@ -47,11 +54,19 @@ Unified face, hand & body tracking SDK for Kotlin Multiplatform — one API, bot
 ### iOS
 - iOS 17.0+
 - NSCameraUsageDescription in Info.plist
-- TrueDepth front camera (face tracking)
+- A device/OS combination where `ARFaceTrackingConfiguration.isSupported` is true at runtime
 - ARKit capability in entitlements
 
+### JVM/Desktop (Experimental estimator)
+- Run `./scripts/setup-openseeface-models.sh` before a local source build. The script downloads
+  OpenSeeFace FP32 models from revision `85aa70fc67582d046e771ea73625182a0d8f7475` and verifies
+  both SHA-256 digests. The publication workflow runs the same step before packaging the JAR.
+- Runtime startup verifies model digests, tensor names, types, and shapes before opening a camera.
+- The real-model zero-input test establishes supply and decoder mechanics only. It does not
+  establish expression accuracy, sustained FPS, or product readiness.
+
 ### Wasm/JS (Experimental)
-- Supported modules: `kmp-facelink`, `kmp-facelink-avatar`, `kmp-facelink-actions`
+- Supported modules: `kmp-facelink`, `kmp-facelink-avatar`
 - Kotlin/Wasm target (`wasmJs`) — requires a browser with [WebAssembly GC](https://developer.mozilla.org/en-US/docs/WebAssembly/GC) support (Chrome 119+, Firefox 120+)
 - Face (with gaze estimation), hand, and body tracking functional via MediaPipe JS interop (`MediaPipeWasmFaceTracker` / `MediaPipeWasmHandTracker` / `MediaPipeWasmBodyTracker`); avatar mapping and action triggers are fully functional
 - Remaining gaps: holistic tracking is a no-op stub, smoothing (`SmoothingConfig` filters) is not yet implemented on the Wasm trackers, and there is no depth estimation (Android-only)
@@ -64,6 +79,7 @@ Unified face, hand & body tracking SDK for Kotlin Multiplatform — one API, bot
 - [iOS Quick Start](docs/quick-start-ios.md)
 - [Integration Guide](docs/quick-start-integration.md)
 - [API Overview](docs/api-overview.md)
+- [Quality Gates](docs/quality-gates.md)
 
 ## Documentation
 

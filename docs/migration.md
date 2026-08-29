@@ -6,6 +6,45 @@ This document tracks breaking changes between versions of KMP-FaceLink. Use it w
 
 ---
 
+## Current unreleased worktree (not published)
+
+This local pre-production revision is a contract reset, not a drop-in binary replacement for the
+published `0.3.0` artifacts. Recompile every consumer against the new artifacts when this work is
+eventually released.
+
+### Binary-breaking data-model changes
+
+The following public data classes gained constructor properties. Kotlin source that uses named
+arguments or defaults is generally straightforward to migrate, but already-compiled consumers must
+not replace only the runtime binary:
+
+- `FaceTrackerConfig` adds `performanceInstrumentation`.
+- `PerformanceConfig` adds `runningMode`.
+- `FaceTrackingData` adds nullable `contextEpoch`.
+- `TrackedFace` adds nullable `provenance`.
+
+### Intentional behavior change
+
+`FaceTrackerConfig.enhancerConfig` now defaults to `BlendShapeEnhancerConfig.None`. Experimental
+geometric enhancement must be enabled explicitly only after the application accepts evidence for
+the exact runtime context. This avoids silently presenting an unqualified correction as normal
+estimator output.
+
+### Additive APIs
+
+Capability/provenance contracts, offline face inference, and opt-in performance events were added.
+These APIs support evaluation and fallback decisions; their presence does not establish expression
+accuracy, device performance, or production adoption.
+
+### Integration gate
+
+Before adopting this revision in an application, compile the application adapter from source and
+run golden tests for blend-shape naming/order and its native or Unity wire format. The existing 52
+`BlendShape` enum order was not changed by this revision, but that must remain an explicit boundary
+test rather than an assumption.
+
+---
+
 <!-- TEMPLATE: Copy the block below for each new release with breaking changes -->
 
 <!--

@@ -8,10 +8,10 @@ In your module-level `build.gradle.kts`:
 
 ```kotlin
 dependencies {
-    implementation("com.anotherball:kmp-facelink:0.2.0")
+    implementation("com.anotherball:kmp-facelink:0.3.0")
     // Optional modules — add only what you need:
-    // implementation("com.anotherball:kmp-facelink-avatar:0.2.0")
-    // implementation("com.anotherball:kmp-facelink-actions:0.2.0")
+    // implementation("com.anotherball:kmp-facelink-avatar:0.3.0")
+    // implementation("com.anotherball:kmp-facelink-actions:0.3.0")
 }
 ```
 
@@ -113,7 +113,10 @@ All three models together add approximately **25 MB** to your APK. Strategies to
 
 ### Model Version Compatibility
 
-The current library version is tested with MediaPipe Tasks Vision **0.10.33** and the `float16/latest` model variants. Using a different model version or precision variant may cause initialization failures or degraded accuracy.
+The current source pins MediaPipe Tasks Vision **0.10.35** and uses the checked-in
+`float16/latest` model asset for its local build checks. A different runtime or model is a different
+evaluation context and must be recorded explicitly; the source-only gate does not establish device
+accuracy.
 
 ## 3. Add Permissions
 
@@ -131,6 +134,7 @@ Request runtime camera permission before starting the tracker (Android 6+).
 ```kotlin
 import io.github.kmpfacelink.api.PlatformContext
 import io.github.kmpfacelink.api.createFaceTracker
+import io.github.kmpfacelink.model.BlendShape
 import io.github.kmpfacelink.model.FaceTrackerConfig
 
 class MainActivity : ComponentActivity() {
@@ -214,15 +218,16 @@ lifecycleScope.launch {
 
 ## Configuration Options
 
-`FaceTrackerConfig` supports tuning:
+`FaceTrackerConfig` groups tuning by responsibility:
 
 | Parameter | Default | Description |
 |-----------|---------|-------------|
 | `smoothingConfig` | `Ema(alpha=0.5)` | Smoothing filter: `None`, `Ema`, `OneEuro`, `CategoryAware` |
 | `cameraFacing` | `FRONT` | `FRONT` or `BACK` camera |
-| `maxFaces` | `1` | Simultaneous face count (1-4) |
-| `powerMode` | `null` | Power management: `Performance`, `Balanced`, `PowerSaver` |
-| `enhancerConfig` | `Default` | Geometric blend shape enhancement (Android only) |
+| `detectionConfig.maxFaces` | `1` | Simultaneous face count (1-4) |
+| `powerConfig.powerMode` | `null` | Optional power policy |
+| `performanceConfig.runningMode` | `LIVE_STREAM` | MediaPipe sequence/running-mode contract on Android |
+| `enhancerConfig` | `None` | Experimental geometric enhancement; explicit evidence and opt-in required |
 
 ## Requirements
 

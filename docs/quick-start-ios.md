@@ -136,7 +136,7 @@ for await data in holisticTracker.trackingData {
 
 | Feature | Implementation | Notes |
 |---------|---------------|-------|
-| Face tracking | ARKit (`ARFaceTrackingConfiguration`) | TrueDepth front camera only |
+| Face tracking | ARKit (`ARFaceTrackingConfiguration`) | Runtime support is determined by `isSupported` |
 | Hand tracking | Vision (`VNDetectHumanHandPoseRequest`) | Front or back camera via AVCaptureSession |
 | Body tracking | Vision (`VNDetectHumanBodyPoseRequest`) | Front or back camera via AVCaptureSession |
 | Blend shapes | 52 ARKit parameters natively | No conversion needed |
@@ -323,7 +323,7 @@ above — it gives you explicit control over the full lifecycle.
 ## Requirements
 
 - iOS 17.0+
-- Device with TrueDepth front camera (face tracking)
+- Device/OS combination where `ARFaceTrackingConfiguration.isSupported` is true
 - `NSCameraUsageDescription` in Info.plist
 - `arkit` in `UIRequiredDeviceCapabilities`
 - Xcode 16+

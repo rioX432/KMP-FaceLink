@@ -1,15 +1,20 @@
 # JVM Desktop Face Tracking via ONNX Runtime
 
 **Issue:** #478
-**Status:** Research complete
+**Status:** Historical feasibility study; current contract is in `docs/quality-gates.md`
 **Date:** 2026-04-02
-**Updated:** 2026-04-08 — Added KleidiAI status and ARM64 session tuning guidance (#697)
+**Updated:** 2026-08-29 — Corrected model supply, decoder, performance, and INT8 claim boundaries
 
 ## Executive Summary
 
-This document evaluates adding real face tracking to the JVM/Desktop target using ONNX Runtime for model inference and JavaCV for camera access. The current `jvmMain` source set contains no-op tracker stubs that return `TrackingState.ERROR` when started.
+This document preserves the proposal that led to the JVM/Desktop implementation. It is not a
+current capability or quality specification. The present source uses a pinned OpenSeeFace FP32
+artifact and validates model mechanics in CI; expression quality, FPS, and product readiness remain
+unqualified.
 
-**Key finding:** A functional JVM face tracker is feasible using ONNX Runtime (1.23.2+) for inference, pre-converted ONNX face landmark models (OpenSeeFace or MediaPipe-derived), and JavaCV (1.5.13) for webcam capture. The main engineering effort is landmark-to-blend-shape mapping to produce ARKit-compatible output consistent with the Android/iOS trackers. Estimated effort is 8-12 days.
+**Retained finding:** ONNX Runtime and JavaCV make a JVM pipeline technically feasible. This does
+not establish that the derived blend shapes are consistent with Android/iOS estimators or suitable
+for an avatar product; those are measurement questions.
 
 ---
 
@@ -43,7 +48,8 @@ val session = env.createSession("model.onnx", OrtSession.SessionOptions())
 // Run inference
 val inputTensor = OnnxTensor.createTensor(env, floatArrayOf(...))
 val results = session.run(mapOf("input" to inputTensor))
-val output = results[0].value as Array<FloatArray>
+val output = results["output"].orElseThrow().value
+// Validate the exact model rank, shape, and grouped channel layout before decoding.
 ```
 
 ### GPU Support
@@ -57,7 +63,8 @@ GPU acceleration is available via execution providers configured on `SessionOpti
 | CoreML | macOS | macOS 12+ (via ONNX Runtime CoreML EP) |
 | CPU | All | Default, no extra dependencies |
 
-For initial implementation, CPU inference is sufficient. OpenSeeFace models run at 30-60 FPS on CPU with ONNX Runtime, which meets the project's 30 FPS performance target.
+The current implementation uses the CPU execution provider. No sustained-FPS acceptance claim is
+made without a named device, exact binary/model, warm-up, load, and thermal protocol.
 
 ### Alternative: KInference
 
@@ -81,7 +88,7 @@ For initial implementation, CPU inference is sufficient. OpenSeeFace models run 
 | Architecture | MobileNetV3-based |
 | Landmark count | 66 (modified iBUG 68) |
 | Models available | 4 variants (speed vs quality trade-off) |
-| Performance | 30-60 FPS on CPU via ONNX Runtime |
+| Performance | Unqualified; requires exact-device measurement |
 | Output | 66 (x, y, confidence) landmarks + head pose (rotation, translation) |
 | Robustness | Works in low light, high noise, low resolution, wide head pose range |
 
@@ -126,7 +133,8 @@ MediaPipe's Face Landmarker provides 468/478 landmarks and 52 ARKit-compatible b
 
 ### Recommendation
 
-**Start with OpenSeeFace** for Phase 1. It provides production-ready ONNX models, proven VTuber ecosystem usage, and sufficient quality for avatar animation. Plan MediaPipe ONNX conversion as a Phase 2 enhancement for users who need full 468-landmark and 52-blend-shape fidelity.
+**Historical selection:** OpenSeeFace was selected for Phase 1 because an ONNX artifact and
+reference decoder were available. Availability is not evidence of sufficient avatar quality.
 
 ---
 
@@ -223,7 +231,8 @@ Camera (JavaCV)
 
 ### Key Design Decisions
 
-1. **Model bundling:** Ship ONNX model files as resources in the JAR. OpenSeeFace models are small (~5-10MB total for all variants).
+1. **Model bundling:** The publication workflow obtains two pinned FP32 files, verifies SHA-256,
+   includes the BSD notice, and packages them as JAR resources.
 
 2. **Threading:** Run camera capture and inference on a dedicated coroutine dispatcher (`Dispatchers.IO` or a custom single-threaded executor) to avoid blocking the main thread.
 
@@ -409,19 +418,17 @@ pressure do not pollute the inference metric. This provides a zero-cost
 measurement path for comparing inference latency across ARM64 hosts without a
 separate benchmark harness.
 
-### A.5 INT8 Quantized Models (Implemented in #714)
+### A.5 INT8 Quantized Models (withdrawn from runtime selection)
 
 The FP32 OpenSeeFace models (`mnv3_detection_opt.onnx`, `lm_model3_opt.onnx`)
 were quantized to INT8 using ONNX Runtime's `quantize_dynamic` API with
 per-channel INT8 weight quantization targeting `MatMul`, `Gemm`, and `Conv`
 operators.
 
-**Quantization approach:** Dynamic quantization was chosen over static
-quantization because it requires no calibration dataset and preserves
-activation precision (activations remain FP32, only weights are quantized).
-This is a pragmatic trade-off: dynamic quantization provides reliable ~1.5-2x
-speedup on ARM64 KleidiAI IGEMM kernels while avoiding the accuracy risks
-of fully-quantized INT8 activations on small face models.
+**Current boundary:** The utility can generate dynamic-quantized candidates,
+but the repository has no accepted output-agreement or exact-device benchmark
+for them. They are not selected by the runtime or packaged by the publication
+workflow.
 
 **INT4 MatMulNBits** was evaluated but not shipped. The OpenSeeFace
 detection and landmark models have relatively few MatMul operators compared
@@ -429,15 +436,13 @@ to transformer-based architectures, so INT4 weight-only quantization provides
 minimal additional benefit over INT8 while increasing the risk of accuracy
 degradation in the confidence and heatmap heads.
 
-**Model selection at runtime:** `OnnxModelLoader` detects the host
-architecture via `os.arch` and prefers INT8 models on ARM64 (aarch64/arm64).
-On x86_64, FP32 models are always used. If INT8 models are not present on
-disk (e.g., the quantization script was not run), the loader transparently
-falls back to FP32 on any architecture.
+**Model selection at runtime:** `OnnxModelLoader` accepts only the pinned FP32
+digests. An INT8 candidate must first define its exact bytes, output contract,
+agreement tolerance, performance protocol, and product fallback.
 
 **Tooling:**
 - `scripts/quantize_openseeface.py` — standalone quantization script
-- `scripts/setup-openseeface-models.sh` — downloads FP32 models and runs quantization
+- `scripts/setup-openseeface-models.sh` — downloads and verifies only pinned FP32 models
 - `scripts/requirements-quantize.txt` — Python dependencies
 
 **Remaining work:**

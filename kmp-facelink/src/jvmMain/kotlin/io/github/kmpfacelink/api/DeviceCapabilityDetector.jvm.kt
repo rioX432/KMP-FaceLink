@@ -9,14 +9,14 @@ private const val MIN_CORES_FOR_MID_TIER = 4
 /**
  * JVM / Desktop implementation of [detectDeviceCapabilities].
  *
- * ONNX Runtime's CPU execution provider (with Arm KleidiAI auto-enabled on
- * ARM64 hosts since ORT 1.22) handles inference for the OpenSeeFace models
- * bundled with `OnnxFaceTracker`. We do not probe CUDA / DirectML / CoreML
- * execution providers yet, so GPU acceleration is reported as `false`.
+ * ONNX Runtime's CPU execution provider handles inference for the pinned
+ * OpenSeeFace FP32 models bundled with the published JVM artifact. We do not
+ * probe CUDA / DirectML / CoreML execution providers yet, so GPU acceleration
+ * is reported as `false`.
  *
  * Tier is derived from `Runtime.availableProcessors()`: desktops with at
- * least 4 cores are treated as [DeviceTier.MID] (30 FPS target), smaller
- * VMs fall back to [DeviceTier.LOW].
+ * least 4 cores are treated as [DeviceTier.MID], while smaller VMs fall back
+ * to [DeviceTier.LOW]. This is a scheduling preset, not a measured FPS claim.
  */
 public actual fun detectDeviceCapabilities(
     @Suppress("UNUSED_PARAMETER") context: PlatformContext,

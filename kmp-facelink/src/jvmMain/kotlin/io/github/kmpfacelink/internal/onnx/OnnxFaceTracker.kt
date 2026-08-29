@@ -119,8 +119,8 @@ internal class OnnxFaceTracker(
 
     private fun initializeCamera() {
         val cam = JavaCvCameraManager(
-            requestedWidth = config.analysisWidth,
-            requestedHeight = config.analysisHeight,
+            requestedWidth = config.performanceConfig.analysisWidth,
+            requestedHeight = config.performanceConfig.analysisHeight,
         )
         cam.start()
         cameraManager = cam

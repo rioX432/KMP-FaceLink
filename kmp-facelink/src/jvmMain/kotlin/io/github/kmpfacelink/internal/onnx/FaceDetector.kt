@@ -26,61 +26,85 @@ internal class FaceDetector(private val session: OrtSession) {
      */
     fun detect(rgbData: FloatArray, frameWidth: Int, frameHeight: Int): List<FaceBox> {
         val inputShape = longArrayOf(1, CHANNELS.toLong(), INPUT_SIZE.toLong(), INPUT_SIZE.toLong())
-        val tensor = OnnxTensor.createTensor(env, FloatBuffer.wrap(rgbData), inputShape)
+        return OnnxTensor.createTensor(env, FloatBuffer.wrap(rgbData), inputShape).use { tensor ->
+            session.run(mapOf(INPUT_NAME to tensor)).use { results ->
+                val output = requireOutputShape(results[OUTPUT_NAME].orElseThrow().value, OUTPUT_NAME)
+                val maxpool = requireOutputShape(results[MAXPOOL_NAME].orElseThrow().value, MAXPOOL_NAME)
+                val faces = mutableListOf<FaceBox>()
+                val scaleX = frameWidth.toFloat() / INPUT_SIZE
+                val scaleY = frameHeight.toFloat() / INPUT_SIZE
 
-        val results = session.run(mapOf(INPUT_NAME to tensor))
-        val outputNames = results.map { it.key }
-
-        // OpenSeeFace detection outputs: confidence + radius maps
-        val confOutput = results[outputNames[0]].get().value
-        val faces = mutableListOf<FaceBox>()
-
-        @Suppress("UNCHECKED_CAST")
-        val confMap = confOutput as Array<Array<Array<FloatArray>>>
-        val scaleX = frameWidth.toFloat() / INPUT_SIZE
-        val scaleY = frameHeight.toFloat() / INPUT_SIZE
-
-        for (y in 0 until OUTPUT_SIZE) {
-            for (x in 0 until OUTPUT_SIZE) {
-                val confidence = confMap[0][0][y][x]
-                if (confidence > DETECTION_THRESHOLD) {
-                    val radiusVal = if (outputNames.size > 1) {
-                        @Suppress("UNCHECKED_CAST")
-                        val radMap = results[outputNames[1]].get().value as Array<Array<Array<FloatArray>>>
-                        radMap[0][0][y][x] * HALF_INPUT_SIZE
-                    } else {
-                        DEFAULT_RADIUS
+                for (y in 0 until OUTPUT_SIZE) {
+                    for (x in 0 until OUTPUT_SIZE) {
+                        val confidence = output[0][y][x]
+                        val isLocalMaximum = confidence == maxpool[0][y][x]
+                        if (confidence > DETECTION_THRESHOLD && isLocalMaximum) {
+                            val radiusInModel = output[1][y][x] * HALF_INPUT_SIZE
+                            val centerX = x.toFloat() * SPATIAL_SCALE * scaleX
+                            val centerY = y.toFloat() * SPATIAL_SCALE * scaleY
+                            val radiusX = radiusInModel * scaleX
+                            val radiusY = radiusInModel * scaleY
+                            val x1 = (centerX - radiusX).coerceIn(0f, frameWidth.toFloat())
+                            val y1 = (centerY - radiusY).coerceIn(0f, frameHeight.toFloat())
+                            val x2 = (centerX + radiusX).coerceIn(0f, frameWidth.toFloat())
+                            val y2 = (centerY + radiusY).coerceIn(0f, frameHeight.toFloat())
+                            faces.add(
+                                FaceBox(
+                                    x = x1,
+                                    y = y1,
+                                    width = x2 - x1,
+                                    height = y2 - y1,
+                                    confidence = confidence,
+                                ),
+                            )
+                        }
                     }
-                    val cx = x.toFloat() * SPATIAL_SCALE * scaleX
-                    val cy = y.toFloat() * SPATIAL_SCALE * scaleY
-                    val radius = radiusVal * scaleX
-                    faces.add(
-                        FaceBox(
-                            x = (cx - radius).coerceAtLeast(0f),
-                            y = (cy - radius).coerceAtLeast(0f),
-                            width = (radius * 2f).coerceAtMost(frameWidth.toFloat()),
-                            height = (radius * 2f).coerceAtMost(frameHeight.toFloat()),
-                            confidence = confidence,
-                        ),
-                    )
                 }
+                suppressOverlapping(faces)
             }
         }
-        tensor.close()
-        results.close()
+    }
 
-        return suppressOverlapping(faces)
+    internal fun requireOutputShape(value: Any?, label: String): Array<Array<FloatArray>> {
+        val batches = value as? Array<*>
+            ?: throw IllegalArgumentException("$label must be [1,2,56,56]")
+        require(batches.size == 1) { "$label batch must contain one item" }
+        val rawChannels = batches[0] as? Array<*>
+            ?: throw IllegalArgumentException("$label must contain channels")
+        require(rawChannels.size == OUTPUT_CHANNELS) {
+            "$label must contain $OUTPUT_CHANNELS channels, got ${rawChannels.size}"
+        }
+        return Array(OUTPUT_CHANNELS) { channelIndex ->
+            val rawRows = rawChannels[channelIndex] as? Array<*>
+                ?: throw IllegalArgumentException("$label channel $channelIndex must contain rows")
+            require(rawRows.size == OUTPUT_SIZE) {
+                "$label channel $channelIndex must contain $OUTPUT_SIZE rows, got ${rawRows.size}"
+            }
+            Array(OUTPUT_SIZE) { rowIndex ->
+                val row = rawRows[rowIndex] as? FloatArray
+                    ?: throw IllegalArgumentException(
+                        "$label channel $channelIndex row $rowIndex must be FloatArray",
+                    )
+                require(row.size == OUTPUT_SIZE) {
+                    "$label channel $channelIndex row $rowIndex must contain " +
+                        "$OUTPUT_SIZE values, got ${row.size}"
+                }
+                row
+            }
+        }
     }
 
     companion object {
         private const val INPUT_NAME = "input"
+        private const val OUTPUT_NAME = "output"
+        private const val MAXPOOL_NAME = "maxpool"
         private const val INPUT_SIZE = 224
         private const val HALF_INPUT_SIZE = 112f
         private const val OUTPUT_SIZE = 56
+        private const val OUTPUT_CHANNELS = 2
         private const val CHANNELS = 3
         private const val SPATIAL_SCALE = 4f
         private const val DETECTION_THRESHOLD = 0.6f
-        private const val DEFAULT_RADIUS = 50f
         private const val NMS_IOU_THRESHOLD = 0.4f
 
         /** Simple non-maximum suppression by IOU overlap. */

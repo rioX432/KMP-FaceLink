@@ -32,32 +32,101 @@ internal class LandmarkInference(private val session: OrtSession) {
         frameWidth: Int,
         frameHeight: Int,
     ): LandmarkResult? {
-        val inputShape = longArrayOf(1, CHANNELS.toLong(), INPUT_SIZE.toLong(), INPUT_SIZE.toLong())
-        val tensor = OnnxTensor.createTensor(env, FloatBuffer.wrap(input.tensor), inputShape)
+        val inputShape = longArrayOf(1, INPUT_CHANNELS, INPUT_SIZE.toLong(), INPUT_SIZE.toLong())
+        return OnnxTensor.createTensor(env, FloatBuffer.wrap(input.tensor), inputShape).use { tensor ->
+            session.run(mapOf(INPUT_NAME to tensor)).use { results ->
+                OpenSeeFaceLandmarkDecoder.decode(
+                    value = results[OUTPUT_NAME].orElseThrow().value,
+                    input = input,
+                    frameWidth = frameWidth,
+                    frameHeight = frameHeight,
+                )
+            }
+        }
+    }
 
-        val results = session.run(mapOf(INPUT_NAME to tensor))
-        val output = results.first()
+    companion object {
+        private const val INPUT_NAME = "input"
+        private const val OUTPUT_NAME = "output"
+        private const val INPUT_SIZE = 224
+        private const val INPUT_CHANNELS = 3L
+    }
+}
 
-        @Suppress("UNCHECKED_CAST")
-        val rawOutput = output.value as Array<FloatArray>
+/**
+ * Decodes the output contract of OpenSeeFace's `lm_model3_opt.onnx`.
+ *
+ * ONNX Runtime exposes the model's `[1, 198, 28, 28]` float tensor as a nested
+ * JVM array. Channels are grouped as 66 confidence maps, 66 row-offset maps,
+ * then 66 column-offset maps. They are not interleaved per landmark.
+ */
+internal object OpenSeeFaceLandmarkDecoder {
 
-        val landmarks = decodeLandmarks(rawOutput, input, frameWidth, frameHeight)
-        val confidences = decodeConfidences(rawOutput)
+    fun decode(
+        value: Any?,
+        input: LandmarkInput,
+        frameWidth: Int,
+        frameHeight: Int,
+    ): LandmarkResult {
+        require(frameWidth > 0) { "frameWidth must be positive" }
+        require(frameHeight > 0) { "frameHeight must be positive" }
 
-        tensor.close()
-        results.close()
-
+        val output = requireOutputShape(value)
+        val landmarks = decodeLandmarks(output, input, frameWidth, frameHeight)
+        val confidences = decodeConfidences(output)
         return LandmarkResult(landmarks = landmarks, confidences = confidences)
+    }
+
+    /**
+     * Validate the runtime tensor before interpreting its axes or channels.
+     * A descriptive contract failure is preferable to an unchecked cast whose
+     * exception says nothing about the model/version mismatch.
+     */
+    internal fun requireOutputShape(value: Any?): Array<Array<FloatArray>> {
+        val batches = value as? Array<*>
+            ?: throw IllegalArgumentException("Expected landmark output [1,198,28,28], got ${typeName(value)}")
+        require(batches.size == BATCH_SIZE) {
+            "Expected landmark output batch size $BATCH_SIZE, got ${batches.size}"
+        }
+
+        val rawChannels = batches[0] as? Array<*>
+            ?: throw IllegalArgumentException("Expected landmark output channels, got ${typeName(batches[0])}")
+        require(rawChannels.size == OUTPUT_CHANNELS) {
+            "Expected $OUTPUT_CHANNELS landmark output channels, got ${rawChannels.size}"
+        }
+
+        return Array(OUTPUT_CHANNELS) { channelIndex ->
+            val rawRows = rawChannels[channelIndex] as? Array<*>
+                ?: throw IllegalArgumentException(
+                    "Expected channel $channelIndex to contain $OUTPUT_GRID_SIZE rows",
+                )
+            require(rawRows.size == OUTPUT_GRID_SIZE) {
+                "Expected channel $channelIndex to contain $OUTPUT_GRID_SIZE rows, got ${rawRows.size}"
+            }
+            Array(OUTPUT_GRID_SIZE) { rowIndex ->
+                val row = rawRows[rowIndex] as? FloatArray
+                    ?: throw IllegalArgumentException(
+                        "Expected channel $channelIndex row $rowIndex to be FloatArray",
+                    )
+                require(row.size == OUTPUT_GRID_SIZE) {
+                    "Expected channel $channelIndex row $rowIndex to contain " +
+                        "$OUTPUT_GRID_SIZE values, got ${row.size}"
+                }
+                row
+            }
+        }
     }
 
     /**
      * Decode landmark coordinates from heatmap output.
      *
-     * Each landmark has 3 channels in the output: confidence heatmap, x-offset, y-offset.
-     * The peak of the confidence heatmap gives coarse location; offsets refine it.
+     * The peak of each confidence heatmap gives a coarse row/column. Separate
+     * grouped offset channels refine those coordinates. OpenSeeFace stores the
+     * vertical component before the horizontal component; this method converts
+     * them to the public `(x, y)` order.
      */
     private fun decodeLandmarks(
-        output: Array<FloatArray>,
+        output: Array<Array<FloatArray>>,
         input: LandmarkInput,
         frameWidth: Int,
         frameHeight: Int,
@@ -67,22 +136,22 @@ internal class LandmarkInference(private val session: OrtSession) {
         val scaleY = input.cropHeight.toFloat() / INPUT_SIZE
 
         for (i in 0 until NUM_LANDMARKS) {
-            val confChannel = output[i * CHANNELS_PER_LANDMARK]
-            val offXChannel = output[i * CHANNELS_PER_LANDMARK + 1]
-            val offYChannel = output[i * CHANNELS_PER_LANDMARK + 2]
+            val confChannel = output[i]
+            val rowOffsetChannel = output[NUM_LANDMARKS + i]
+            val columnOffsetChannel = output[NUM_LANDMARKS * 2 + i]
 
             // Find peak in confidence heatmap
             val peakIdx = argmax(confChannel)
-            val gridY = peakIdx / OUTPUT_GRID_SIZE
-            val gridX = peakIdx % OUTPUT_GRID_SIZE
+            val gridRow = peakIdx / OUTPUT_GRID_SIZE
+            val gridColumn = peakIdx % OUTPUT_GRID_SIZE
 
-            // Decode sub-pixel offset via logit
-            val offsetX = logit(offXChannel[peakIdx]) * INPUT_SIZE
-            val offsetY = logit(offYChannel[peakIdx]) * INPUT_SIZE
+            // Decode sub-pixel offsets via logit, matching OpenSeeFace tracker.py.
+            val rowOffset = logit(rowOffsetChannel[gridRow][gridColumn]) * OUTPUT_SPAN
+            val columnOffset = logit(columnOffsetChannel[gridRow][gridColumn]) * OUTPUT_SPAN
 
-            // Convert from heatmap grid to input image coordinates
-            val localX = (gridX.toFloat() * INPUT_SIZE / OUTPUT_GRID_SIZE) + offsetX
-            val localY = (gridY.toFloat() * INPUT_SIZE / OUTPUT_GRID_SIZE) + offsetY
+            // Convert from model grid to crop coordinates.
+            val localX = (gridColumn.toFloat() * OUTPUT_SPAN / OUTPUT_GRID_DIVISOR) + columnOffset
+            val localY = (gridRow.toFloat() * OUTPUT_SPAN / OUTPUT_GRID_DIVISOR) + rowOffset
 
             // Map back to original frame coordinates (normalized to [0,1])
             val frameX = (input.cropX1 + localX * scaleX) / frameWidth
@@ -94,46 +163,47 @@ internal class LandmarkInference(private val session: OrtSession) {
         return landmarks
     }
 
-    private fun decodeConfidences(output: Array<FloatArray>): FloatArray {
+    private fun decodeConfidences(output: Array<Array<FloatArray>>): FloatArray {
         val confidences = FloatArray(NUM_LANDMARKS)
         for (i in 0 until NUM_LANDMARKS) {
-            val confChannel = output[i * CHANNELS_PER_LANDMARK]
-            confidences[i] = confChannel.max()
+            val confChannel = output[i]
+            confidences[i] = confChannel.maxOf { it.max() }
         }
         return confidences
     }
 
-    companion object {
-        private const val INPUT_NAME = "input"
-        private const val INPUT_SIZE = 224
-        private const val OUTPUT_GRID_SIZE = 27
-        private const val NUM_LANDMARKS = 66
-        private const val CHANNELS = 3L
-        private const val CHANNELS_PER_LANDMARK = 3
-        private const val LOGIT_FACTOR = 16.0f
-        private const val LOGIT_CLIP_MIN = 0.0000001f
-        private const val LOGIT_CLIP_MAX = 0.9999999f
-
-        private fun argmax(arr: FloatArray): Int {
-            var maxIdx = 0
-            var maxVal = arr[0]
-            for (i in 1 until arr.size) {
-                if (arr[i] > maxVal) {
-                    maxVal = arr[i]
-                    maxIdx = i
+    private fun argmax(channel: Array<FloatArray>): Int {
+        var maxIndex = 0
+        var maxValue = channel[0][0]
+        for (row in channel.indices) {
+            for (column in channel[row].indices) {
+                val value = channel[row][column]
+                if (value > maxValue) {
+                    maxValue = value
+                    maxIndex = row * OUTPUT_GRID_SIZE + column
                 }
             }
-            return maxIdx
         }
+        return maxIndex
+    }
 
-        /**
-         * Inverse sigmoid (logit) with clipping and scaling.
-         * Matches OpenSeeFace: log(p / (1-p)) / factor
-         */
-        private fun logit(value: Float): Float {
-            val p = value.coerceIn(LOGIT_CLIP_MIN, LOGIT_CLIP_MAX)
-            return (ln(p / (1f - p)) / LOGIT_FACTOR)
-        }
+    private fun typeName(value: Any?): String = value?.let { it::class.qualifiedName } ?: "null"
+
+    private const val BATCH_SIZE = 1
+    private const val NUM_LANDMARKS = 66
+    private const val OUTPUT_CHANNELS = NUM_LANDMARKS * 3
+    private const val OUTPUT_GRID_SIZE = 28
+    private const val OUTPUT_GRID_DIVISOR = 27f
+    private const val OUTPUT_SPAN = 223f
+    private const val INPUT_SIZE = 224f
+    private const val LOGIT_FACTOR = 16.0f
+    private const val LOGIT_CLIP_MIN = 0.0000001f
+    private const val LOGIT_CLIP_MAX = 0.9999999f
+
+    /** Inverse sigmoid (logit) with clipping and scaling, matching OpenSeeFace. */
+    private fun logit(value: Float): Float {
+        val p = value.coerceIn(LOGIT_CLIP_MIN, LOGIT_CLIP_MAX)
+        return ln(p / (1f - p)) / LOGIT_FACTOR
     }
 }
 

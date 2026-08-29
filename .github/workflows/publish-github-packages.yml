@@ -84,6 +84,9 @@ jobs:
       - name: Setup whisper.cpp for iOS
         run: ./scripts/setup-whisper-ios.sh
 
+      - name: Setup pinned OpenSeeFace models for JVM publication
+        run: ./scripts/setup-openseeface-models.sh
+
       - name: Publish to GitHub Packages
         run: >-
           ./gradlew publishAllPublicationsToGitHubPackagesRepository

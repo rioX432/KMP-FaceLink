@@ -12,6 +12,9 @@ local.properties
 *.hprof
 .kotlin/
 progress.txt
+__pycache__/
+*.pyc
+/workspace/
 
 # MediaPipe model files (downloaded at build time)
 *.task

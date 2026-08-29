@@ -94,7 +94,41 @@ jobs:
       - name: Setup whisper.cpp for iOS
         run: ./scripts/setup-whisper-ios.sh
 
+      - name: Setup pinned OpenSeeFace models for JVM tests
+        run: ./scripts/setup-openseeface-models.sh
+
       - run: ./gradlew :kmp-facelink:allTests :kmp-facelink-avatar:allTests :kmp-facelink-actions:allTests :kmp-facelink-voice:allTests :kmp-facelink-llm:allTests
+
+  sdk-foundation-quality:
+    name: Face tracking foundation contracts
+    runs-on: [ self-hosted, macOS, ARM64 ]
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-java@v5
+        with:
+          distribution: ${{ env.JAVA_DISTRIBUTION }}
+          java-version: ${{ env.JAVA_VERSION }}
+
+      - uses: android-actions/setup-android@v3
+
+      - uses: gradle/actions/setup-gradle@v5
+
+      - uses: actions/cache@v5
+        with:
+          path: ~/.konan
+          key: konan-${{ runner.os }}-${{ hashFiles('gradle/libs.versions.toml') }}
+          restore-keys: konan-${{ runner.os }}-
+
+      - name: Set up local.properties
+        run: echo "sdk.dir=$ANDROID_HOME" > local.properties
+
+      - name: Setup pinned OpenSeeFace models for JVM contract tests
+        run: ./scripts/setup-openseeface-models.sh
+
+      - name: Verify SDK contracts and public-safety boundary
+        run: ./gradlew sdkQualityCheck
 
   coverage:
     name: Coverage

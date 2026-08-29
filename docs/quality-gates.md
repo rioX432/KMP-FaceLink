@@ -19,6 +19,12 @@ pinned OpenSeeFace FP32 supply/runtime contract. The JVM synthetic zero-input co
 both real public model files, verify their SHA-256 and ONNX metadata, and execute zero tensors through detection and landmark
 decoders. This proves model/decoder mechanics, not tracking quality or sustained performance.
 
+The legacy paired-calibration evaluator also runs eight unit-test declarations in this lane. Five
+source-only parser/schema/metric controls execute without measurement data. Three Kotlin-golden
+parity controls are expected to skip unless an operator explicitly supplies an authorized local
+`FACELINK_CALIBRATION_GOLDENS` directory. A green Tier 1 run therefore does not claim golden-vector
+parity.
+
 The synthetic cheek-puff fixture has one intended signal and two negative controls. It catches
 decision-wiring regressions only; it is not a face dataset and yields no accuracy, sensitivity, or
 false-positive claim.
@@ -37,6 +43,15 @@ It must run only on an authorized local or isolated runner. Raw frames, landmark
 per-frame coefficients must not enter Git or hosted CI logs. Passing this task establishes parity
 with the frozen implementation on the same recording; it does not establish quality on an
 independent session, participant, device, or live product path.
+
+The optional paired-evaluator parity lane follows the same boundary:
+
+```bash
+FACELINK_CALIBRATION_GOLDENS=/authorized/local/golden-vectors \
+  python3 -m unittest tools/calibration/tests/test_evaluate_cheekpuff_geometry.py
+```
+
+Without that explicit path, the three biometric golden-vector cases skip before opening bytes.
 
 ## Tier 3 — Independent and physical qualification
 

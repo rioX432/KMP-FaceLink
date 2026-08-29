@@ -493,6 +493,17 @@ val testSdkDocumentation by tasks.registering(Exec::class) {
     commandLine("python3", "-m", "unittest", "scripts/test_verify_sdk_documentation.py")
 }
 
+val testCalibrationTooling by tasks.registering(Exec::class) {
+    group = "verification"
+    description = "Run source-only paired-calibration parser and metric contract tests"
+    commandLine(
+        "python3",
+        "-m",
+        "unittest",
+        "tools/calibration/tests/test_evaluate_cheekpuff_geometry.py",
+    )
+}
+
 val iosAuthorizationTestBinary = layout.buildDirectory.file("verification/ios-run-authorization-tests")
 
 val compileIosRunAuthorizationTests by tasks.registering(Exec::class) {
@@ -583,5 +594,6 @@ tasks.register("sdkQualityCheck") {
         testSdkPublicSafety,
         verifySdkDocumentation,
         testSdkDocumentation,
+        testCalibrationTooling,
     )
 }

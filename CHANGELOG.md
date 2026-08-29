@@ -10,6 +10,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Capability, provenance, fallback, offline-inference, and opt-in pipeline-performance contracts
 - Internal shared guided-capture harness and Android/iOS evaluation applications
 - `sdkQualityCheck` source/API/platform/capture/privacy gate and separate authorized private replay lane
+- Source-only paired-calibration evaluator tests in `sdkQualityCheck`; biometric golden parity
+  remains an explicit authorized local lane
 
 ### Changed
 - **BREAKING (unpublished worktree):** add constructor properties to `FaceTrackerConfig`, `PerformanceConfig`, `FaceTrackingData`, and `TrackedFace`; consumers must recompile rather than swap binaries

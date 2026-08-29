@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import csv
 import gzip
+import os
 import sys
 import tempfile
 import unittest
@@ -14,32 +15,25 @@ import numpy as np
 
 
 CALIBRATION_DIR = Path(__file__).resolve().parents[1]
-ANOTHERBALL_ROOT = Path(__file__).resolve().parents[4]
 sys.path.insert(0, str(CALIBRATION_DIR))
 
 import evaluate_cheekpuff_geometry as geometry  # noqa: E402
 
 
-GOLDEN_DIR = (
-    ANOTHERBALL_ROOT
-    / "persona-android"
-    / "core"
-    / "face_tracking"
-    / "src"
-    / "test"
-    / "resources"
-    / "cheekpuff"
-)
+GOLDEN_DIR_ENV = os.environ.get("FACELINK_CALIBRATION_GOLDENS")
+GOLDEN_DIR = Path(GOLDEN_DIR_ENV).resolve() if GOLDEN_DIR_ENV else None
 ASPECT = 1920.0 / 1080.0
 TOLERANCE = 1e-4
 
 
 def read_csv(name: str) -> list[dict[str, str]]:
+    assert GOLDEN_DIR is not None
     with (GOLDEN_DIR / name).open(newline="", encoding="utf-8") as source:
         return list(csv.DictReader(source))
 
 
 def read_gzip_floats(name: str) -> np.ndarray:
+    assert GOLDEN_DIR is not None
     with gzip.open(GOLDEN_DIR / name, "rb") as source:
         return np.frombuffer(source.read(), dtype="<f4")
 
@@ -70,8 +64,8 @@ class WindowParsingTest(unittest.TestCase):
 
 
 @unittest.skipUnless(
-    GOLDEN_DIR.is_dir(),
-    "persona-android cheek-puff golden vectors are not present beside KMP-FaceLink",
+    GOLDEN_DIR is not None and GOLDEN_DIR.is_dir(),
+    "FACELINK_CALIBRATION_GOLDENS is not set to an authorized local golden-vector directory",
 )
 class KotlinGoldenParityTest(unittest.TestCase):
     """Exercise the exact vectors used by CheekPuffGeometricDetectorTest."""

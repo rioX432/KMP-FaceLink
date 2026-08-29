@@ -12,8 +12,8 @@ import kotlin.math.ln
  * Input: 224x224 normalized RGB tensor (CHW format).
  * Output: 66 facial landmark points in image-space coordinates.
  *
- * The model outputs heatmaps (27x27) with confidence and offset channels
- * for each of the 66 landmarks.
+ * The model outputs a `[1, 198, 28, 28]` tensor: 66 confidence heatmaps,
+ * followed by 66 row-offset and 66 column-offset heatmaps.
  */
 internal class LandmarkInference(private val session: OrtSession) {
 

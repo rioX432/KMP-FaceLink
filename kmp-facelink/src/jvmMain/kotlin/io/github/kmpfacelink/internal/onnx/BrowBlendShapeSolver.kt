@@ -38,7 +38,6 @@ internal object BrowBlendShapeSolver {
         solveBrowOuterUp(landmarks, faceIod, output)
         solveBrowInnerUp(landmarks, faceIod, output)
         solveNoseSneer(landmarks, faceIod, output)
-        setUnsupported(output)
     }
 
     private fun solveBrowDown(landmarks: FloatArray, faceIod: Float, output: MutableMap<BlendShape, Float>) {
@@ -80,11 +79,4 @@ internal object BrowBlendShapeSolver {
         output[BlendShape.NOSE_SNEER_LEFT] = remap(sneerVal, SNEER_LOW, SNEER_HIGH)
     }
 
-    private fun setUnsupported(output: MutableMap<BlendShape, Float>) {
-        // Cannot be derived from 66 landmarks
-        output[BlendShape.CHEEK_PUFF] = 0f
-        output[BlendShape.CHEEK_SQUINT_LEFT] = 0f
-        output[BlendShape.CHEEK_SQUINT_RIGHT] = 0f
-        output[BlendShape.TONGUE_OUT] = 0f
-    }
 }

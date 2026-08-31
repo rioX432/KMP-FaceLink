@@ -3,7 +3,7 @@ package io.github.kmpfacelink.voice
 import io.github.kmpfacelink.model.BlendShape
 import io.github.kmpfacelink.model.FaceTrackingData
 import io.github.kmpfacelink.model.HeadTransform
-import io.github.kmpfacelink.model.emptyBlendShapeData
+import io.github.kmpfacelink.model.allShapesAtRest
 import io.github.kmpfacelink.voice.lipsync.LipSyncFrame
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
@@ -15,7 +15,7 @@ import kotlin.test.assertTrue
 class FlowExtensionsTest {
 
     private val baseFaceData = FaceTrackingData(
-        blendShapes = emptyBlendShapeData().toMutableMap().apply {
+        blendShapes = allShapesAtRest().toMutableMap().apply {
             put(BlendShape.EYE_BLINK_LEFT, 0.8f)
             put(BlendShape.JAW_OPEN, 0.1f)
         },

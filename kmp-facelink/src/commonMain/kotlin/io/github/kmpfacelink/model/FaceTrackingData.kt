@@ -47,9 +47,12 @@ public data class FaceTrackingData(
     public companion object {
         /**
          * Returns a "no face detected" data instance.
+         *
+         * Its blend shape map is empty rather than 52 zeros: nothing was measured, so there is no
+         * value to report for any shape.
          */
         public fun notTracking(timestampMs: Long = 0L): FaceTrackingData = FaceTrackingData(
-            blendShapes = emptyBlendShapeData(),
+            blendShapes = emptyMap(),
             headTransform = HeadTransform(),
             landmarks = emptyList(),
             timestampMs = timestampMs,

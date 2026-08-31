@@ -1,7 +1,6 @@
 package io.github.kmpfacelink.avatar
 
 import io.github.kmpfacelink.model.BlendShape
-import io.github.kmpfacelink.model.valueOf
 
 /**
  * VRM viseme (mouth vowel) mappings derived from ARKit blend shapes.
@@ -32,37 +31,37 @@ internal object VrmVisemeMappings {
 
     private fun vowelA(): ParameterMapping = ParameterMapping.Custom { data ->
         val bs = data.blendShapes
-        val jaw = bs.valueOf(BlendShape.JAW_OPEN)
-        val funnel = bs.valueOf(BlendShape.MOUTH_FUNNEL) * FUNNEL_A_WEIGHT
+        val jaw = bs.valueOrRestPose(BlendShape.JAW_OPEN)
+        val funnel = bs.valueOrRestPose(BlendShape.MOUTH_FUNNEL) * FUNNEL_A_WEIGHT
         (jaw + funnel).coerceIn(0f, 1f)
     }
 
     private fun vowelI(): ParameterMapping = ParameterMapping.Custom { data ->
         val bs = data.blendShapes
-        val smileL = bs.valueOf(BlendShape.MOUTH_SMILE_LEFT)
-        val smileR = bs.valueOf(BlendShape.MOUTH_SMILE_RIGHT)
+        val smileL = bs.valueOrRestPose(BlendShape.MOUTH_SMILE_LEFT)
+        val smileR = bs.valueOrRestPose(BlendShape.MOUTH_SMILE_RIGHT)
         ((smileL + smileR) * HALF).coerceIn(0f, 1f)
     }
 
     private fun vowelU(): ParameterMapping = ParameterMapping.Custom { data ->
         val bs = data.blendShapes
-        val pucker = bs.valueOf(BlendShape.MOUTH_PUCKER) * PUCKER_U_WEIGHT
-        val funnel = bs.valueOf(BlendShape.MOUTH_FUNNEL) * FUNNEL_U_WEIGHT
+        val pucker = bs.valueOrRestPose(BlendShape.MOUTH_PUCKER) * PUCKER_U_WEIGHT
+        val funnel = bs.valueOrRestPose(BlendShape.MOUTH_FUNNEL) * FUNNEL_U_WEIGHT
         (pucker + funnel).coerceIn(0f, 1f)
     }
 
     private fun vowelE(): ParameterMapping = ParameterMapping.Custom { data ->
         val bs = data.blendShapes
-        val smileL = bs.valueOf(BlendShape.MOUTH_SMILE_LEFT)
-        val smileR = bs.valueOf(BlendShape.MOUTH_SMILE_RIGHT)
-        val jaw = bs.valueOf(BlendShape.JAW_OPEN) * JAW_OPEN_E_WEIGHT
+        val smileL = bs.valueOrRestPose(BlendShape.MOUTH_SMILE_LEFT)
+        val smileR = bs.valueOrRestPose(BlendShape.MOUTH_SMILE_RIGHT)
+        val jaw = bs.valueOrRestPose(BlendShape.JAW_OPEN) * JAW_OPEN_E_WEIGHT
         ((smileL + smileR) * HALF + jaw).coerceIn(0f, 1f)
     }
 
     private fun vowelO(): ParameterMapping = ParameterMapping.Custom { data ->
         val bs = data.blendShapes
-        val jaw = bs.valueOf(BlendShape.JAW_OPEN) * JAW_OPEN_O_WEIGHT
-        val pucker = bs.valueOf(BlendShape.MOUTH_PUCKER) * PUCKER_O_WEIGHT
+        val jaw = bs.valueOrRestPose(BlendShape.JAW_OPEN) * JAW_OPEN_O_WEIGHT
+        val pucker = bs.valueOrRestPose(BlendShape.MOUTH_PUCKER) * PUCKER_O_WEIGHT
         (jaw + pucker).coerceIn(0f, 1f)
     }
 }

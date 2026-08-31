@@ -1,7 +1,6 @@
 package io.github.kmpfacelink.avatar
 
 import io.github.kmpfacelink.model.BlendShape
-import io.github.kmpfacelink.model.valueOf
 
 /**
  * Default ARKit BlendShape to VRM expression mappings.
@@ -29,7 +28,7 @@ internal object VrmDefaultMappings {
         return mapOf(
             ids.both to ParameterMapping.Custom { data ->
                 val bs = data.blendShapes
-                (bs.valueOf(BlendShape.EYE_BLINK_LEFT) + bs.valueOf(BlendShape.EYE_BLINK_RIGHT)) * HALF
+                (bs.valueOrRestPose(BlendShape.EYE_BLINK_LEFT) + bs.valueOrRestPose(BlendShape.EYE_BLINK_RIGHT)) * HALF
             },
             ids.left to ParameterMapping.Direct(BlendShape.EYE_BLINK_LEFT),
             ids.right to ParameterMapping.Direct(BlendShape.EYE_BLINK_RIGHT),
@@ -49,7 +48,7 @@ internal object VrmDefaultMappings {
     private fun gazeMapping(left: BlendShape, right: BlendShape): ParameterMapping =
         ParameterMapping.Custom { data ->
             val bs = data.blendShapes
-            (bs.valueOf(left) + bs.valueOf(right)) * HALF
+            (bs.valueOrRestPose(left) + bs.valueOrRestPose(right)) * HALF
         }
 
     private fun headMappings(version: VrmVersion): Map<String, ParameterMapping> {

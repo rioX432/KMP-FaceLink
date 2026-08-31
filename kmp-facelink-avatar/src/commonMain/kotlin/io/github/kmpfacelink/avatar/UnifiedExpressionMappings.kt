@@ -1,7 +1,6 @@
 package io.github.kmpfacelink.avatar
 
 import io.github.kmpfacelink.model.BlendShape
-import io.github.kmpfacelink.model.valueOf
 
 /**
  * Maps ARKit 52 blend shapes to VRCFaceTracking Unified Expressions.
@@ -142,16 +141,16 @@ internal object UnifiedBlendedMappings {
     private fun lipSuck(): Pair<String, ParameterMapping> =
         UnifiedExpression.LIP_SUCK.parameterName to ParameterMapping.Custom { data ->
             val bs = data.blendShapes
-            val upper = bs.valueOf(BlendShape.MOUTH_ROLL_UPPER)
-            val lower = bs.valueOf(BlendShape.MOUTH_ROLL_LOWER)
+            val upper = bs.valueOrRestPose(BlendShape.MOUTH_ROLL_UPPER)
+            val lower = bs.valueOrRestPose(BlendShape.MOUTH_ROLL_LOWER)
             ((upper + lower) * HALF).coerceIn(0f, 1f)
         }
 
     private fun mouthOpen(): Pair<String, ParameterMapping> =
         UnifiedExpression.MOUTH_OPEN.parameterName to ParameterMapping.Custom { data ->
             val bs = data.blendShapes
-            val jaw = bs.valueOf(BlendShape.JAW_OPEN)
-            val closed = bs.valueOf(BlendShape.MOUTH_CLOSE)
+            val jaw = bs.valueOrRestPose(BlendShape.JAW_OPEN)
+            val closed = bs.valueOrRestPose(BlendShape.MOUTH_CLOSE)
             (jaw - closed).coerceIn(0f, 1f)
         }
 
@@ -162,7 +161,7 @@ internal object UnifiedBlendedMappings {
     ): Pair<String, ParameterMapping> =
         expression.parameterName to ParameterMapping.Custom { data ->
             val bs = data.blendShapes
-            ((bs.valueOf(left) + bs.valueOf(right)) * HALF).coerceIn(0f, 1f)
+            ((bs.valueOrRestPose(left) + bs.valueOrRestPose(right)) * HALF).coerceIn(0f, 1f)
         }
 }
 

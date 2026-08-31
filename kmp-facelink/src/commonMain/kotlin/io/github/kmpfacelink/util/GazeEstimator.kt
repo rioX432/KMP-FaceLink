@@ -3,7 +3,6 @@ package io.github.kmpfacelink.util
 import io.github.kmpfacelink.model.BlendShape
 import io.github.kmpfacelink.model.BlendShapeData
 import io.github.kmpfacelink.model.GazeData
-import io.github.kmpfacelink.model.valueOf
 
 /**
  * Estimates eye gaze direction from ARKit blend shape values.
@@ -55,26 +54,26 @@ internal object GazeEstimator {
         if (!blendShapes.keys.containsAll(REQUIRED_SHAPES)) return null
         // Left eye yaw: lookOut = looking left (negative yaw), lookIn = looking right (positive yaw)
         val leftEyeYaw = (
-            blendShapes.valueOf(BlendShape.EYE_LOOK_IN_LEFT) -
-                blendShapes.valueOf(BlendShape.EYE_LOOK_OUT_LEFT)
+            blendShapes.getValue(BlendShape.EYE_LOOK_IN_LEFT) -
+                blendShapes.getValue(BlendShape.EYE_LOOK_OUT_LEFT)
             ) * MAX_GAZE_ANGLE_DEGREES
 
         // Left eye pitch: lookUp = positive, lookDown = negative
         val leftEyePitch = (
-            blendShapes.valueOf(BlendShape.EYE_LOOK_UP_LEFT) -
-                blendShapes.valueOf(BlendShape.EYE_LOOK_DOWN_LEFT)
+            blendShapes.getValue(BlendShape.EYE_LOOK_UP_LEFT) -
+                blendShapes.getValue(BlendShape.EYE_LOOK_DOWN_LEFT)
             ) * MAX_GAZE_ANGLE_DEGREES
 
         // Right eye yaw: lookIn = looking left (negative yaw), lookOut = looking right (positive yaw)
         val rightEyeYaw = (
-            blendShapes.valueOf(BlendShape.EYE_LOOK_OUT_RIGHT) -
-                blendShapes.valueOf(BlendShape.EYE_LOOK_IN_RIGHT)
+            blendShapes.getValue(BlendShape.EYE_LOOK_OUT_RIGHT) -
+                blendShapes.getValue(BlendShape.EYE_LOOK_IN_RIGHT)
             ) * MAX_GAZE_ANGLE_DEGREES
 
         // Right eye pitch: lookUp = positive, lookDown = negative
         val rightEyePitch = (
-            blendShapes.valueOf(BlendShape.EYE_LOOK_UP_RIGHT) -
-                blendShapes.valueOf(BlendShape.EYE_LOOK_DOWN_RIGHT)
+            blendShapes.getValue(BlendShape.EYE_LOOK_UP_RIGHT) -
+                blendShapes.getValue(BlendShape.EYE_LOOK_DOWN_RIGHT)
             ) * MAX_GAZE_ANGLE_DEGREES
 
         return GazeData(

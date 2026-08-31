@@ -36,12 +36,8 @@ internal object WasmResultMapper {
             map[shape] = score.coerceIn(0f, 1f)
         }
 
-        // Fill missing shapes with 0.0
-        for (shape in BlendShape.entries) {
-            if (shape !in map) {
-                map[shape] = 0f
-            }
-        }
+        // Shapes this model does not carry stay absent. `tongueOut` has no MediaPipe counterpart,
+        // and reporting it as 0f would be indistinguishable from a measured resting tongue.
         return map
     }
 

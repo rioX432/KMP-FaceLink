@@ -3,7 +3,7 @@ package io.github.kmpfacelink.actions.emotion
 import io.github.kmpfacelink.model.BlendShape
 import io.github.kmpfacelink.model.FaceTrackingData
 import io.github.kmpfacelink.model.HeadTransform
-import io.github.kmpfacelink.model.emptyBlendShapeData
+import io.github.kmpfacelink.model.allShapesAtRest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -182,7 +182,7 @@ class EmotionClassifierTest {
 
     @Test
     fun cosineSimilarityZeroObserved() {
-        val observed = emptyBlendShapeData()
+        val observed = allShapesAtRest()
         val template = mapOf(BlendShape.MOUTH_SMILE_LEFT to 0.7f)
         val similarity = EmotionClassifier.cosineSimilarity(observed, template)
         assertEquals(0f, similarity)
@@ -207,7 +207,7 @@ class EmotionClassifierTest {
         vararg blendShapes: Pair<BlendShape, Float>,
         timestampMs: Long = 0L,
     ): FaceTrackingData {
-        val data = emptyBlendShapeData().toMutableMap()
+        val data = allShapesAtRest().toMutableMap()
         blendShapes.forEach { (shape, value) -> data[shape] = value }
         return FaceTrackingData(
             blendShapes = data,

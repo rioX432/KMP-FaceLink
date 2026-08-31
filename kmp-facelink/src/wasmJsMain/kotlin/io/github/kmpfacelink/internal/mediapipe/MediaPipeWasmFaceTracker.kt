@@ -10,7 +10,6 @@ import io.github.kmpfacelink.model.FaceTrackingData
 import io.github.kmpfacelink.model.InferenceDelegate
 import io.github.kmpfacelink.model.SmoothingConfig
 import io.github.kmpfacelink.model.TrackedFace
-import io.github.kmpfacelink.model.emptyBlendShapeData
 import io.github.kmpfacelink.model.filterByActive
 import io.github.kmpfacelink.util.FaceLinkLogger
 import io.github.kmpfacelink.util.GazeEstimator

@@ -2,9 +2,8 @@ package io.github.kmpfacelink
 
 import io.github.kmpfacelink.model.ALL_BLEND_SHAPES
 import io.github.kmpfacelink.model.BlendShape
-import io.github.kmpfacelink.model.emptyBlendShapeData
+import io.github.kmpfacelink.model.allShapesAtRest
 import io.github.kmpfacelink.model.filterByActive
-import io.github.kmpfacelink.model.valueOf
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
@@ -45,8 +44,8 @@ class BlendShapeTest {
     }
 
     @Test
-    fun emptyBlendShapeDataHasAllEntries() {
-        val data = emptyBlendShapeData()
+    fun allShapesAtRestHasAllEntries() {
+        val data = allShapesAtRest()
         assertEquals(52, data.size)
         for (shape in BlendShape.entries) {
             assertEquals(0f, data[shape])
@@ -54,10 +53,20 @@ class BlendShapeTest {
     }
 
     @Test
-    fun valueOfReturnsDefaultForMissing() {
+    fun aShapeTheEstimatorDidNotProduceIsAbsentRatherThanZero() {
         val data = mapOf(BlendShape.JAW_OPEN to 0.8f)
-        assertEquals(0.8f, data.valueOf(BlendShape.JAW_OPEN))
-        assertEquals(0f, data.valueOf(BlendShape.EYE_BLINK_LEFT))
+        assertEquals(0.8f, data[BlendShape.JAW_OPEN])
+        assertNull(
+            data[BlendShape.EYE_BLINK_LEFT],
+            "an unmeasured shape must be distinguishable from one measured at rest",
+        )
+    }
+
+    @Test
+    fun aShapeMeasuredAtRestIsPresentWithZero() {
+        val data = mapOf(BlendShape.EYE_BLINK_LEFT to 0f)
+        assertTrue(BlendShape.EYE_BLINK_LEFT in data)
+        assertEquals(0f, data[BlendShape.EYE_BLINK_LEFT])
     }
 
     @Test
@@ -86,7 +95,7 @@ class BlendShapeTest {
 
     @Test
     fun filterByActiveReturnsIdentityWhenAllActive() {
-        val data = emptyBlendShapeData()
+        val data = allShapesAtRest()
         val result = data.filterByActive(ALL_BLEND_SHAPES)
         assertSame(data, result)
     }
@@ -107,12 +116,15 @@ class BlendShapeTest {
     }
 
     @Test
-    fun filterByActiveDefaultsMissingToZero() {
+    fun filterByActiveKeepsMissingShapesMissing() {
         val data = mapOf(BlendShape.EYE_BLINK_LEFT to 0.5f)
         val active = setOf(BlendShape.EYE_BLINK_LEFT, BlendShape.JAW_OPEN)
         val result = data.filterByActive(active)
-        assertEquals(2, result.size)
+        assertEquals(1, result.size)
         assertEquals(0.5f, result[BlendShape.EYE_BLINK_LEFT])
-        assertEquals(0f, result[BlendShape.JAW_OPEN])
+        assertNull(
+            result[BlendShape.JAW_OPEN],
+            "asking for a shape does not make the estimator produce it",
+        )
     }
 }

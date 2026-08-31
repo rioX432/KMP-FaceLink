@@ -7,7 +7,7 @@ import io.github.kmpfacelink.model.HandTrackingData
 import io.github.kmpfacelink.model.Handedness
 import io.github.kmpfacelink.model.HeadTransform
 import io.github.kmpfacelink.model.TrackedHand
-import io.github.kmpfacelink.model.emptyBlendShapeData
+import io.github.kmpfacelink.model.allShapesAtRest
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -222,7 +222,7 @@ class ActionSystemTest {
         timestampMs: Long,
         vararg blendShapes: Pair<BlendShape, Float>,
     ): FaceTrackingData {
-        val data = emptyBlendShapeData().toMutableMap()
+        val data = allShapesAtRest().toMutableMap()
         blendShapes.forEach { (shape, value) -> data[shape] = value }
         return FaceTrackingData(
             blendShapes = data,

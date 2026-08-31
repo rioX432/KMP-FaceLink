@@ -9,7 +9,7 @@ import io.github.kmpfacelink.model.HandTrackingData
 import io.github.kmpfacelink.model.HeadTransform
 import io.github.kmpfacelink.model.HolisticTrackingData
 import io.github.kmpfacelink.model.ThermalState
-import io.github.kmpfacelink.model.emptyBlendShapeData
+import io.github.kmpfacelink.model.allShapesAtRest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -54,7 +54,7 @@ class InputEdgeCaseTest {
     @Test
     fun faceTrackingDataWithEmptyLandmarks() {
         val data = FaceTrackingData(
-            blendShapes = emptyBlendShapeData(),
+            blendShapes = allShapesAtRest(),
             headTransform = HeadTransform(),
             landmarks = emptyList(),
             timestampMs = 0L,
@@ -134,7 +134,7 @@ class InputEdgeCaseTest {
         val data = FaceTrackingData.notTracking()
         assertFalse(data.isTracking)
         assertEquals(0L, data.timestampMs)
-        assertTrue(data.blendShapes.isNotEmpty())
+        assertTrue(data.blendShapes.isEmpty(), "nothing was measured, so nothing is reported")
         assertTrue(data.landmarks.isEmpty())
         assertTrue(data.faces.isEmpty())
         assertNull(data.gazeData)
@@ -240,11 +240,11 @@ class InputEdgeCaseTest {
         assertEquals(ThermalState.NOMINAL, data.thermalState)
     }
 
-    // -- emptyBlendShapeData --
+    // -- allShapesAtRest --
 
     @Test
-    fun emptyBlendShapeDataContainsAllShapes() {
-        val data = emptyBlendShapeData()
+    fun allShapesAtRestContainsAllShapes() {
+        val data = allShapesAtRest()
         assertEquals(BlendShape.entries.size, data.size)
         for (shape in BlendShape.entries) {
             assertEquals(0f, data[shape])
@@ -252,9 +252,9 @@ class InputEdgeCaseTest {
     }
 
     @Test
-    fun emptyBlendShapeDataIsSameInstance() {
-        val a = emptyBlendShapeData()
-        val b = emptyBlendShapeData()
+    fun allShapesAtRestIsSameInstance() {
+        val a = allShapesAtRest()
+        val b = allShapesAtRest()
         // Should be the same cached instance
         assertTrue(a === b)
     }

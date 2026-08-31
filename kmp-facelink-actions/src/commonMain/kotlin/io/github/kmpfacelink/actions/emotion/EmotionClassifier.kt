@@ -3,7 +3,6 @@ package io.github.kmpfacelink.actions.emotion
 import io.github.kmpfacelink.model.BlendShape
 import io.github.kmpfacelink.model.BlendShapeData
 import io.github.kmpfacelink.model.FaceTrackingData
-import io.github.kmpfacelink.model.valueOf
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlin.math.sqrt
@@ -100,7 +99,10 @@ public class EmotionClassifier(
             var templateMagnitude = 0f
 
             for ((shape, templateWeight) in template) {
-                val observedValue = observed.valueOf(shape)
+                // Compare over the shapes actually observed. Substituting zero for a shape this
+                // estimator never emits would drag the similarity toward the templates that
+                // happen not to use it.
+                val observedValue = observed[shape] ?: continue
                 dotProduct += observedValue * templateWeight
                 observedMagnitude += observedValue * observedValue
                 templateMagnitude += templateWeight * templateWeight

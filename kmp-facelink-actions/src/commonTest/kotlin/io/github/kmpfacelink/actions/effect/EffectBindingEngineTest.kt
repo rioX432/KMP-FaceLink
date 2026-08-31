@@ -8,7 +8,7 @@ import io.github.kmpfacelink.interact.model.EffectParameter
 import io.github.kmpfacelink.model.BlendShape
 import io.github.kmpfacelink.model.FaceTrackingData
 import io.github.kmpfacelink.model.HeadTransform
-import io.github.kmpfacelink.model.emptyBlendShapeData
+import io.github.kmpfacelink.model.allShapesAtRest
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
@@ -384,7 +384,7 @@ class EffectBindingEngineTest {
         timestampMs: Long,
         vararg blendShapes: Pair<BlendShape, Float>,
     ): FaceTrackingData {
-        val data = emptyBlendShapeData().toMutableMap()
+        val data = allShapesAtRest().toMutableMap()
         blendShapes.forEach { (shape, value) -> data[shape] = value }
         return FaceTrackingData(
             blendShapes = data,

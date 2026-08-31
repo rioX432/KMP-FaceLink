@@ -3,8 +3,68 @@ complexity:
     active: true
     thresholdInClasses: 15
     thresholdInFiles: 15
+    # A test class has one function per case, and a fake throws whatever the code under test must
+    # survive. Both are the shape of a test, not a smell in it.
+    excludes:
+      - '**/commonTest/**'
+      - '**/androidHostTest/**'
+      - '**/androidDeviceTest/**'
+      - '**/androidUnitTest/**'
+      - '**/androidInstrumentedTest/**'
+      - '**/iosTest/**'
+      - '**/jvmTest/**'
+      - '**/wasmJsTest/**'
+      - '**/desktopTest/**'
+      - '**/test/**'
+  LongParameterList:
+    ignoreAnnotated:
+      # Same treatment MagicNumber and FunctionNaming already get here: a Composable's parameters
+      # are its inputs and its callbacks, and collapsing them into a holder hides the contract
+      # rather than shortening it.
+      - 'Composable'
+    excludes:
+      # detekt's defaults name the older source-set layout, so the Kotlin Multiplatform ones
+      # (`commonTest`, `androidHostTest`, `iosTest`, ...) fall through and get judged as production
+      # code. Test bodies legitimately carry fixture numbers and wide builder signatures.
+      - '**/commonTest/**'
+      - '**/androidHostTest/**'
+      - '**/androidDeviceTest/**'
+      - '**/androidUnitTest/**'
+      - '**/androidInstrumentedTest/**'
+      - '**/iosTest/**'
+      - '**/jvmTest/**'
+      - '**/wasmJsTest/**'
+      - '**/desktopTest/**'
+      - '**/test/**'
+  LongMethod:
+    excludes:
+      # detekt's defaults name the older source-set layout, so the Kotlin Multiplatform ones
+      # (`commonTest`, `androidHostTest`, `iosTest`, ...) fall through and get judged as production
+      # code. Test bodies legitimately carry fixture numbers and wide builder signatures.
+      - '**/commonTest/**'
+      - '**/androidHostTest/**'
+      - '**/androidDeviceTest/**'
+      - '**/androidUnitTest/**'
+      - '**/androidInstrumentedTest/**'
+      - '**/iosTest/**'
+      - '**/jvmTest/**'
+      - '**/wasmJsTest/**'
+      - '**/desktopTest/**'
+      - '**/test/**'
 
 exceptions:
+  TooGenericExceptionThrown:
+    excludes:
+      - '**/commonTest/**'
+      - '**/androidHostTest/**'
+      - '**/androidDeviceTest/**'
+      - '**/androidUnitTest/**'
+      - '**/androidInstrumentedTest/**'
+      - '**/iosTest/**'
+      - '**/jvmTest/**'
+      - '**/wasmJsTest/**'
+      - '**/desktopTest/**'
+      - '**/test/**'
   TooGenericExceptionCaught:
     active: true
     allowedExceptionNameRegex: '_|(ignore|expected).*'
@@ -46,6 +106,20 @@ style:
       - 'Composable'
     ignoreEnums: true
     ignorePropertyDeclaration: true
+    excludes:
+      # detekt's defaults name the older source-set layout, so the Kotlin Multiplatform ones
+      # (`commonTest`, `androidHostTest`, `iosTest`, ...) fall through and get judged as production
+      # code. Test bodies legitimately carry fixture numbers and wide builder signatures.
+      - '**/commonTest/**'
+      - '**/androidHostTest/**'
+      - '**/androidDeviceTest/**'
+      - '**/androidUnitTest/**'
+      - '**/androidInstrumentedTest/**'
+      - '**/iosTest/**'
+      - '**/jvmTest/**'
+      - '**/wasmJsTest/**'
+      - '**/desktopTest/**'
+      - '**/test/**'
     ignoreLocalVariableDeclaration: true
     ignoreCompanionObjectPropertyDeclaration: true
     ignoreNamedArgument: true

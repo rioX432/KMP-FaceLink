@@ -201,6 +201,8 @@ public object ParticipantCalibrationDecisionFactory {
         }
     }
 
+    // The arguments are the axes the decision is taken on; each is read independently below.
+    @Suppress("LongParameterList")
     private fun decision(
         input: ParticipantCalibrationDecisionInput,
         signal: DerivedFaceSignal,

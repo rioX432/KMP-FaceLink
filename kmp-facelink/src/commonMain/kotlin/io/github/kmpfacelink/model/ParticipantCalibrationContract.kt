@@ -308,6 +308,11 @@ public data class ParticipantCalibrationDecisionProvenance(
 /**
  * Factory-created sidecar outcome that never mutates the canonical 52-value blend-shape map.
  */
+// Eight independent facts about one decision: which signal, which canonical shape, what the
+// canonical and candidate values were, how to read them, where in the lifecycle it happened, how it
+// was arrived at, and which route produced it. A holder type would carry the same eight and add a
+// name to learn. This is also public API, so the shape is what callers already compile against.
+@Suppress("LongParameterList")
 @ExperimentalFaceLinkApi
 public class DerivedFaceSignalDecision private constructor(
     public val signal: DerivedFaceSignal,
@@ -344,6 +349,8 @@ public class DerivedFaceSignalDecision private constructor(
     }
 
     internal companion object {
+        // Fills the record above; the list is that record's own fields.
+        @Suppress("LongParameterList")
         internal fun create(
             signal: DerivedFaceSignal,
             canonicalValue: Float?,

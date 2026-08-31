@@ -386,9 +386,13 @@ public fun CaptureScreen(
                 autoStartSeconds = guided.secondsRemaining,
                 onPause = ::pauseBetweenTakes,
                 onProgress = { showProgress = true },
-                onRetakeLatest = if (qualificationMode) null else latestStudyTake(slots, history)?.let { take ->
-                    {
-                        retakeTarget = take
+                onRetakeLatest = if (qualificationMode) {
+                    null
+                } else {
+                    latestStudyTake(slots, history)?.let { take ->
+                        {
+                            retakeTarget = take
+                        }
                     }
                 },
             )
@@ -400,56 +404,62 @@ public fun CaptureScreen(
                 history = history,
                 selected = selected,
                 onDismiss = { showProgress = false },
-                onRetake = if (qualificationMode) null else ({ take ->
-                    showProgress = false
-                    retakeTarget = take
-                }),
+                onRetake = if (qualificationMode) {
+                    null
+                } else {
+                    (
+                        { take ->
+                            showProgress = false
+                            retakeTarget = take
+                        }
+                        )
+                },
             )
         }
         retakeTarget?.takeIf { guided.stage != GuidedCaptureStage.TERMINATED }
             ?.takeIf { !qualificationMode }
             ?.let { take ->
-            DeleteRetakeSheet(
-                take = take,
-                enabled = !deleting,
-                onDismiss = { if (!deleting) retakeTarget = null },
-                onDelete = {
-                    if (
-                        deleting ||
-                        guidedFlow.snapshot.stage == GuidedCaptureStage.TERMINATED
-                    ) {
-                        return@DeleteRetakeSheet
-                    }
-                    deleting = true
-                    scope.launch {
-                        runTerminalAwareRetakeDelete(
-                            isTerminal = {
-                                guidedFlow.snapshot.stage == GuidedCaptureStage.TERMINATED
-                            },
-                            delete = { deleteStudyTake(session, take) },
-                            onSuccess = {
-                                savedTake = null
-                                selected = slots.firstOrNull {
-                                    it.scenario == take.scenario && it.attempt == take.attempt
-                                } ?: nextIncompleteTake(slots, takeRecords.value)
-                                guided = if (guided.stage == GuidedCaptureStage.INTRO) {
-                                    guided
-                                } else {
-                                    guidedFlow.prepareNext()
-                                }
-                                retakeTarget = null
-                            },
-                            onFailure = {
-                                failure = "撮り直しの準備ができませんでした。もう一度お試しください。"
-                            },
-                        )
-                        if (guidedFlow.snapshot.stage != GuidedCaptureStage.TERMINATED) {
-                            deleting = false
+                DeleteRetakeSheet(
+                    take = take,
+                    enabled = !deleting,
+                    onDismiss = { if (!deleting) retakeTarget = null },
+                    onDelete = {
+                        if (
+                            deleting ||
+                            guidedFlow.snapshot.stage == GuidedCaptureStage.TERMINATED
+                        ) {
+                            return@DeleteRetakeSheet
                         }
-                    }
-                },
-            )
-        }
+                        deleting = true
+                        scope.launch {
+                            runTerminalAwareRetakeDelete(
+                                isTerminal = {
+                                    guidedFlow.snapshot.stage == GuidedCaptureStage.TERMINATED
+                                },
+                                delete = { deleteStudyTake(session, take) },
+                                onSuccess = {
+                                    savedTake = null
+                                    selected = slots.firstOrNull {
+                                        it.scenario == take.scenario && it.attempt == take.attempt
+                                    } ?: nextIncompleteTake(slots, takeRecords.value)
+                                    guided = if (guided.stage == GuidedCaptureStage.INTRO) {
+                                        guided
+                                    } else {
+                                        guidedFlow.prepareNext()
+                                    }
+                                    retakeTarget = null
+                                },
+                                onFailure = {
+                                    failure = "撮り直しの準備ができませんでした。もう一度お試しください。"
+                                },
+                            )
+                            if (guidedFlow.snapshot.stage != GuidedCaptureStage.TERMINATED) {
+                                deleting = false
+                            }
+                        }
+                    },
+                )
+            }
     }
 }
 

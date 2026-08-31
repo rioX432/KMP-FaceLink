@@ -29,6 +29,10 @@ import java.util.UUID
  * directory. Nothing is ever written over: a take id is the timestamp plus the scenario plus the
  * attempt, and a collision means a bug rather than a retake.
  */
+// The seven are the identity of a run: where it lives, what model produced it, which protocol and
+// storage profile it must match, and whether an existing run may be rotated. A holder would carry
+// the same seven and hide which ones a caller is allowed to vary.
+@Suppress("LongParameterList")
 internal class CaptureStore(
     context: Context,
     private val modelAssetPath: String,
@@ -176,6 +180,9 @@ internal fun loadOrCreateAndroidStudyRun(
     val restored = runCatching {
         rawFrameJson.decodeFromString<StudyRunIdentity>(active.readText())
     }.getOrNull()
+    // Rotation is refused only when every part of the restored identity still matches; listing the
+    // parts separately is what makes a mismatch readable in the failure message below.
+    @Suppress("ComplexCondition")
     if (
         refuseActiveRunRotation && restored != null &&
         !(

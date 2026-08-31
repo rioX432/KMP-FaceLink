@@ -7,11 +7,14 @@ package io.github.kmpfacelink.model
  * - (0, 0) is the top-left corner of the image
  * - (1, 1) is the bottom-right corner of the image
  *
+ * This type carries image-normalized x/y coordinates and adapter-defined z; the depth is whatever
+ * the adapter measured it against, not a third normalized axis.
+ *
  * Everything beyond x and y is optional, because not every estimator produces it. A 2D landmark
  * model has no depth to report, and an estimator that reports depth is not reporting it on the same
- * scale as x and y. Making those fields nullable is what keeps "this estimator does not measure
- * depth" from arriving as a confident depth of zero — a value that reads as a real measurement and
- * that downstream geometry will happily compute with.
+ * scale as x and y. These fields are nullable because 0.0 does not distinguish measured zero from
+ * missing metadata: a confident depth of zero reads as a real measurement, and downstream geometry
+ * will happily compute with it.
  *
  * The current Android MediaPipe adapter supplies 478 landmarks per face. The current iOS ARKit
  * adapter does not populate this type: ARKit's native face-geometry vertices use a different,

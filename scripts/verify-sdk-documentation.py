@@ -57,12 +57,22 @@ def contract_violations(
 ) -> list[str]:
     violations: list[str] = []
 
+    def flowed(path: str) -> str:
+        """The document with line breaks, indentation and KDoc leaders collapsed to single spaces.
+
+        A required sentence is a claim, and a claim does not stop being made because the formatter
+        wrapped it. Matching the raw text meant a phrase that happened to straddle a line break —
+        `ARKit` at the end of one KDoc line, `adapter` after the ` * ` of the next — was reported
+        missing while it was sitting right there. Collapsing first makes the check about the words.
+        """
+        return re.sub(r"\s+", " ", re.sub(r"(?m)^\s*\*[ \t]?", " ", documents[path]))
+
     def require(path: str, token: str) -> None:
-        if token not in documents[path]:
+        if re.sub(r"\s+", " ", token) not in flowed(path):
             violations.append(f"{path}: missing required text {token!r}")
 
     def reject(path: str, token: str) -> None:
-        if token in documents[path]:
+        if re.sub(r"\s+", " ", token) in flowed(path):
             violations.append(f"{path}: forbidden stale text {token!r}")
 
     require("AGENTS.md", f"MediaPipe {mediapipe}, CameraX {camera_x}")

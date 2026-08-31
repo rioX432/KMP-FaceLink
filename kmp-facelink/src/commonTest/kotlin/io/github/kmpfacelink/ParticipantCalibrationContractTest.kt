@@ -3,10 +3,10 @@ package io.github.kmpfacelink
 import io.github.kmpfacelink.model.BlendShape
 import io.github.kmpfacelink.model.BlendShapeEnhancerConfig
 import io.github.kmpfacelink.model.BlendShapeRoute
-import io.github.kmpfacelink.model.DimensionValue
 import io.github.kmpfacelink.model.DerivedFaceSignal
 import io.github.kmpfacelink.model.DerivedFaceSignalSample
 import io.github.kmpfacelink.model.DerivedFaceSignalValueSemantics
+import io.github.kmpfacelink.model.DimensionValue
 import io.github.kmpfacelink.model.EstimatorArtifact
 import io.github.kmpfacelink.model.EvidenceAcceptance
 import io.github.kmpfacelink.model.EvidenceScope

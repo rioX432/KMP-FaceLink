@@ -12,6 +12,12 @@ import java.nio.file.StandardCopyOption
 import java.security.MessageDigest
 import java.time.Instant
 
+/** Position of the frame payload stream in the fixed 12-slot protocol's file list. */
+private const val FRAME_STREAM_INDEX: Int = 4
+
+/** Position of the per-frame index stream in the same list. */
+private const val FRAME_INDEX_STREAM_INDEX: Int = 5
+
 /** Android-local, score-blind lifecycle for the one frozen 12-slot qualification run. */
 internal class AndroidParticipantQualificationManager(
     private val root: File,
@@ -105,6 +111,10 @@ internal class AndroidParticipantQualificationManager(
         val current = _state.value
         check(current.phase == ParticipantQualificationPhase.OPEN) { "qualification run is not open" }
         check(current.activeSlotKey == null) { "qualification attempt is still active" }
+        // Anything that goes wrong while sealing has to mark the slot as failed before it
+        // propagates, or the run is left looking incomplete rather than broken. The failure itself
+        // is rethrown unchanged.
+        @Suppress("TooGenericExceptionCaught")
         val seal = try {
             buildSeal()
         } catch (failure: Throwable) {
@@ -168,6 +178,10 @@ internal class AndroidParticipantQualificationManager(
         )
     }
 
+    // The seal is written as one transaction: state, manifest, stream lengths and digest have to
+    // agree at the moment they are recorded, and splitting the write leaves a slot that says it is
+    // sealed against files that are not.
+    @Suppress("LongMethod")
     private fun sealSlot(
         slot: StudyTakeSlot,
         record: StudyTakeRecord,
@@ -228,9 +242,9 @@ internal class AndroidParticipantQualificationManager(
             File(File(directory, AndroidCaptureSession.FRAMES_DIR), RawFrameFormat.INDEX_FILE),
         )
         require(
-            actualStreamFiles[4].length() ==
+            actualStreamFiles[FRAME_STREAM_INDEX].length() ==
                 frameManifest.frameCount.toLong() * frameManifest.bytesPerFrame &&
-                actualStreamFiles[5].length() ==
+                actualStreamFiles[FRAME_INDEX_STREAM_INDEX].length() ==
                 frameManifest.frameCount.toLong() * frameManifest.indexRecordBytes,
         ) { "qualification frame stream length mismatch" }
         val actualStreamHashes = actualStreamFiles.map { stream ->

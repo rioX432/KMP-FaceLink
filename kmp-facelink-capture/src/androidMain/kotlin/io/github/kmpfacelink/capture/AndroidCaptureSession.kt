@@ -102,6 +102,10 @@ public class AndroidCaptureSession(
         try {
             landmarker = StudyLandmarker(context, modelAssetPath)
             store = openedStore
+            // detekt reads this as unreachable; it is not. The value is read at `qualification`
+            // below and by the three participant-qualification entry points near the end of the
+            // file. Assigning a declared `val` from the constructor body is what confuses it.
+            @Suppress("UnreachableCode")
             participantQualificationManager = participantQualificationEvidence?.let { evidence ->
                 AndroidParticipantQualificationManager(
                     root = openedStore.root,
@@ -317,6 +321,9 @@ public class AndroidCaptureSession(
         }
     }
 
+    // Each throw is a distinct refusal a caller must be able to tell apart, and collapsing them
+    // into one would lose which of them happened.
+    @Suppress("ThrowsCount")
     private suspend fun recordUnchecked(
         scenario: CaptureScenario,
         storageProfile: CaptureStorageProfile,

@@ -3105,6 +3105,15 @@ sealed class io.github.kmpfacelink.model/ThermalPolicy { // io.github.kmpfacelin
     }
 }
 
+final object io.github.kmpfacelink.model/BlendShapeWireSchema { // io.github.kmpfacelink.model/BlendShapeWireSchema|null[0]
+    final val CHANNEL_COUNT // io.github.kmpfacelink.model/BlendShapeWireSchema.CHANNEL_COUNT|{}CHANNEL_COUNT[0]
+        final fun <get-CHANNEL_COUNT>(): kotlin/Int // io.github.kmpfacelink.model/BlendShapeWireSchema.CHANNEL_COUNT.<get-CHANNEL_COUNT>|<get-CHANNEL_COUNT>(){}[0]
+    final val FINGERPRINT // io.github.kmpfacelink.model/BlendShapeWireSchema.FINGERPRINT|{}FINGERPRINT[0]
+        final fun <get-FINGERPRINT>(): kotlin/Int // io.github.kmpfacelink.model/BlendShapeWireSchema.FINGERPRINT.<get-FINGERPRINT>|<get-FINGERPRINT>(){}[0]
+
+    final fun observedMaskByOrdinal(kotlin.collections/Map<io.github.kmpfacelink.model/BlendShape, kotlin/Float>): kotlin/Long // io.github.kmpfacelink.model/BlendShapeWireSchema.observedMaskByOrdinal|observedMaskByOrdinal(kotlin.collections.Map<io.github.kmpfacelink.model.BlendShape,kotlin.Float>){}[0]
+}
+
 final object io.github.kmpfacelink.model/CanonicalContextFingerprint { // io.github.kmpfacelink.model/CanonicalContextFingerprint|null[0]
     final fun computeConfiguration(io.github.kmpfacelink.model/TrackingContextEpoch): kotlin/String // io.github.kmpfacelink.model/CanonicalContextFingerprint.computeConfiguration|computeConfiguration(io.github.kmpfacelink.model.TrackingContextEpoch){}[0]
     final fun computeEpoch(io.github.kmpfacelink.model/TrackingContextEpoch): kotlin/String // io.github.kmpfacelink.model/CanonicalContextFingerprint.computeEpoch|computeEpoch(io.github.kmpfacelink.model.TrackingContextEpoch){}[0]
@@ -3132,6 +3141,7 @@ final object io.github.kmpfacelink.model/LiveLinkBlendShapes { // io.github.kmpf
         final fun <get-order>(): kotlin.collections/List<io.github.kmpfacelink.model/BlendShape> // io.github.kmpfacelink.model/LiveLinkBlendShapes.order.<get-order>|<get-order>(){}[0]
 
     final fun lower(kotlin.collections/Map<io.github.kmpfacelink.model/BlendShape, kotlin/Float>): kotlin/FloatArray // io.github.kmpfacelink.model/LiveLinkBlendShapes.lower|lower(kotlin.collections.Map<io.github.kmpfacelink.model.BlendShape,kotlin.Float>){}[0]
+    final fun observedMask(kotlin.collections/Map<io.github.kmpfacelink.model/BlendShape, kotlin/Float>): kotlin/Long // io.github.kmpfacelink.model/LiveLinkBlendShapes.observedMask|observedMask(kotlin.collections.Map<io.github.kmpfacelink.model.BlendShape,kotlin.Float>){}[0]
     final fun ordinalToLiveLinkIndex(): kotlin/IntArray // io.github.kmpfacelink.model/LiveLinkBlendShapes.ordinalToLiveLinkIndex|ordinalToLiveLinkIndex(){}[0]
 }
 

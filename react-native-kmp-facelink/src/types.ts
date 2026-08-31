@@ -2,8 +2,19 @@ import type { BlendShapeName } from './BlendShape';
 
 /** Parsed face tracking data from the binary buffer. */
 export interface FaceTrackingData {
-  /** 52 blend shape values (0.0 - 1.0), indexed by BlendShape ordinal. */
+  /**
+   * 52 float slots indexed by BlendShape ordinal.
+   *
+   * A slot the estimator did not produce still occupies four bytes on the wire. Consult
+   * {@link isObserved} before reading one directly, or use {@link valueOrNull}, which does it.
+   */
   blendShapes: Float32Array;
+
+  /** Whether the estimator produced a value for this ordinal in this frame. */
+  isObserved: (ordinal: number) => boolean;
+
+  /** The value for this ordinal, or null when the estimator did not produce it. */
+  valueOrNull: (ordinal: number) => number | null;
 
   /** Head transform: pitch, yaw, roll (radians), posX, posY, posZ (meters). */
   headTransform: Float32Array;

@@ -10,6 +10,7 @@ import io.github.kmpfacelink.api.PlatformContext
 import io.github.kmpfacelink.api.createFaceTracker
 import io.github.kmpfacelink.api.createHandTracker
 import io.github.kmpfacelink.model.BlendShape
+import io.github.kmpfacelink.model.BlendShapeWireSchema
 import io.github.kmpfacelink.model.FaceTrackingData
 import io.github.kmpfacelink.model.HandTrackingData
 import kotlinx.coroutines.CoroutineScope
@@ -123,13 +124,29 @@ class FaceLinkModule(
     fun isTracking(): Boolean = tracking
 
     /**
-     * Returns the latest face data as a binary buffer.
+     * Returns the latest face data as a binary buffer, in wire format v2.
      *
-     * Layout: float32[52] blendShapes + float32[6] headTransform + uint8 isTracking
-     * Total: 233 bytes
+     * Layout, little-endian:
+     *   uint32 magic
+     *   uint16 protocolVersion
+     *   uint16 channelCount
+     *   uint32 schemaFingerprint
+     *   uint32 observedMaskLow
+     *   uint32 observedMaskHigh
+     *   float32[52] values
+     *   float32[6] headTransform
+     *   uint8 isTracking
+     *
+     * The mask is what makes this v2 rather than a renamed v1: the value slots are a fixed-size
+     * transport, so a shape the estimator never produced still occupies four bytes. Without a mask
+     * those bytes read as a measured zero. A reader must consult the mask before a value.
+     *
+     * The old method name is gone rather than kept as an alias. A JavaScript bundle built against
+     * v1 now fails on a missing method instead of decoding v2 bytes against the v1 layout, which
+     * would misread every field after the header.
      */
     @ReactMethod(isBlockingSynchronousMethod = true)
-    fun getLatestFaceData(): ByteArray? {
+    fun getLatestFaceDataV2(): ByteArray? {
         val data = latestFaceData.get() ?: return null
         return encodeFaceData(data)
     }
@@ -153,9 +170,16 @@ class FaceLinkModule(
     companion object {
         const val NAME = "FaceLinkModule"
 
-        private const val BLEND_SHAPE_COUNT = 52
+        private val BLEND_SHAPE_COUNT = BlendShapeWireSchema.CHANNEL_COUNT
         private const val HEAD_TRANSFORM_FLOATS = 6
-        private const val FACE_BUFFER_SIZE = (BLEND_SHAPE_COUNT + HEAD_TRANSFORM_FLOATS) * 4 + 1
+
+        /** "FLNK" little-endian, so a reader can reject a buffer that is not ours at byte 0. */
+        private const val FACE_WIRE_MAGIC = 0x4B4E4C46
+        private const val FACE_WIRE_VERSION = 2
+        private const val FACE_HEADER_BYTES = 4 + 2 + 2 + 4 + 4 + 4
+        private const val FACE_BUFFER_SIZE =
+            FACE_HEADER_BYTES + (BLEND_SHAPE_COUNT + HEAD_TRANSFORM_FLOATS) * 4 + 1
+
         private const val LANDMARKS_PER_HAND = 63
         private const val HAND_BLOCK_BYTES = LANDMARKS_PER_HAND * 4 + 4
 
@@ -163,11 +187,27 @@ class FaceLinkModule(
             val buffer = ByteBuffer.allocate(FACE_BUFFER_SIZE)
                 .order(ByteOrder.LITTLE_ENDIAN)
 
-            // Write 52 blend shapes in ordinal order
+            // Which shapes this frame actually carries. Slots outside the mask are padding.
+            var observedLow = 0
+            var observedHigh = 0
             val blendShapes = FloatArray(BLEND_SHAPE_COUNT)
             for (entry in data.blendShapes) {
-                blendShapes[entry.key.ordinal] = entry.value
+                val ordinal = entry.key.ordinal
+                blendShapes[ordinal] = entry.value
+                if (ordinal < Int.SIZE_BITS) {
+                    observedLow = observedLow or (1 shl ordinal)
+                } else {
+                    observedHigh = observedHigh or (1 shl (ordinal - Int.SIZE_BITS))
+                }
             }
+
+            buffer.putInt(FACE_WIRE_MAGIC)
+            buffer.putShort(FACE_WIRE_VERSION.toShort())
+            buffer.putShort(BLEND_SHAPE_COUNT.toShort())
+            buffer.putInt(BlendShapeWireSchema.FINGERPRINT)
+            buffer.putInt(observedLow)
+            buffer.putInt(observedHigh)
+
             for (value in blendShapes) {
                 buffer.putFloat(value)
             }

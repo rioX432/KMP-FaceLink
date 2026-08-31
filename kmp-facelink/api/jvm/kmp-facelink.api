@@ -406,6 +406,13 @@ public final class io/github/kmpfacelink/model/BlendShapeSchema {
 	public fun toString ()Ljava/lang/String;
 }
 
+public final class io/github/kmpfacelink/model/BlendShapeWireSchema {
+	public static final field INSTANCE Lio/github/kmpfacelink/model/BlendShapeWireSchema;
+	public final fun getCHANNEL_COUNT ()I
+	public final fun getFINGERPRINT ()I
+	public final fun observedMaskByOrdinal (Ljava/util/Map;)J
+}
+
 public final class io/github/kmpfacelink/model/Body3DConfig {
 	public static final field Companion Lio/github/kmpfacelink/model/Body3DConfig$Companion;
 	public static final field DEFAULT_SHOULDER_REFERENCE_WIDTH F
@@ -1489,6 +1496,7 @@ public final class io/github/kmpfacelink/model/LiveLinkBlendShapes {
 	public final fun getNames ()Ljava/util/List;
 	public final fun getOrder ()Ljava/util/List;
 	public final fun lower (Ljava/util/Map;)[F
+	public final fun observedMask (Ljava/util/Map;)J
 	public final fun ordinalToLiveLinkIndex ()[I
 }
 

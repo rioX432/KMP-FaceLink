@@ -41,10 +41,30 @@ int64_t KmpFaceLink_GetLatestFaceTimestamp(void);
 //
 // LEGACY ordering: indexed by KMP-FaceLink's BlendShape.ordinal (anatomical groups:
 // eyes, jaw, mouth, brow, cheek, nose, tongue). The channel ORDER is a stable binary
-// contract — kept unchanged. (Absent channels are 0-filled per frame; in practice the
-// tracker emits all 52 every frame, so this is not observable.) Prefer
+// contract — kept unchanged. Channels the tracker did not produce are 0-filled, and that
+// zero is indistinguishable from a measured rest value: call
+// KmpFaceLink_GetLatestBlendShapeMask to learn which channels carry a measurement.
+// Trackers differ here — the desktop estimator produces well under 52 — so a consumer
+// that ignores the mask will read shapes it was never given. Prefer
 // KmpFaceLink_GetLatestBlendShapesLiveLink for new consumers.
 void KmpFaceLink_GetLatestBlendShapes(float* blendShapes, int count);
+
+// Writes the bit set of channels that carry a measurement in the most recent frame, for
+// the ordering used by KmpFaceLink_GetLatestBlendShapes. Bit i corresponds to channel i;
+// `low` receives channels 0-31 and `high` channels 32-51. A cleared bit means the tracker
+// did not produce that channel and the float in its slot is padding, not a value.
+void KmpFaceLink_GetLatestBlendShapeMask(uint32_t* low, uint32_t* high);
+
+// The same bit set for the ordering used by KmpFaceLink_GetLatestBlendShapesLiveLink.
+// The two orderings differ, so the masks are not interchangeable.
+void KmpFaceLink_GetLatestBlendShapeMaskLiveLink(uint32_t* low, uint32_t* high);
+
+// FNV-1a over the blend shape names in ordinal order, as computed by the Kotlin
+// BlendShapeWireSchema. A consumer that keeps its own copy of the channel order compares
+// this against a fingerprint over its own table: they diverge the moment a shape is added,
+// renamed or reordered on one side, which is otherwise undetectable because every channel
+// still decodes to a plausible float.
+int32_t KmpFaceLink_GetBlendShapeSchemaFingerprint(void);
 
 // Copies up to `count` blend shape floats (max 52) into the caller's buffer, in
 // canonical ARKit Live Link Face wire order (== Apple ARFaceAnchor.BlendShapeLocation

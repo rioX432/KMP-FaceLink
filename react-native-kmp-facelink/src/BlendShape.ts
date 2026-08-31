@@ -89,3 +89,25 @@ export const BLEND_SHAPE_COUNT = 52;
 
 /** Number of head transform floats (pitch, yaw, roll, posX, posY, posZ). */
 export const HEAD_TRANSFORM_COUNT = 6;
+
+/**
+ * FNV-1a over the blend shape names in ordinal order.
+ *
+ * The native side computes the same hash over its own enum and writes it into every face buffer.
+ * This table is hand-written, so without that check a shape added or reordered natively would shift
+ * every ordinal past it, and each value would be read as a believable number for the wrong
+ * expression — no crash, no type error, just quietly wrong faces.
+ */
+export function schemaFingerprint(): number {
+  const names = Object.keys(BlendShape) as BlendShapeName[];
+  const ordered = names
+    .slice()
+    .sort((a, b) => BlendShape[a] - BlendShape[b])
+    .join(',');
+  let hash = 0x811c9dc5;
+  for (let i = 0; i < ordered.length + 1; i += 1) {
+    const code = i < ordered.length ? ordered.charCodeAt(i) : ','.charCodeAt(0);
+    hash = Math.imul(hash ^ code, 16777619);
+  }
+  return hash | 0;
+}

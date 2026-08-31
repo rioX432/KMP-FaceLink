@@ -12,6 +12,7 @@ import io.github.kmpfacelink.model.BlendShape
 import io.github.kmpfacelink.model.FaceTrackingData
 import io.github.kmpfacelink.model.HandTrackingData
 import io.github.kmpfacelink.model.Handedness
+import io.github.kmpfacelink.model.BlendShapeWireSchema
 import io.github.kmpfacelink.model.LiveLinkBlendShapes
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -133,6 +134,32 @@ class FaceLinkBridgeFacade(
         val data = latestFaceData.get() ?: return null
         return LiveLinkBlendShapes.lower(data.blendShapes)
     }
+
+    /**
+     * Bit set of the channels [getLatestBlendShapes] filled from a measurement.
+     *
+     * The float array is fixed at 52 slots whatever the tracker produced, so a slot for an
+     * unproduced shape holds `0f` and reads exactly like a measured rest value. Estimators differ
+     * in what they produce, so a consumer that skips this mask will act on shapes it never
+     * received. Returns 0 when no face data is available.
+     */
+    fun getLatestBlendShapeMask(): Long {
+        val data = latestFaceData.get() ?: return 0L
+        return BlendShapeWireSchema.observedMaskByOrdinal(data.blendShapes)
+    }
+
+    /**
+     * The same bit set for [getLatestBlendShapesLiveLink].
+     *
+     * The two orderings differ, so the masks are not interchangeable.
+     */
+    fun getLatestBlendShapeMaskLiveLink(): Long {
+        val data = latestFaceData.get() ?: return 0L
+        return LiveLinkBlendShapes.observedMask(data.blendShapes)
+    }
+
+    /** FNV-1a over the blend shape names in ordinal order; see [BlendShapeWireSchema]. */
+    fun getBlendShapeSchemaFingerprint(): Int = BlendShapeWireSchema.FINGERPRINT
 
     /**
      * Returns head transform as 6 floats: [pitch, yaw, roll, posX, posY, posZ].

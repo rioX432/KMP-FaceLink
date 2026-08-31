@@ -1408,8 +1408,8 @@ final class io.github.kmpfacelink.model/CapabilityAssessment { // io.github.kmpf
 }
 
 final class io.github.kmpfacelink.model/DensifiedBlendShapes { // io.github.kmpfacelink.model/DensifiedBlendShapes|null[0]
-    final val measured // io.github.kmpfacelink.model/DensifiedBlendShapes.measured|{}measured[0]
-        final fun <get-measured>(): kotlin.collections/Set<io.github.kmpfacelink.model/BlendShape> // io.github.kmpfacelink.model/DensifiedBlendShapes.measured.<get-measured>|<get-measured>(){}[0]
+    final val present // io.github.kmpfacelink.model/DensifiedBlendShapes.present|{}present[0]
+        final fun <get-present>(): kotlin.collections/Set<io.github.kmpfacelink.model/BlendShape> // io.github.kmpfacelink.model/DensifiedBlendShapes.present.<get-present>|<get-present>(){}[0]
     final val substitute // io.github.kmpfacelink.model/DensifiedBlendShapes.substitute|{}substitute[0]
         final fun <get-substitute>(): kotlin/Float // io.github.kmpfacelink.model/DensifiedBlendShapes.substitute.<get-substitute>|<get-substitute>(){}[0]
     final val substitutedCount // io.github.kmpfacelink.model/DensifiedBlendShapes.substitutedCount|{}substitutedCount[0]
@@ -1417,7 +1417,7 @@ final class io.github.kmpfacelink.model/DensifiedBlendShapes { // io.github.kmpf
     final val values // io.github.kmpfacelink.model/DensifiedBlendShapes.values|{}values[0]
         final fun <get-values>(): kotlin/FloatArray // io.github.kmpfacelink.model/DensifiedBlendShapes.values.<get-values>|<get-values>(){}[0]
 
-    final fun wasMeasured(io.github.kmpfacelink.model/BlendShape): kotlin/Boolean // io.github.kmpfacelink.model/DensifiedBlendShapes.wasMeasured|wasMeasured(io.github.kmpfacelink.model.BlendShape){}[0]
+    final fun isPresent(io.github.kmpfacelink.model/BlendShape): kotlin/Boolean // io.github.kmpfacelink.model/DensifiedBlendShapes.isPresent|isPresent(io.github.kmpfacelink.model.BlendShape){}[0]
 }
 
 final class io.github.kmpfacelink.model/DerivedFaceSignalDecision { // io.github.kmpfacelink.model/DerivedFaceSignalDecision|null[0]
@@ -3124,7 +3124,7 @@ final object io.github.kmpfacelink.model/BlendShapeWireSchema { // io.github.kmp
     final val FINGERPRINT // io.github.kmpfacelink.model/BlendShapeWireSchema.FINGERPRINT|{}FINGERPRINT[0]
         final fun <get-FINGERPRINT>(): kotlin/Int // io.github.kmpfacelink.model/BlendShapeWireSchema.FINGERPRINT.<get-FINGERPRINT>|<get-FINGERPRINT>(){}[0]
 
-    final fun observedMaskByOrdinal(kotlin.collections/Map<io.github.kmpfacelink.model/BlendShape, kotlin/Float>): kotlin/Long // io.github.kmpfacelink.model/BlendShapeWireSchema.observedMaskByOrdinal|observedMaskByOrdinal(kotlin.collections.Map<io.github.kmpfacelink.model.BlendShape,kotlin.Float>){}[0]
+    final fun presentMaskByOrdinal(kotlin.collections/Map<io.github.kmpfacelink.model/BlendShape, kotlin/Float>): kotlin/Long // io.github.kmpfacelink.model/BlendShapeWireSchema.presentMaskByOrdinal|presentMaskByOrdinal(kotlin.collections.Map<io.github.kmpfacelink.model.BlendShape,kotlin.Float>){}[0]
 }
 
 final object io.github.kmpfacelink.model/CanonicalContextFingerprint { // io.github.kmpfacelink.model/CanonicalContextFingerprint|null[0]
@@ -3154,8 +3154,8 @@ final object io.github.kmpfacelink.model/LiveLinkBlendShapes { // io.github.kmpf
         final fun <get-order>(): kotlin.collections/List<io.github.kmpfacelink.model/BlendShape> // io.github.kmpfacelink.model/LiveLinkBlendShapes.order.<get-order>|<get-order>(){}[0]
 
     final fun lower(kotlin.collections/Map<io.github.kmpfacelink.model/BlendShape, kotlin/Float>): kotlin/FloatArray // io.github.kmpfacelink.model/LiveLinkBlendShapes.lower|lower(kotlin.collections.Map<io.github.kmpfacelink.model.BlendShape,kotlin.Float>){}[0]
-    final fun observedMask(kotlin.collections/Map<io.github.kmpfacelink.model/BlendShape, kotlin/Float>): kotlin/Long // io.github.kmpfacelink.model/LiveLinkBlendShapes.observedMask|observedMask(kotlin.collections.Map<io.github.kmpfacelink.model.BlendShape,kotlin.Float>){}[0]
     final fun ordinalToLiveLinkIndex(): kotlin/IntArray // io.github.kmpfacelink.model/LiveLinkBlendShapes.ordinalToLiveLinkIndex|ordinalToLiveLinkIndex(){}[0]
+    final fun presentMask(kotlin.collections/Map<io.github.kmpfacelink.model/BlendShape, kotlin/Float>): kotlin/Long // io.github.kmpfacelink.model/LiveLinkBlendShapes.presentMask|presentMask(kotlin.collections.Map<io.github.kmpfacelink.model.BlendShape,kotlin.Float>){}[0]
 }
 
 final object io.github.kmpfacelink.model/ParticipantCalibrationDecisionFactory { // io.github.kmpfacelink.model/ParticipantCalibrationDecisionFactory|null[0]

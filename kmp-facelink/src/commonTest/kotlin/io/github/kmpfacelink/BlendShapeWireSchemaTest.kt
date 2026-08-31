@@ -74,7 +74,7 @@ class BlendShapeWireSchemaTest {
     @Test
     fun theMaskMarksOnlyTheShapesTheEstimatorProduced() {
         val measured = mapOf(BlendShape.JAW_OPEN to 0.4f, BlendShape.CHEEK_PUFF to 0f)
-        val mask = BlendShapeWireSchema.observedMaskByOrdinal(measured)
+        val mask = BlendShapeWireSchema.presentMaskByOrdinal(measured)
         for (shape in BlendShape.entries) {
             val bitSet = (mask and (1L shl shape.ordinal)) != 0L
             assertEquals(shape in measured, bitSet, "$shape")
@@ -85,13 +85,13 @@ class BlendShapeWireSchemaTest {
     fun aShapeMeasuredAtZeroIsStillMarkedObserved() {
         // This is the case the mask exists for: the wire slot holds 0f either way, and only the
         // mask says whether an estimator put it there.
-        val mask = BlendShapeWireSchema.observedMaskByOrdinal(mapOf(BlendShape.CHEEK_PUFF to 0f))
+        val mask = BlendShapeWireSchema.presentMaskByOrdinal(mapOf(BlendShape.CHEEK_PUFF to 0f))
         assertNotEquals(0L, mask and (1L shl BlendShape.CHEEK_PUFF.ordinal))
     }
 
     @Test
     fun anEmptyFrameMarksNothingObserved() {
-        assertEquals(0L, BlendShapeWireSchema.observedMaskByOrdinal(emptyMap()))
+        assertEquals(0L, BlendShapeWireSchema.presentMaskByOrdinal(emptyMap()))
     }
 
     @Test
@@ -100,15 +100,15 @@ class BlendShapeWireSchemaTest {
         // mark the wrong channels. Pin that they are genuinely different.
         val measured = mapOf(BlendShape.JAW_OPEN to 0.4f)
         assertNotEquals(
-            BlendShapeWireSchema.observedMaskByOrdinal(measured),
-            LiveLinkBlendShapes.observedMask(measured),
+            BlendShapeWireSchema.presentMaskByOrdinal(measured),
+            LiveLinkBlendShapes.presentMask(measured),
         )
     }
 
     @Test
     fun everyChannelLoweredFromAMeasurementIsMarkedInTheLiveLinkMask() {
         val measured = BlendShape.entries.take(10).associateWith { 0.5f }
-        val mask = LiveLinkBlendShapes.observedMask(measured)
+        val mask = LiveLinkBlendShapes.presentMask(measured)
         val lowered = LiveLinkBlendShapes.lower(measured)
         var marked = 0
         for (i in lowered.indices) {

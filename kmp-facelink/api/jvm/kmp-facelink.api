@@ -410,7 +410,7 @@ public final class io/github/kmpfacelink/model/BlendShapeWireSchema {
 	public static final field INSTANCE Lio/github/kmpfacelink/model/BlendShapeWireSchema;
 	public final fun getCHANNEL_COUNT ()I
 	public final fun getFINGERPRINT ()I
-	public final fun observedMaskByOrdinal (Ljava/util/Map;)J
+	public final fun presentMaskByOrdinal (Ljava/util/Map;)J
 }
 
 public final class io/github/kmpfacelink/model/Body3DConfig {
@@ -700,11 +700,11 @@ public final class io/github/kmpfacelink/model/CapabilityState : java/lang/Enum 
 }
 
 public final class io/github/kmpfacelink/model/DensifiedBlendShapes {
-	public final fun getMeasured ()Ljava/util/Set;
+	public final fun getPresent ()Ljava/util/Set;
 	public final fun getSubstitute ()F
 	public final fun getSubstitutedCount ()I
 	public final fun getValues ()[F
-	public final fun wasMeasured (Lio/github/kmpfacelink/model/BlendShape;)Z
+	public final fun isPresent (Lio/github/kmpfacelink/model/BlendShape;)Z
 }
 
 public final class io/github/kmpfacelink/model/DensifiedBlendShapesKt {
@@ -1509,8 +1509,8 @@ public final class io/github/kmpfacelink/model/LiveLinkBlendShapes {
 	public final fun getNames ()Ljava/util/List;
 	public final fun getOrder ()Ljava/util/List;
 	public final fun lower (Ljava/util/Map;)[F
-	public final fun observedMask (Ljava/util/Map;)J
 	public final fun ordinalToLiveLinkIndex ()[I
+	public final fun presentMask (Ljava/util/Map;)J
 }
 
 public final class io/github/kmpfacelink/model/MeasuredOutputCondition {

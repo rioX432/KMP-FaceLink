@@ -121,16 +121,17 @@ public class FaceLinkUnityFacade(
     }
 
     /**
-     * Bit set of the channels [getLatestBlendShapes] filled from a measurement, by ordinal.
+     * Bit set of the channels [getLatestBlendShapes] filled from a value, by ordinal.
      *
      * The array has a slot for every shape whether or not the estimator produced it, so a slot for
-     * an unproduced shape holds `0f` and reads exactly like a measured rest value. Estimators
+     * an absent shape holds `0f` and reads exactly like a value that was really there. Estimators
      * differ in what they produce, so a consumer that skips this mask will act on shapes it never
-     * received. Returns 0 when no face data is available.
+     * received. The bit does not say where the value came from. Returns 0 when no face data is
+     * available.
      */
     public fun getLatestBlendShapeMask(): Long {
         val data = latestFaceData.get() ?: return 0L
-        return BlendShapeWireSchema.observedMaskByOrdinal(data.blendShapes)
+        return BlendShapeWireSchema.presentMaskByOrdinal(data.blendShapes)
     }
 
     /**
@@ -140,7 +141,7 @@ public class FaceLinkUnityFacade(
      */
     public fun getLatestBlendShapeMaskLiveLink(): Long {
         val data = latestFaceData.get() ?: return 0L
-        return LiveLinkBlendShapes.observedMask(data.blendShapes)
+        return LiveLinkBlendShapes.presentMask(data.blendShapes)
     }
 
     /** FNV-1a over the blend shape names in ordinal order; see [BlendShapeWireSchema]. */
@@ -193,7 +194,7 @@ public class FaceLinkUnityFacade(
         private const val HAND_LANDMARK_COUNT = 21
         private const val COORDINATES_PER_LANDMARK = 3
 
-        // Unmeasured shapes arrive here as `substitute`, and `densify` keeps the record of which
+        // Absent shapes arrive here as `substitute`, and `densify` keeps the record of which
         // ones those were. This boundary drops that record because the array is all it can send;
         // carrying it across would need a presence field in the Unity-side contract.
         private fun blendShapesToArray(

@@ -39,10 +39,10 @@ public object BlendShapeWireSchema {
      * Bit set of the shapes present in [blendShapes], indexed by [BlendShape.ordinal].
      *
      * The companion to a fixed-size ordinal-ordered wire array, for the same reason
-     * [LiveLinkBlendShapes.observedMask] exists: the array has a slot for every shape whether or
-     * not one was measured, and only a mask distinguishes a written zero from an unwritten one.
+     * [LiveLinkBlendShapes.presentMask] exists: the array has a slot for every shape whether or
+     * not one had a value, and only a mask distinguishes a written zero from an unwritten one.
      */
-    public fun observedMaskByOrdinal(blendShapes: BlendShapeData): Long {
+    public fun presentMaskByOrdinal(blendShapes: BlendShapeData): Long {
         var mask = 0L
         for (shape in blendShapes.keys) {
             mask = mask or (1L shl shape.ordinal)

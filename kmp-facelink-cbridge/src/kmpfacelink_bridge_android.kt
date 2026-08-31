@@ -155,7 +155,7 @@ class FaceLinkBridgeFacade(
      */
     fun getLatestBlendShapeMask(): Long {
         val data = latestFaceData.get() ?: return 0L
-        return BlendShapeWireSchema.observedMaskByOrdinal(data.blendShapes)
+        return BlendShapeWireSchema.presentMaskByOrdinal(data.blendShapes)
     }
 
     /**
@@ -165,7 +165,7 @@ class FaceLinkBridgeFacade(
      */
     fun getLatestBlendShapeMaskLiveLink(): Long {
         val data = latestFaceData.get() ?: return 0L
-        return LiveLinkBlendShapes.observedMask(data.blendShapes)
+        return LiveLinkBlendShapes.presentMask(data.blendShapes)
     }
 
     /** FNV-1a over the blend shape names in ordinal order; see [BlendShapeWireSchema]. */

@@ -13,6 +13,7 @@ import io.github.kmpfacelink.model.FaceTrackingData
 import io.github.kmpfacelink.model.HandTrackingData
 import io.github.kmpfacelink.model.HolisticTrackingData
 import io.github.kmpfacelink.model.SmoothingConfig
+import io.github.kmpfacelink.model.TrackerOperationStatus
 import io.github.kmpfacelink.model.TrackingModality
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -70,9 +71,9 @@ private class IosTestFakeFaceTracker : FaceTracker {
     override suspend fun start() = Unit
     override suspend fun stop() = Unit
     override fun release() = Unit
-    override fun resetCalibration() = Unit
-    override fun resetSmoothing() = Unit
-    override fun updateSmoothing(config: SmoothingConfig) = Unit
+    override fun resetCalibration(): TrackerOperationStatus = TrackerOperationStatus.APPLIED
+    override fun resetSmoothing(): TrackerOperationStatus = TrackerOperationStatus.APPLIED
+    override fun updateSmoothing(config: SmoothingConfig): TrackerOperationStatus = TrackerOperationStatus.APPLIED
     override suspend fun switchCamera(facing: CameraFacing) = Unit
 }
 
@@ -84,8 +85,8 @@ private class IosTestFakeHandTracker : HandTracker {
     override suspend fun start() = Unit
     override suspend fun stop() = Unit
     override fun release() = Unit
-    override fun updateSmoothing(config: SmoothingConfig) = Unit
-    override fun resetSmoothing() = Unit
+    override fun updateSmoothing(config: SmoothingConfig): TrackerOperationStatus = TrackerOperationStatus.APPLIED
+    override fun resetSmoothing(): TrackerOperationStatus = TrackerOperationStatus.APPLIED
     override suspend fun switchCamera(facing: CameraFacing) = Unit
 }
 
@@ -98,7 +99,7 @@ private class IosTestFakeHolisticTracker : HolisticTracker {
     override suspend fun start() = Unit
     override suspend fun stop() = Unit
     override fun release() = Unit
-    override fun updateSmoothing(config: SmoothingConfig) = Unit
-    override fun resetSmoothing() = Unit
+    override fun updateSmoothing(config: SmoothingConfig): TrackerOperationStatus = TrackerOperationStatus.APPLIED
+    override fun resetSmoothing(): TrackerOperationStatus = TrackerOperationStatus.APPLIED
     override suspend fun switchCamera(facing: CameraFacing) = Unit
 }

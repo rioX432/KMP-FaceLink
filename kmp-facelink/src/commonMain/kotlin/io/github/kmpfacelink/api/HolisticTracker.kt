@@ -3,6 +3,7 @@ package io.github.kmpfacelink.api
 import io.github.kmpfacelink.model.CameraFacing
 import io.github.kmpfacelink.model.HolisticTrackingData
 import io.github.kmpfacelink.model.SmoothingConfig
+import io.github.kmpfacelink.model.TrackerOperationStatus
 import io.github.kmpfacelink.model.TrackingModality
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
@@ -131,8 +132,11 @@ public interface HolisticTracker : Releasable {
      *
      * @param config The new smoothing configuration to apply
      * @throws IllegalStateException if called after [release]
+     *
+     * @return [TrackerOperationStatus.APPLIED] when this tracker performed the operation, or
+     *   [TrackerOperationStatus.UNSUPPORTED] when it does not implement it.
      */
-    public fun updateSmoothing(config: SmoothingConfig)
+    public fun updateSmoothing(config: SmoothingConfig): TrackerOperationStatus
 
     /**
      * Reset smoother internal state for all enabled modalities.
@@ -141,8 +145,11 @@ public interface HolisticTracker : Releasable {
      * useful after tracking loss or scene change.
      *
      * @throws IllegalStateException if called after [release]
+     *
+     * @return [TrackerOperationStatus.APPLIED] when this tracker performed the operation, or
+     *   [TrackerOperationStatus.UNSUPPORTED] when it does not implement it.
      */
-    public fun resetSmoothing()
+    public fun resetSmoothing(): TrackerOperationStatus
 
     /**
      * Switch to a different camera at runtime for all enabled modalities.

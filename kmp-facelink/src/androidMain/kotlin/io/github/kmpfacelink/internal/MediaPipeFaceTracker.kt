@@ -17,6 +17,7 @@ import io.github.kmpfacelink.model.InferenceRunningMode
 import io.github.kmpfacelink.model.QualityPreset
 import io.github.kmpfacelink.model.SessionInstanceId
 import io.github.kmpfacelink.model.SmoothingConfig
+import io.github.kmpfacelink.model.TrackerOperationStatus
 import io.github.kmpfacelink.model.TrackingContextEpoch
 import io.github.kmpfacelink.util.FaceLinkLogger
 import io.github.kmpfacelink.util.FrameThrottler
@@ -226,29 +227,32 @@ internal class MediaPipeFaceTracker(
         landmarkerToClose?.close()
     }
 
-    override fun resetCalibration() {
+    override fun resetCalibration(): TrackerOperationStatus {
         pipelineLock.withLock {
             checkNotReleased("reset calibration")
             resultProcessor = resultProcessor.forkResetCalibration()
             forceRotateEpochLocked()
         }
+        return TrackerOperationStatus.APPLIED
     }
 
-    override fun resetSmoothing() {
+    override fun resetSmoothing(): TrackerOperationStatus {
         pipelineLock.withLock {
             checkNotReleased("reset smoothing")
             resultProcessor = resultProcessor.forkResetSmoothing()
             forceRotateEpochLocked()
         }
+        return TrackerOperationStatus.APPLIED
     }
 
-    override fun updateSmoothing(config: SmoothingConfig) {
+    override fun updateSmoothing(config: SmoothingConfig): TrackerOperationStatus {
         pipelineLock.withLock {
             checkNotReleased("update smoothing")
             resultProcessor = resultProcessor.forkWithSmoothing(config)
             currentSmoothingConfig = config
             forceRotateEpochLocked()
         }
+        return TrackerOperationStatus.APPLIED
     }
 
     override suspend fun switchCamera(facing: CameraFacing) {

@@ -9,6 +9,7 @@ import io.github.kmpfacelink.model.HandTrackerConfig
 import io.github.kmpfacelink.model.HandTrackingData
 import io.github.kmpfacelink.model.InferenceDelegate
 import io.github.kmpfacelink.model.SmoothingConfig
+import io.github.kmpfacelink.model.TrackerOperationStatus
 import io.github.kmpfacelink.util.FaceLinkLogger
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -197,14 +198,16 @@ internal class MediaPipeWasmHandTracker(
         _state.value = TrackingState.RELEASED
     }
 
-    override fun resetSmoothing() {
+    override fun resetSmoothing(): TrackerOperationStatus {
         checkNotReleased("resetSmoothing")
         // No smoothing state in Wasm hand tracker yet
+        return TrackerOperationStatus.UNSUPPORTED
     }
 
-    override fun updateSmoothing(config: SmoothingConfig) {
+    override fun updateSmoothing(config: SmoothingConfig): TrackerOperationStatus {
         checkNotReleased("updateSmoothing")
         // Smoothing not yet implemented for Wasm hand tracker
+        return TrackerOperationStatus.UNSUPPORTED
     }
 
     override suspend fun switchCamera(facing: CameraFacing) {

@@ -4,6 +4,7 @@ import io.github.kmpfacelink.model.CameraFacing
 import io.github.kmpfacelink.model.FacePipelinePerformanceEvent
 import io.github.kmpfacelink.model.FaceTrackingData
 import io.github.kmpfacelink.model.SmoothingConfig
+import io.github.kmpfacelink.model.TrackerOperationStatus
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.emptyFlow
@@ -149,16 +150,22 @@ public interface FaceTracker : Releasable {
      * [BodyTracker] operate on raw landmark positions that do not require calibration.
      *
      * @throws IllegalStateException if called after [release]
+     *
+     * @return [TrackerOperationStatus.APPLIED] when this tracker performed the operation, or
+     *   [TrackerOperationStatus.UNSUPPORTED] when it does not implement it.
      */
-    public fun resetCalibration()
+    public fun resetCalibration(): TrackerOperationStatus
 
     /**
      * Change the smoothing filter at runtime.
      *
      * @param config The new smoothing configuration to apply
      * @throws IllegalStateException if called after [release]
+     *
+     * @return [TrackerOperationStatus.APPLIED] when this tracker performed the operation, or
+     *   [TrackerOperationStatus.UNSUPPORTED] when it does not implement it.
      */
-    public fun updateSmoothing(config: SmoothingConfig)
+    public fun updateSmoothing(config: SmoothingConfig): TrackerOperationStatus
 
     /**
      * Reset smoother internal state without changing the smoothing algorithm.
@@ -168,8 +175,11 @@ public interface FaceTracker : Releasable {
      * does not affect calibration baselines.
      *
      * @throws IllegalStateException if called after [release]
+     *
+     * @return [TrackerOperationStatus.APPLIED] when this tracker performed the operation, or
+     *   [TrackerOperationStatus.UNSUPPORTED] when it does not implement it.
      */
-    public fun resetSmoothing()
+    public fun resetSmoothing(): TrackerOperationStatus
 
     /**
      * Switch to a different camera at runtime.

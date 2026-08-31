@@ -10,6 +10,7 @@ import io.github.kmpfacelink.model.FaceTrackingData
 import io.github.kmpfacelink.model.InferenceDelegate
 import io.github.kmpfacelink.model.SmoothingConfig
 import io.github.kmpfacelink.model.TrackedFace
+import io.github.kmpfacelink.model.TrackerOperationStatus
 import io.github.kmpfacelink.model.filterByActive
 import io.github.kmpfacelink.util.FaceLinkLogger
 import io.github.kmpfacelink.util.GazeEstimator
@@ -236,19 +237,22 @@ internal class MediaPipeWasmFaceTracker(
         _state.value = TrackingState.RELEASED
     }
 
-    override fun resetCalibration() {
+    override fun resetCalibration(): TrackerOperationStatus {
         checkNotReleased("resetCalibration")
         // No calibration state in Wasm tracker yet
+        return TrackerOperationStatus.UNSUPPORTED
     }
 
-    override fun resetSmoothing() {
+    override fun resetSmoothing(): TrackerOperationStatus {
         checkNotReleased("resetSmoothing")
         // No smoothing state in Wasm face tracker yet
+        return TrackerOperationStatus.UNSUPPORTED
     }
 
-    override fun updateSmoothing(config: SmoothingConfig) {
+    override fun updateSmoothing(config: SmoothingConfig): TrackerOperationStatus {
         checkNotReleased("updateSmoothing")
         // Smoothing not yet implemented for Wasm tracker
+        return TrackerOperationStatus.UNSUPPORTED
     }
 
     override suspend fun switchCamera(facing: CameraFacing) {

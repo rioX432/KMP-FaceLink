@@ -5,6 +5,7 @@ import io.github.kmpfacelink.api.TrackingState
 import io.github.kmpfacelink.model.BodyTrackingData
 import io.github.kmpfacelink.model.CameraFacing
 import io.github.kmpfacelink.model.SmoothingConfig
+import io.github.kmpfacelink.model.TrackerOperationStatus
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -39,12 +40,14 @@ internal class NoOpBodyTracker : BodyTracker {
         _state.value = TrackingState.RELEASED
     }
 
-    override fun updateSmoothing(config: SmoothingConfig) {
+    override fun updateSmoothing(config: SmoothingConfig): TrackerOperationStatus {
         // No-op
+        return TrackerOperationStatus.UNSUPPORTED
     }
 
-    override fun resetSmoothing() {
+    override fun resetSmoothing(): TrackerOperationStatus {
         // No-op
+        return TrackerOperationStatus.UNSUPPORTED
     }
 
     override suspend fun switchCamera(facing: CameraFacing) {

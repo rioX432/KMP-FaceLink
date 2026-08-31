@@ -6,6 +6,7 @@ import io.github.kmpfacelink.model.CameraFacing
 import io.github.kmpfacelink.model.FaceTrackingData
 import io.github.kmpfacelink.model.HeadTransform
 import io.github.kmpfacelink.model.SmoothingConfig
+import io.github.kmpfacelink.model.TrackerOperationStatus
 import io.github.kmpfacelink.model.allShapesAtRest
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -179,16 +180,19 @@ private class FakeFaceTracker : FaceTracker {
         _state.value = TrackingState.RELEASED
     }
 
-    override fun resetCalibration() {
+    override fun resetCalibration(): TrackerOperationStatus {
         checkNotReleased()
+        return TrackerOperationStatus.APPLIED
     }
 
-    override fun resetSmoothing() {
+    override fun resetSmoothing(): TrackerOperationStatus {
         checkNotReleased()
+        return TrackerOperationStatus.APPLIED
     }
 
-    override fun updateSmoothing(config: SmoothingConfig) {
+    override fun updateSmoothing(config: SmoothingConfig): TrackerOperationStatus {
         checkNotReleased()
+        return TrackerOperationStatus.APPLIED
     }
 
     override suspend fun switchCamera(facing: CameraFacing) {

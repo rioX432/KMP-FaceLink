@@ -21,6 +21,7 @@ import io.github.kmpfacelink.model.QualityPreset
 import io.github.kmpfacelink.model.SessionInstanceId
 import io.github.kmpfacelink.model.SmoothingConfig
 import io.github.kmpfacelink.model.TrackedFace
+import io.github.kmpfacelink.model.TrackerOperationStatus
 import io.github.kmpfacelink.model.TrackingContextEpoch
 import io.github.kmpfacelink.model.filterByActive
 import io.github.kmpfacelink.util.BlendShapeInterpolator
@@ -220,7 +221,7 @@ internal class ARKitFaceTracker(
         }
     }
 
-    override fun resetCalibration() {
+    override fun resetCalibration(): TrackerOperationStatus {
         pipelineLock.withLock {
             checkNotReleased("reset calibration")
             calibrator.reset()
@@ -230,18 +231,20 @@ internal class ARKitFaceTracker(
             processingStateRevision++
             forceRotateEpochLocked()
         }
+        return TrackerOperationStatus.APPLIED
     }
 
-    override fun resetSmoothing() {
+    override fun resetSmoothing(): TrackerOperationStatus {
         pipelineLock.withLock {
             checkNotReleased("reset smoothing")
             smoother?.reset()
             processingStateRevision++
             forceRotateEpochLocked()
         }
+        return TrackerOperationStatus.APPLIED
     }
 
-    override fun updateSmoothing(config: SmoothingConfig) {
+    override fun updateSmoothing(config: SmoothingConfig): TrackerOperationStatus {
         pipelineLock.withLock {
             checkNotReleased("update smoothing")
             smoother = config.createFaceSmoother()
@@ -249,6 +252,7 @@ internal class ARKitFaceTracker(
             processingStateRevision++
             forceRotateEpochLocked()
         }
+        return TrackerOperationStatus.APPLIED
     }
 
     override suspend fun switchCamera(facing: CameraFacing) {

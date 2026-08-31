@@ -11,6 +11,7 @@ import io.github.kmpfacelink.model.BodyTrackingData
 import io.github.kmpfacelink.model.CameraFacing
 import io.github.kmpfacelink.model.SmoothingConfig
 import io.github.kmpfacelink.model.TrackedBody
+import io.github.kmpfacelink.model.TrackerOperationStatus
 import io.github.kmpfacelink.util.BodyLandmarkSmoother
 import io.github.kmpfacelink.util.FaceLinkLogger
 import io.github.kmpfacelink.util.FrameThrottler
@@ -81,18 +82,20 @@ internal class VisionBodyTracker3D(
         powerModeManager?.release()
     }
 
-    override fun updateSmoothing(config: SmoothingConfig) {
+    override fun updateSmoothing(config: SmoothingConfig): TrackerOperationStatus {
         pipelineLock.withLock {
             checkNotReleased("update smoothing")
             smoother = config.createBodySmoother()
         }
+        return TrackerOperationStatus.APPLIED
     }
 
-    override fun resetSmoothing() {
+    override fun resetSmoothing(): TrackerOperationStatus {
         pipelineLock.withLock {
             checkNotReleased("reset smoothing")
             smoother?.reset()
         }
+        return TrackerOperationStatus.APPLIED
     }
 
     override suspend fun switchCamera(facing: CameraFacing) {

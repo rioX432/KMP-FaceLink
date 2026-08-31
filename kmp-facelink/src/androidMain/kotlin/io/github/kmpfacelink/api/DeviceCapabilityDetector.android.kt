@@ -54,9 +54,12 @@ public actual fun assessDeviceCapabilities(context: PlatformContext): DeviceCapa
             basis = "OpenGL ES compute support queried through a throwaway EGL context",
         ),
         npuInference = CapabilityAssessment(
-            state = if (hasNpu) CapabilityState.AVAILABLE else CapabilityState.UNAVAILABLE,
-            source = CapabilitySource.PROBED,
-            basis = "vendor NPU delegate lookup",
+            // Derived, not probed: `NpuVendorDetector` matches `Build.HARDWARE` and
+            // `Build.SOC_MODEL` strings. Naming a vendor is not the same as finding a usable
+            // delegate, so a recognised name means UNKNOWN rather than AVAILABLE.
+            state = if (hasNpu) CapabilityState.UNKNOWN else CapabilityState.UNAVAILABLE,
+            source = CapabilitySource.DERIVED,
+            basis = "vendor inferred from Build.HARDWARE / Build.SOC_MODEL; no delegate was opened",
         ),
         npuVendor = capabilities.npuVendor.takeIf { it != NpuVendor.NONE },
         qualityRecommendation = DeviceTierRecommendation(

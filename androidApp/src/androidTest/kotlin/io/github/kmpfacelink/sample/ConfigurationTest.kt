@@ -241,8 +241,10 @@ class ConfigurationTest {
         // Android is the one target that queries the device. If this ever reports an assumption,
         // the profile is claiming evidence the probe did not produce.
         val profile = assessDeviceCapabilities(platformContext)
+        // The GPU path is genuinely probed: an EGL context is created and queried. The NPU path
+        // is not — it matches Build strings — so it must not claim to be a probe.
         assertEquals(CapabilitySource.PROBED, profile.gpuInference.source)
-        assertEquals(CapabilitySource.PROBED, profile.npuInference.source)
+        assertEquals(CapabilitySource.DERIVED, profile.npuInference.source)
     }
 
     @Test

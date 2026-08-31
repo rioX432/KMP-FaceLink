@@ -2,7 +2,7 @@
 // Real-time face and hand tracking for React Native via KMP-FaceLink.
 
 import NativeFaceLink from './NativeFaceLink';
-import { BLEND_SHAPE_COUNT, HEAD_TRANSFORM_COUNT, schemaFingerprint } from './BlendShape';
+import { BLEND_SHAPE_COUNT, HEAD_TRANSFORM_COUNT } from './BlendShape';
 import type {
   FaceTrackingData,
   HandTrackingData,
@@ -41,7 +41,7 @@ const HANDEDNESS_LABELS: readonly ('left' | 'right' | 'unknown')[] = [
  * function onFrame() {
  *   const data = faceLink.getLatestFaceData();
  *   if (data) {
- *     const jawOpen = data.valueOrNull(BlendShape.jawOpen);
+ *     const jawOpen = data.blendShapes[BlendShape.jawOpen];
  *     // ... use blend shapes for avatar animation
  *   }
  *   requestAnimationFrame(onFrame);
@@ -96,7 +96,7 @@ export class FaceLink {
    */
   getLatestFaceData(): FaceTrackingData | null {
     if (!this.initialized) return null;
-    const buffer = NativeFaceLink.getLatestFaceDataV2();
+    const buffer = NativeFaceLink.getLatestFaceData();
     if (!buffer) return null;
     return parseFaceData(buffer);
   }
@@ -122,60 +122,15 @@ export class FaceLink {
  *   - float32[6]: head transform
  *   - int8[1]: isTracking flag
  */
-/** "FLNK" little-endian. */
-const FACE_WIRE_MAGIC = 0x4b4e4c46;
-const FACE_WIRE_VERSION = 2;
-const FACE_HEADER_BYTES = 20;
-
-/**
- * Decodes a v2 face buffer, refusing anything that is not exactly that.
- *
- * Every header field is checked before a single value is read. A buffer whose magic, version,
- * channel count, schema fingerprint or length disagrees is rejected outright: decoding it anyway
- * would produce a full set of plausible numbers with no indication that they mean nothing.
- */
 function parseFaceData(buffer: ArrayBuffer): FaceTrackingData {
-  if (buffer.byteLength !== FACE_HEADER_BYTES + (BLEND_SHAPE_COUNT + HEAD_TRANSFORM_COUNT) * 4 + 1) {
-    throw new Error(`FaceLink: unexpected face buffer length ${buffer.byteLength}`);
-  }
-  const header = new DataView(buffer);
-  const magic = header.getUint32(0, true);
-  if (magic !== FACE_WIRE_MAGIC) {
-    throw new Error(`FaceLink: not a face buffer (magic 0x${magic.toString(16)})`);
-  }
-  const version = header.getUint16(4, true);
-  if (version !== FACE_WIRE_VERSION) {
-    throw new Error(`FaceLink: face wire version ${version}, expected ${FACE_WIRE_VERSION}`);
-  }
-  const channelCount = header.getUint16(6, true);
-  if (channelCount !== BLEND_SHAPE_COUNT) {
-    throw new Error(`FaceLink: native reports ${channelCount} channels, this build knows ${BLEND_SHAPE_COUNT}`);
-  }
-  const nativeFingerprint = header.getInt32(8, true);
-  if (nativeFingerprint !== schemaFingerprint()) {
-    throw new Error(
-      'FaceLink: blend shape schema differs between native and JavaScript; ordinals would not line up',
-    );
-  }
-  const observedLow = header.getUint32(12, true);
-  const observedHigh = header.getUint32(16, true);
-
-  const floatView = new Float32Array(buffer, FACE_HEADER_BYTES, BLEND_SHAPE_COUNT + HEAD_TRANSFORM_COUNT);
+  const floatView = new Float32Array(buffer, 0, BLEND_SHAPE_COUNT + HEAD_TRANSFORM_COUNT);
   const byteView = new Uint8Array(buffer);
-  const trackingFlagOffset =
-    FACE_HEADER_BYTES + (BLEND_SHAPE_COUNT + HEAD_TRANSFORM_COUNT) * 4;
-
-  const isObserved = (ordinal: number): boolean =>
-    ordinal < 32
-      ? (observedLow & (1 << ordinal)) !== 0
-      : (observedHigh & (1 << (ordinal - 32))) !== 0;
+  const trackingFlagOffset = (BLEND_SHAPE_COUNT + HEAD_TRANSFORM_COUNT) * 4;
 
   return {
     blendShapes: floatView.slice(0, BLEND_SHAPE_COUNT),
     headTransform: floatView.slice(BLEND_SHAPE_COUNT, BLEND_SHAPE_COUNT + HEAD_TRANSFORM_COUNT),
     isTracking: byteView[trackingFlagOffset] === 1,
-    isObserved,
-    valueOrNull: (ordinal: number) => (isObserved(ordinal) ? floatView[ordinal] : null),
   };
 }
 

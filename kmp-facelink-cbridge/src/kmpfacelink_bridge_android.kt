@@ -138,6 +138,9 @@ class FaceLinkBridgeFacade(
     /**
      * Bit set of the channels [getLatestBlendShapes] filled from a measurement.
      *
+     * Android only. There is no counterpart in `kmpfacelink_bridge.h`, so an iOS or Flutter
+     * consumer of the C ABI cannot ask this question at all — the C entry point is not written.
+     *
      * The float array is fixed at 52 slots whatever the tracker produced, so a slot for an
      * unproduced shape holds `0f` and reads exactly like a measured rest value. Estimators differ
      * in what they produce, so a consumer that skips this mask will act on shapes it never

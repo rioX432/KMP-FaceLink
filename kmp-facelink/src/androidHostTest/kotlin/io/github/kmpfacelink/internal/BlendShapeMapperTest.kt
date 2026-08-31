@@ -3,6 +3,7 @@ package io.github.kmpfacelink.internal
 import io.github.kmpfacelink.model.BlendShape
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 class BlendShapeMapperTest {
@@ -41,9 +42,9 @@ class BlendShapeMapperTest {
     fun mapFromMediaPipeWithEmptyInput() {
         val result = BlendShapeMapper.mapFromMediaPipe(emptyList())
 
-        // All 52 blend shapes should be filled with 0.0
-        assertEquals(BlendShape.entries.size, result.size)
-        assertTrue(result.values.all { it == 0f })
+        // MediaPipe reported nothing, so there is nothing to report. Fifty-two zeros would claim
+        // fifty-two measurements that never happened.
+        assertTrue(result.isEmpty())
     }
 
     @Test
@@ -72,16 +73,25 @@ class BlendShapeMapperTest {
     }
 
     @Test
-    fun mapFromMediaPipeFillsMissingShapesWithZero() {
+    fun mapFromMediaPipeReportsOnlyWhatMediaPipeSent() {
         val categories = listOf("eyeBlinkLeft" to 0.7f)
         val result = BlendShapeMapper.mapFromMediaPipe(categories)
 
-        // All 52 shapes should be present
-        assertEquals(BlendShape.entries.size, result.size)
-        // The one we set should have its value
+        assertEquals(1, result.size)
         assertEquals(0.7f, result[BlendShape.EYE_BLINK_LEFT])
-        // Others should be 0.0
-        assertEquals(0f, result[BlendShape.TONGUE_OUT])
+    }
+
+    @Test
+    fun tongueOutIsAbsentBecauseMediaPipeHasNoSuchChannel() {
+        // MediaPipe's schema has no tongueOut. Reporting it as 0f would be indistinguishable from
+        // a measured resting tongue, which is the one reading this contract exists to prevent.
+        val everyMediaPipeChannel = BlendShape.entries
+            .filter { it != BlendShape.TONGUE_OUT }
+            .map { it.arKitName to 0.5f }
+        val result = BlendShapeMapper.mapFromMediaPipe(everyMediaPipeChannel)
+
+        assertEquals(BlendShape.entries.size - 1, result.size)
+        assertNull(result[BlendShape.TONGUE_OUT])
     }
 
     @Test

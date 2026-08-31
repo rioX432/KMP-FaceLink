@@ -34,7 +34,7 @@ export interface Spec extends TurboModule {
    *
    * Returns null if no face data is available yet.
    */
-  getLatestFaceDataV2(): ArrayBuffer | null;
+  getLatestFaceData(): ArrayBuffer | null;
 
   /**
    * Get the latest hand tracking data as a binary buffer.

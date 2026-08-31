@@ -41,12 +41,8 @@ internal object BlendShapeMapper {
             scratch[shape] = score.coerceIn(0f, 1f)
         }
 
-        // Fill missing shapes with 0.0 (e.g. tongueOut not supported by MediaPipe)
-        for (shape in BlendShape.entries) {
-            if (shape !in scratch) {
-                scratch[shape] = 0f
-            }
-        }
+        // Shapes MediaPipe does not carry stay absent. `tongueOut` has no MediaPipe counterpart,
+        // and writing 0f for it would be indistinguishable from a measured resting tongue.
         return scratch
     }
 }

@@ -567,12 +567,8 @@ internal class ARKitFaceTracker(
             blendShapeScratch[shape] = value.floatValue.coerceIn(0f, 1f)
         }
 
-        // Fill missing shapes
-        for (shape in BlendShape.entries) {
-            if (shape !in blendShapeScratch) {
-                blendShapeScratch[shape] = 0f
-            }
-        }
+        // A shape ARKit did not report stays absent rather than becoming a measured zero. ARKit
+        // supplies all 52 in practice, so this is a contract statement, not a behaviour change.
         return blendShapeScratch
     }
 

@@ -165,9 +165,9 @@ class FaceLinkModule(
                 .order(ByteOrder.LITTLE_ENDIAN)
 
             // Write 52 blend shapes in ordinal order. Shapes the estimator did not produce occupy
-            // a slot and read as a measured zero; `getLatestBlendShapeMask` reports which ones were
-            // real. The mask is not in this buffer because its length is part of the JS-side
-            // contract — adding it is a protocol change, not a local one.
+            // a slot and read as a measured zero, and nothing on this bridge reports which ones
+            // were real: the buffer length is part of the JS-side contract, so adding a presence
+            // mask is a protocol change. The Kotlin and C bridges expose a mask; this one does not.
             for (value in data.blendShapes.densify().values) {
                 buffer.putFloat(value)
             }

@@ -77,8 +77,11 @@ internal class IdleDetector(
         /** Computes the maximum absolute delta between two blend shape frames. */
         internal fun computeMaxDelta(a: BlendShapeData, b: BlendShapeData): Float {
             var maxDelta = 0f
-            for (shape in BlendShape.entries) {
-                val delta = abs((a[shape] ?: 0f) - (b[shape] ?: 0f))
+            for ((shape, aVal) in a) {
+                // Both frames have to carry the shape for the difference to mean anything; see
+                // ConfidenceFrameStrategy.computeMaxDelta for the same reasoning.
+                val bVal = b[shape] ?: continue
+                val delta = abs(aVal - bVal)
                 if (delta > maxDelta) maxDelta = delta
             }
             return maxDelta

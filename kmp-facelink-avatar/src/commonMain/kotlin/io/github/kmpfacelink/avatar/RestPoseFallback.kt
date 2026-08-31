@@ -12,5 +12,8 @@ import io.github.kmpfacelink.model.BlendShapeData
  * the right substitute *here*, at the point where values become motion — and the wrong one earlier,
  * where a caller can still tell "measured as zero" from "never produced". Keeping the substitution
  * in the avatar layer is what preserves that distinction upstream.
+ *
+ * sparse-contract-exempt: this is the one place where substituting the rest value is the answer,
+ * because a parameter with no incoming value still has to be drawn.
  */
 internal fun BlendShapeData.valueOrRestPose(shape: BlendShape): Float = this[shape] ?: 0f

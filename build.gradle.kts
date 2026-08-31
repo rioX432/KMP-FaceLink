@@ -481,6 +481,12 @@ val testSdkPublicSafety by tasks.registering(Exec::class) {
     commandLine("python3", "-m", "unittest", "scripts/test_verify_sdk_public_safety.py")
 }
 
+val verifySparseBlendShapeContract by tasks.registering(Exec::class) {
+    group = "verification"
+    description = "Reject sources that fabricate values for blend shapes an estimator did not emit"
+    commandLine("python3", "scripts/verify-sparse-blendshape-contract.py")
+}
+
 val verifySdkDocumentation by tasks.registering(Exec::class) {
     group = "verification"
     description = "Verify current SDK documentation against source configuration and claim boundaries"
@@ -654,6 +660,7 @@ tasks.register("sdkQualityCheck") {
         "validateModuleDependencies",
         verifySdkPublicSafety,
         testSdkPublicSafety,
+        verifySparseBlendShapeContract,
         verifySdkDocumentation,
         testSdkDocumentation,
         testCalibrationTooling,

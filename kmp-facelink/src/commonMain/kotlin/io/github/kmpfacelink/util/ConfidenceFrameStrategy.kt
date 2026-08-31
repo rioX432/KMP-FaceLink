@@ -102,7 +102,10 @@ internal class ConfidenceFrameStrategy(private val config: FrameSkipConfig) {
         internal fun computeMaxDelta(a: BlendShapeData, b: BlendShapeData): Float {
             var maxDelta = 0f
             for ((shape, aVal) in a) {
-                val bVal = b[shape] ?: 0f
+                // Shapes only one frame carries have no delta to measure. Reading the missing side
+                // as 0f reports the whole value as movement, so a frame that merely stopped
+                // emitting a shape looks like a large change.
+                val bVal = b[shape] ?: continue
                 val delta = abs(aVal - bVal)
                 if (delta > maxDelta) maxDelta = delta
             }

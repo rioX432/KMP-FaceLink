@@ -559,16 +559,30 @@ internal class ARKitFaceTracker(
         frameSkipStrategy.reset()
     }
 
+    /**
+     * ARKit names its paired shapes `eyeBlink_L` / `eyeBlink_R`, while [BlendShape.arKitName]
+     * spells them `eyeBlinkLeft` / `eyeBlinkRight`. Looking the raw key up directly therefore
+     * misses every paired shape — the majority of the 52 — and only the unpaired ones match.
+     *
+     * That was invisible while this mapper filled absent shapes with `0f`: the map still had 52
+     * entries, and the dropped ones looked like a face at rest. `kmp-facelink-capture` has carried
+     * the same conversion for its own recording path all along.
+     */
+    private fun normalizeArKitName(name: String): String = when {
+        name.endsWith("_L") -> name.dropLast(2) + "Left"
+        name.endsWith("_R") -> name.dropLast(2) + "Right"
+        else -> name
+    }
+
     private fun mapARKitBlendShapes(rawBlendShapes: Map<String, NSNumber>): BlendShapeData {
         blendShapeScratch.clear()
 
         for ((key, value) in rawBlendShapes) {
-            val shape = BlendShape.fromArKitName(key) ?: continue
+            val shape = BlendShape.fromArKitName(normalizeArKitName(key)) ?: continue
             blendShapeScratch[shape] = value.floatValue.coerceIn(0f, 1f)
         }
 
-        // A shape ARKit did not report stays absent rather than becoming a measured zero. ARKit
-        // supplies all 52 in practice, so this is a contract statement, not a behaviour change.
+        // A shape ARKit did not report stays absent rather than becoming a measured zero.
         return blendShapeScratch
     }
 

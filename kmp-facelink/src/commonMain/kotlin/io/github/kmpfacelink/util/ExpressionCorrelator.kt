@@ -40,7 +40,10 @@ internal class ExpressionCorrelator(
             val sourceValue = blendShapes[rule.source] ?: continue
             if (sourceValue > rule.threshold) {
                 val boost = (sourceValue - rule.threshold) * rule.factor
-                val current = blendShapes[rule.target] ?: 0f
+                // Only boost a shape the estimator produced. Creating the key here would put a
+                // correlated value into a frame for a shape that was never measured, and the
+                // provenance would then report it as emitted.
+                val current = blendShapes[rule.target] ?: continue
                 blendShapes[rule.target] = (current + boost).coerceIn(0f, 1f)
             }
         }

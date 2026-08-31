@@ -1,3 +1,7 @@
+// sparse-contract-exempt: the iFacialMocap wire format names every channel in every message and
+// has no way to omit one, so a shape the estimator did not produce is sent as 0. A receiver cannot
+// tell that from a measured zero. That is the protocol's limit, not a claim this SDK is making.
+
 package io.github.kmpfacelink.ifm
 
 import io.github.kmpfacelink.model.BlendShapeData

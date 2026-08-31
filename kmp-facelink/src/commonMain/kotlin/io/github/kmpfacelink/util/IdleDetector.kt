@@ -1,6 +1,5 @@
 package io.github.kmpfacelink.util
 
-import io.github.kmpfacelink.model.BlendShape
 import io.github.kmpfacelink.model.BlendShapeData
 import kotlin.concurrent.atomics.AtomicBoolean
 import kotlin.concurrent.atomics.AtomicLong

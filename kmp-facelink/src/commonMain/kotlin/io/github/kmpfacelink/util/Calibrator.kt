@@ -74,9 +74,12 @@ internal class Calibrator(
                 value
             } else {
                 val range = newMax - newMin
-                val neutralValue = neutralBaseline?.get(shape) ?: 0f
+                // No baseline for this shape means no neutral was ever measured for it, so there
+                // is nothing to subtract. Writing a 0 here would arithmetically agree — but it
+                // would say the neutral pose was measured at rest, which is a different claim.
+                val neutralValue = neutralBaseline?.get(shape)
                 if (range > EPSILON) {
-                    ((value - neutralValue) / range).coerceIn(0f, 1f)
+                    ((value - (neutralValue ?: 0f)) / range).coerceIn(0f, 1f)
                 } else {
                     value
                 }

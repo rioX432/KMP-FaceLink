@@ -1,3 +1,9 @@
+// sparse-contract-exempt: a fixed-length binary frame has a slot for every channel and no way to
+// say a slot is empty, so the encoder writes 0f for shapes the estimator did not produce and the
+// decoder reads 52 values back. That is a limitation of this wire format, not a measurement: a
+// receiver cannot tell an observed zero from an absent shape. Closing it needs a presence mask in
+// the frame layout, which is a protocol change and is not done.
+
 package io.github.kmpfacelink.stream
 
 import io.github.kmpfacelink.model.BlendShape

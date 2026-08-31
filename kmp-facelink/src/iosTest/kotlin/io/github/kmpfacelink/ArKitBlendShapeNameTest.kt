@@ -1,5 +1,6 @@
 package io.github.kmpfacelink
 
+import io.github.kmpfacelink.internal.normalizeArKitName
 import io.github.kmpfacelink.model.BlendShape
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -15,16 +16,12 @@ import kotlin.test.assertTrue
  * entries and the dropped ones read as a face at rest. These tests pin the conversion so the same
  * mismatch cannot come back silently.
  *
- * The conversion under test is the one `ARKitFaceTracker` applies; it is duplicated here rather
- * than exposed, because widening the tracker's API surface for a test is the worse trade.
+ * These call the tracker's own [normalizeArKitName]. An earlier version copied the conversion into
+ * this file, which meant deleting it from the tracker left all five green — the tests pinned the
+ * copy, not the shipped path. `internal` does not appear in the published klib API, so exposing it
+ * costs nothing.
  */
 class ArKitBlendShapeNameTest {
-
-    private fun normalize(name: String): String = when {
-        name.endsWith("_L") -> name.dropLast(2) + "Left"
-        name.endsWith("_R") -> name.dropLast(2) + "Right"
-        else -> name
-    }
 
     /** The ARKit spelling for a shape this SDK calls [shape]. */
     private fun arKitSpelling(shape: BlendShape): String {
@@ -39,15 +36,15 @@ class ArKitBlendShapeNameTest {
     @Test
     fun everyShapeResolvesFromItsArKitSpelling() {
         val unresolved = BlendShape.entries.filter {
-            BlendShape.fromArKitName(normalize(arKitSpelling(it))) == null
+            BlendShape.fromArKitName(normalizeArKitName(arKitSpelling(it))) == null
         }
         assertTrue(unresolved.isEmpty(), "these did not resolve: $unresolved")
     }
 
     @Test
     fun aPairedShapeResolvesToTheCorrectSide() {
-        assertEquals(BlendShape.EYE_BLINK_LEFT, BlendShape.fromArKitName(normalize("eyeBlink_L")))
-        assertEquals(BlendShape.EYE_BLINK_RIGHT, BlendShape.fromArKitName(normalize("eyeBlink_R")))
+        assertEquals(BlendShape.EYE_BLINK_LEFT, BlendShape.fromArKitName(normalizeArKitName("eyeBlink_L")))
+        assertEquals(BlendShape.EYE_BLINK_RIGHT, BlendShape.fromArKitName(normalizeArKitName("eyeBlink_R")))
     }
 
     @Test
@@ -55,8 +52,8 @@ class ArKitBlendShapeNameTest {
         // The control: these already matched before the conversion existed, so the conversion must
         // not disturb them.
         for (name in listOf("jawOpen", "mouthPucker", "tongueOut", "browInnerUp")) {
-            assertEquals(name, normalize(name))
-            assertNotNull(BlendShape.fromArKitName(normalize(name)), name)
+            assertEquals(name, normalizeArKitName(name))
+            assertNotNull(BlendShape.fromArKitName(normalizeArKitName(name)), name)
         }
     }
 
@@ -69,7 +66,7 @@ class ArKitBlendShapeNameTest {
 
     @Test
     fun theConversionDoesNotInventShapesForUnknownKeys() {
-        assertNull(BlendShape.fromArKitName(normalize("noSuchShape_L")))
-        assertNull(BlendShape.fromArKitName(normalize("_neutral")))
+        assertNull(BlendShape.fromArKitName(normalizeArKitName("noSuchShape_L")))
+        assertNull(BlendShape.fromArKitName(normalizeArKitName("_neutral")))
     }
 }

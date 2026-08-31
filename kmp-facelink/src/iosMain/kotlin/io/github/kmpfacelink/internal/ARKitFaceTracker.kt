@@ -568,11 +568,6 @@ internal class ARKitFaceTracker(
      * entries, and the dropped ones looked like a face at rest. `kmp-facelink-capture` has carried
      * the same conversion for its own recording path all along.
      */
-    private fun normalizeArKitName(name: String): String = when {
-        name.endsWith("_L") -> name.dropLast(2) + "Left"
-        name.endsWith("_R") -> name.dropLast(2) + "Right"
-        else -> name
-    }
 
     private fun mapARKitBlendShapes(rawBlendShapes: Map<String, NSNumber>): BlendShapeData {
         blendShapeScratch.clear()
@@ -708,4 +703,19 @@ internal class ARKitFaceTracker(
             setError(didFailWithError.localizedDescription)
         }
     }
+}
+
+/**
+ * The SDK spelling for an ARKit blend shape location name.
+ *
+ * ARKit spells a paired shape `eyeBlink_L`; this SDK spells it `eyeBlinkLeft`. Looking the raw name
+ * up directly made every paired shape miss, and filling the gaps with `0f` hid that completely.
+ *
+ * `internal` so [ArKitBlendShapeNameTest] can exercise the conversion the tracker actually applies
+ * rather than a copy of it. `internal` declarations are not part of the published klib API.
+ */
+internal fun normalizeArKitName(name: String): String = when {
+    name.endsWith("_L") -> name.dropLast(2) + "Left"
+    name.endsWith("_R") -> name.dropLast(2) + "Right"
+    else -> name
 }

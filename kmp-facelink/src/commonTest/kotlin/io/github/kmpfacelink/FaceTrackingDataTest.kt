@@ -155,10 +155,16 @@ class FaceTrackingDataTest {
     }
 
     @Test
-    fun faceLandmarkVisibilityAndPresenceDefaultToZero() {
-        val landmark = FaceLandmark(x = 0.5f, y = 0.5f, z = 0.1f)
-        assertEquals(0f, landmark.visibility)
-        assertEquals(0f, landmark.presence)
+    fun faceLandmarkQualitySignalsAreAbsentUntilAnEstimatorSuppliesThem() {
+        val landmark = FaceLandmark(x = 0.5f, y = 0.5f, relativeDepth = 0.1f)
+        assertNull(landmark.visibility, "an unsupplied quality signal is not a zero one")
+        assertNull(landmark.presence, "an unsupplied quality signal is not a zero one")
+    }
+
+    @Test
+    fun aTwoDimensionalEstimatorReportsNoDepthRatherThanZeroDepth() {
+        val landmark = FaceLandmark(x = 0.5f, y = 0.5f)
+        assertNull(landmark.relativeDepth)
     }
 
     @Test
@@ -166,7 +172,7 @@ class FaceTrackingDataTest {
         val landmark = FaceLandmark(
             x = 0.5f,
             y = 0.5f,
-            z = 0.1f,
+            relativeDepth = 0.1f,
             visibility = 0.95f,
             presence = 0.88f,
         )

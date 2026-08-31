@@ -71,19 +71,26 @@ internal class BlendShapeEnhancer(
         result: MutableMap<BlendShape, Float>,
         landmarks: List<FaceLandmark>,
     ) {
+        // A solver that cannot run leaves the shape as the estimator left it, including absent.
+        // An estimator that did not produce the shape leaves the geometric value to stand alone:
+        // blending it against a substituted zero would drag a real measurement down toward a value
+        // nobody measured.
+
         // Near-zero shapes: use max(geometric, ml)
         for ((shape, solver) in nearZeroSolvers) {
-            val ml = result[shape] ?: 0f
-            val geometric = solver(landmarks)
-            result[shape] = maxOf(geometric, ml).coerceIn(0f, 1f)
+            val geometric = solver(landmarks) ?: continue
+            val ml = result[shape]
+            val combined = if (ml == null) geometric else maxOf(geometric, ml)
+            result[shape] = combined.coerceIn(0f, 1f)
         }
 
         // Low-accuracy shapes: weighted blend
         val w = config.geometricBlendWeight
         for ((shape, solver) in lowAccuracySolvers) {
-            val ml = result[shape] ?: 0f
-            val geometric = solver(landmarks)
-            result[shape] = (w * geometric + (1f - w) * ml).coerceIn(0f, 1f)
+            val geometric = solver(landmarks) ?: continue
+            val ml = result[shape]
+            val combined = if (ml == null) geometric else w * geometric + (1f - w) * ml
+            result[shape] = combined.coerceIn(0f, 1f)
         }
     }
 
@@ -114,7 +121,7 @@ internal class BlendShapeEnhancer(
             }
 
         /** Shapes assigned to the explicitly enabled max-combination path. */
-        private val nearZeroSolvers: Map<BlendShape, (List<FaceLandmark>) -> Float> = mapOf(
+        private val nearZeroSolvers: Map<BlendShape, (List<FaceLandmark>) -> Float?> = mapOf(
             BlendShape.CHEEK_PUFF to LandmarkSolvers::solveCheekPuff,
             BlendShape.CHEEK_SQUINT_LEFT to CheekBrowSolvers::solveCheekSquintLeft,
             BlendShape.CHEEK_SQUINT_RIGHT to CheekBrowSolvers::solveCheekSquintRight,
@@ -125,7 +132,7 @@ internal class BlendShapeEnhancer(
         )
 
         /** Shapes assigned to the explicitly enabled weighted-combination path. */
-        private val lowAccuracySolvers: Map<BlendShape, (List<FaceLandmark>) -> Float> = mapOf(
+        private val lowAccuracySolvers: Map<BlendShape, (List<FaceLandmark>) -> Float?> = mapOf(
             BlendShape.BROW_DOWN_LEFT to CheekBrowSolvers::solveBrowDownLeft,
             BlendShape.BROW_DOWN_RIGHT to CheekBrowSolvers::solveBrowDownRight,
             BlendShape.BROW_INNER_UP to CheekBrowSolvers::solveBrowInnerUp,

@@ -60,7 +60,7 @@ class CheekPuffContourContractTest {
             FaceLandmark(
                 x = (200f + (index % 17) * 0.01f) / IMAGE_SIZE,
                 y = (100f + (index % 19) * 0.01f) / IMAGE_SIZE,
-                z = ((index % 7) * 0.01f) / IMAGE_SIZE,
+                relativeDepth = ((index % 7) * 0.01f) / IMAGE_SIZE,
             )
         }
 

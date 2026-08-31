@@ -145,7 +145,7 @@ class LandmarkSolversTest {
     @Test
     fun jawForward_neutral_nearZero() {
         val lm = neutralFace()
-        val value = LandmarkSolvers.solveJawForward(lm)
+        val value = checkNotNull(LandmarkSolvers.solveJawForward(lm))
         assertInRange(value, 0f, 1f)
     }
 
@@ -154,7 +154,7 @@ class LandmarkSolversTest {
         val lm = neutralFace().toMutableList()
         // Push chin forward (more negative Z, closer to camera)
         lm[152] = FaceLandmark(0.50f, 0.72f, -0.06f)
-        val value = LandmarkSolvers.solveJawForward(lm)
+        val value = checkNotNull(LandmarkSolvers.solveJawForward(lm))
         assertInRange(value, 0f, 1f)
     }
 
@@ -258,7 +258,7 @@ class LandmarkSolversTest {
         val lm = makeLandmarks()
         assertApprox(0f, LandmarkSolvers.solveEyeWideRight(lm), 0.01f)
         assertApprox(0f, LandmarkSolvers.solveNoseSneerLeft(lm), 0.01f)
-        assertApprox(0f, LandmarkSolvers.solveJawForward(lm), 0.01f)
+        assertApprox(0f, checkNotNull(LandmarkSolvers.solveJawForward(lm)), 0.01f)
         assertApprox(0f, LandmarkSolvers.solveJawLeft(lm), 0.01f)
         assertApprox(0f, LandmarkSolvers.solveCheekPuff(lm), 0.01f)
         assertApprox(0f, LandmarkSolvers.solveMouthDimpleLeft(lm), 0.01f)

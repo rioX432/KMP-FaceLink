@@ -55,7 +55,7 @@ internal object WasmResultMapper {
             FaceLandmark(
                 x = getLandmarkXJs(result, faceIndex, i),
                 y = getLandmarkYJs(result, faceIndex, i),
-                z = getLandmarkZJs(result, faceIndex, i),
+                relativeDepth = getLandmarkZJs(result, faceIndex, i),
             )
         }
     }

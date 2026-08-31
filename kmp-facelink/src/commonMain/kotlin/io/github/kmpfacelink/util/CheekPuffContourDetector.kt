@@ -145,7 +145,12 @@ internal class CheekPuffContourDetector(
             val point = landmarks[i]
             out[i * 3] = point.x.toDouble() * pixelScaleX
             out[i * 3 + 1] = point.y.toDouble() * pixelScaleY
-            out[i * 3 + 2] = point.z.toDouble() * pixelScaleZ
+            // Substituting zero here would feed the solver a plane instead of a face, so a
+            // depthless estimator is rejected outright rather than silently flattened.
+            val depth = requireNotNull(point.relativeDepth) {
+                "landmark $i carries no depth; this detector requires a depth-carrying estimator"
+            }
+            out[i * 3 + 2] = depth.toDouble() * pixelScaleZ
         }
         return out
     }

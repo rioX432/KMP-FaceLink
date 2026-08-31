@@ -203,7 +203,7 @@ class InputEdgeCaseTest {
         val landmark = FaceLandmark(
             x = Float.NaN,
             y = Float.NaN,
-            z = Float.NaN,
+            relativeDepth = Float.NaN,
         )
         assertTrue(landmark.x.isNaN())
     }
@@ -213,11 +213,11 @@ class InputEdgeCaseTest {
         val landmark = FaceLandmark(
             x = Float.MAX_VALUE,
             y = Float.MIN_VALUE,
-            z = Float.NEGATIVE_INFINITY,
+            relativeDepth = Float.NEGATIVE_INFINITY,
         )
         assertEquals(Float.MAX_VALUE, landmark.x)
         assertEquals(Float.MIN_VALUE, landmark.y)
-        assertTrue(landmark.z.isInfinite())
+        assertTrue(checkNotNull(landmark.relativeDepth).isInfinite())
     }
 
     // -- ThermalState in tracking data --

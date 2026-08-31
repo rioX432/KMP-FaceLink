@@ -35,7 +35,7 @@ class LandmarkGeometryTest {
         val a = FaceLandmark(0f, 0f, 0f)
         val b = FaceLandmark(0.1f, 0.2f, 0.3f)
         val expected = sqrt(0.01f + 0.04f + 0.09f)
-        assertApprox(expected, LandmarkGeometry.distance3D(a, b))
+        assertApprox(expected, checkNotNull(LandmarkGeometry.distance3D(a, b)))
     }
 
     @Test

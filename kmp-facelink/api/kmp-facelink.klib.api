@@ -1148,6 +1148,17 @@ final class io.github.kmpfacelink.api/PlatformContext { // io.github.kmpfacelink
     constructor <init>() // io.github.kmpfacelink.api/PlatformContext.<init>|<init>(){}[0]
 }
 
+final class io.github.kmpfacelink.model/AlternativeSignalObservation { // io.github.kmpfacelink.model/AlternativeSignalObservation|null[0]
+    constructor <init>(kotlin/String, kotlin/Float, io.github.kmpfacelink.model/BlendShape?) // io.github.kmpfacelink.model/AlternativeSignalObservation.<init>|<init>(kotlin.String;kotlin.Float;io.github.kmpfacelink.model.BlendShape?){}[0]
+
+    final val producerId // io.github.kmpfacelink.model/AlternativeSignalObservation.producerId|{}producerId[0]
+        final fun <get-producerId>(): kotlin/String // io.github.kmpfacelink.model/AlternativeSignalObservation.producerId.<get-producerId>|<get-producerId>(){}[0]
+    final val proposedTarget // io.github.kmpfacelink.model/AlternativeSignalObservation.proposedTarget|{}proposedTarget[0]
+        final fun <get-proposedTarget>(): io.github.kmpfacelink.model/BlendShape? // io.github.kmpfacelink.model/AlternativeSignalObservation.proposedTarget.<get-proposedTarget>|<get-proposedTarget>(){}[0]
+    final val value // io.github.kmpfacelink.model/AlternativeSignalObservation.value|{}value[0]
+        final fun <get-value>(): kotlin/Float // io.github.kmpfacelink.model/AlternativeSignalObservation.value.<get-value>|<get-value>(){}[0]
+}
+
 final class io.github.kmpfacelink.model/AppliedTransform { // io.github.kmpfacelink.model/AppliedTransform|null[0]
     constructor <init>(io.github.kmpfacelink.model/TransformKind, kotlin/String) // io.github.kmpfacelink.model/AppliedTransform.<init>|<init>(io.github.kmpfacelink.model.TransformKind;kotlin.String){}[0]
 
@@ -1685,6 +1696,15 @@ final class io.github.kmpfacelink.model/FacePipelinePerformanceEvent { // io.git
     final fun equals(kotlin/Any?): kotlin/Boolean // io.github.kmpfacelink.model/FacePipelinePerformanceEvent.equals|equals(kotlin.Any?){}[0]
     final fun hashCode(): kotlin/Int // io.github.kmpfacelink.model/FacePipelinePerformanceEvent.hashCode|hashCode(){}[0]
     final fun toString(): kotlin/String // io.github.kmpfacelink.model/FacePipelinePerformanceEvent.toString|toString(){}[0]
+}
+
+final class io.github.kmpfacelink.model/FaceSignalCandidates { // io.github.kmpfacelink.model/FaceSignalCandidates|null[0]
+    constructor <init>(kotlin.collections/Map<io.github.kmpfacelink.model/BlendShape, kotlin/Float>, kotlin.collections/List<io.github.kmpfacelink.model/AlternativeSignalObservation>) // io.github.kmpfacelink.model/FaceSignalCandidates.<init>|<init>(kotlin.collections.Map<io.github.kmpfacelink.model.BlendShape,kotlin.Float>;kotlin.collections.List<io.github.kmpfacelink.model.AlternativeSignalObservation>){}[0]
+
+    final val alternatives // io.github.kmpfacelink.model/FaceSignalCandidates.alternatives|{}alternatives[0]
+        final fun <get-alternatives>(): kotlin.collections/List<io.github.kmpfacelink.model/AlternativeSignalObservation> // io.github.kmpfacelink.model/FaceSignalCandidates.alternatives.<get-alternatives>|<get-alternatives>(){}[0]
+    final val estimator // io.github.kmpfacelink.model/FaceSignalCandidates.estimator|{}estimator[0]
+        final fun <get-estimator>(): kotlin.collections/Map<io.github.kmpfacelink.model/BlendShape, kotlin/Float> // io.github.kmpfacelink.model/FaceSignalCandidates.estimator.<get-estimator>|<get-estimator>(){}[0]
 }
 
 final class io.github.kmpfacelink.model/FaceTrackerConfig { // io.github.kmpfacelink.model/FaceTrackerConfig|null[0]

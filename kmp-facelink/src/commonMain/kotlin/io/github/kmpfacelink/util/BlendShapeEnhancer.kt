@@ -1,9 +1,11 @@
 package io.github.kmpfacelink.util
 
+import io.github.kmpfacelink.model.AlternativeSignalObservation
 import io.github.kmpfacelink.model.BlendShape
 import io.github.kmpfacelink.model.BlendShapeData
 import io.github.kmpfacelink.model.BlendShapeEnhancerConfig
 import io.github.kmpfacelink.model.FaceLandmark
+import io.github.kmpfacelink.model.FaceSignalCandidates
 
 /**
  * Enhances MediaPipe blend shape output using geometric landmark calculations.
@@ -26,6 +28,9 @@ internal class BlendShapeEnhancer(
     // Callers that store the result must copy it via HashMap(result).
     private val scratch: HashMap<BlendShape, Float> = BlendShapeMapPool().create()
 
+    // Reused for the same reason. Callers that keep the candidates must copy the list.
+    private val candidates: ArrayList<AlternativeSignalObservation> = ArrayList(SOLVER_COUNT)
+
     /**
      * Enhance blend shape data using face landmarks.
      *
@@ -43,8 +48,8 @@ internal class BlendShapeEnhancer(
         scratch.putAll(blendShapes)
         val result = scratch
 
-        // Step 1: Geometric solver override
-        applyGeometricOverrides(result, landmarks)
+        // Step 1: choose between the estimator's values and what the solvers proposed
+        select(observe(blendShapes, landmarks), result)
 
         // Step 1.5: Expression correlation (FACS AU co-activation)
         if (config.enableCorrelation) {
@@ -61,35 +66,63 @@ internal class BlendShapeEnhancer(
     }
 
     /**
-     * Blend explicitly enabled geometric candidates with estimator values.
-     * - Near-zero estimator shapes: use the larger value from the two signals
-     * - Other configured shapes: combine both signals with the configured weight
+     * The values the landmark solvers propose for this frame, with the estimator's own values
+     * beside them and nothing merged yet.
+     *
+     * This is the seam that keeps a derived value from arriving as a measurement. [enhance] is
+     * defined in terms of it rather than repeating the solver walk, so the two cannot drift: the
+     * merged output is always a selection over exactly these candidates.
+     */
+    fun observe(
+        blendShapes: BlendShapeData,
+        landmarks: List<FaceLandmark>,
+    ): FaceSignalCandidates {
+        candidates.clear()
+        if (landmarks.size >= LandmarkSolvers.MIN_LANDMARKS) {
+            for ((shape, solver) in nearZeroSolvers) {
+                propose(shape, solver(landmarks))
+            }
+            for ((shape, solver) in lowAccuracySolvers) {
+                propose(shape, solver(landmarks))
+            }
+        }
+        return FaceSignalCandidates(estimator = blendShapes, alternatives = candidates)
+    }
+
+    private fun propose(shape: BlendShape, value: Float?) {
+        if (value == null) return
+        candidates += AlternativeSignalObservation(
+            producerId = "$GEOMETRY_PRODUCER_PREFIX${shape.name}",
+            value = value,
+            proposedTarget = shape,
+        )
+    }
+
+    /**
+     * Decide, per shape, between the estimator's value and a proposed one.
+     * - Near-zero estimator shapes: take the larger of the two
+     * - Other configured shapes: combine both with the configured weight
      *
      * This algorithmic choice does not assert that the geometric signal is more accurate.
+     *
+     * A solver that could not run proposed nothing, so the shape stays as the estimator left it,
+     * including absent. An estimator that did not produce the shape leaves the proposal to stand
+     * alone: blending it against a substituted zero would drag a real value down toward one nobody
+     * produced.
      */
-    private fun applyGeometricOverrides(
+    private fun select(
+        proposals: FaceSignalCandidates,
         result: MutableMap<BlendShape, Float>,
-        landmarks: List<FaceLandmark>,
     ) {
-        // A solver that cannot run leaves the shape as the estimator left it, including absent.
-        // An estimator that did not produce the shape leaves the geometric value to stand alone:
-        // blending it against a substituted zero would drag a real measurement down toward a value
-        // nobody measured.
-
-        // Near-zero shapes: use max(geometric, ml)
-        for ((shape, solver) in nearZeroSolvers) {
-            val geometric = solver(landmarks) ?: continue
-            val ml = result[shape]
-            val combined = if (ml == null) geometric else maxOf(geometric, ml)
-            result[shape] = combined.coerceIn(0f, 1f)
-        }
-
-        // Low-accuracy shapes: weighted blend
         val w = config.geometricBlendWeight
-        for ((shape, solver) in lowAccuracySolvers) {
-            val geometric = solver(landmarks) ?: continue
-            val ml = result[shape]
-            val combined = if (ml == null) geometric else w * geometric + (1f - w) * ml
+        for (candidate in proposals.alternatives) {
+            val shape = candidate.proposedTarget ?: continue
+            val estimated = result[shape]
+            val combined = when {
+                estimated == null -> candidate.value
+                shape in nearZeroSolvers -> maxOf(candidate.value, estimated)
+                else -> w * candidate.value + (1f - w) * estimated
+            }
             result[shape] = combined.coerceIn(0f, 1f)
         }
     }
@@ -111,6 +144,12 @@ internal class BlendShapeEnhancer(
     }
 
     companion object {
+        /** Names every landmark-derived proposal, so a reader can tell it from an estimator value. */
+        private const val GEOMETRY_PRODUCER_PREFIX = "landmark-geometry:"
+
+        /** Upper bound on proposals per frame; only used to size the reused list. */
+        private const val SOLVER_COUNT = 32
+
         /**
          * Create an enhancer from config, or null if enhancement is disabled.
          */

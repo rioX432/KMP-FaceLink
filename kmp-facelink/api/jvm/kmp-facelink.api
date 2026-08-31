@@ -186,6 +186,13 @@ public final class io/github/kmpfacelink/api/TrackingState : java/lang/Enum {
 	public static fun values ()[Lio/github/kmpfacelink/api/TrackingState;
 }
 
+public final class io/github/kmpfacelink/model/AlternativeSignalObservation {
+	public fun <init> (Ljava/lang/String;FLio/github/kmpfacelink/model/BlendShape;)V
+	public final fun getProducerId ()Ljava/lang/String;
+	public final fun getProposedTarget ()Lio/github/kmpfacelink/model/BlendShape;
+	public final fun getValue ()F
+}
+
 public final class io/github/kmpfacelink/model/AppliedTransform {
 	public fun <init> (Lio/github/kmpfacelink/model/TransformKind;Ljava/lang/String;)V
 	public final fun component1 ()Lio/github/kmpfacelink/model/TransformKind;
@@ -1036,6 +1043,12 @@ public final class io/github/kmpfacelink/model/FacePipelinePerformanceOutcome : 
 	public static fun getEntries ()Lkotlin/enums/EnumEntries;
 	public static fun valueOf (Ljava/lang/String;)Lio/github/kmpfacelink/model/FacePipelinePerformanceOutcome;
 	public static fun values ()[Lio/github/kmpfacelink/model/FacePipelinePerformanceOutcome;
+}
+
+public final class io/github/kmpfacelink/model/FaceSignalCandidates {
+	public fun <init> (Ljava/util/Map;Ljava/util/List;)V
+	public final fun getAlternatives ()Ljava/util/List;
+	public final fun getEstimator ()Ljava/util/Map;
 }
 
 public final class io/github/kmpfacelink/model/FaceTrackerConfig {

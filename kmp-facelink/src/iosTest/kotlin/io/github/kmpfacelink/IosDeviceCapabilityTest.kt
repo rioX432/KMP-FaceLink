@@ -1,63 +1,66 @@
 package io.github.kmpfacelink
 
 import io.github.kmpfacelink.api.PlatformContext
-import io.github.kmpfacelink.api.detectDeviceCapabilities
+import io.github.kmpfacelink.api.assessDeviceCapabilities
+import io.github.kmpfacelink.model.CapabilitySource
+import io.github.kmpfacelink.model.CapabilityState
 import io.github.kmpfacelink.model.DeviceTier
-import io.github.kmpfacelink.model.NpuVendor
 import io.github.kmpfacelink.model.QualityPreset
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
-import kotlin.test.assertTrue
+import kotlin.test.assertNull
 
 /**
- * Tests for iOS [detectDeviceCapabilities] and [QualityPreset.autoSelect]
- * behavior with the iOS device profile.
+ * The iOS assessment reports what follows from the platform, and says so.
+ *
+ * These tests are as much about the source of each answer as about the answer itself: iOS never
+ * queries this device, and a profile that did not say so would be indistinguishable from Android's,
+ * which does.
  */
 class IosDeviceCapabilityTest {
 
     private val context = PlatformContext()
 
     @Test
-    fun detectDeviceCapabilitiesReturnsValidProfile() {
-        val profile = detectDeviceCapabilities(context)
-        assertNotNull(profile)
+    fun assessmentReturnsAProfile() {
+        assertNotNull(assessDeviceCapabilities(context))
     }
 
     @Test
-    fun iosProfileReportsGpuAcceleration() {
-        val profile = detectDeviceCapabilities(context)
-        assertTrue(profile.hasGpuAcceleration)
+    fun gpuPathIsDeclaredByThePlatformRatherThanProbed() {
+        val gpu = assessDeviceCapabilities(context).gpuInference
+        assertEquals(CapabilityState.AVAILABLE, gpu.state)
+        assertEquals(
+            CapabilitySource.PLATFORM_DECLARED,
+            gpu.source,
+            "nothing on iOS queries this device, so this must not claim to be a probe",
+        )
     }
 
     @Test
-    fun iosProfileReportsHighTier() {
-        val profile = detectDeviceCapabilities(context)
-        assertEquals(DeviceTier.HIGH, profile.tier)
+    fun npuPathDoesNotApplyBecauseArkitOwnsIt() {
+        val profile = assessDeviceCapabilities(context)
+        assertEquals(CapabilityState.NOT_APPLICABLE, profile.npuInference.state)
+        assertNull(profile.npuVendor)
     }
 
     @Test
-    fun iosProfileReportsNoExplicitNpu() {
-        // iOS Neural Engine is consumed transparently by ARKit,
-        // so hasNpu is false and npuVendor is NONE
-        val profile = detectDeviceCapabilities(context)
-        assertEquals(false, profile.hasNpu)
-        assertEquals(NpuVendor.NONE, profile.npuVendor)
+    fun qualityRecommendationIsDeclaredNotMeasured() {
+        val recommendation = assessDeviceCapabilities(context).qualityRecommendation
+        assertEquals(DeviceTier.HIGH, recommendation.tier)
+        assertEquals(CapabilitySource.PLATFORM_DECLARED, recommendation.source)
     }
 
     @Test
     fun autoSelectReturnsHighForIosProfile() {
-        // iOS profile has tier=HIGH, so autoSelect should pick High preset
-        val profile = detectDeviceCapabilities(context)
-        val preset = QualityPreset.autoSelect(profile)
+        val preset = QualityPreset.autoSelect(assessDeviceCapabilities(context))
         assertEquals(QualityPreset.High, preset)
     }
 
     @Test
     fun highPresetAppliesCorrectPowerMode() {
-        val profile = detectDeviceCapabilities(context)
-        val preset = QualityPreset.autoSelect(profile)
-        val config = preset.applyTo()
-        assertNotNull(config.powerConfig.powerMode)
+        val preset = QualityPreset.autoSelect(assessDeviceCapabilities(context))
+        assertNotNull(preset.applyTo().powerConfig.powerMode)
     }
 }

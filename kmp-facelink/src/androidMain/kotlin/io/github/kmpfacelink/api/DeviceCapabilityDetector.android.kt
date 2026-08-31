@@ -1,8 +1,12 @@
 package io.github.kmpfacelink.api
 
 import io.github.kmpfacelink.internal.HardwareCapabilityDetector
+import io.github.kmpfacelink.model.CapabilityAssessment
+import io.github.kmpfacelink.model.CapabilitySource
+import io.github.kmpfacelink.model.CapabilityState
 import io.github.kmpfacelink.model.DeviceCapabilityProfile
 import io.github.kmpfacelink.model.DeviceTier
+import io.github.kmpfacelink.model.DeviceTierRecommendation
 import io.github.kmpfacelink.model.NpuVendor
 import java.util.concurrent.atomic.AtomicReference
 
@@ -19,7 +23,7 @@ import java.util.concurrent.atomic.AtomicReference
 private val cachedProfile = AtomicReference<DeviceCapabilityProfile?>(null)
 
 /**
- * Android implementation of [detectDeviceCapabilities]. Delegates to the
+ * Android implementation of [assessDeviceCapabilities]. Delegates to the
  * internal [HardwareCapabilityDetector] for GPU compute probing and to
  * `NpuVendorDetector` (via [HardwareCapabilityDetector.detect]) for the
  * vendor NPU identifier. Result is cached for the lifetime of the process.
@@ -29,7 +33,7 @@ private val cachedProfile = AtomicReference<DeviceCapabilityProfile?>(null)
  * - [DeviceTier.MID] when GPU compute is supported but no NPU is detected.
  * - [DeviceTier.LOW] otherwise (no GPU compute path).
  */
-public actual fun detectDeviceCapabilities(context: PlatformContext): DeviceCapabilityProfile {
+public actual fun assessDeviceCapabilities(context: PlatformContext): DeviceCapabilityProfile {
     cachedProfile.get()?.let { return it }
 
     val capabilities = HardwareCapabilityDetector.detect(context.context)
@@ -40,10 +44,26 @@ public actual fun detectDeviceCapabilities(context: PlatformContext): DeviceCapa
         else -> DeviceTier.LOW
     }
     val profile = DeviceCapabilityProfile(
-        hasGpuAcceleration = capabilities.gpuComputeSupported,
-        hasNpu = hasNpu,
-        tier = tier,
-        npuVendor = capabilities.npuVendor,
+        gpuInference = CapabilityAssessment(
+            state = if (capabilities.gpuComputeSupported) {
+                CapabilityState.AVAILABLE
+            } else {
+                CapabilityState.UNAVAILABLE
+            },
+            source = CapabilitySource.PROBED,
+            basis = "OpenGL ES compute support queried through a throwaway EGL context",
+        ),
+        npuInference = CapabilityAssessment(
+            state = if (hasNpu) CapabilityState.AVAILABLE else CapabilityState.UNAVAILABLE,
+            source = CapabilitySource.PROBED,
+            basis = "vendor NPU delegate lookup",
+        ),
+        npuVendor = capabilities.npuVendor.takeIf { it != NpuVendor.NONE },
+        qualityRecommendation = DeviceTierRecommendation(
+            tier = tier,
+            source = CapabilitySource.DERIVED,
+            basis = "derived from the probed GPU compute and NPU results",
+        ),
     )
     // Tolerate benign races: if two threads detect concurrently the first
     // completed publish wins and the second call's probing is discarded.

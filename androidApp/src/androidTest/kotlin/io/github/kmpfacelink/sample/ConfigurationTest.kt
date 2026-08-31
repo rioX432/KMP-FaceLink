@@ -7,12 +7,16 @@ import androidx.lifecycle.LifecycleRegistry
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import io.github.kmpfacelink.api.PlatformContext
-import io.github.kmpfacelink.api.detectDeviceCapabilities
+import io.github.kmpfacelink.api.assessDeviceCapabilities
 import io.github.kmpfacelink.model.BodyTrackerConfig
 import io.github.kmpfacelink.model.CameraFacing
+import io.github.kmpfacelink.model.CapabilityAssessment
+import io.github.kmpfacelink.model.CapabilitySource
+import io.github.kmpfacelink.model.CapabilityState
 import io.github.kmpfacelink.model.DetectionConfig
 import io.github.kmpfacelink.model.DeviceCapabilityProfile
 import io.github.kmpfacelink.model.DeviceTier
+import io.github.kmpfacelink.model.DeviceTierRecommendation
 import io.github.kmpfacelink.model.FaceTrackerConfig
 import io.github.kmpfacelink.model.HandTrackerConfig
 import io.github.kmpfacelink.model.HolisticTrackerConfig
@@ -180,10 +184,10 @@ class ConfigurationTest {
 
     @Test
     fun qualityPresetAutoSelectHighForNpuDevice() {
-        val profile = DeviceCapabilityProfile(
-            hasGpuAcceleration = true,
-            hasNpu = true,
-            tier = DeviceTier.HIGH,
+        val profile = probedProfile(
+            CapabilityState.AVAILABLE,
+            CapabilityState.AVAILABLE,
+            DeviceTier.HIGH,
         )
         val preset = QualityPreset.autoSelect(profile)
         assertTrue("NPU device should select High", preset is QualityPreset.High)
@@ -191,10 +195,10 @@ class ConfigurationTest {
 
     @Test
     fun qualityPresetAutoSelectMediumForGpuOnlyDevice() {
-        val profile = DeviceCapabilityProfile(
-            hasGpuAcceleration = true,
-            hasNpu = false,
-            tier = DeviceTier.MID,
+        val profile = probedProfile(
+            CapabilityState.AVAILABLE,
+            CapabilityState.UNAVAILABLE,
+            DeviceTier.MID,
         )
         val preset = QualityPreset.autoSelect(profile)
         assertTrue("GPU-only device should select Medium", preset is QualityPreset.Medium)
@@ -202,10 +206,10 @@ class ConfigurationTest {
 
     @Test
     fun qualityPresetAutoSelectLowForCpuOnlyDevice() {
-        val profile = DeviceCapabilityProfile(
-            hasGpuAcceleration = false,
-            hasNpu = false,
-            tier = DeviceTier.LOW,
+        val profile = probedProfile(
+            CapabilityState.UNAVAILABLE,
+            CapabilityState.UNAVAILABLE,
+            DeviceTier.LOW,
         )
         val preset = QualityPreset.autoSelect(profile)
         assertTrue("CPU-only device should select Low", preset is QualityPreset.Low)
@@ -223,21 +227,28 @@ class ConfigurationTest {
     // -- DeviceCapabilityDetector --
 
     @Test
-    fun detectDeviceCapabilitiesReturnsValidProfile() {
-        val profile = detectDeviceCapabilities(platformContext)
+    fun assessDeviceCapabilitiesReturnsValidProfile() {
+        val profile = assessDeviceCapabilities(platformContext)
         assertNotNull("Profile should not be null", profile)
-        assertNotNull("Tier should not be null", profile.tier)
-        // tier should be one of the valid values
         assertTrue(
             "Tier should be LOW, MID, or HIGH",
-            profile.tier in DeviceTier.entries,
+            profile.qualityRecommendation.tier in DeviceTier.entries,
         )
     }
 
     @Test
-    fun detectDeviceCapabilitiesIsCached() {
-        val profile1 = detectDeviceCapabilities(platformContext)
-        val profile2 = detectDeviceCapabilities(platformContext)
+    fun androidReportsItsCapabilitiesAsProbedRatherThanAssumed() {
+        // Android is the one target that queries the device. If this ever reports an assumption,
+        // the profile is claiming evidence the probe did not produce.
+        val profile = assessDeviceCapabilities(platformContext)
+        assertEquals(CapabilitySource.PROBED, profile.gpuInference.source)
+        assertEquals(CapabilitySource.PROBED, profile.npuInference.source)
+    }
+
+    @Test
+    fun assessDeviceCapabilitiesIsCached() {
+        val profile1 = assessDeviceCapabilities(platformContext)
+        val profile2 = assessDeviceCapabilities(platformContext)
         // Cached results should be identical references
         assertTrue(
             "Subsequent calls should return the same cached profile",
@@ -264,4 +275,29 @@ class ConfigurationTest {
             tracker.release()
         }
     }
+
+    /** Builds a profile as the Android probe would report it. */
+    private fun probedProfile(
+        gpu: CapabilityState,
+        npu: CapabilityState,
+        tier: DeviceTier,
+    ) = DeviceCapabilityProfile(
+        gpuInference = CapabilityAssessment(
+            gpu,
+            CapabilitySource.PROBED,
+            "test",
+        ),
+        npuInference = CapabilityAssessment(
+            npu,
+            CapabilitySource.PROBED,
+            "test",
+        ),
+        npuVendor = null,
+        qualityRecommendation = DeviceTierRecommendation(
+            tier,
+            CapabilitySource.DERIVED,
+            "test",
+        ),
+    )
+
 }

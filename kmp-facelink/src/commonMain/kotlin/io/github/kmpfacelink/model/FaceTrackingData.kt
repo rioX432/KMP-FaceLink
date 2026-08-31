@@ -15,10 +15,13 @@ package io.github.kmpfacelink.model
  * @property headTransform 6DoF head position and rotation for the primary face.
  * @property gazeData Eye gaze direction derived from blend shapes for the primary face. Null if not computed.
  * @property landmarks Face landmark points whose x/y coordinates use the SDK's image-normalized
- *           contract (0.0–1.0) for the primary face. The Android MediaPipe adapter supplies 478 points
- *           when a face is detected. The current iOS ARKit adapter leaves this list empty:
- *           ARKit exposes native `ARFaceGeometry` vertices in face-local 3D coordinates, but the
- *           adapter does not project or map them into this image-normalized field.
+ *           contract (0.0-1.0) for the primary face, or null when this estimator does not produce
+ *           landmarks at all. The Android MediaPipe adapter supplies 478 points when a face is
+ *           detected. The current iOS ARKit adapter supplies null: ARKit exposes native
+ *           `ARFaceGeometry` vertices in face-local 3D coordinates, which are not the same contract
+ *           and are not mapped into this one. Null and an empty list are different answers — the
+ *           first says this estimator has no landmarks to give, the second that it looked and found
+ *           none.
  * @property sourceImageWidth Width of the source image that landmarks are normalized to (pixels, after rotation)
  * @property sourceImageHeight Height of the source image that landmarks are normalized to (pixels, after rotation)
  * @property timestampMs Frame timestamp in milliseconds (monotonic clock)
@@ -35,7 +38,7 @@ public data class FaceTrackingData(
     val blendShapes: BlendShapeData,
     val headTransform: HeadTransform,
     val gazeData: GazeData? = null,
-    val landmarks: List<FaceLandmark> = emptyList(),
+    val landmarks: List<FaceLandmark>? = null,
     val sourceImageWidth: Int = 0,
     val sourceImageHeight: Int = 0,
     val timestampMs: Long,
@@ -54,7 +57,7 @@ public data class FaceTrackingData(
         public fun notTracking(timestampMs: Long = 0L): FaceTrackingData = FaceTrackingData(
             blendShapes = emptyMap(),
             headTransform = HeadTransform(),
-            landmarks = emptyList(),
+            landmarks = null,
             timestampMs = timestampMs,
             isTracking = false,
             faces = emptyList(),

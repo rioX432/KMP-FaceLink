@@ -21,7 +21,7 @@ class FaceTrackingDataTest {
         val data = FaceTrackingData.notTracking()
         assertFalse(data.isTracking)
         assertEquals(0L, data.timestampMs)
-        assertTrue(data.landmarks.isEmpty())
+        assertNull(data.landmarks, "no face was detected, so there are no landmarks to report")
         assertNull(data.gazeData)
         assertEquals(0, data.sourceImageWidth)
         assertEquals(0, data.sourceImageHeight)
@@ -139,7 +139,7 @@ class FaceTrackingDataTest {
         )
         assertEquals(1.0f, face.confidence)
         assertNull(face.gazeData)
-        assertTrue(face.landmarks.isEmpty())
+        assertNull(face.landmarks, "an estimator that supplies no landmarks reports none")
     }
 
     @Test

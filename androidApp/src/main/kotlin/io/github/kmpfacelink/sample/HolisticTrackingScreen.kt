@@ -58,10 +58,11 @@ internal fun HolisticTrackingScreen(
         }
 
         // Face landmark overlay
-        val faceData = trackingData?.face?.takeIf { it.isTracking && it.landmarks.isNotEmpty() }
+        // A null landmark list means this estimator has none to give, so there is nothing to draw.
+        val faceData = trackingData?.face?.takeIf { it.isTracking && !it.landmarks.isNullOrEmpty() }
         if (faceData != null) {
             FaceLandmarkOverlay(
-                landmarks = faceData.landmarks,
+                landmarks = checkNotNull(faceData.landmarks),
                 sourceImageWidth = faceData.sourceImageWidth,
                 sourceImageHeight = faceData.sourceImageHeight,
                 modifier = Modifier.fillMaxSize(),

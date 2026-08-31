@@ -176,7 +176,8 @@ private fun LandmarkOverlayLayer(trackingData: FaceTrackingData?) {
         LandmarkOverlayState.AVAILABLE -> {
             val currentData = requireNotNull(trackingData)
             FaceLandmarkOverlay(
-                landmarks = currentData.landmarks,
+                // AVAILABLE is only reached when the estimator supplied a non-empty list.
+                landmarks = checkNotNull(currentData.landmarks),
                 sourceImageWidth = currentData.sourceImageWidth,
                 sourceImageHeight = currentData.sourceImageHeight,
                 modifier = Modifier.fillMaxSize(),

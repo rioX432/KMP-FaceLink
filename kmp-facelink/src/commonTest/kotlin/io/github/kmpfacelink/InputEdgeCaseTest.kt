@@ -60,7 +60,9 @@ class InputEdgeCaseTest {
             timestampMs = 0L,
             isTracking = true,
         )
-        assertTrue(data.landmarks.isEmpty())
+        // An explicitly empty list stays empty: the estimator looked and produced no points, which
+        // is a different answer from the null a landmark-less estimator gives.
+        assertTrue(data.landmarks?.isEmpty() == true)
         assertTrue(data.isTracking)
     }
 
@@ -135,7 +137,7 @@ class InputEdgeCaseTest {
         assertFalse(data.isTracking)
         assertEquals(0L, data.timestampMs)
         assertTrue(data.blendShapes.isEmpty(), "nothing was measured, so nothing is reported")
-        assertTrue(data.landmarks.isEmpty())
+        assertNull(data.landmarks)
         assertTrue(data.faces.isEmpty())
         assertNull(data.gazeData)
     }

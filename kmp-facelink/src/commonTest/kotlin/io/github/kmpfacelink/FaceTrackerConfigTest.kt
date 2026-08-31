@@ -28,8 +28,8 @@ class FaceTrackerConfigTest {
         assertFalse(config.calibrationConfig.enabled)
         assertEquals(CameraFacing.FRONT, config.cameraFacing)
         assertEquals("models/face_landmarker_v2_with_blendshapes.task", config.modelAssetPath)
-        assertEquals(100L, config.stopDrainDelayMs)
-        assertEquals(500L, config.releaseTimeoutMs)
+        assertEquals(100L, config.performanceConfig.stopDrainDelayMs)
+        assertEquals(500L, config.performanceConfig.releaseTimeoutMs)
     }
 
     @Test
@@ -83,7 +83,7 @@ class FaceTrackerConfigTest {
     @Test
     fun maxFacesDefaultsToOne() {
         val config = FaceTrackerConfig()
-        assertEquals(1, config.maxFaces)
+        assertEquals(1, config.detectionConfig.maxFaces)
     }
 
     @Test
@@ -92,7 +92,7 @@ class FaceTrackerConfigTest {
             val config = FaceTrackerConfig(
                 detectionConfig = DetectionConfig(maxFaces = n),
             )
-            assertEquals(n, config.maxFaces)
+            assertEquals(n, config.detectionConfig.maxFaces)
         }
     }
 
@@ -124,7 +124,7 @@ class FaceTrackerConfigTest {
     @Test
     fun powerModeDefaultsToNull() {
         val config = FaceTrackerConfig()
-        assertNull(config.powerMode)
+        assertNull(config.powerConfig.powerMode)
     }
 
     @Test
@@ -132,13 +132,13 @@ class FaceTrackerConfigTest {
         val config = FaceTrackerConfig(
             powerConfig = PowerConfig(powerMode = PowerMode.BALANCED),
         )
-        assertEquals(PowerMode.BALANCED, config.powerMode)
+        assertEquals(PowerMode.BALANCED, config.powerConfig.powerMode)
     }
 
     @Test
     fun lowBatteryThresholdDefaults() {
         val config = FaceTrackerConfig()
-        assertEquals(0.15f, config.lowBatteryThreshold)
+        assertEquals(0.15f, config.powerConfig.lowBatteryThreshold)
     }
 
     @Test
@@ -164,7 +164,7 @@ class FaceTrackerConfigTest {
     @Test
     fun enableIdleDetectionDefaultsToTrue() {
         val config = FaceTrackerConfig()
-        assertTrue(config.enableIdleDetection)
+        assertTrue(config.powerConfig.enableIdleDetection)
     }
 
     @Test
@@ -172,7 +172,7 @@ class FaceTrackerConfigTest {
         val config = FaceTrackerConfig(
             powerConfig = PowerConfig(enableIdleDetection = false),
         )
-        assertFalse(config.enableIdleDetection)
+        assertFalse(config.powerConfig.enableIdleDetection)
     }
 
     @Test
@@ -199,6 +199,7 @@ class FaceTrackerConfigTest {
     }
 
     @Test
+    @Suppress("DEPRECATION") // Compatibility accessors remain part of the public migration contract.
     fun nestedDetectionConfigAccessedViaConvenience() {
         val detection = DetectionConfig(
             minDetectionConfidence = 0.8f,
@@ -210,6 +211,7 @@ class FaceTrackerConfigTest {
     }
 
     @Test
+    @Suppress("DEPRECATION") // Compatibility accessors remain part of the public migration contract.
     fun nestedPowerConfigAccessedViaConvenience() {
         val power = PowerConfig(
             powerMode = PowerMode.HIGH,
@@ -221,6 +223,7 @@ class FaceTrackerConfigTest {
     }
 
     @Test
+    @Suppress("DEPRECATION") // Compatibility accessors remain part of the public migration contract.
     fun nestedPerformanceConfigAccessedViaConvenience() {
         val perf = PerformanceConfig(
             analysisWidth = 320,

@@ -23,6 +23,9 @@ private suspend fun deleteStudyTakeOnIo(session: CaptureSession, take: StudyTake
         val android = requireNotNull(session as? AndroidCaptureSession) {
             "study retake requires AndroidCaptureSession"
         }
+        check(android.participantQualification == null) {
+            "published qualification takes are immutable"
+        }
         val published = android.takesDirectory.listFiles()
             ?.filter(File::isDirectory)
             ?: emptyList()
@@ -34,11 +37,17 @@ private suspend fun deleteStudyTakeOnIo(session: CaptureSession, take: StudyTake
         android.removeStudyTake(take.takeId)
     }
 
-internal fun readAndroidStudyTakeRecords(root: File): List<StudyTakeRecord> = root.listFiles()
-    ?.filter(File::isDirectory)
-    ?.mapNotNull(::readStudyTakeRecord)
-    ?.sortedWith(compareBy(StudyTakeRecord::scenario, StudyTakeRecord::attempt))
-    ?: emptyList()
+internal fun readAndroidStudyTakeRecords(
+    root: File,
+    activeStudyRun: StudyRunIdentity,
+): List<StudyTakeRecord> = scopedStudyTakeRecords(
+    root.listFiles()
+        ?.filter(File::isDirectory)
+        ?.mapNotNull(::readStudyTakeRecord)
+        ?.sortedWith(compareBy(StudyTakeRecord::scenario, StudyTakeRecord::attempt))
+        ?: emptyList(),
+    activeStudyRun,
+)
 
 // Detekt's Android analysis treats the generic kotlinx decode call as non-returning; it is not.
 @Suppress("UnreachableCode")
@@ -52,5 +61,5 @@ private fun readStudyTakeRecord(directory: File): StudyTakeRecord? {
     }
     val scenario = CaptureScenario.byId(manifest.scenarioId)
     if (scenario == null) return null
-    return StudyTakeRecord(manifest.takeId, scenario, manifest.attempt)
+    return StudyTakeRecord(manifest.takeId, scenario, manifest.attempt, manifest.studyRun)
 }

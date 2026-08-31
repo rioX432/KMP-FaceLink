@@ -1,0 +1,62 @@
+{
+    "schemaVersion": 5,
+    "takeId": "synthetic-schema-5",
+    "scenarioId": "neutral_10s",
+    "attempt": 1,
+    "startedAtIso": "2000-01-01T00:00:00Z",
+    "condition": {
+        "nativeResolution": "synthetic",
+        "runningMode": "IMAGE",
+        "delegate": "CPU",
+        "numFaces": 1,
+        "minDetectionConfidence": 0.5,
+        "minTrackingConfidence": 0.5,
+        "minPresenceConfidence": 0.5,
+        "mediapipeVersion": "synthetic",
+        "modelSha256": "synthetic-model-contract",
+        "mirrored": false,
+        "layer": "HOST_OFFLINE",
+        "provenance": {
+            "repo": "synthetic-sdk-contract",
+            "branch": "fixture",
+            "gitSha": "0000000000000000000000000000000000000000",
+            "commitTimeIso": "2000-01-01T00:00:00Z",
+            "dirty": false
+        }
+    },
+    "analysisFramesAdmitted": 0,
+    "inferenceResults": 0,
+    "noFaceResults": 0,
+    "inferenceFailedResults": 0,
+    "inferenceErrors": 0,
+    "framesStored": 0,
+    "softValidationPassed": false,
+    "softValidationReason": "synthetic-contract-only",
+    "medianIod": 0.0,
+    "outOfDistanceBandFraction": 0.0,
+    "spans": [],
+    "blendshapeNames": [],
+    "resultIndexSha256": "",
+    "landmarksSha256": "",
+    "blendshapesSha256": "",
+    "transformSha256": "",
+    "captureWorkflow": "GUIDED_GATE_AUTOSTART_V1",
+    "storageReceipt": {
+        "profile": "COEFFICIENTS_ONLY_V1",
+        "pixelSemantics": "NONE",
+        "sourceWidth": 0,
+        "sourceHeight": 0,
+        "storedWidth": 0,
+        "storedHeight": 0,
+        "orientationPolicy": "NOT_STORED",
+        "mirrorPolicy": "NOT_STORED",
+        "canonicalizationAlgorithm": "NONE"
+    },
+    "studyRun": {
+        "schemaVersion": 1,
+        "runId": "synthetic-schema-5-run",
+        "protocolId": "SYNTHETIC_CONTRACT_V1",
+        "storageProfile": "COEFFICIENTS_ONLY_V1",
+        "createdAtIso": "2000-01-01T00:00:00Z"
+    }
+}

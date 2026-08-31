@@ -1,4 +1,10 @@
 @file:OptIn(ExperimentalForeignApi::class)
+@file:Suppress(
+    // Root ownership must be released for every constructor failure, regardless of whether the
+    // failing operation was directory I/O, manifest decoding, or stale-take recovery.
+    "TooGenericExceptionCaught",
+    "InstanceOfCheckForException",
+)
 
 package io.github.kmpfacelink.capture
 
@@ -11,7 +17,10 @@ import kotlinx.cinterop.memScoped
 import kotlinx.cinterop.ptr
 import kotlinx.cinterop.set
 import kotlinx.cinterop.toKString
+import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.encodeToString
 import platform.Foundation.NSFileManager
+import platform.Foundation.NSUUID
 import platform.posix.CLOCK_REALTIME
 import platform.posix.clock_gettime
 import platform.posix.gmtime_r
@@ -20,33 +29,100 @@ import platform.posix.timespec
 import platform.posix.tm
 
 /** Publishes only takes whose payload, results and final manifest all completed. */
-internal class IosCaptureStore(rootDirectory: String) {
-    private val root = ensureCaptureDirectory(joinCapturePath(rootDirectory, ROOT_DIR))
-    val takesRoot: String = ensureCaptureDirectory(joinCapturePath(root, TAKES_DIR))
-    private val tmpRoot: String = ensureCaptureDirectory(joinCapturePath(root, TMP_DIR))
+internal class IosCaptureStore(
+    rootDirectory: String,
+    protocolId: String,
+    storageProfile: CaptureStorageProfile,
+) {
+    private val root = try {
+        ensureCaptureDirectory(joinCapturePath(rootDirectory, ROOT_DIR))
+    } catch (failure: Throwable) {
+        if (failure is Error) throw failure
+        throw captureFailure(CaptureFailureCategory.STORAGE_SETUP, failure)
+    }
+    private val rootLease = acquireCaptureRootLease(root)
+    val studyRun: StudyRunIdentity
+    val takesRoot: String
+    private val tmpRoot: String
+    internal val recoveredIncompleteTakeCount: Int
+
+    init {
+        try {
+            studyRun = loadOrCreateStudyRun(protocolId, storageProfile)
+            takesRoot = ensureCaptureDirectory(joinCapturePath(root, TAKES_DIR))
+            tmpRoot = ensureCaptureDirectory(joinCapturePath(root, TMP_DIR))
+            recoveredIncompleteTakeCount = recoverIosIncompleteTakes(tmpRoot)
+        } catch (failure: Throwable) {
+            runCatching { rootLease.release() }.onFailure(failure::addSuppressed)
+            if (failure is Error || failure is CaptureFailureException) throw failure
+            throw captureFailure(CaptureFailureCategory.STORAGE_SETUP, failure)
+        }
+    }
 
     fun newTakeId(scenario: CaptureScenario, attempt: Int, startedAtMs: Long): String =
         "${takeTimestamp(startedAtMs)}_${scenario.id}_$attempt"
 
     fun createTmpDir(takeId: String): String {
-        val path = joinCapturePath(tmpRoot, takeId)
-        check(!NSFileManager.defaultManager.fileExistsAtPath(path)) { "take $takeId already exists" }
-        return ensureCaptureDirectory(path)
+        try {
+            val path = joinCapturePath(tmpRoot, takeId)
+            check(!NSFileManager.defaultManager.fileExistsAtPath(path)) { "take $takeId already exists" }
+            return ensureCaptureDirectory(path)
+        } catch (failure: Throwable) {
+            if (failure is Error || failure is CaptureFailureException) throw failure
+            throw captureFailure(CaptureFailureCategory.STORAGE_SETUP, failure)
+        }
     }
 
     fun publish(tmpDirectory: String, takeId: String) {
-        val target = joinCapturePath(takesRoot, takeId)
-        check(!NSFileManager.defaultManager.fileExistsAtPath(target)) { "take $takeId is already published" }
-        check(moveCapturePath(tmpDirectory, target)) { "could not publish $tmpDirectory to $target" }
+        try {
+            val target = joinCapturePath(takesRoot, takeId)
+            check(!NSFileManager.defaultManager.fileExistsAtPath(target)) { "take $takeId is already published" }
+            check(moveCapturePath(tmpDirectory, target)) { "could not publish $tmpDirectory to $target" }
+        } catch (failure: Throwable) {
+            if (failure is Error || failure is CaptureFailureException) throw failure
+            throw captureFailure(CaptureFailureCategory.STREAM_WRITE, failure)
+        }
     }
 
     fun discard(tmpDirectory: String) {
-        check(removeCapturePath(tmpDirectory)) { "could not discard incomplete take $tmpDirectory" }
+        try {
+            check(removeCapturePath(tmpDirectory)) { "could not discard incomplete take $tmpDirectory" }
+        } catch (failure: Throwable) {
+            if (failure is Error || failure is CaptureFailureException) throw failure
+            throw captureFailure(CaptureFailureCategory.CLEANUP, failure)
+        }
     }
 
     @Suppress("UNCHECKED_CAST")
     fun publishedTakeNames(): List<String> =
         NSFileManager.defaultManager.contentsOfDirectoryAtPath(takesRoot, error = null) as? List<String> ?: emptyList()
+
+    fun close() {
+        rootLease.release()
+    }
+
+    private fun loadOrCreateStudyRun(
+        protocolId: String,
+        storageProfile: CaptureStorageProfile,
+    ): StudyRunIdentity {
+        val path = joinCapturePath(root, ACTIVE_STUDY_RUN_FILE)
+        val restored = if (NSFileManager.defaultManager.fileExistsAtPath(path)) {
+            runCatching { rawFrameJson.decodeFromString<StudyRunIdentity>(readCaptureText(path)) }.getOrNull()
+        } else {
+            null
+        }
+        return activeOrNewStudyRun(restored, protocolId, storageProfile) {
+            StudyRunIdentity(
+                schemaVersion = StudyRunIdentity.SCHEMA_VERSION,
+                runId = NSUUID().UUIDString,
+                protocolId = protocolId,
+                storageProfile = storageProfile,
+                createdAtIso = captureIsoTimestamp(captureCurrentTimeMillis()),
+            ).also { created ->
+                publishCaptureText(root, ACTIVE_STUDY_RUN_FILE, rawFrameJson.encodeToString(created))
+            }
+        }
+    }
 
     private fun takeTimestamp(millis: Long): String = formatUtc(millis, "%Y%m%d-%H%M%S")
 
@@ -54,7 +130,21 @@ internal class IosCaptureStore(rootDirectory: String) {
         const val ROOT_DIR = "capture"
         const val TAKES_DIR = "takes"
         const val TMP_DIR = "tmp"
+        const val ACTIVE_STUDY_RUN_FILE = "active-study-run-v1.json"
     }
+}
+
+/** Reclaims only entries inside the capture-owned tmp root; published takes are never scanned. */
+@Suppress("UNCHECKED_CAST")
+internal fun recoverIosIncompleteTakes(tmpRoot: String): Int {
+    val names = NSFileManager.defaultManager.contentsOfDirectoryAtPath(tmpRoot, error = null) as? List<String>
+        ?: emptyList()
+    names.forEach { name ->
+        require('/' !in name && name != "." && name != "..") { "invalid incomplete take name: $name" }
+        val path = joinCapturePath(tmpRoot, name)
+        check(removeCapturePath(path)) { "could not recover incomplete take $path" }
+    }
+    return names.size
 }
 
 internal fun captureCurrentTimeMillis(): Long = memScoped {

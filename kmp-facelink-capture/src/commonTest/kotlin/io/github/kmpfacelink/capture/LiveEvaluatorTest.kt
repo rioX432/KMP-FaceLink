@@ -86,8 +86,8 @@ class LiveEvaluatorTest {
         repeat(6) { blinkFrame(evaluator, 0.30f, ts++) }
 
         val progress = evaluator.progress()
-        assertTrue((progress) is LiveProgress.Blink)
-        assertEquals(5, (progress as LiveProgress.Blink).count)
+        assertTrue(progress is LiveProgress.Blink)
+        assertEquals(5, progress.count)
         assertTrue(evaluator.outcome().passed)
     }
 

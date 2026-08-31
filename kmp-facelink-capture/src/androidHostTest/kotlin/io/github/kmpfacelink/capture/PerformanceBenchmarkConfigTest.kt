@@ -1,3 +1,5 @@
+@file:Suppress("MagicNumber") // Deliberately distinct benchmark-policy fixture values.
+
 package io.github.kmpfacelink.capture
 
 import io.github.kmpfacelink.model.CalibrationConfig

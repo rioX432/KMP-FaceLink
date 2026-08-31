@@ -31,6 +31,7 @@ import java.security.MessageDigest
 public class RawFrameReader(
     directory: String,
     verifyHashes: Boolean = true,
+    storageReceipt: CaptureStorageReceipt? = null,
 ) {
 
     private val dir = File(directory)
@@ -47,6 +48,7 @@ public class RawFrameReader(
     private val records: ByteArray
 
     init {
+        storageReceipt?.requireExactAndroidReplay()
         manifest = readManifest()
         checkFormat()
         records = readIndexRecords()

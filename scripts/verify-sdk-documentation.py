@@ -20,6 +20,8 @@ CURRENT_DOCUMENTS = (
     "docs/quick-start-integration.md",
     "docs/quick-start-ios.md",
     "docs/troubleshooting.md",
+    "kmp-facelink/src/commonMain/kotlin/io/github/kmpfacelink/model/FaceLandmark.kt",
+    "kmp-facelink/src/commonMain/kotlin/io/github/kmpfacelink/model/FaceTrackingData.kt",
     "kmp-facelink/src/jvmMain/kotlin/io/github/kmpfacelink/internal/onnx/OnnxModelLoader.kt",
     "kmp-facelink/src/jvmMain/resources/META-INF/LICENSES/OpenSeeFace.txt",
     "scripts/setup-openseeface-models.sh",
@@ -97,6 +99,20 @@ def contract_violations(
     require("docs/troubleshooting.md", "./scripts/setup-openseeface-models.sh")
     reject("docs/troubleshooting.md", "requires a TrueDepth front camera")
 
+    face_landmark = "kmp-facelink/src/commonMain/kotlin/io/github/kmpfacelink/model/FaceLandmark.kt"
+    face_tracking = "kmp-facelink/src/commonMain/kotlin/io/github/kmpfacelink/model/FaceTrackingData.kt"
+    for path in (face_landmark, face_tracking):
+        require(path, "current iOS ARKit adapter")
+        require(path, "image-normalized")
+        reject(path, "ARKit does not expose raw face mesh vertices")
+        reject(path, "mapped from ARFaceAnchor geometry vertices")
+    require(face_landmark, "face-local 3D coordinate contract")
+    require(face_landmark, "image-normalized x/y coordinates and adapter-defined z")
+    require(face_landmark, "0.0 does not distinguish measured zero from missing metadata")
+    reject(face_landmark, "On Android (MediaPipe) this comes from the model output")
+    require(face_tracking, "x/y coordinates use the SDK's image-normalized")
+    require(face_tracking, "ARKit exposes native `ARFaceGeometry` vertices")
+
     require("docs/migration.md", "Current unreleased worktree (not published)")
     require("docs/migration.md", "already-compiled consumers must")
     for tier in ("Tier 1", "Tier 2", "Tier 3"):
@@ -155,7 +171,7 @@ def main() -> int:
         for violation in violations:
             print(f"FAIL: {violation}", file=sys.stderr)
         return 1
-    print(f"PASS: {len(documents)} documentation and model-supply contracts match source configuration")
+    print(f"PASS: {len(documents)} selected documentation and model-supply tokens match source configuration")
     return 0
 
 

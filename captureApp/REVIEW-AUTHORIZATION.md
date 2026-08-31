@@ -74,3 +74,50 @@ because a single reviewed APK digest would not identify the full installed code 
 The performance button starts disabled. The app validates after file selection and again immediately
 before camera/offline diagnostic work. A source-authorized candidate with no signed post-binary file
 therefore remains non-executable for performance measurement.
+
+## 3. Session-C confirmatory capture authorization
+
+`CHEEK_PUFF_LEARNED_PATCH_CONFIRMATORY_12_V1` is not ordinary guided capture and does not reuse the
+performance-diagnostic file. Before it asks for camera permission, Android requires a separate,
+canonical LF `session-c-execution-authorization-v1` whose P-256 signature covers, in order:
+
+```properties
+schema=session-c-execution-authorization-v1
+protocolId=CHEEK_PUFF_LEARNED_PATCH_CONFIRMATORY_12_V1
+storageProfile=CANONICAL_RGBA_240X320_V1
+sourceClosureSha256=<installed candidate's reviewed source closure>
+apkSha256=<installed base APK SHA-256>
+executionContractSha256=<pre-binary reviewed source/execution-contract SHA-256 embedded in this APK>
+binaryReceiptSha256=<signer-attested final exact-binary packet/receipt SHA-256>
+cheekModelSha256=<frozen public cheek-model SHA-256>
+mouthControlModelSha256=<frozen public mouth-control SHA-256>
+runId=<one approved confirmatory run identity>
+expiresAt=<UTC ISO-8601 expiry>
+fixture=PRODUCTION
+signingKeyId=<reviewed public-key SHA-256>
+signatureDerHex=<lowercase DER ECDSA over the preceding thirteen LF-terminated lines>
+```
+
+Missing, reordered, stale, wrong-model, wrong-source, wrong-APK, wrong execution contract, or
+unsigned files fail before the capacity check, camera request, or capture-store creation.
+`executionContractSha256` is compared to the pre-binary reviewed
+`BuildConfig.SESSION_C_EXECUTION_CONTRACT_SHA256`; a normal build leaves it blank and therefore fails
+closed. The final `binaryReceiptSha256` stays in the P-256-signed authorization together with the
+actual APK hash rather than being embedded into the APK, avoiding a binary-hash cycle. The signed
+`runId` is passed to `CaptureStore` as its required active-study identity. A restore with a different
+run ID fails rather than rotating/generating a new one, leaving the existing active run unchanged.
+
+The Activity repeats the raw-byte verification with a fresh installed APK/source/receipt/model/time
+expectation immediately after camera permission returns and before `AndroidCaptureSession` is
+constructed. `HOST_TEST_ONLY` is accepted only by host tests; an installed app rejects it. The normal
+absent protocol selection and preview-only route remain guided-22 and do not build a Session-C
+expectation, hash the APK, read capacity, or parse Session-C bytes.
+
+This enforcement is specific to `CaptureActivity`'s developer Session-C route; it is not a general
+SDK-wide execution authority. If a completed guided-22 active run exists, Session C fails without
+deleting, replacing, or rotating it. The operator must first export and verify that guided run, then
+perform a separately reviewed, non-destructive active-run transition before requesting Session C.
+
+No issuer or approved Session-C exact-binary packet is supplied by this source change. A signed
+`PRODUCTION` file therefore cannot be created from this repository alone and source/tests do not
+authorize a Session-C device run.

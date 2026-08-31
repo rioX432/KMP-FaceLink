@@ -30,6 +30,7 @@ import io.github.kmpfacelink.api.FaceTracker
 import io.github.kmpfacelink.api.TrackingState
 import io.github.kmpfacelink.ifm.IfmSender
 import io.github.kmpfacelink.model.FaceTrackingData
+import io.github.kmpfacelink.model.SmoothingConfig
 import io.github.kmpfacelink.vmc.VmcSender
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.filterNotNull
@@ -47,6 +48,8 @@ public fun FaceTrackingScreen(
     onModeChange: (TrackingMode) -> Unit,
     onStartClick: () -> Unit,
     onStopClick: () -> Unit,
+    showModeToggle: Boolean = true,
+    initialSmoothingConfig: SmoothingConfig = SmoothingConfig.Ema(),
 ) {
     val state by faceTracker.state.collectAsState()
     val trackingData by trackingDataState.collectAsState()
@@ -75,7 +78,10 @@ public fun FaceTrackingScreen(
             if (state == TrackingState.ERROR) {
                 FaceErrorBanner(errorMessage, onRetry = onStartClick)
             }
-            SmoothingFilterChips(faceTracker = faceTracker)
+            SmoothingFilterChips(
+                faceTracker = faceTracker,
+                initialConfig = initialSmoothingConfig,
+            )
             StreamingControls(trackingDataState = trackingDataState)
         },
         bottomContent = {
@@ -86,6 +92,7 @@ public fun FaceTrackingScreen(
                     .windowInsetsPadding(WindowInsets.navigationBars),
             )
         },
+        showModeToggle = showModeToggle,
     )
 }
 
@@ -164,13 +171,31 @@ private fun FaceErrorBanner(errorMessage: String?, onRetry: () -> Unit) {
 
 @Composable
 private fun LandmarkOverlayLayer(trackingData: FaceTrackingData?) {
-    val currentData = trackingData?.takeIf { it.isTracking && it.landmarks.isNotEmpty() }
-    if (currentData != null) {
-        FaceLandmarkOverlay(
-            landmarks = currentData.landmarks,
-            sourceImageWidth = currentData.sourceImageWidth,
-            sourceImageHeight = currentData.sourceImageHeight,
-            modifier = Modifier.fillMaxSize(),
-        )
+    when (landmarkOverlayState(trackingData?.isTracking == true, trackingData?.landmarks?.isNotEmpty() == true)) {
+        LandmarkOverlayState.HIDDEN -> Unit
+        LandmarkOverlayState.AVAILABLE -> {
+            val currentData = requireNotNull(trackingData)
+            FaceLandmarkOverlay(
+                landmarks = currentData.landmarks,
+                sourceImageWidth = currentData.sourceImageWidth,
+                sourceImageHeight = currentData.sourceImageHeight,
+                modifier = Modifier.fillMaxSize(),
+            )
+        }
+        LandmarkOverlayState.CURRENT_ADAPTER_UNAVAILABLE -> {
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier = Modifier.fillMaxSize(),
+            ) {
+                Text(
+                    text = LANDMARK_OVERLAY_UNAVAILABLE_TEXT,
+                    color = SampleColors.TextPrimary,
+                    fontSize = 13.sp,
+                    modifier = Modifier
+                        .background(SampleColors.Overlay)
+                        .padding(horizontal = 12.dp, vertical = 8.dp),
+                )
+            }
+        }
     }
 }

@@ -139,7 +139,7 @@ internal class MediaPipeWasmHandTracker(
         val timestamp = frameCounter
         val jsResult = detectHandsForVideoJs(lm, video, timestamp) ?: return
 
-        @Suppress("UNCHECKED_CAST")
+        @Suppress("UNCHECKED_CAST", "UNCHECKED_CAST_TO_EXTERNAL_INTERFACE")
         val result = jsResult as JsHandLandmarkerResult
         val handCount = getHandCountJs(result)
 

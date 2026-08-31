@@ -1,3 +1,9 @@
+@file:Suppress(
+    "FunctionNaming", // Backtick names state the corruption or concurrency property under test.
+    "MagicNumber", // Fixture values deliberately make offsets, sizes, and timestamps distinct.
+    "TooManyFunctions", // One lifecycle suite covers every publish-last failure boundary.
+)
+
 package io.github.kmpfacelink.capture
 
 import java.io.ByteArrayOutputStream

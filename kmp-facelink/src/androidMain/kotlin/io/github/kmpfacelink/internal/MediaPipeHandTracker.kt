@@ -274,10 +274,10 @@ internal class MediaPipeHandTracker(
     }
 
     private fun resolveHandedness(result: HandLandmarkerResult, index: Int): Handedness {
-        if (result.handednesses().isEmpty() || index >= result.handednesses().size) {
+        if (result.handedness().isEmpty() || index >= result.handedness().size) {
             return Handedness.UNKNOWN
         }
-        val category = result.handednesses()[index]
+        val category = result.handedness()[index]
         return if (category.isNotEmpty()) {
             HandLandmarkMapper.mapHandedness(category[0].categoryName())
         } else {

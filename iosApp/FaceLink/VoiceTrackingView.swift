@@ -1,5 +1,6 @@
 import SwiftUI
 import KMPFaceLink
+import KMPFaceLinkVoice
 
 struct VoiceTrackingView: View {
     @StateObject private var viewModel = VoiceTrackingViewModel()

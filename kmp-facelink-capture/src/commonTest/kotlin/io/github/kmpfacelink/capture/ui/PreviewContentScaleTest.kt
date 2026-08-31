@@ -1,5 +1,7 @@
 package io.github.kmpfacelink.capture.ui
 
+import io.github.kmpfacelink.capture.CaptureUiState
+import io.github.kmpfacelink.capture.HardGate
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -78,6 +80,33 @@ class PreviewContentScaleTest {
             contentScale = PreviewContentScale.FILL,
         )
         assertEquals(PreviewViewport(0f, 0f, 0f, 0f), empty)
+    }
+
+    @Test
+    fun diagnosticsExposeOnlyModeInputAgeAndGateCategories() {
+        val state = CaptureUiState(
+            gate = HardGate.Result(
+                hasFace = true,
+                centered = false,
+                sized = true,
+                bright = true,
+                distanced = false,
+            ),
+            resultsObserved = 2,
+        )
+
+        assertEquals(
+            "確認のみ / 入力あり / age=3s / 顔あり / F1 C0 S1 B1 D0",
+            gateDiagnosticSummary(state, CaptureSurfaceMode.PREVIEW_ONLY, 3),
+        )
+        assertEquals(
+            "収録 / 入力あり / age=3s / 顔あり / F1 C0 S1 B1 D0",
+            gateDiagnosticSummary(state, CaptureSurfaceMode.RECORDING_PROTOCOL, 3),
+        )
+        assertEquals(
+            "確認のみ / 入力待ち / age=未観測 / 顔なし / F0 C0 S0 B0 D0",
+            gateDiagnosticSummary(CaptureUiState(), CaptureSurfaceMode.PREVIEW_ONLY, null),
+        )
     }
 
     private fun assertClose(expected: Float, actual: Float) {

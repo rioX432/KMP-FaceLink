@@ -75,7 +75,7 @@ def main() -> int:
         for path, reason in rejected:
             print(f"FAIL {path}: {reason}", file=sys.stderr)
         return 1
-    print(f"PASS: {len(paths)} tracked paths contain no forbidden private payload")
+    print(f"PASS: {len(paths)} tracked paths contain no forbidden private-payload name or suffix")
     return 0
 
 

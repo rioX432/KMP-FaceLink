@@ -10,32 +10,45 @@ settings:
     ENABLE_USER_SCRIPT_SANDBOXING: NO
     FRAMEWORK_SEARCH_PATHS:
       - $(inherited)
-      - $(SRCROOT)/../kmp-facelink/build/xcode-frameworks/$(CONFIGURATION)/$(SDK_NAME)
       - $(SRCROOT)/../sampleShared/build/xcode-frameworks/$(CONFIGURATION)/$(SDK_NAME)
 
 targets:
   FaceLink:
     type: application
     platform: iOS
+    settings:
+      base:
+        # The KMP modules publish iosSimulatorArm64, not an Intel simulator slice.
+        ARCHS: arm64
     sources:
       - path: FaceLink
+        excludes:
+          # The experimental Voice sample requires a separately provisioned
+          # whisper.cpp native toolchain and is not part of the default sample.
+          - VoiceTrackingView.swift
+          # Linking multiple static Kotlin/Native frameworks duplicates exported core types.
+          # Actions remains available on Android and as a separately provisioned iOS module.
+          - ActionsTrackingView.swift
+          # Hand mode uses the Compose wrapper; the legacy native screen requires core data types
+          # that are intentionally not exported by the single SampleShared umbrella.
+          - HandTrackingView.swift
+          # The default iOS sample exposes the shared Face and Hand paths. The legacy native
+          # Holistic screen relies on direct core-framework SKIE extensions.
+          - HolisticTrackingView.swift
+          - SmoothingSettingsView.swift
     dependencies:
-      - framework: ../kmp-facelink/build/xcode-frameworks/$(CONFIGURATION)/$(SDK_NAME)/KMPFaceLink.framework
-        embed: false
       - framework: ../sampleShared/build/xcode-frameworks/$(CONFIGURATION)/$(SDK_NAME)/SampleShared.framework
         embed: false
     preBuildScripts:
       - name: Build KMP Frameworks
         script: |
           cd "$SRCROOT/.."
-          ./gradlew :kmp-facelink:embedAndSignAppleFrameworkForXcode
           ./gradlew :sampleShared:embedAndSignAppleFrameworkForXcode
         basedOnDependencyAnalysis: false
     info:
       path: FaceLink/Info.plist
       properties:
         NSCameraUsageDescription: "Face tracking requires camera access"
-        NSMicrophoneUsageDescription: "Voice features require microphone access"
         UIRequiredDeviceCapabilities:
           - arkit
           - front-facing-camera

@@ -98,13 +98,16 @@ internal class AndroidPerformanceBenchmark(
         )
         require(frameManifestFile.isFile) { "${frameManifestFile.path} is missing" }
         val sourceFrameManifestSha = sha256File(frameManifestFile)
-        val modelSha = CaptureStore(context, AndroidCaptureSession.DEFAULT_MODEL_ASSET).modelSha256
+        val modelSha = modelAssetSha256(context, AndroidCaptureSession.DEFAULT_MODEL_ASSET)
         require(modelSha == take.condition.modelSha256) {
             "replay model $modelSha differs from take model ${take.condition.modelSha256}"
         }
 
         // Construction verifies both raw-frame hashes before any timing starts.
-        val sourceFrames = RawFrameReader(File(takeDir, AndroidCaptureSession.FRAMES_DIR).absolutePath)
+        val sourceFrames = RawFrameReader(
+            File(takeDir, AndroidCaptureSession.FRAMES_DIR).absolutePath,
+            storageReceipt = take.storageReceipt,
+        )
         require(sourceFrames.frameCount > 0) { "benchmark source take has no stored frames" }
 
         val trackerConfig = config.processingConfig.copy(
@@ -189,7 +192,7 @@ internal class AndroidPerformanceBenchmark(
                 stateCarryPolicy = OfflineStateCarryPolicy.CONTIGUOUS_WARMUP_TO_STEADY,
             ),
             expandedReplayTimelineSha256 = timelineSha,
-            saveFrames = false,
+            retainsSourceFrames = false,
             inputArtifactsRetainedLocally = true,
             device = deviceContext(),
             condition = replayCondition,

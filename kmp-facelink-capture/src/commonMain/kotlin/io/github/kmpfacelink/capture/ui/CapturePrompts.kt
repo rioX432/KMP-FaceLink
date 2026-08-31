@@ -13,6 +13,7 @@ import io.github.kmpfacelink.capture.TakeScript
 public object CapturePrompts {
 
     /** The action itself, shown while the expression is meant to be held. */
+    @Suppress("CyclomaticComplexMethod") // Exhaustive protocol text mapping, not branching behavior.
     public fun action(scenario: CaptureScenario): String = when (scenario) {
         CaptureScenario.CHEEK_PUFF -> "Puff both cheeks"
         CaptureScenario.CHEEK_PUFF_LIGHT -> "Puff both cheeks — lightly"
@@ -56,7 +57,6 @@ public object CapturePrompts {
         TakeScript.Cue.DONE -> "Done"
     }
 
-
     /**
      * The same instruction in Japanese, shown above the English one.
      *
@@ -64,6 +64,7 @@ public object CapturePrompts {
      * to translate is an instruction they act on late. The English line stays because it is what
      * earlier sessions were recorded against and what the protocol document quotes.
      */
+    @Suppress("CyclomaticComplexMethod") // Japanese mirror of the exhaustive protocol text mapping.
     public fun actionJa(scenario: CaptureScenario): String = when (scenario) {
         CaptureScenario.CHEEK_PUFF -> "両方のほっぺを ふくらませる"
         CaptureScenario.CHEEK_PUFF_LIGHT -> "両方のほっぺを 軽く ふくらませる"

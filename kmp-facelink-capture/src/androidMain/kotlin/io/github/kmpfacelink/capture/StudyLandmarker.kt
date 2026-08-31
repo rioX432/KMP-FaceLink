@@ -34,7 +34,7 @@ internal class StudyLandmarker(
     var listener: Listener? = null
 
     /** Errors cannot be tied to a frame, so they are counted rather than recorded as results. */
-    var onError: ((String) -> Unit)? = null
+    var onError: (() -> Unit)? = null
 
     private var landmarker: FaceLandmarker? = null
 
@@ -97,7 +97,7 @@ internal class StudyLandmarker(
                     }
                 }
             }
-            .setErrorListener { error -> onError?.invoke(error.message ?: "unknown") }
+            .setErrorListener { onError?.invoke() }
             .build()
         return FaceLandmarker.createFromOptions(context, options)
     }

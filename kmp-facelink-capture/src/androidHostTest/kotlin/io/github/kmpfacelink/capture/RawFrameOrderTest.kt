@@ -1,3 +1,8 @@
+@file:Suppress(
+    "FunctionNaming", // Backtick names identify each rejected ordering relation.
+    "MagicNumber", // Nonuniform sequence/timestamp fixtures expose ordering mistakes.
+)
+
 package io.github.kmpfacelink.capture
 
 import java.io.File

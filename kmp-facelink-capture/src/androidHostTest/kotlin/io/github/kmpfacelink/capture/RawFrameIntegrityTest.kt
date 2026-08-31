@@ -1,3 +1,8 @@
+@file:Suppress(
+    "FunctionNaming", // Backtick names identify the exact tamper case.
+    "MagicNumber", // Byte offsets and mutations are integrity-test fixtures.
+)
+
 package io.github.kmpfacelink.capture
 
 import java.io.File

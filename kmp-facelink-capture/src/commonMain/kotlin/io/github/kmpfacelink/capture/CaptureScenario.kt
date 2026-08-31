@@ -50,7 +50,12 @@ public enum class CaptureScenario(
 
     PUCKER("pucker", STUDY_MAX_SECONDS, SoftValidationKind.TIME_ONLY, STUDY_NEUTRAL_SECONDS),
     BLOW("blow", STUDY_MAX_SECONDS, SoftValidationKind.TIME_ONLY, STUDY_NEUTRAL_SECONDS),
-    CHEEK_PUFF_YAW_RIGHT("cheek_puff_yaw_right", STUDY_MAX_SECONDS, SoftValidationKind.TIME_ONLY, STUDY_NEUTRAL_SECONDS),
+    CHEEK_PUFF_YAW_RIGHT(
+        "cheek_puff_yaw_right",
+        STUDY_MAX_SECONDS,
+        SoftValidationKind.TIME_ONLY,
+        STUDY_NEUTRAL_SECONDS,
+    ),
     CHEEK_PUFF_YAW_LEFT("cheek_puff_yaw_left", STUDY_MAX_SECONDS, SoftValidationKind.TIME_ONLY, STUDY_NEUTRAL_SECONDS),
     JAW_OPEN("jaw_open", STUDY_MAX_SECONDS, SoftValidationKind.TIME_ONLY, STUDY_NEUTRAL_SECONDS),
     EYE_WIDEN("eye_widen", STUDY_MAX_SECONDS, SoftValidationKind.TIME_ONLY, STUDY_NEUTRAL_SECONDS),

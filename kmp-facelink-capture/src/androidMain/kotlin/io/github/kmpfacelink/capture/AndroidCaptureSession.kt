@@ -24,6 +24,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.encodeToString
 import java.io.File
+import java.io.FileOutputStream
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
@@ -58,6 +59,7 @@ import java.util.concurrent.atomic.AtomicInteger
     // that need to substitute them.
     "InjectDispatcher",
     "TooManyFunctions",
+    "LargeClass",
 )
 public class AndroidCaptureSession(
     private val context: Context,
@@ -69,11 +71,53 @@ public class AndroidCaptureSession(
     private val runningMode: InferenceRunningMode = InferenceRunningMode.LIVE_STREAM,
     private val mirror: Boolean = true,
     private val captureWorkflow: CaptureWorkflow = CaptureWorkflow.GUIDED_GATE_AUTOSTART_V1,
+    override val studyProtocol: CaptureStudyProtocol = CaptureStudyProtocol.guided22(),
+    /** Session-C authorization pins this exact run identity; ordinary guided capture leaves it null. */
+    private val requiredStudyRunId: String? = null,
+    private val participantQualificationEvidence: ParticipantQualificationEvidence? = null,
 ) : CaptureSession {
 
-    private val store = CaptureStore(context, modelAssetPath)
+    private val store: CaptureStore
+    private val landmarker: StudyLandmarker
+    private val participantQualificationManager: AndroidParticipantQualificationManager?
+
+    init {
+        require(
+            participantQualificationEvidence == null ||
+                studyProtocol == CaptureStudyProtocol.learnedPatchSessionC12(),
+        ) { "participant qualification requires the exact frozen 12-slot protocol" }
+        val openedStore = CaptureStore(
+            context,
+            modelAssetPath,
+            studyProtocol.id,
+            studyProtocol.storageProfile,
+            requiredStudyRunId,
+            rootDirectoryName = if (participantQualificationEvidence == null) {
+                "capture"
+            } else {
+                PARTICIPANT_QUALIFICATION_CAPTURE_ROOT
+            },
+            refuseActiveRunRotation = participantQualificationEvidence != null,
+        )
+        try {
+            landmarker = StudyLandmarker(context, modelAssetPath)
+            store = openedStore
+            participantQualificationManager = participantQualificationEvidence?.let { evidence ->
+                AndroidParticipantQualificationManager(
+                    root = openedStore.root,
+                    takesRoot = openedStore.takesRoot,
+                    studyRun = openedStore.studyRun,
+                    evidence = evidence,
+                )
+            }
+        } catch (failure: Throwable) {
+            openedStore.close()
+            throw failure
+        }
+    }
+
+    override val studyRun: StudyRunIdentity = store.studyRun
     private val transformer = FrameTransformer()
-    private val landmarker = StudyLandmarker(context, modelAssetPath)
 
     /** One thread: frames must reach the payload in submission order. */
     private val analysisExecutor: ExecutorService =
@@ -81,7 +125,7 @@ public class AndroidCaptureSession(
 
     private val _uiState = MutableStateFlow(CaptureUiState())
     override val uiState: StateFlow<CaptureUiState> = _uiState.asStateFlow()
-    internal val studyTakeRecords = MutableStateFlow(readAndroidStudyTakeRecords(store.takesRoot))
+    internal val studyTakeRecords = MutableStateFlow(readAndroidStudyTakeRecords(store.takesRoot, studyRun))
 
     private val frameSeq = AtomicInteger(0)
     private val runGuard = CaptureRunGuard()
@@ -112,6 +156,8 @@ public class AndroidCaptureSession(
     @Volatile private var aspect = 1f
 
     @Volatile private var stopRequested = false
+
+    @Volatile private var frameSourceFailed = false
 
     private class PendingFrame(
         val seq: Int,
@@ -155,19 +201,24 @@ public class AndroidCaptureSession(
      * cost inside the measurement.
      */
     public suspend fun start() {
-        check(!released) { "capture session is released" }
-        withContext(Dispatchers.IO) {
-            landmarker.onError = { message -> countInferenceError(message) }
-            landmarker.listener = StudyLandmarker.Listener { result, timestampMs ->
-                onResult(result, timestampMs)
+        try {
+            check(!released) { "capture session is released" }
+            withContext(Dispatchers.IO) {
+                landmarker.onError = { countInferenceError() }
+                landmarker.listener = StudyLandmarker.Listener { result, timestampMs ->
+                    onResult(result, timestampMs)
+                }
+                landmarker.open(preferGpu, runningMode)
             }
-            landmarker.open(preferGpu, runningMode)
+            val provider = withContext(Dispatchers.IO) {
+                ProcessCameraProvider.getInstance(context).get()
+            }
+            cameraProvider = provider
+            withContext(Dispatchers.Main) { bind(provider) }
+        } catch (failure: Throwable) {
+            if (failure is Error || failure is CaptureFailureException) throw failure
+            throw captureFailure(CaptureFailureCategory.FRAME_SOURCE, failure)
         }
-        val provider = withContext(Dispatchers.IO) {
-            ProcessCameraProvider.getInstance(context).get()
-        }
-        cameraProvider = provider
-        withContext(Dispatchers.Main) { bind(provider) }
     }
 
     /**
@@ -239,45 +290,120 @@ public class AndroidCaptureSession(
         provider.bindToLifecycle(lifecycleOwner, CameraSelector.DEFAULT_FRONT_CAMERA, analysis, boundPreview)
     }
 
-    override suspend fun record(scenario: CaptureScenario, saveFrames: Boolean): TakeOutcome {
-        check(runGuard.tryEnter()) { "a take is already running or waiting for the hard gate" }
+    override suspend fun record(
+        scenario: CaptureScenario,
+        storageProfile: CaptureStorageProfile,
+    ): TakeOutcome {
+        val qualification = participantQualificationManager
+            ?: return recordUnchecked(scenario, storageProfile)
+        qualification.requireOpen()
+        val attempt = nextProtocolAttempt(studyTakeRecords.value, studyProtocol, scenario)
+        val slotKey = StudyTakeSlot(scenario, attempt, StudyTakeGroup.PROTOCOL).key
+        qualification.beginAttempt(slotKey)
+        return try {
+            val outcome = recordUnchecked(scenario, storageProfile)
+            if (outcome.error == null && outcome.reason != "take_cancelled") {
+                qualification.completeAttempt(slotKey)
+            } else {
+                qualification.failAttempt(
+                    slotKey,
+                    outcome.failure?.code ?: "cancelled_after_start",
+                )
+            }
+            outcome
+        } catch (failure: Throwable) {
+            qualification.failAttempt(slotKey, failure.toCaptureFailureReceipt().code)
+            throw failure
+        }
+    }
+
+    private suspend fun recordUnchecked(
+        scenario: CaptureScenario,
+        storageProfile: CaptureStorageProfile,
+    ): TakeOutcome {
+        if (frameSourceFailed) throw captureFailure(CaptureFailureCategory.FRAME_SOURCE)
+        if (!runGuard.tryEnter()) throw captureFailure(CaptureFailureCategory.CONFIGURATION)
         try {
-            return recordGuarded(scenario, saveFrames)
+            return recordGuarded(scenario, storageProfile)
+        } catch (failure: Throwable) {
+            if (failure.toCaptureFailureReceipt().code == CaptureFailureCategory.FRAME_SOURCE.code) {
+                markFrameSourceFailed(CaptureFailureCategory.FRAME_SOURCE.receipt())
+            }
+            throw failure
         } finally {
-            _uiState.value = _uiState.value.copy(
-                recording = false,
-                progress = LiveProgress.None,
-                scriptElapsedMs = null,
-            )
+            _uiState.value = if (frameSourceFailed) {
+                _uiState.value.withTerminalCaptureFailure(CaptureFailureCategory.FRAME_SOURCE.receipt())
+            } else {
+                _uiState.value.copy(
+                    recording = false,
+                    progress = LiveProgress.None,
+                    scriptElapsedMs = null,
+                )
+            }
             runGuard.leave()
         }
     }
 
-    private suspend fun recordGuarded(scenario: CaptureScenario, saveFrames: Boolean): TakeOutcome {
-        check(take == null) { "a take is already running" }
+    @Suppress("LongMethod", "CyclomaticComplexMethod", "ThrowsCount")
+    private suspend fun recordGuarded(
+        scenario: CaptureScenario,
+        storageProfile: CaptureStorageProfile,
+    ): TakeOutcome {
+        if (take != null || storageProfile != studyRun.storageProfile) {
+            throw captureFailure(CaptureFailureCategory.CONFIGURATION)
+        }
+        val attempt = nextProtocolAttempt(studyTakeRecords.value, studyProtocol, scenario)
         stopRequested = false
         if (!awaitGate()) return cancelledOutcome(scenario)
-        val attempt = nextAttempt(scenario)
         val startedAtMs = System.currentTimeMillis()
         val id = store.newTakeId(scenario, attempt, startedAtMs)
-        val dir = store.createTmpDir(id)
-        val geometry = requireNotNull(nativeResolution) { "no frame has arrived yet" }
-        val (width, height) = geometry.split("x").map { it.toInt() }
-        val active = ActiveTake(
-            id = id,
-            dir = dir,
-            scenario = scenario,
-            attempt = attempt,
-            script = TakeScript(scenario),
-            startedAtMs = startedAtMs,
-            startedAtElapsedNs = SystemClock.elapsedRealtimeNanos(),
-            frames = if (saveFrames) {
-                openRawFrameSink(File(dir, FRAMES_DIR).apply { mkdirs() }.absolutePath, width, height)
-            } else {
-                null
-            },
-            results = openInferenceRecordSink(dir.absolutePath),
-        )
+        val active = withIncompleteTakeDirectory(
+            create = { store.createTmpDir(id) },
+            discard = store::discard,
+        ) { dir ->
+            val geometry = nativeResolution
+                ?: throw captureFailure(CaptureFailureCategory.FRAME_SOURCE)
+            val (width, height) = try {
+                geometry.split("x").map { it.toInt() }
+            } catch (failure: Throwable) {
+                if (failure is Error) throw failure
+                throw captureFailure(CaptureFailureCategory.FRAME_SOURCE, failure)
+            }
+            ActiveTake(
+                id = id,
+                dir = dir,
+                scenario = scenario,
+                attempt = attempt,
+                script = TakeScript(scenario),
+                startedAtMs = startedAtMs,
+                startedAtElapsedNs = SystemClock.elapsedRealtimeNanos(),
+                frames = when (storageProfile) {
+                    CaptureStorageProfile.COEFFICIENTS_ONLY_V1 -> null
+                    CaptureStorageProfile.CANONICAL_RGBA_240X320_V1 -> {
+                        if (
+                            width != CaptureStorageReceipt.CANONICAL_WIDTH ||
+                            height != CaptureStorageReceipt.CANONICAL_HEIGHT
+                        ) {
+                            throw captureFailure(CaptureFailureCategory.CONFIGURATION)
+                        }
+                        try {
+                            openRawFrameSink(File(dir, FRAMES_DIR).apply { mkdirs() }.absolutePath, width, height)
+                        } catch (failure: Throwable) {
+                            if (failure is Error || failure is CaptureFailureException) throw failure
+                            throw captureFailure(CaptureFailureCategory.STREAM_WRITE, failure)
+                        }
+                    }
+                    CaptureStorageProfile.LEGACY_DIAGNOSTIC_ONLY ->
+                        throw captureFailure(CaptureFailureCategory.CONFIGURATION)
+                },
+                results = try {
+                    openInferenceRecordSink(dir.absolutePath)
+                } catch (failure: Throwable) {
+                    if (failure is Error || failure is CaptureFailureException) throw failure
+                    throw captureFailure(CaptureFailureCategory.STREAM_WRITE, failure)
+                },
+            )
+        }
         take = active
         _uiState.value = _uiState.value.copy(
             recording = true,
@@ -292,6 +418,7 @@ public class AndroidCaptureSession(
     /** Steps through the script without ever moving a registered boundary. */
     private suspend fun runScript(active: ActiveTake): ScriptEnd {
         while (true) {
+            synchronized(active.lock) { active.failure }?.let { return ScriptEnd.FAILED }
             val elapsed = elapsedMs(active)
             _uiState.value = _uiState.value.copy(scriptElapsedMs = elapsed)
             if (elapsed >= active.script.totalMs) return ScriptEnd.COMPLETED
@@ -299,7 +426,6 @@ public class AndroidCaptureSession(
             if (active.scenario.goalDriven && synchronized(active.lock) { active.evaluator.isGoalReached() }) {
                 return ScriptEnd.COMPLETED
             }
-            synchronized(active.lock) { active.failure }?.let { return ScriptEnd.FAILED }
             delay(TICK_MS)
         }
     }
@@ -308,9 +434,8 @@ public class AndroidCaptureSession(
         val deadline = SystemClock.elapsedRealtime() + GATE_TIMEOUT_MS
         while (!_uiState.value.gate.passed) {
             if (stopRequested) return false
-            check(SystemClock.elapsedRealtime() < deadline) {
-                "the hard gate never passed: ${_uiState.value.gate}. Distance, framing and light " +
-                    "have to be in band before a take starts, or the takes are not comparable."
+            if (SystemClock.elapsedRealtime() >= deadline) {
+                throw captureFailure(CaptureFailureCategory.FRAME_SOURCE)
             }
             delay(TICK_MS)
         }
@@ -329,6 +454,10 @@ public class AndroidCaptureSession(
 
     @Suppress("CyclomaticComplexMethod") // one pass over a frame: admit, store, submit
     private fun onFrame(proxy: ImageProxy) {
+        if (frameSourceFailed) {
+            proxy.close()
+            return
+        }
         val captureNs = proxy.imageInfo.timestamp
         val seq = frameSeq.getAndIncrement()
         val active = take
@@ -347,7 +476,7 @@ public class AndroidCaptureSession(
             transformer.transform(proxy, mirror)
         } catch (t: Throwable) {
             if (t is Error) throw t
-            active?.let { fail(it, t) }
+            failFrameSource(t)
             runCatching { proxy.close() }
             return
         }
@@ -364,6 +493,7 @@ public class AndroidCaptureSession(
             checkNotNull(phase)
             val admittedSeq = synchronized(active.lock) {
                 if (!active.recording) return@synchronized -1
+                CaptureStorageReceipt.coefficientsOnly(0, 0).requireNextRecord(active.admitted)
                 active.admitted++
                 seq
             }
@@ -380,7 +510,7 @@ public class AndroidCaptureSession(
             direct?.let { onResult(it, inferenceMs) }
         } catch (t: Throwable) {
             if (t is Error) throw t
-            active?.let { fail(it, t) }
+            failFrameSource(t)
         }
     }
 
@@ -395,6 +525,15 @@ public class AndroidCaptureSession(
     ) {
         val sink = active.frames ?: return
         try {
+            synchronized(active.lock) {
+                CaptureStorageReceipt.coefficientsOnly(0, 0).requireNextCanonicalFrame(active.stored)
+            }
+            require(
+                out.width == CaptureStorageReceipt.CANONICAL_WIDTH &&
+                    out.height == CaptureStorageReceipt.CANONICAL_HEIGHT,
+            ) {
+                "Android canonical storage rejects non-inference geometry ${out.width}x${out.height}"
+            }
             sink.write(
                 RawFrame(
                     width = out.width,
@@ -411,12 +550,16 @@ public class AndroidCaptureSession(
             if (t is Error) throw t
             // A frame that could not be stored means the payload no longer covers every admitted
             // frame, which is the one thing the recording promises.
-            fail(active, t)
+            fail(active, captureFailure(CaptureFailureCategory.STREAM_WRITE, t))
         }
     }
 
-    @Suppress("CyclomaticComplexMethod") // one pass over a result: classify, join, record
+    @Suppress("CyclomaticComplexMethod", "ReturnCount") // one pass over a result: classify, join, record
     private fun onResult(result: FaceLandmarkerResult, inferenceTimestampMs: Long) {
+        if (frameSourceFailed) {
+            inFlight.clear()
+            return
+        }
         val resultElapsedNs = SystemClock.elapsedRealtimeNanos()
         val faceDetected = RawResult.hasFace(result)
         val landmarks = RawResult.landmarks(result)
@@ -433,6 +576,12 @@ public class AndroidCaptureSession(
                 aspect = aspect,
                 resultsObserved = current.resultsObserved + 1,
             )
+        }
+        if (frameSourceFailed) {
+            _uiState.value = _uiState.value.withTerminalCaptureFailure(
+                CaptureFailureCategory.FRAME_SOURCE.receipt(),
+            )
+            return
         }
 
         val pending = inFlight.remove(inferenceTimestampMs)
@@ -461,7 +610,7 @@ public class AndroidCaptureSession(
                 )
             } catch (t: Throwable) {
                 if (t is Error) throw t
-                failLocked(active, t)
+                failLocked(active, captureFailure(CaptureFailureCategory.STREAM_WRITE, t))
                 return
             }
             if (!hasFace) active.noFace++
@@ -498,10 +647,28 @@ public class AndroidCaptureSession(
         _uiState.value = _uiState.value.copy(progress = active.evaluator.progress())
     }
 
-    private fun countInferenceError(message: String) {
-        val active = take ?: return
-        synchronized(active.lock) { if (active.recording) active.inferenceErrors++ }
-        _uiState.value = _uiState.value.copy(lastError = message)
+    private fun countInferenceError() {
+        take?.let { active ->
+            synchronized(active.lock) { if (active.recording) active.inferenceErrors++ }
+        }
+        failFrameSource()
+    }
+
+    private fun failFrameSource(cause: Throwable? = null) {
+        val failure = captureFailure(CaptureFailureCategory.FRAME_SOURCE, cause)
+        markFrameSourceFailed(failure.category.receipt())
+        val active = take
+        if (active == null) {
+            return
+        } else {
+            fail(active, failure)
+        }
+    }
+
+    private fun markFrameSourceFailed(receipt: CaptureFailureReceipt) {
+        frameSourceFailed = true
+        inFlight.clear()
+        _uiState.value = _uiState.value.withTerminalCaptureFailure(receipt)
     }
 
     private fun fail(active: ActiveTake, cause: Throwable) =
@@ -510,6 +677,16 @@ public class AndroidCaptureSession(
     private fun failLocked(active: ActiveTake, cause: Throwable) {
         if (active.failure == null) active.failure = cause
         active.recording = false
+        val receipt = cause.toCaptureFailureReceipt()
+        _uiState.value = if (receipt.retryable) {
+            _uiState.value.copy(lastError = receipt.code)
+        } else {
+            if (receipt.code == CaptureFailureCategory.FRAME_SOURCE.code) {
+                frameSourceFailed = true
+                inFlight.clear()
+            }
+            _uiState.value.withTerminalCaptureFailure(receipt)
+        }
     }
 
     /**
@@ -526,28 +703,45 @@ public class AndroidCaptureSession(
         inFlight.clear()
 
         val validation = synchronized(active.lock) { active.evaluator.outcome() }
-        val closeFailure = runCatching { active.results.close() }.exceptionOrNull()
-        val frameFailure = active.frames?.let { runCatching { it.close() }.exceptionOrNull() }
+        val closeFailure = runCatching { active.results.close() }.exceptionOrNull()?.let {
+            captureFailure(CaptureFailureCategory.STREAM_WRITE, it)
+        }
+        val frameFailure = active.frames?.let { sink ->
+            runCatching { sink.close() }.exceptionOrNull()?.let {
+                captureFailure(CaptureFailureCategory.STREAM_WRITE, it)
+            }
+        }
         val failure = synchronized(active.lock) { active.failure } ?: closeFailure ?: frameFailure
 
         if (!shouldPublishTake(end, failure != null)) {
             store.discard(active.dir)
+            val receipt = failure?.toCaptureFailureReceipt() ?: CaptureFailureCategory.UNKNOWN.receipt()
             return TakeOutcome(
                 scenario = active.scenario,
                 recordCount = active.results.recordCount,
                 softValidationPassed = false,
                 reason = if (end == ScriptEnd.STOPPED) "take_cancelled" else "take_failed",
-                error = failure?.let { it.message ?: it::class.simpleName },
+                error = receipt.code,
             )
         }
 
         val manifest = manifestFor(active, validation)
-        File(active.dir, InferenceRecordFormat.TAKE_MANIFEST_FILE)
-            .writeText(rawFrameJson.encodeToString(manifest))
-        store.publish(active.dir, active.id)
+        cleanupIncompleteTakeOnFailure(active.dir, store::discard) {
+            try {
+                val manifestFile = File(active.dir, InferenceRecordFormat.TAKE_MANIFEST_FILE)
+                FileOutputStream(manifestFile).use { stream ->
+                    stream.write(rawFrameJson.encodeToString(manifest).encodeToByteArray())
+                    stream.fd.sync()
+                }
+                store.publish(active.dir, active.id)
+            } catch (failure: Throwable) {
+                if (failure is Error || failure is CaptureFailureException) throw failure
+                throw captureFailure(CaptureFailureCategory.STREAM_WRITE, failure)
+            }
+        }
         studyTakeRecords.value = withPublishedStudyTake(
             studyTakeRecords.value,
-            StudyTakeRecord(active.id, active.scenario, active.attempt),
+            StudyTakeRecord(active.id, active.scenario, active.attempt, studyRun),
         )
 
         return TakeOutcome(
@@ -586,6 +780,22 @@ public class AndroidCaptureSession(
                 blendshapesSha256 = "",
                 transformSha256 = "",
                 captureWorkflow = captureWorkflow,
+                storageReceipt = if (active.frames == null) {
+                    CaptureStorageReceipt.coefficientsOnly(widthFromResolution(), heightFromResolution())
+                } else {
+                    CaptureStorageReceipt(
+                        CaptureStorageProfile.CANONICAL_RGBA_240X320_V1,
+                        CapturePixelSemantics.EXACT_ANDROID_INFERENCE_INPUT,
+                        CaptureStorageReceipt.CANONICAL_WIDTH,
+                        CaptureStorageReceipt.CANONICAL_HEIGHT,
+                        CaptureStorageReceipt.CANONICAL_WIDTH,
+                        CaptureStorageReceipt.CANONICAL_HEIGHT,
+                        "CAMERAX_ROTATED_TO_DISPLAY",
+                        if (mirror) "FRONT_CAMERA_MIRRORED" else "NOT_MIRRORED",
+                        "ANDROID_INFERENCE_BITMAP_V1",
+                    )
+                },
+                studyRun = studyRun,
             )
         }.withHashes(active.results.hashes())
     }
@@ -627,8 +837,9 @@ public class AndroidCaptureSession(
         provenance = provenance,
     )
 
-    private fun nextAttempt(scenario: CaptureScenario): Int =
-        nextStudyAttempt(studyTakeRecords.value, scenario)
+    private fun widthFromResolution(): Int = nativeResolution?.substringBefore('x')?.toIntOrNull() ?: 0
+
+    private fun heightFromResolution(): Int = nativeResolution?.substringAfter('x')?.toIntOrNull() ?: 0
 
     private fun median(values: List<Float>): Float =
         if (values.isEmpty()) 0f else values.sorted()[values.size / 2]
@@ -641,23 +852,45 @@ public class AndroidCaptureSession(
     }
 
     override fun release() {
-        released = true
-        take?.let { active ->
-            synchronized(active.lock) { active.recording = false }
-            runCatching { active.results.close() }
-            runCatching { active.frames?.close() }
-            store.discard(active.dir)
-            take = null
+        try {
+            released = true
+            take?.let { active ->
+                synchronized(active.lock) { active.recording = false }
+                runCatching { active.results.close() }
+                runCatching { active.frames?.close() }
+                store.discard(active.dir)
+                take = null
+            }
+            cameraProvider?.unbindAll()
+            previewSurfaceBinding.clear()
+            preview = null
+            analysisExecutor.execute { landmarker.close() }
+            analysisExecutor.shutdown()
+        } finally {
+            store.close()
         }
-        cameraProvider?.unbindAll()
-        previewSurfaceBinding.clear()
-        preview = null
-        analysisExecutor.execute { landmarker.close() }
-        analysisExecutor.shutdown()
     }
 
     /** Where published takes are, for the verification step and for pulling them off the device. */
     public val takesDirectory: File get() = store.takesRoot
+
+    internal val participantQualification: ParticipantQualificationController?
+        get() = participantQualificationManager
+
+    /** Persists the public-safe first-neutral structural preflight needed by the terminal seal. */
+    public fun confirmParticipantQualificationReferencePreflight(takeId: String) {
+        requireNotNull(participantQualificationManager) { "this is not a participant qualification" }
+            .recordReferencePreflight(takeId)
+    }
+
+    /** Stops the score-blind qualification after a published structural preflight failure. */
+    public fun terminateParticipantQualification(receipt: CaptureFailureReceipt) {
+        require(!receipt.retryable || receipt.code == CaptureFailureCategory.INTEGRITY.code) {
+            "unsupported qualification termination receipt"
+        }
+        requireNotNull(participantQualificationManager) { "this is not a participant qualification" }
+            .terminate(receipt.code)
+    }
 
     internal fun removeStudyTake(takeId: String) {
         studyTakeRecords.value = withoutStudyTake(studyTakeRecords.value, takeId)

@@ -89,7 +89,10 @@ public class TakeVerifier(private val platformContext: PlatformContext) {
         val manifest = Json.decodeFromString<TakeManifest>(
             File(takeDir, InferenceRecordFormat.TAKE_MANIFEST_FILE).readText(),
         )
-        val frames = RawFrameReader(File(takeDir, AndroidCaptureSession.FRAMES_DIR).absolutePath)
+        val frames = RawFrameReader(
+            File(takeDir, AndroidCaptureSession.FRAMES_DIR).absolutePath,
+            storageReceipt = manifest.storageReceipt,
+        )
         val results = InferenceRecordReader(takeDir.absolutePath)
         val comparison = Comparison(results)
 

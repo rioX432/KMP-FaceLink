@@ -1,8 +1,8 @@
 package io.github.kmpfacelink.capture
 
 import androidx.camera.core.Preview
-import kotlin.test.assertEquals
 import org.junit.Test
+import kotlin.test.assertEquals
 
 class PreviewSurfaceBindingTest {
     @Test

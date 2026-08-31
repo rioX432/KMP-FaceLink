@@ -12,12 +12,19 @@ Run:
 ./gradlew sdkQualityCheck
 ```
 
-This gate covers public API dumps, static analysis, core/capture tests, Android and iOS compilation,
-Android debug/test packaging, an unsigned iOS Simulator build, module/document dependency
-agreement, authorization logic, synthetic solver wiring, tracked-path privacy checks, and the
-pinned OpenSeeFace FP32 supply/runtime contract. The JVM synthetic zero-input contract tests load
+This gate covers public API dumps, static analysis, core JVM/Android-host/iOS-Simulator tests,
+capture Android-host/iOS-Simulator tests, Android and iOS compilation, Android debug packaging,
+Android instrumentation-test compilation (not execution), unsigned capture and sample iOS
+Simulator builds, pinned generated-project drift, sample UI source-state controls,
+module/document dependency agreement, authorization logic, synthetic solver wiring, tracked-path
+name/suffix privacy checks, and the pinned OpenSeeFace FP32 supply/runtime contract. The JVM
+synthetic zero-input contract tests load
 both real public model files, verify their SHA-256 and ONNX metadata, and execute zero tensors through detection and landmark
 decoders. This proves model/decoder mechanics, not tracking quality or sustained performance.
+
+The take-manifest contract decodes schema 3 as a legacy diagnostic, schema 4 as a supported
+transitional form, and schema 5 as the current run-bound form. It rejects newer schema versions
+rather than treating fields from a later writer as understood.
 
 The paired-calibration contract runs five dependency-free parser/scalar/paired-difference controls
 in this lane. It uses only the Python standard library, installs nothing, and opens no measurement

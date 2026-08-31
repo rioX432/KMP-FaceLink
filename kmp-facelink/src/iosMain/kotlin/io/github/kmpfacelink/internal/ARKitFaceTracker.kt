@@ -80,7 +80,7 @@ internal class ARKitFaceTracker(
     },
 ) : BaseTracker<FaceTrackingData>(
     thermalMonitor = IosThermalMonitor(),
-    frameThrottler = FrameThrottler(config.thermalPolicy),
+    frameThrottler = FrameThrottler(config.powerConfig.thermalPolicy),
 ),
     FaceTracker {
 
@@ -111,13 +111,13 @@ internal class ARKitFaceTracker(
     )
 
     private val batteryMonitor = IosBatteryMonitor()
-    private val powerModeManager: PowerModeManager? = config.powerMode?.let { mode ->
+    private val powerModeManager: PowerModeManager? = config.powerConfig.powerMode?.let { mode ->
         PowerModeManager(
             powerMode = mode,
             thermalMonitor = thermalMonitor,
             batteryMonitor = batteryMonitor,
-            lowBatteryThreshold = config.lowBatteryThreshold,
-            enableIdleDetection = config.enableIdleDetection,
+            lowBatteryThreshold = config.powerConfig.lowBatteryThreshold,
+            enableIdleDetection = config.powerConfig.enableIdleDetection,
         )
     }
 

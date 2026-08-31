@@ -17,7 +17,7 @@ class CaptureWorkflowTest {
                 ),
             ),
         )
-        assertEquals(3, TakeManifest.SCHEMA_VERSION)
+        assertEquals(5, TakeManifest.SCHEMA_VERSION)
         assertTrue("\"participantPreview\": \"NATIVE_CAMERA_WITH_GUIDE\"" in encoded)
     }
 
@@ -71,5 +71,13 @@ class CaptureWorkflowTest {
         blendshapesSha256 = "",
         transformSha256 = "",
         captureWorkflow = workflow,
+        storageReceipt = CaptureStorageReceipt.coefficientsOnly(240, 320),
+        studyRun = StudyRunIdentity(
+            StudyRunIdentity.SCHEMA_VERSION,
+            "run-test",
+            StudyRunIdentity.GUIDED_PROTOCOL_ID,
+            CaptureStorageProfile.COEFFICIENTS_ONLY_V1,
+            "2026-08-29T00:00:00Z",
+        ),
     )
 }

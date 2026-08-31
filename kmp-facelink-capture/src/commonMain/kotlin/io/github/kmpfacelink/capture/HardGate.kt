@@ -7,6 +7,8 @@ package io.github.kmpfacelink.capture
  */
 public object HardGate {
 
+    private const val LANDMARK_STRIDE = 3
+
     // Inter-ocular-distance proxy band derived from recorded examples. It controls countdown
     // eligibility, not a validated physical-distance or take-quality range.
     public const val IOD_MIN: Float = 0.29f
@@ -52,7 +54,7 @@ public object HardGate {
             if (x > maxX) maxX = x
             if (y < minY) minY = y
             if (y > maxY) maxY = y
-            i += 3
+            i += LANDMARK_STRIDE
         }
         return FaceBox(
             centerX = (minX + maxX) / 2f,

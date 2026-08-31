@@ -167,7 +167,7 @@ private val featureCards = listOf(
         mode = TrackingMode.FACE,
         icon = "\uD83D\uDE42",
         title = "Face Tracking",
-        description = "52 ARKit blend shapes, head pose, and facial landmarks with real-time visualization.",
+        description = "Named expression coefficients, head pose, and platform-specific tracking visualization.",
     ),
     FeatureCardData(
         mode = TrackingMode.HAND,

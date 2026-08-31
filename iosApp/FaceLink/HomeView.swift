@@ -6,15 +6,9 @@ struct HomeView: View {
 
     private let features: [(mode: TrackingMode, icon: String, title: String, description: String)] = [
         (.face, "😊", "Face Tracking",
-         "52 ARKit blend shapes, head pose, and facial landmarks with real-time visualization."),
+         "Named expression coefficients, head pose, and platform-specific tracking visualization."),
         (.hand, "✋", "Hand Tracking",
          "21-point hand landmarks with gesture recognition for both hands."),
-        (.holistic, "🧑", "Holistic Tracking",
-         "Combined face + hand tracking in a single pipeline for full upper-body capture."),
-        (.actions, "⚡", "Actions",
-         "High-level action detection built on top of face tracking data."),
-        (.voice, "🎤", "Voice",
-         "TTS with real-time lip sync blend shapes and speech recognition."),
         (.interact, "💬", "Interact",
          "Live stream event feed with mock chat, gifts, raids, and action triggers."),
     ]

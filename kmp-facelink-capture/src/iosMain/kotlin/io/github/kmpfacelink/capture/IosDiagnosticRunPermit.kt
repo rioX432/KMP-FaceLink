@@ -1,4 +1,8 @@
 @file:OptIn(kotlinx.cinterop.ExperimentalForeignApi::class, kotlin.ExperimentalStdlibApi::class)
+@file:Suppress(
+    "TooGenericExceptionCaught", // UTF-8 decoding is wrapped as one canonical authorization error.
+    "MagicNumber", // SHA, DER, hex, and base64 constants implement fixed wire formats below.
+)
 
 package io.github.kmpfacelink.capture
 
@@ -38,7 +42,6 @@ import platform.Foundation.NSFileTypeRegular
 import platform.Foundation.NSFileTypeSymbolicLink
 import platform.Security.SecKeyCreateWithData
 import platform.Security.SecKeyVerifySignature
-import platform.Security.errSecSuccess
 import platform.Security.kSecAttrKeyClass
 import platform.Security.kSecAttrKeyClassPublic
 import platform.Security.kSecAttrKeySizeInBits
@@ -137,11 +140,14 @@ internal object IosDiagnosticRunPermitVerifier {
             NSBundle.mainBundle.pathForResource("FaceLinkReviewAuthorization", ofType = "properties"),
         ) { "this app bundle has no source-review authorization" }
         val bytes = readRegularFile(path)
-        val values = parseCanonicalProperties(bytes, listOf(
-            "packetId",
-            "packetManifestSha256",
-            "sourceManifestSha256",
-        ))
+        val values = parseCanonicalProperties(
+            bytes,
+            listOf(
+                "packetId",
+                "packetManifestSha256",
+                "sourceManifestSha256",
+            ),
+        )
         val packetId = values.getValue("packetId")
         val packetManifestSha = values.getValue("packetManifestSha256")
         val sourceManifestSha = values.getValue("sourceManifestSha256")
@@ -203,7 +209,7 @@ internal object IosDiagnosticRunPermitVerifier {
         val files = ArrayList<BundleFile>()
 
         fun collect(directory: String, relativeDirectory: String) {
-            val entries = (manager.contentsOfDirectoryAtPath(directory, error = null) as? List<*>)
+            val entries = manager.contentsOfDirectoryAtPath(directory, error = null)
                 ?.filterIsInstance<String>()
                 ?.sorted()
                 ?: error("app bundle directory cannot be enumerated")

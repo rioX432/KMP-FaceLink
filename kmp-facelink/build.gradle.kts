@@ -1,4 +1,5 @@
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.plugin.mpp.apple.XCFramework
 
 plugins {
@@ -14,11 +15,26 @@ dokka {
 
 kotlin {
     explicitApi()
+    compilerOptions {
+        // expect/actual classes are an intentional public KMP boundary in this module.
+        freeCompilerArgs.add("-Xexpect-actual-classes")
+        // Keep compatibility accessors available, but prevent new source warnings in CI.
+        allWarningsAsErrors.set(true)
+    }
 
-    jvm()
+    jvm {
+        compilerOptions {
+            // Keep the public JVM artifact readable by the ABI validator even when Gradle runs on a newer JDK.
+            jvmTarget.set(JvmTarget.JVM_17)
+        }
+    }
 
     @OptIn(ExperimentalWasmDsl::class)
     wasmJs {
+        compilerOptions {
+            // This target's MediaPipe bridge is implemented through Kotlin/Wasm JS interop.
+            optIn.add("kotlin.js.ExperimentalWasmJsInterop")
+        }
         browser()
     }
 

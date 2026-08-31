@@ -34,10 +34,12 @@ internal class TrackingStateHolder(
     platformContext: PlatformContext,
     private val scope: CoroutineScope,
 ) {
+    val faceSmoothingConfig: SmoothingConfig = SmoothingConfig.OneEuro()
+
     val faceTracker: FaceTracker by lazy {
         createFaceTracker(
             platformContext = platformContext,
-            config = FaceTrackerConfig(smoothingConfig = SmoothingConfig.OneEuro()),
+            config = FaceTrackerConfig(smoothingConfig = faceSmoothingConfig),
         )
     }
 

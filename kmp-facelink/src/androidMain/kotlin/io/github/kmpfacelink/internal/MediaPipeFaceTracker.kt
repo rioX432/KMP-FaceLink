@@ -51,7 +51,7 @@ internal class MediaPipeFaceTracker(
     private val sessionInstanceId: SessionInstanceId = newSecureSessionInstanceId(),
 ) : BaseTracker<FaceTrackingData>(
     thermalMonitor = AndroidThermalMonitor(platformContext.context),
-    frameThrottler = FrameThrottler(config.thermalPolicy),
+    frameThrottler = FrameThrottler(config.powerConfig.thermalPolicy),
 ),
     FaceTracker,
     PreviewableFaceTracker {
@@ -61,13 +61,13 @@ internal class MediaPipeFaceTracker(
     override val errorMessage: StateFlow<String?> = super.errorMessage
 
     private val batteryMonitor = AndroidBatteryMonitor(platformContext.context)
-    private val powerModeManager: PowerModeManager? = config.powerMode?.let { mode ->
+    private val powerModeManager: PowerModeManager? = config.powerConfig.powerMode?.let { mode ->
         PowerModeManager(
             powerMode = mode,
             thermalMonitor = thermalMonitor,
             batteryMonitor = batteryMonitor,
-            lowBatteryThreshold = config.lowBatteryThreshold,
-            enableIdleDetection = config.enableIdleDetection,
+            lowBatteryThreshold = config.powerConfig.lowBatteryThreshold,
+            enableIdleDetection = config.powerConfig.enableIdleDetection,
         )
     }
 
@@ -75,10 +75,10 @@ internal class MediaPipeFaceTracker(
     private var qualityCollectJob: Job? = null
 
     @Volatile
-    internal var currentAnalysisWidth: Int = config.analysisWidth
+    internal var currentAnalysisWidth: Int = config.performanceConfig.analysisWidth
 
     @Volatile
-    internal var currentAnalysisHeight: Int = config.analysisHeight
+    internal var currentAnalysisHeight: Int = config.performanceConfig.analysisHeight
 
     private var resultProcessor = FaceResultProcessor(
         config = config,
@@ -189,7 +189,7 @@ internal class MediaPipeFaceTracker(
         }
         // Allow final async detection result from MediaPipe to be delivered
         if (landmarkerToClose != null) {
-            delay(config.stopDrainDelayMs)
+            delay(config.performanceConfig.stopDrainDelayMs)
             landmarkerToClose.close()
         }
         pipelineLock.withLock {
@@ -216,7 +216,10 @@ internal class MediaPipeFaceTracker(
         }
         analysisExecutor.shutdown()
         try {
-            analysisExecutor.awaitTermination(config.releaseTimeoutMs, TimeUnit.MILLISECONDS)
+            analysisExecutor.awaitTermination(
+                config.performanceConfig.releaseTimeoutMs,
+                TimeUnit.MILLISECONDS,
+            )
         } catch (_: InterruptedException) {
             // Best-effort shutdown — safe to ignore
         }
@@ -437,10 +440,10 @@ internal class MediaPipeFaceTracker(
 
     @Suppress("MagicNumber")
     private fun resolveInitialPreset(): QualityPreset = when {
-        config.analysisWidth <= QualityPreset.Low.analysisWidth &&
-            config.analysisHeight <= QualityPreset.Low.analysisHeight -> QualityPreset.Low
-        config.analysisWidth <= QualityPreset.Medium.analysisWidth &&
-            config.analysisHeight <= QualityPreset.Medium.analysisHeight -> QualityPreset.Medium
+        config.performanceConfig.analysisWidth <= QualityPreset.Low.analysisWidth &&
+            config.performanceConfig.analysisHeight <= QualityPreset.Low.analysisHeight -> QualityPreset.Low
+        config.performanceConfig.analysisWidth <= QualityPreset.Medium.analysisWidth &&
+            config.performanceConfig.analysisHeight <= QualityPreset.Medium.analysisHeight -> QualityPreset.Medium
         else -> QualityPreset.High
     }
 

@@ -20,6 +20,17 @@ internal const val IOS_TEST_HEIGHT = 32
 internal fun iosTestPixels(seed: Int): ByteArray =
     Random(seed).nextBytes(IOS_TEST_WIDTH * IOS_TEST_HEIGHT * RawFrameFormat.BYTES_PER_PIXEL)
 
+/** Creates an immutable native copy, matching the Data snapshot Swift gives the owned sink. */
+internal fun iosOwnedTestData(bytes: ByteArray): NSData {
+    val path = joinCapturePath(NSTemporaryDirectory(), "facelink-owned-${NSUUID.UUID().UUIDString}")
+    writeIosTestFile(path, bytes)
+    return try {
+        checkNotNull(NSData.dataWithContentsOfFile(path))
+    } finally {
+        removeCapturePath(path)
+    }
+}
+
 internal fun iosTestFrame(
     sequence: Int,
     seed: Int = sequence,

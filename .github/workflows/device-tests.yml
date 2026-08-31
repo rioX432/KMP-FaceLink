@@ -5,6 +5,7 @@ on:
     branches: [ master ]
     paths:
       - 'androidApp/**'
+      - 'sampleShared/**'
       - 'kmp-facelink/**'
       - 'gradle/**'
   workflow_dispatch:

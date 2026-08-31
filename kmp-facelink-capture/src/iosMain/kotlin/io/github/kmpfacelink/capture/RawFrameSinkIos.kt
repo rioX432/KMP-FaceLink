@@ -1,10 +1,13 @@
 @file:OptIn(kotlinx.cinterop.ExperimentalForeignApi::class)
+@file:Suppress("TooGenericExceptionCaught") // Sink construction must close every opened native output.
 
 package io.github.kmpfacelink.capture
 
 import kotlinx.serialization.encodeToString
 import platform.Foundation.NSCondition
+import platform.Foundation.NSData
 import platform.Foundation.NSLock
+import platform.Foundation.NSMutableData
 import platform.darwin.dispatch_async
 import platform.darwin.dispatch_queue_create
 import platform.darwin.dispatch_sync
@@ -64,10 +67,67 @@ internal class IosRawFrameSink(
         }
     }
 
+    /**
+     * Accepts an immutable RGBA copy made by the Swift ARSession delegate before its callback
+     * returns. The payload no longer references ARKit's CVPixelBuffer and remains bounded by the
+     * same fail-closed writer queue as the common ByteArray path.
+     */
+    internal fun writeOwned(frame: IosOwnedRawFrame) {
+        lock.withCaptureLock {
+            failure?.let { throw IllegalStateException("frame writing already failed", it) }
+            check(phase == Phase.OPEN) { "sink is closed" }
+            validateOwnedFrame(frame)
+            if (pending >= FRAME_CAPACITY) {
+                failLocked(
+                    IllegalStateException(
+                        "frame writer fell behind: the $FRAME_CAPACITY-frame queue is full; the " +
+                            "take is invalid because dropping a frame would change the measurement",
+                    ),
+                )
+                error("frame writing fell behind; take invalidated")
+            }
+            pending++
+        }
+        dispatch_async(writerQueue) {
+            try {
+                if (lock.withCaptureLock { failure == null }) writeOwnedFrame(frame)
+            } catch (t: Throwable) {
+                if (t is Error) throw t
+                lock.withCaptureLock { failLocked(t) }
+            } finally {
+                lock.withCaptureLock { pending-- }
+            }
+        }
+    }
+
     private fun validateFrame(frame: RawFrame) {
         if (frame.width != width || frame.height != height) {
             rejectLocked(
                 "frame ${frame.width}x${frame.height} does not match the take's ${width}x$height",
+            )
+        }
+        order.admit(
+            seq = frame.analysisFrameSeq,
+            captureTimestampNs = frame.captureTimestampNs,
+            laterTimestamp = frame.inferenceTimestampMs,
+            phase = frame.phase,
+        )?.let(::rejectLocked)
+    }
+
+    private fun validateOwnedFrame(frame: IosOwnedRawFrame) {
+        if (frame.width != width || frame.height != height) {
+            rejectLocked(
+                "frame ${frame.width}x${frame.height} does not match the take's ${width}x$height",
+            )
+        }
+        if (frame.pixels is NSMutableData) {
+            rejectLocked("owned RGBA payload must be immutable")
+        }
+        val expected = width.toLong() * height.toLong() * RawFrameFormat.BYTES_PER_PIXEL
+        if (frame.pixels.length.toLong() != expected) {
+            rejectLocked(
+                "expected $expected bytes for ${width}x$height ${RawFrameFormat.PIXEL_FORMAT}, " +
+                    "got ${frame.pixels.length}",
             )
         }
         order.admit(
@@ -92,6 +152,19 @@ internal class IosRawFrameSink(
         record.putLongLittleEndian(PAYLOAD_OFFSET, offset)
         index.write(record)
         payload.write(frame.pixelsForWriting)
+        offset += frame.pixelByteCount
+        written++
+    }
+
+    private fun writeOwnedFrame(frame: IosOwnedRawFrame) {
+        val record = ByteArray(RawFrameFormat.INDEX_RECORD_BYTES)
+        record.putIntLittleEndian(SEQUENCE_OFFSET, frame.analysisFrameSeq)
+        record.putIntLittleEndian(PHASE_OFFSET, frame.phase.code)
+        record.putLongLittleEndian(CAPTURE_TIME_OFFSET, frame.captureTimestampNs)
+        record.putLongLittleEndian(INFERENCE_TIME_OFFSET, frame.inferenceTimestampMs)
+        record.putLongLittleEndian(PAYLOAD_OFFSET, offset)
+        index.write(record)
+        payload.write(frame.pixels)
         offset += frame.pixelByteCount
         written++
     }
@@ -187,10 +260,27 @@ internal class IosRawFrameSink(
     }
 }
 
+/** Immutable Swift-owned frame payload after the ARKit callback has copied the camera buffer. */
+internal data class IosOwnedRawFrame(
+    val width: Int,
+    val height: Int,
+    val analysisFrameSeq: Int,
+    val captureTimestampNs: Long,
+    val inferenceTimestampMs: Long,
+    val phase: CapturePhase,
+    val pixels: NSData,
+) {
+    val pixelByteCount: Int get() = pixels.length.toInt()
+}
+
 private val rawFrameDirectoryLock = NSLock()
 private val rawFrameDirectories = mutableSetOf<String>()
 
 public actual fun openRawFrameSink(directory: String, width: Int, height: Int): RawFrameSink {
+    return openIosRawFrameSink(directory, width, height)
+}
+
+internal fun openIosRawFrameSink(directory: String, width: Int, height: Int): IosRawFrameSink {
     require(width > 0 && height > 0) { "take geometry must be non-empty, was ${width}x$height" }
     val pixels = width.toLong() * height.toLong()
     require(pixels <= Int.MAX_VALUE / RawFrameFormat.BYTES_PER_PIXEL) {
@@ -200,7 +290,10 @@ public actual fun openRawFrameSink(directory: String, width: Int, height: Int): 
     check(rawFrameDirectoryLock.withCaptureLock { rawFrameDirectories.add(path) }) {
         "a sink is already recording into $path"
     }
-    val release = { rawFrameDirectoryLock.withCaptureLock { rawFrameDirectories.remove(path) }; Unit }
+    val release = {
+        rawFrameDirectoryLock.withCaptureLock { rawFrameDirectories.remove(path) }
+        Unit
+    }
     var payload: NativeOutput? = null
     var index: NativeOutput? = null
     try {

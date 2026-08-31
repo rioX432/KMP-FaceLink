@@ -14,9 +14,11 @@ package io.github.kmpfacelink.model
  * @property blendShapes Map of 52 ARKit-compatible blend shape values (0.0–1.0) for the primary face.
  * @property headTransform 6DoF head position and rotation for the primary face.
  * @property gazeData Eye gaze direction derived from blend shapes for the primary face. Null if not computed.
- * @property landmarks Face landmark points with normalized coordinates (0.0–1.0) for the primary face.
- *           Android (MediaPipe): 478 points when a face is detected, empty otherwise.
- *           iOS (ARKit): Always empty — ARKit does not expose raw face mesh vertices.
+ * @property landmarks Face landmark points whose x/y coordinates use the SDK's image-normalized
+ *           contract (0.0–1.0) for the primary face. The Android MediaPipe adapter supplies 478 points
+ *           when a face is detected. The current iOS ARKit adapter leaves this list empty:
+ *           ARKit exposes native `ARFaceGeometry` vertices in face-local 3D coordinates, but the
+ *           adapter does not project or map them into this image-normalized field.
  * @property sourceImageWidth Width of the source image that landmarks are normalized to (pixels, after rotation)
  * @property sourceImageHeight Height of the source image that landmarks are normalized to (pixels, after rotation)
  * @property timestampMs Frame timestamp in milliseconds (monotonic clock)

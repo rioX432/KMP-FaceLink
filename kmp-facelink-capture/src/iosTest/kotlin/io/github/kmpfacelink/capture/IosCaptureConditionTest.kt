@@ -16,7 +16,7 @@ class IosCaptureConditionTest {
             provenance = testProvenance(),
         )
 
-        assertEquals(3, TakeManifest.SCHEMA_VERSION)
+        assertEquals(5, TakeManifest.SCHEMA_VERSION)
         assertEquals(ParticipantPreview.NATIVE_CAMERA_WITH_GUIDE, productionCondition.participantPreview)
         assertTrue(
             "\"participantPreview\": \"NATIVE_CAMERA_WITH_GUIDE\"" in
@@ -40,7 +40,7 @@ class IosCaptureConditionTest {
         dirty = true,
     )
 
-    /** Uses the real iOS condition inside the schema-3 artifact that production writes last. */
+    /** Uses the real iOS condition inside the current schema-5 artifact that capture writes last. */
     private fun manifestWith(condition: CaptureCondition) = TakeManifest(
         schemaVersion = TakeManifest.SCHEMA_VERSION,
         takeId = "take",
@@ -65,5 +65,13 @@ class IosCaptureConditionTest {
         blendshapesSha256 = "",
         transformSha256 = "",
         captureWorkflow = CaptureWorkflow.GUIDED_GATE_AUTOSTART_V1,
+        storageReceipt = CaptureStorageReceipt.coefficientsOnly(240, 320),
+        studyRun = StudyRunIdentity(
+            StudyRunIdentity.SCHEMA_VERSION,
+            "run-test",
+            StudyRunIdentity.GUIDED_PROTOCOL_ID,
+            CaptureStorageProfile.COEFFICIENTS_ONLY_V1,
+            "2026-08-29T00:00:00Z",
+        ),
     )
 }

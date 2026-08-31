@@ -23,6 +23,7 @@ package io.github.kmpfacelink.capture
  * @property inferenceFailed a face was detected but the result was malformed. Distinct from no
  *   face: one is the subject, the other is the estimator
  */
+@Suppress("LongParameterList") // Fixed-stride record identity and payload are one atomic value.
 public class InferenceRecord(
     public val analysisFrameSeq: Int,
     public val captureTimestampNs: Long,

@@ -21,17 +21,18 @@ import androidx.compose.ui.unit.sp
 import io.github.kmpfacelink.api.FaceTracker
 import io.github.kmpfacelink.model.SmoothingConfig
 
-private val FILTER_LABELS = listOf("None", "EMA", "1Euro")
-
 /**
  * Row of filter chips for selecting the smoothing algorithm.
  */
 @Composable
 public fun SmoothingFilterChips(
     faceTracker: FaceTracker,
+    initialConfig: SmoothingConfig,
     modifier: Modifier = Modifier,
 ) {
-    var selectedFilter by remember { mutableStateOf("EMA") }
+    var selectedFilter by remember(initialConfig) {
+        mutableStateOf(sampleSmoothingOption(initialConfig))
+    }
     Row(
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         modifier = modifier
@@ -39,25 +40,19 @@ public fun SmoothingFilterChips(
             .background(SampleColors.OverlayLight)
             .padding(horizontal = 12.dp, vertical = 4.dp),
     ) {
-        FILTER_LABELS.forEach { label ->
-            val isSelected = selectedFilter == label
+        SampleSmoothingOption.entries.forEach { option ->
+            val isSelected = selectedFilter == option
             val stateLabel = if (isSelected) "selected" else "not selected"
             FilterChip(
                 selected = isSelected,
                 modifier = Modifier.semantics {
-                    contentDescription = "Smoothing filter: $label, $stateLabel"
+                    contentDescription = "Smoothing filter: ${option.label}, $stateLabel"
                 },
                 onClick = {
-                    selectedFilter = label
-                    val config = when (label) {
-                        "None" -> SmoothingConfig.None
-                        "EMA" -> SmoothingConfig.Ema()
-                        "1Euro" -> SmoothingConfig.OneEuro()
-                        else -> return@FilterChip
-                    }
-                    faceTracker.updateSmoothing(config)
+                    selectedFilter = option
+                    faceTracker.updateSmoothing(option.toConfig())
                 },
-                label = { Text(label, fontSize = 12.sp) },
+                label = { Text(option.label, fontSize = 12.sp) },
                 colors = FilterChipDefaults.filterChipColors(
                     containerColor = SampleColors.ChipDefault,
                     labelColor = SampleColors.TextPrimary,

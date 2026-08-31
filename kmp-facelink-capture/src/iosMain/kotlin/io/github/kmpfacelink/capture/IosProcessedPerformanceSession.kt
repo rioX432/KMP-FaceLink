@@ -1,4 +1,5 @@
 @file:OptIn(kotlinx.cinterop.ExperimentalForeignApi::class)
+@file:Suppress("TooGenericExceptionCaught") // Session acquisition/release must roll back every failure.
 
 package io.github.kmpfacelink.capture
 

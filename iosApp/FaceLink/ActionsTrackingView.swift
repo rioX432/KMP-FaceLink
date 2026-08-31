@@ -1,5 +1,8 @@
 import SwiftUI
+import ARKit
 import KMPFaceLink
+import KMPFaceLinkActions
+import SampleShared
 
 struct ActionsTrackingView: View {
     @StateObject private var viewModel = ActionsTrackingViewModel()
@@ -233,12 +236,7 @@ class ActionsTrackingViewModel: ObservableObject {
     init() {
         tracker = FaceTrackerFactory_iosKt.createFaceTracker(
             platformContext: PlatformContext(),
-            config: FaceTrackerConfig(
-                smoothingConfig: SmoothingConfig.Ema(alpha: 0.4),
-                enhancerConfig: nil,
-                calibrationConfig: CalibrationConfig(),
-                cameraFacing: .front
-            )
+            config: SampleShared.SampleTrackerConfigsKt.createSampleFaceTrackerConfig()
         )
         actionSystem = ActionSystem()
         emotionClassifier = EmotionClassifier(neutralThreshold: 0.15, templates: EmotionClassifier.companion.DEFAULT_EMOTION_TEMPLATES)

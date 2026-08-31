@@ -98,7 +98,7 @@ internal class MediaPipeWasmFaceTracker(
         startTrackingLoop(lm, video)
     }
 
-    private suspend fun resolveBackend(): GpuBackend = when (config.inferenceDelegate) {
+    private suspend fun resolveBackend(): GpuBackend = when (config.performanceConfig.inferenceDelegate) {
         InferenceDelegate.CPU -> GpuBackend.NONE
         InferenceDelegate.GPU, InferenceDelegate.AUTO,
         InferenceDelegate.NPU,
@@ -108,14 +108,22 @@ internal class MediaPipeWasmFaceTracker(
     private suspend fun createLandmarkerWithFallback(delegate: String): JsFaceLandmarker =
         try {
             awaitJsPromise(
-                createFaceLandmarkerJs(config.modelAssetPath, config.maxFaces, delegate),
+                createFaceLandmarkerJs(
+                    config.modelAssetPath,
+                    config.detectionConfig.maxFaces,
+                    delegate,
+                ),
             )
         } catch (@Suppress("TooGenericExceptionCaught") e: Throwable) {
             if (delegate != CPU_DELEGATE) {
                 FaceLinkLogger.w(TAG, "GPU delegate failed, falling back to CPU", e)
                 activeBackend = GpuBackend.NONE
                 awaitJsPromise(
-                    createFaceLandmarkerJs(config.modelAssetPath, config.maxFaces, CPU_DELEGATE),
+                    createFaceLandmarkerJs(
+                        config.modelAssetPath,
+                        config.detectionConfig.maxFaces,
+                        CPU_DELEGATE,
+                    ),
                 )
             } else {
                 throw e
@@ -146,7 +154,7 @@ internal class MediaPipeWasmFaceTracker(
         val timestamp = frameCounter
         val jsResult = detectForVideoJs(lm, video, timestamp) ?: return
 
-        @Suppress("UNCHECKED_CAST")
+        @Suppress("UNCHECKED_CAST", "UNCHECKED_CAST_TO_EXTERNAL_INTERFACE")
         val result = jsResult as JsFaceLandmarkerResult
         val faceCount = getResultFaceCountJs(result)
 

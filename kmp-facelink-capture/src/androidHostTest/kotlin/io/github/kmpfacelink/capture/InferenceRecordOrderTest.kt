@@ -1,3 +1,8 @@
+@file:Suppress(
+    "FunctionNaming", // Backtick names identify the exact stream-order invariant.
+    "MagicNumber", // Sequence, timestamp, and payload sentinels are fixture data.
+)
+
 package io.github.kmpfacelink.capture
 
 import java.io.File

@@ -16,10 +16,12 @@ internal enum class GuidedCaptureStage {
     INTRO,
     ALIGNING,
     COUNTDOWN,
+    START_PENDING,
     RECORDING,
     SAVED,
     PAUSED,
     FAILED,
+    TERMINATED,
     COMPLETE,
 }
 
@@ -32,7 +34,7 @@ internal sealed interface GuidedCaptureAction {
 internal data class GuidedCaptureSnapshot(
     val stage: GuidedCaptureStage,
     val secondsRemaining: Int? = null,
-    val failure: String? = null,
+    val failure: CaptureFailurePresentation? = null,
 )
 
 /**
@@ -47,7 +49,7 @@ internal class GuidedCaptureFlow(
 ) {
     private var stage = GuidedCaptureStage.INTRO
     private var remaining: Int? = null
-    private var failure: String? = null
+    private var failure: CaptureFailurePresentation? = null
     private var resumeStage = GuidedCaptureStage.ALIGNING
 
     val snapshot: GuidedCaptureSnapshot
@@ -71,6 +73,21 @@ internal class GuidedCaptureFlow(
         return snapshot
     }
 
+    /** Commits a countdown start only after the UI has accepted the recorder request. */
+    fun acceptPendingStart(): GuidedCaptureSnapshot {
+        check(stage == GuidedCaptureStage.START_PENDING) { "start acceptance requires a pending start" }
+        stage = GuidedCaptureStage.RECORDING
+        return snapshot
+    }
+
+    /** Returns a rejected or gate-lost pending start to a fresh alignment cycle. */
+    fun rejectPendingStart(): GuidedCaptureSnapshot {
+        check(stage == GuidedCaptureStage.START_PENDING) { "start rejection requires a pending start" }
+        stage = GuidedCaptureStage.ALIGNING
+        remaining = null
+        return snapshot
+    }
+
     /** Advances one visible second and emits a one-shot side-effect request. */
     fun tick(): Pair<GuidedCaptureSnapshot, GuidedCaptureAction> = when (stage) {
         GuidedCaptureStage.COUNTDOWN -> tickCountdown()
@@ -86,11 +103,13 @@ internal class GuidedCaptureFlow(
     }
 
     fun prepareNext(): GuidedCaptureSnapshot {
-        check(stage in setOf(
-            GuidedCaptureStage.SAVED,
-            GuidedCaptureStage.ALIGNING,
-            GuidedCaptureStage.COMPLETE,
-        )) {
+        check(
+            stage in setOf(
+                GuidedCaptureStage.SAVED,
+                GuidedCaptureStage.ALIGNING,
+                GuidedCaptureStage.COMPLETE,
+            ),
+        ) {
             "next preparation requires a saved or aligning flow"
         }
         stage = GuidedCaptureStage.ALIGNING
@@ -98,11 +117,17 @@ internal class GuidedCaptureFlow(
         return snapshot
     }
 
-    fun onFailed(message: String): GuidedCaptureSnapshot {
-        require(message.isNotBlank()) { "failure message must not be blank" }
-        stage = GuidedCaptureStage.FAILED
+    fun onFailed(presentation: CaptureFailurePresentation): GuidedCaptureSnapshot {
+        require(presentation.participantMessageJa.isNotBlank()) { "failure message must not be blank" }
+        // STOP_RUN is monotonic. A delayed retryable recorder outcome must never restore a retry
+        // action after the frame source or another non-retryable failure terminated the run.
+        if (stage == GuidedCaptureStage.TERMINATED) return snapshot
+        stage = when (presentation.primaryAction) {
+            CaptureFailurePrimaryAction.RETRY_TAKE -> GuidedCaptureStage.FAILED
+            CaptureFailurePrimaryAction.STOP_RUN -> GuidedCaptureStage.TERMINATED
+        }
         remaining = null
-        failure = message
+        failure = presentation
         return snapshot
     }
 
@@ -128,6 +153,7 @@ internal class GuidedCaptureFlow(
     }
 
     fun complete(): GuidedCaptureSnapshot {
+        check(stage != GuidedCaptureStage.TERMINATED) { "a terminated run cannot complete" }
         stage = GuidedCaptureStage.COMPLETE
         remaining = null
         return snapshot
@@ -137,7 +163,7 @@ internal class GuidedCaptureFlow(
         val next = requireNotNull(remaining) - 1
         return if (next <= 0) {
             remaining = null
-            stage = GuidedCaptureStage.RECORDING
+            stage = GuidedCaptureStage.START_PENDING
             snapshot to GuidedCaptureAction.StartTake
         } else {
             remaining = next
@@ -164,4 +190,30 @@ internal class GuidedCaptureFlow(
             GuidedCaptureStage.SAVED,
         )
     }
+}
+
+/**
+ * Arbitrates the only path from a pending countdown action to a recorder invocation.
+ *
+ * Keeping this boundary synchronous makes `busy` and the accepted stage visible before the
+ * supplied callback can launch asynchronous recorder work. Calls arriving after terminal are
+ * ignored, while an ordinary gate loss explicitly returns to alignment.
+ */
+@Suppress("LongParameterList") // Keep each start invariant and side effect explicit at this boundary.
+internal fun startPendingTakeIfEligible(
+    flow: GuidedCaptureFlow,
+    slotAvailable: Boolean,
+    busy: Boolean,
+    gatePassed: Boolean,
+    onAccepted: (GuidedCaptureSnapshot) -> Unit,
+    startRecorder: () -> Unit,
+): Boolean {
+    if (flow.snapshot.stage != GuidedCaptureStage.START_PENDING) return false
+    if (!slotAvailable || busy || !gatePassed) {
+        flow.rejectPendingStart()
+        return false
+    }
+    onAccepted(flow.acceptPendingStart())
+    startRecorder()
+    return true
 }

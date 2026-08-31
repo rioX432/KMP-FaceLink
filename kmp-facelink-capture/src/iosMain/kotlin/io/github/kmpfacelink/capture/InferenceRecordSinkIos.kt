@@ -1,4 +1,8 @@
 @file:OptIn(kotlinx.cinterop.ExperimentalForeignApi::class)
+@file:Suppress(
+    "TooGenericExceptionCaught", // Opening four streams is atomic and cleans every partial output.
+    "MatchingDeclarationName", // Platform suffix distinguishes the actual sink from common code.
+)
 
 package io.github.kmpfacelink.capture
 
@@ -28,9 +32,21 @@ internal class IosInferenceRecordSink(
             try {
                 writeIndex(record)
                 val usable = record.hasFace && !record.inferenceFailed
-                writeFloats(landmarks, InferenceRecordFormat.LANDMARK_FLOATS, if (usable) record.landmarks else null)
-                writeFloats(blendshapes, InferenceRecordFormat.BLENDSHAPE_COUNT, if (usable) record.blendshapes else null)
-                writeFloats(transform, InferenceRecordFormat.TRANSFORM_FLOATS, if (usable) record.transform else null)
+                writeFloats(
+                    landmarks,
+                    InferenceRecordFormat.LANDMARK_FLOATS,
+                    if (usable) record.landmarks else null,
+                )
+                writeFloats(
+                    blendshapes,
+                    InferenceRecordFormat.BLENDSHAPE_COUNT,
+                    if (usable) record.blendshapes else null,
+                )
+                writeFloats(
+                    transform,
+                    InferenceRecordFormat.TRANSFORM_FLOATS,
+                    if (usable) record.transform else null,
+                )
                 count++
             } catch (t: Throwable) {
                 if (t is Error) throw t

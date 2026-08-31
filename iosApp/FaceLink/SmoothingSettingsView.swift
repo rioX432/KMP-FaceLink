@@ -1,5 +1,5 @@
 import SwiftUI
-import KMPFaceLink
+import SampleShared
 
 /// Settings view for adjusting smoothing parameters
 struct SmoothingSettingsView: View {
@@ -118,7 +118,8 @@ class SmoothingSettings: ObservableObject {
             return SmoothingConfig.OneEuro(
                 minCutoff: Float(minCutoff),
                 beta: Float(beta),
-                dCutoff: Float(dCutoff)
+                dCutoff: Float(dCutoff),
+                predictionMs: 0
             )
         }
     }

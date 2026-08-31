@@ -10,12 +10,16 @@ import io.github.kmpfacelink.api.PlatformContext
 import io.github.kmpfacelink.capture.AndroidCaptureSession
 import io.github.kmpfacelink.capture.CaptureCondition
 import io.github.kmpfacelink.capture.CapturePhase
+import io.github.kmpfacelink.capture.CapturePixelSemantics
+import io.github.kmpfacelink.capture.CaptureStorageProfile
+import io.github.kmpfacelink.capture.CaptureStorageReceipt
 import io.github.kmpfacelink.capture.InferenceRecord
 import io.github.kmpfacelink.capture.InferenceRecordFormat
 import io.github.kmpfacelink.capture.MeasurementLayer
 import io.github.kmpfacelink.capture.RawFrame
 import io.github.kmpfacelink.capture.RawFrameFormat
 import io.github.kmpfacelink.capture.SourceProvenance
+import io.github.kmpfacelink.capture.StudyRunIdentity
 import io.github.kmpfacelink.capture.TakeManifest
 import io.github.kmpfacelink.capture.TakeVerifier
 import io.github.kmpfacelink.capture.openInferenceRecordSink
@@ -138,6 +142,24 @@ class TakeVerifierOnDeviceTest {
             landmarksSha256 = hashes[1],
             blendshapesSha256 = hashes[2],
             transformSha256 = hashes[3],
+            storageReceipt = CaptureStorageReceipt(
+                CaptureStorageProfile.CANONICAL_RGBA_240X320_V1,
+                CapturePixelSemantics.EXACT_ANDROID_INFERENCE_INPUT,
+                240,
+                320,
+                240,
+                320,
+                "TEST",
+                "TEST",
+                "TEST",
+            ),
+            studyRun = StudyRunIdentity(
+                StudyRunIdentity.SCHEMA_VERSION,
+                "run-test",
+                StudyRunIdentity.GUIDED_PROTOCOL_ID,
+                CaptureStorageProfile.CANONICAL_RGBA_240X320_V1,
+                "2026-08-18T00:00:00Z",
+            ),
         )
         File(dir, InferenceRecordFormat.TAKE_MANIFEST_FILE)
             .writeText(Json.encodeToString(manifest))

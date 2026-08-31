@@ -28,4 +28,35 @@ public object CapturePreflightPolicy {
     }
 
     private val REQUIRED_MODES = setOf("IMAGE", "VIDEO")
+
+    /**
+     * Structural first-take gate for the participant-facing coefficient-only profile. Pixel replay
+     * is intentionally absent, so this checks no-pixel semantics plus the complete result-stream
+     * contract instead of pretending IMAGE/VIDEO replay is available.
+     */
+    public fun passesCoefficientOnly(observation: CoefficientOnlyPreflightObservation): Boolean =
+        observation.schemaVersion == TakeManifest.SCHEMA_VERSION &&
+            observation.profile == CaptureStorageProfile.COEFFICIENTS_ONLY_V1 &&
+            observation.pixelSemantics == CapturePixelSemantics.NONE &&
+            observation.framesStored == 0 &&
+            !observation.framesDirectoryExists &&
+            observation.resultRecords > 0 &&
+            observation.resultRecords == observation.manifestInferenceResults &&
+            observation.analysisFramesAdmitted >= observation.resultRecords &&
+            observation.sequenceAndTimestampStrictlyIncreasing &&
+            observation.resultStreamHashesMatch
 }
+
+/** Public-safe structural observations; contains no coefficient, landmark, transform, or pixel. */
+public data class CoefficientOnlyPreflightObservation(
+    val schemaVersion: Int,
+    val profile: CaptureStorageProfile,
+    val pixelSemantics: CapturePixelSemantics,
+    val framesStored: Int,
+    val framesDirectoryExists: Boolean,
+    val analysisFramesAdmitted: Int,
+    val manifestInferenceResults: Int,
+    val resultRecords: Int,
+    val sequenceAndTimestampStrictlyIncreasing: Boolean,
+    val resultStreamHashesMatch: Boolean,
+)

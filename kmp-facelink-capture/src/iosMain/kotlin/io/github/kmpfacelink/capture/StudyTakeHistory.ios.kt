@@ -29,15 +29,24 @@ internal actual suspend fun deleteStudyTake(
 }
 
 private fun publishedTakeNames(root: String): List<String> =
-    (NSFileManager.defaultManager.contentsOfDirectoryAtPath(root, error = null) as? List<*>)
+    NSFileManager.defaultManager.contentsOfDirectoryAtPath(root, error = null)
         ?.filterIsInstance<String>()
         ?: emptyList()
 
-internal fun readIosStudyTakeRecords(root: String): List<StudyTakeRecord> = publishedTakeNames(root)
-    .mapNotNull { readStudyTakeRecord(root, it) }
-    .sortedWith(compareBy(StudyTakeRecord::scenario, StudyTakeRecord::attempt))
+internal fun readIosStudyTakeRecords(
+    root: String,
+    activeStudyRun: StudyRunIdentity,
+): List<StudyTakeRecord> = scopedStudyTakeRecords(
+    publishedTakeNames(root)
+        .mapNotNull { readStudyTakeRecord(root, it) }
+        .sortedWith(compareBy(StudyTakeRecord::scenario, StudyTakeRecord::attempt)),
+    activeStudyRun,
+)
 
-private fun readStudyTakeRecord(root: String, name: String): StudyTakeRecord? {
+private fun readStudyTakeRecord(
+    root: String,
+    name: String,
+): StudyTakeRecord? {
     val manifestPath = joinCapturePath(
         joinCapturePath(root, name),
         InferenceRecordFormat.TAKE_MANIFEST_FILE,
@@ -46,5 +55,5 @@ private fun readStudyTakeRecord(root: String, name: String): StudyTakeRecord? {
         rawFrameJson.decodeFromString<TakeManifest>(readCaptureText(manifestPath))
     }.getOrNull() ?: return null
     val scenario = CaptureScenario.byId(manifest.scenarioId) ?: return null
-    return StudyTakeRecord(manifest.takeId, scenario, manifest.attempt)
+    return StudyTakeRecord(manifest.takeId, scenario, manifest.attempt, manifest.studyRun)
 }

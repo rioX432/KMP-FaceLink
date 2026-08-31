@@ -565,6 +565,61 @@ val buildCaptureIosSimulator by tasks.registering(Exec::class) {
     )
 }
 
+val verifySampleXcodeProject by tasks.registering(Exec::class) {
+    group = "verification"
+    description = "Verify the checked iOS sample project against pinned XcodeGen output"
+    commandLine("python3", "scripts/verify_sample_xcode_project.py")
+}
+
+val testSampleSourceContract by tasks.registering(Exec::class) {
+    group = "verification"
+    description = "Run dependency-free mutation controls for the sample source contract"
+    commandLine("python3", "-m", "unittest", "scripts/test_sample_source_contract.py")
+}
+
+val buildSampleIosSimulator by tasks.registering(Exec::class) {
+    group = "verification"
+    description = "Build the iOS sample app without signing or a physical device"
+    dependsOn(verifySampleXcodeProject)
+    val derivedData = layout.buildDirectory.dir("verification/sample-ios-simulator-derived")
+    inputs.dir("iosApp/FaceLink")
+    inputs.dir("iosApp/FaceLink.xcodeproj")
+    inputs.file("iosApp/project.yml")
+    outputs.dir(derivedData)
+    outputs.upToDateWhen { false }
+    commandLine(
+        "xcodebuild",
+        "-project",
+        "iosApp/FaceLink.xcodeproj",
+        "-scheme",
+        "FaceLink",
+        "-sdk",
+        "iphonesimulator",
+        "-destination",
+        "generic/platform=iOS Simulator",
+        "-derivedDataPath",
+        derivedData.get().asFile.absolutePath,
+        "-configuration",
+        "Debug",
+        "CODE_SIGNING_ALLOWED=NO",
+        "build",
+    )
+}
+
+tasks.register("sampleQualityCheck") {
+    group = "verification"
+    description = "Run deterministic Android and iOS sample source, package, and Simulator gates"
+    dependsOn(
+        ":androidApp:assembleDebug",
+        ":androidApp:assembleDebugAndroidTest",
+        ":sampleShared:compileKotlinIosSimulatorArm64",
+        ":sampleShared:iosSimulatorArm64Test",
+        verifySampleXcodeProject,
+        testSampleSourceContract,
+        buildSampleIosSimulator,
+    )
+}
+
 /**
  * One CI/local entrypoint for the contracts required of KMP-FaceLink as AnotherBall's tracking
  * foundation. Runtime accuracy and device performance remain separate, explicitly authorized
@@ -577,23 +632,31 @@ tasks.register("sdkQualityCheck") {
         ":kmp-facelink:apiCheck",
         ":kmp-facelink:detekt",
         ":kmp-facelink:jvmTest",
+        ":kmp-facelink:testAndroidHostTest",
+        ":kmp-facelink:iosSimulatorArm64Test",
         ":kmp-facelink:compileAndroidMain",
         ":kmp-facelink:compileKotlinIosSimulatorArm64",
-        ":kmp-facelink-capture:detekt",
+        ":kmp-facelink-capture:detektAndroidHostTest",
+        ":kmp-facelink-capture:detektAndroidMain",
+        ":kmp-facelink-capture:detektMetadataCommonMain",
+        ":kmp-facelink-capture:detektMetadataIosMain",
         ":kmp-facelink-capture:testAndroidHostTest",
         ":kmp-facelink-capture:iosSimulatorArm64Test",
         ":kmp-facelink-capture:compileKotlinIosSimulatorArm64",
         ":captureApp:testDebugUnitTest",
+        ":captureApp:detekt",
         ":captureApp:assembleDebug",
         ":captureApp:assembleDebugAndroidTest",
         ":captureApp:lintDebug",
         buildCaptureIosSimulator,
         testIosRunAuthorization,
+        verifyMediaPipeVersionProvenance,
         "validateModuleDependencies",
         verifySdkPublicSafety,
         testSdkPublicSafety,
         verifySdkDocumentation,
         testSdkDocumentation,
         testCalibrationTooling,
+        "sampleQualityCheck",
     )
 }

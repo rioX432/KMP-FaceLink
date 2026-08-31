@@ -7,6 +7,7 @@ internal data class StudyTakeRecord(
     val takeId: String,
     val scenario: CaptureScenario,
     val attempt: Int,
+    val studyRun: StudyRunIdentity = StudyRunIdentity.legacyUnscoped(),
 )
 
 internal enum class StudyTakeGroup { PROTOCOL, EXTRA }
@@ -62,6 +63,21 @@ internal fun nextStudyAttempt(
     return generateSequence(1) { it + 1 }.first { it !in used }
 }
 
+/** Returns the next registered slot and rejects scenarios or repetitions outside the active plan. */
+internal fun nextProtocolAttempt(
+    records: List<StudyTakeRecord>,
+    protocol: CaptureStudyProtocol,
+    scenario: CaptureScenario,
+): Int {
+    val allowed = protocol.scenarios.count { it == scenario }
+    require(allowed > 0) { "scenario ${scenario.id} is not registered in protocol ${protocol.id}" }
+    val attempt = nextStudyAttempt(records, scenario)
+    require(attempt <= allowed) {
+        "scenario ${scenario.id} has no remaining slot in protocol ${protocol.id}"
+    }
+    return attempt
+}
+
 internal fun containsPublishedTake(takeIds: List<String>, takeId: String): Boolean =
     takeId in takeIds
 
@@ -74,6 +90,20 @@ internal fun withoutStudyTake(
     records: List<StudyTakeRecord>,
     takeId: String,
 ): List<StudyTakeRecord> = records.filterNot { it.takeId == takeId }
+
+internal fun requireUniqueStudySlots(records: List<StudyTakeRecord>): List<StudyTakeRecord> {
+    val duplicate = records.groupBy { "${it.scenario.id}#${it.attempt}" }
+        .entries.firstOrNull { it.value.size > 1 }
+    require(duplicate == null) { "duplicate published study slot ${duplicate?.key}" }
+    return records
+}
+
+internal fun scopedStudyTakeRecords(
+    records: List<StudyTakeRecord>,
+    activeStudyRun: StudyRunIdentity,
+): List<StudyTakeRecord> = requireUniqueStudySlots(
+    records.filter { it.studyRun.isExactMatch(activeStudyRun) },
+)
 
 /**
  * Takes recorded alongside the protocol but outside it.

@@ -34,6 +34,7 @@ internal fun MainScreen(
         TrackingMode.FACE -> FaceTrackingScreen(
             faceTracker = stateHolder.faceTracker,
             trackingDataState = stateHolder.faceTrackingDataState,
+            initialSmoothingConfig = stateHolder.faceSmoothingConfig,
             onModeChange = onModeChange,
             onStartClick = onStartClick,
             onStopClick = onStopClick,

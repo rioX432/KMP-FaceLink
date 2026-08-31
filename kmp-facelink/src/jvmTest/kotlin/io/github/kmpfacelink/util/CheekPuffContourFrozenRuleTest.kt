@@ -39,6 +39,7 @@ class CheekPuffContourFrozenRuleTest {
 
     @Test
     fun sessionARatesMatchTheFrozenPythonImplementation() {
+        if (pathFromOptional(RESULT_ENV) != null) return
         val session = pathFrom(TESTDATA_ENV) ?: return
         val ruleFile = pathFrom(RULE_ENV) ?: return
 
@@ -71,6 +72,39 @@ class CheekPuffContourFrozenRuleTest {
         }
         println("session-A firing rates\n$table\nnot in the frozen rule\n$extras")
         assertTrue(mismatches.isEmpty(), "firing rates differ for $mismatches\n$table")
+    }
+
+    @Test
+    fun providedSessionRatesMatchTheFrozenPythonImplementation() {
+        val resultFile = pathFromOptional(RESULT_ENV) ?: return
+        val session = pathFrom(TESTDATA_ENV) ?: return
+        val ruleFile = pathFrom(RULE_ENV) ?: return
+
+        val result = Json.parseToJsonElement(resultFile.readText()).jsonObject
+        assertEquals(FROZEN_RULE_SHA256, result.getValue("rule_sha256").jsonPrimitive.content)
+        val expected = buildMap {
+            for (section in listOf("fire_rates", "extra_takes_not_judged")) {
+                putAll(result.getValue(section).jsonObject.mapValues { (_, value) -> value.jsonPrimitive.double })
+            }
+        }
+        val actual = scoreSession(session)
+        assertEquals(expected.keys, actual.keys, "the aggregate result and private session must name the same takes")
+
+        val mismatches = expected.keys.sorted().filter {
+            abs(actual.getValue(it).rate - expected.getValue(it)) > 0.0
+        }
+        val table = expected.keys.sorted().joinToString("\n") {
+            val take = actual.getValue(it)
+            "  %-24s kotlin %.16f (%d/%d)  python %.16f".format(
+                it, take.rate, take.firedFrames, take.scoredFrames, expected.getValue(it),
+            )
+        }
+        println("provided-session firing rates\n$table")
+        assertTrue(mismatches.isEmpty(), "firing rates differ for $mismatches\n$table")
+
+        val ruleSha = MessageDigest.getInstance("SHA-256").digest(ruleFile.readBytes())
+            .joinToString("") { "%02x".format(it) }
+        assertEquals(FROZEN_RULE_SHA256, ruleSha, "frozen rule file is not the frozen revision")
     }
 
     private fun assertThresholdsMatchTheRuleFile(rule: JsonObject) {
@@ -215,9 +249,18 @@ class CheekPuffContourFrozenRuleTest {
         return file
     }
 
+    private fun pathFromOptional(variable: String): File? {
+        val raw = System.getenv(variable) ?: System.getProperty(variable.lowercase().replace('_', '.'))
+        if (raw.isNullOrBlank()) return null
+        val file = File(raw)
+        assertTrue(file.exists(), "$variable points at a missing path: $raw")
+        return file
+    }
+
     private companion object {
         const val TESTDATA_ENV = "CHEEKPUFF_TESTDATA"
         const val RULE_ENV = "CHEEKPUFF_FROZEN_RULE"
+        const val RESULT_ENV = "CHEEKPUFF_EXPECTED_RESULT"
         const val FROZEN_RULE_SHA256 = "32829cea15a5fb3bf2e734ab3249bcf0b8d949e5e17694bfb0ae6f2c181cb231"
         const val INDEX_RECORD_BYTES = 32
         const val CAPTURE_NS_OFFSET = 16

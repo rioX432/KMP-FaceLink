@@ -82,6 +82,12 @@ val reviewPacketId = reviewAuthorization?.packetId.orEmpty()
 val reviewPacketSha = reviewAuthorization?.packetManifestSha256.orEmpty()
 val reviewSourceManifestSha = reviewAuthorization?.sourceManifestSha256.orEmpty()
 val reviewAuthorizationSha = reviewAuthorization?.fileSha256.orEmpty()
+val sessionCExecutionContractSha = providers.gradleProperty("facelink.sessionCExecutionContractSha256")
+    .orNull
+    .orEmpty()
+    .also { value ->
+        if (value.isNotEmpty()) value.requireLowercaseSha256("sessionCExecutionContractSha256")
+    }
 
 android {
     namespace = "io.github.kmpfacelink.capture.app"
@@ -89,7 +95,9 @@ android {
 
     defaultConfig {
         applicationId = "io.github.kmpfacelink.capture.app"
-        minSdk = 24
+        // This validation recorder uses java.time.Instant in its signed Session-C authorization.
+        // The reusable kmp-facelink libraries retain their minSdk 24 consumer contract.
+        minSdk = 26
         targetSdk = 35
         versionCode = 1
         versionName = "1.0"
@@ -103,6 +111,7 @@ android {
         buildConfigField("String", "REVIEW_PACKET_SHA256", "\"$reviewPacketSha\"")
         buildConfigField("String", "REVIEW_SOURCE_MANIFEST_SHA256", "\"$reviewSourceManifestSha\"")
         buildConfigField("String", "REVIEW_AUTHORIZATION_SHA256", "\"$reviewAuthorizationSha\"")
+        buildConfigField("String", "SESSION_C_EXECUTION_CONTRACT_SHA256", "\"$sessionCExecutionContractSha\"")
     }
 
     buildFeatures {

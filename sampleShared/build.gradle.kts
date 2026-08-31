@@ -35,6 +35,10 @@ kotlin {
             api(project(":kmp-facelink-actions"))
         }
 
+        commonTest.dependencies {
+            implementation(libs.kotlin.test)
+        }
+
         androidMain.dependencies {
             implementation(libs.camerax.view)
         }

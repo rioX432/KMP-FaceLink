@@ -1,3 +1,8 @@
+@file:Suppress(
+    "FunctionNaming", // Backtick test names describe exact persisted-frame contracts.
+    "MagicNumber", // Small fixture dimensions and byte sentinels are the assertions.
+)
+
 package io.github.kmpfacelink.capture
 
 import java.io.File
@@ -128,7 +133,12 @@ class RawFrameSinkTest {
         val rejected = runCatching {
             sink.write(
                 RawFrame(
-                    HEIGHT, WIDTH, 1, 0L, 0L, CapturePhase.ACTED,
+                    HEIGHT,
+                    WIDTH,
+                    1,
+                    0L,
+                    0L,
+                    CapturePhase.ACTED,
                     ByteArray(WIDTH * HEIGHT * RawFrameFormat.BYTES_PER_PIXEL),
                 ),
             )

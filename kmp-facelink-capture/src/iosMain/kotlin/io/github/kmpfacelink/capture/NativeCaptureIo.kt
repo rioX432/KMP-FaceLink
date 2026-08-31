@@ -1,4 +1,8 @@
 @file:OptIn(ExperimentalForeignApi::class, kotlin.ExperimentalStdlibApi::class)
+@file:Suppress(
+    "TooGenericExceptionCaught", // Publish-last cleanup must cover every write/sync failure.
+    "TooManyFunctions", // One native filesystem boundary keeps all POSIX/Foundation rules together.
+)
 
 package io.github.kmpfacelink.capture
 
@@ -18,8 +22,12 @@ import platform.CoreCrypto.CC_SHA256_Final
 import platform.CoreCrypto.CC_SHA256_Init
 import platform.CoreCrypto.CC_SHA256_Update
 import platform.Foundation.NSCondition
+import platform.Foundation.NSData
 import platform.Foundation.NSFileManager
+import platform.Foundation.NSFileSize
+import platform.Foundation.NSFileSystemFreeSize
 import platform.Foundation.NSLock
+import platform.Foundation.NSNumber
 import platform.posix.O_CREAT
 import platform.posix.O_RDONLY
 import platform.posix.O_TRUNC
@@ -28,16 +36,16 @@ import platform.posix.S_IRGRP
 import platform.posix.S_IROTH
 import platform.posix.S_IRUSR
 import platform.posix.S_IWUSR
-import platform.posix.close as posixClose
 import platform.posix.errno
-import platform.posix.free as posixFree
 import platform.posix.fsync
-import platform.posix.open as posixOpen
-import platform.posix.read as posixRead
-import platform.posix.rename
 import platform.posix.realpath
+import platform.posix.rename
 import platform.posix.strerror
 import platform.posix.unlink
+import platform.posix.close as posixClose
+import platform.posix.free as posixFree
+import platform.posix.open as posixOpen
+import platform.posix.read as posixRead
 import platform.posix.write as posixWrite
 
 internal inline fun <T> NSLock.withCaptureLock(block: () -> T): T {
@@ -76,6 +84,19 @@ internal class NativeOutput private constructor(
                 offset += count.toInt()
             }
         }
+    }
+
+    /** Writes an immutable native payload without copying it through a Kotlin ByteArray. */
+    fun write(data: NSData) {
+        check(descriptor >= 0) { "$path is closed" }
+        val size = data.length.toLong()
+        check(size > 0L && size <= Int.MAX_VALUE) { "invalid native payload size $size for $path" }
+        // A regular local capture file should accept the immutable snapshot in one write. A short
+        // write is deliberately terminal rather than silently writing a partial frame; retrying
+        // would require C-pointer arithmetic over NSData and risks making a mutable source appear
+        // complete. The bounded sink converts this failure into a discarded take.
+        val count = posixWrite(descriptor, data.bytes, size.convert())
+        check(count == size) { "could not write complete native payload to $path: ${nativeError()}" }
     }
 
     fun closeAndSync() {
@@ -158,7 +179,7 @@ internal fun publishCaptureText(directory: String, name: String, text: String) {
     }
 }
 
-internal fun readCaptureText(path: String): String {
+internal fun readCaptureBytes(path: String): ByteArray {
     val descriptor = posixOpen(path, O_RDONLY)
     check(descriptor >= 0) { "could not open $path: ${nativeError()}" }
     val chunks = ArrayList<ByteArray>()
@@ -183,7 +204,30 @@ internal fun readCaptureText(path: String): String {
         chunk.copyInto(bytes, offset)
         offset += chunk.size
     }
-    return bytes.decodeToString()
+    return bytes
+}
+
+internal fun readCaptureText(path: String): String = readCaptureBytes(path).decodeToString()
+
+internal fun capturePathExists(path: String): Boolean =
+    NSFileManager.defaultManager.fileExistsAtPath(path)
+
+internal fun captureFileSize(path: String): Long {
+    val attributes = checkNotNull(
+        NSFileManager.defaultManager.attributesOfItemAtPath(path, error = null),
+    ) { "could not read file attributes for $path" }
+    return checkNotNull(attributes[NSFileSize] as? NSNumber) {
+        "file size is missing for $path"
+    }.longLongValue
+}
+
+internal fun captureAvailableBytes(path: String): Long {
+    val attributes = checkNotNull(
+        NSFileManager.defaultManager.attributesOfFileSystemForPath(path, error = null),
+    ) { "could not read filesystem attributes for $path" }
+    return checkNotNull(attributes[NSFileSystemFreeSize] as? NSNumber) {
+        "free-space value is missing for $path"
+    }.longLongValue
 }
 
 internal fun sha256OfCaptureFile(path: String): String {

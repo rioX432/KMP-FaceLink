@@ -182,6 +182,16 @@ final enum class io.github.kmpfacelink.model/CameraFacing : kotlin/Enum<io.githu
     final fun values(): kotlin/Array<io.github.kmpfacelink.model/CameraFacing> // io.github.kmpfacelink.model/CameraFacing.values|values#static(){}[0]
 }
 
+final enum class io.github.kmpfacelink.model/DerivedFaceSignalValueSemantics : kotlin/Enum<io.github.kmpfacelink.model/DerivedFaceSignalValueSemantics> { // io.github.kmpfacelink.model/DerivedFaceSignalValueSemantics|null[0]
+    enum entry UNIT_INTERVAL_ACTIVATION // io.github.kmpfacelink.model/DerivedFaceSignalValueSemantics.UNIT_INTERVAL_ACTIVATION|null[0]
+
+    final val entries // io.github.kmpfacelink.model/DerivedFaceSignalValueSemantics.entries|#static{}entries[0]
+        final fun <get-entries>(): kotlin.enums/EnumEntries<io.github.kmpfacelink.model/DerivedFaceSignalValueSemantics> // io.github.kmpfacelink.model/DerivedFaceSignalValueSemantics.entries.<get-entries>|<get-entries>#static(){}[0]
+
+    final fun valueOf(kotlin/String): io.github.kmpfacelink.model/DerivedFaceSignalValueSemantics // io.github.kmpfacelink.model/DerivedFaceSignalValueSemantics.valueOf|valueOf#static(kotlin.String){}[0]
+    final fun values(): kotlin/Array<io.github.kmpfacelink.model/DerivedFaceSignalValueSemantics> // io.github.kmpfacelink.model/DerivedFaceSignalValueSemantics.values|values#static(){}[0]
+}
+
 final enum class io.github.kmpfacelink.model/DeviceTier : kotlin/Enum<io.github.kmpfacelink.model/DeviceTier> { // io.github.kmpfacelink.model/DeviceTier|null[0]
     enum entry HIGH // io.github.kmpfacelink.model/DeviceTier.HIGH|null[0]
     enum entry LOW // io.github.kmpfacelink.model/DeviceTier.LOW|null[0]
@@ -525,6 +535,18 @@ abstract fun interface io.github.kmpfacelink.model/EvidenceAcceptancePolicy { //
     abstract fun accept(io.github.kmpfacelink.model/BlendShape, io.github.kmpfacelink.model/CapabilityEvidence.TechnicallyMatched): io.github.kmpfacelink.model/EvidenceAcceptance // io.github.kmpfacelink.model/EvidenceAcceptancePolicy.accept|accept(io.github.kmpfacelink.model.BlendShape;io.github.kmpfacelink.model.CapabilityEvidence.TechnicallyMatched){}[0]
 }
 
+abstract fun interface io.github.kmpfacelink.model/ParticipantCalibrationClock { // io.github.kmpfacelink.model/ParticipantCalibrationClock|null[0]
+    abstract fun nowEpochMs(): kotlin/Long // io.github.kmpfacelink.model/ParticipantCalibrationClock.nowEpochMs|nowEpochMs(){}[0]
+}
+
+abstract fun interface io.github.kmpfacelink.model/ParticipantCalibrationDecisionEngine { // io.github.kmpfacelink.model/ParticipantCalibrationDecisionEngine|null[0]
+    abstract fun decide(io.github.kmpfacelink.model/ParticipantCalibrationDecisionInput): io.github.kmpfacelink.model/DerivedFaceSignalDecision // io.github.kmpfacelink.model/ParticipantCalibrationDecisionEngine.decide|decide(io.github.kmpfacelink.model.ParticipantCalibrationDecisionInput){}[0]
+}
+
+abstract fun interface io.github.kmpfacelink.model/ParticipantCalibrationFallbackPolicy { // io.github.kmpfacelink.model/ParticipantCalibrationFallbackPolicy|null[0]
+    abstract fun decide(io.github.kmpfacelink.model/DerivedFaceSignal, io.github.kmpfacelink.model/ParticipantCalibrationLifecycle): io.github.kmpfacelink.model/BlendShapeRoute // io.github.kmpfacelink.model/ParticipantCalibrationFallbackPolicy.decide|decide(io.github.kmpfacelink.model.DerivedFaceSignal;io.github.kmpfacelink.model.ParticipantCalibrationLifecycle){}[0]
+}
+
 abstract interface io.github.kmpfacelink.api/BodyTracker : io.github.kmpfacelink.api/Releasable { // io.github.kmpfacelink.api/BodyTracker|null[0]
     abstract val errorMessage // io.github.kmpfacelink.api/BodyTracker.errorMessage|{}errorMessage[0]
         abstract fun <get-errorMessage>(): kotlinx.coroutines.flow/StateFlow<kotlin/String?> // io.github.kmpfacelink.api/BodyTracker.errorMessage.<get-errorMessage>|<get-errorMessage>(){}[0]
@@ -725,6 +747,24 @@ sealed interface io.github.kmpfacelink.model/CapabilityEvidence { // io.github.k
     }
 }
 
+sealed interface io.github.kmpfacelink.model/DerivedFaceSignal { // io.github.kmpfacelink.model/DerivedFaceSignal|null[0]
+    abstract val canonicalBlendShape // io.github.kmpfacelink.model/DerivedFaceSignal.canonicalBlendShape|{}canonicalBlendShape[0]
+        abstract fun <get-canonicalBlendShape>(): io.github.kmpfacelink.model/BlendShape // io.github.kmpfacelink.model/DerivedFaceSignal.canonicalBlendShape.<get-canonicalBlendShape>|<get-canonicalBlendShape>(){}[0]
+    abstract val id // io.github.kmpfacelink.model/DerivedFaceSignal.id|{}id[0]
+        abstract fun <get-id>(): kotlin/String // io.github.kmpfacelink.model/DerivedFaceSignal.id.<get-id>|<get-id>(){}[0]
+
+    final object CheekPuffCandidate : io.github.kmpfacelink.model/DerivedFaceSignal { // io.github.kmpfacelink.model/DerivedFaceSignal.CheekPuffCandidate|null[0]
+        final val canonicalBlendShape // io.github.kmpfacelink.model/DerivedFaceSignal.CheekPuffCandidate.canonicalBlendShape|{}canonicalBlendShape[0]
+            final fun <get-canonicalBlendShape>(): io.github.kmpfacelink.model/BlendShape // io.github.kmpfacelink.model/DerivedFaceSignal.CheekPuffCandidate.canonicalBlendShape.<get-canonicalBlendShape>|<get-canonicalBlendShape>(){}[0]
+        final val id // io.github.kmpfacelink.model/DerivedFaceSignal.CheekPuffCandidate.id|{}id[0]
+            final fun <get-id>(): kotlin/String // io.github.kmpfacelink.model/DerivedFaceSignal.CheekPuffCandidate.id.<get-id>|<get-id>(){}[0]
+
+        final fun equals(kotlin/Any?): kotlin/Boolean // io.github.kmpfacelink.model/DerivedFaceSignal.CheekPuffCandidate.equals|equals(kotlin.Any?){}[0]
+        final fun hashCode(): kotlin/Int // io.github.kmpfacelink.model/DerivedFaceSignal.CheekPuffCandidate.hashCode|hashCode(){}[0]
+        final fun toString(): kotlin/String // io.github.kmpfacelink.model/DerivedFaceSignal.CheekPuffCandidate.toString|toString(){}[0]
+    }
+}
+
 sealed interface io.github.kmpfacelink.model/EvidenceAcceptance { // io.github.kmpfacelink.model/EvidenceAcceptance|null[0]
     final class Accepted : io.github.kmpfacelink.model/EvidenceAcceptance { // io.github.kmpfacelink.model/EvidenceAcceptance.Accepted|null[0]
         constructor <init>(kotlin/String, io.github.kmpfacelink.model/EvidenceScope) // io.github.kmpfacelink.model/EvidenceAcceptance.Accepted.<init>|<init>(kotlin.String;io.github.kmpfacelink.model.EvidenceScope){}[0]
@@ -753,6 +793,113 @@ sealed interface io.github.kmpfacelink.model/EvidenceAcceptance { // io.github.k
         final fun equals(kotlin/Any?): kotlin/Boolean // io.github.kmpfacelink.model/EvidenceAcceptance.Rejected.equals|equals(kotlin.Any?){}[0]
         final fun hashCode(): kotlin/Int // io.github.kmpfacelink.model/EvidenceAcceptance.Rejected.hashCode|hashCode(){}[0]
         final fun toString(): kotlin/String // io.github.kmpfacelink.model/EvidenceAcceptance.Rejected.toString|toString(){}[0]
+    }
+}
+
+sealed interface io.github.kmpfacelink.model/ParticipantCalibrationLifecycle { // io.github.kmpfacelink.model/ParticipantCalibrationLifecycle|null[0]
+    final class Collecting : io.github.kmpfacelink.model/ParticipantCalibrationLifecycle { // io.github.kmpfacelink.model/ParticipantCalibrationLifecycle.Collecting|null[0]
+        constructor <init>(io.github.kmpfacelink.model/ParticipantEnrollmentBinding, kotlin/Int, kotlin/Int) // io.github.kmpfacelink.model/ParticipantCalibrationLifecycle.Collecting.<init>|<init>(io.github.kmpfacelink.model.ParticipantEnrollmentBinding;kotlin.Int;kotlin.Int){}[0]
+
+        final val collectedUnits // io.github.kmpfacelink.model/ParticipantCalibrationLifecycle.Collecting.collectedUnits|{}collectedUnits[0]
+            final fun <get-collectedUnits>(): kotlin/Int // io.github.kmpfacelink.model/ParticipantCalibrationLifecycle.Collecting.collectedUnits.<get-collectedUnits>|<get-collectedUnits>(){}[0]
+        final val enrollmentBinding // io.github.kmpfacelink.model/ParticipantCalibrationLifecycle.Collecting.enrollmentBinding|{}enrollmentBinding[0]
+            final fun <get-enrollmentBinding>(): io.github.kmpfacelink.model/ParticipantEnrollmentBinding // io.github.kmpfacelink.model/ParticipantCalibrationLifecycle.Collecting.enrollmentBinding.<get-enrollmentBinding>|<get-enrollmentBinding>(){}[0]
+        final val requiredUnits // io.github.kmpfacelink.model/ParticipantCalibrationLifecycle.Collecting.requiredUnits|{}requiredUnits[0]
+            final fun <get-requiredUnits>(): kotlin/Int // io.github.kmpfacelink.model/ParticipantCalibrationLifecycle.Collecting.requiredUnits.<get-requiredUnits>|<get-requiredUnits>(){}[0]
+
+        final fun component1(): io.github.kmpfacelink.model/ParticipantEnrollmentBinding // io.github.kmpfacelink.model/ParticipantCalibrationLifecycle.Collecting.component1|component1(){}[0]
+        final fun component2(): kotlin/Int // io.github.kmpfacelink.model/ParticipantCalibrationLifecycle.Collecting.component2|component2(){}[0]
+        final fun component3(): kotlin/Int // io.github.kmpfacelink.model/ParticipantCalibrationLifecycle.Collecting.component3|component3(){}[0]
+        final fun copy(io.github.kmpfacelink.model/ParticipantEnrollmentBinding = ..., kotlin/Int = ..., kotlin/Int = ...): io.github.kmpfacelink.model/ParticipantCalibrationLifecycle.Collecting // io.github.kmpfacelink.model/ParticipantCalibrationLifecycle.Collecting.copy|copy(io.github.kmpfacelink.model.ParticipantEnrollmentBinding;kotlin.Int;kotlin.Int){}[0]
+        final fun equals(kotlin/Any?): kotlin/Boolean // io.github.kmpfacelink.model/ParticipantCalibrationLifecycle.Collecting.equals|equals(kotlin.Any?){}[0]
+        final fun hashCode(): kotlin/Int // io.github.kmpfacelink.model/ParticipantCalibrationLifecycle.Collecting.hashCode|hashCode(){}[0]
+        final fun toString(): kotlin/String // io.github.kmpfacelink.model/ParticipantCalibrationLifecycle.Collecting.toString|toString(){}[0]
+    }
+
+    final class Expired : io.github.kmpfacelink.model/ParticipantCalibrationLifecycle { // io.github.kmpfacelink.model/ParticipantCalibrationLifecycle.Expired|null[0]
+        constructor <init>(kotlin/String, kotlin/ULong, kotlin/Long) // io.github.kmpfacelink.model/ParticipantCalibrationLifecycle.Expired.<init>|<init>(kotlin.String;kotlin.ULong;kotlin.Long){}[0]
+
+        final val expiredAtEpochMs // io.github.kmpfacelink.model/ParticipantCalibrationLifecycle.Expired.expiredAtEpochMs|{}expiredAtEpochMs[0]
+            final fun <get-expiredAtEpochMs>(): kotlin/Long // io.github.kmpfacelink.model/ParticipantCalibrationLifecycle.Expired.expiredAtEpochMs.<get-expiredAtEpochMs>|<get-expiredAtEpochMs>(){}[0]
+        final val profileId // io.github.kmpfacelink.model/ParticipantCalibrationLifecycle.Expired.profileId|{}profileId[0]
+            final fun <get-profileId>(): kotlin/String // io.github.kmpfacelink.model/ParticipantCalibrationLifecycle.Expired.profileId.<get-profileId>|<get-profileId>(){}[0]
+        final val profileRevision // io.github.kmpfacelink.model/ParticipantCalibrationLifecycle.Expired.profileRevision|{}profileRevision[0]
+            final fun <get-profileRevision>(): kotlin/ULong // io.github.kmpfacelink.model/ParticipantCalibrationLifecycle.Expired.profileRevision.<get-profileRevision>|<get-profileRevision>(){}[0]
+
+        final fun component1(): kotlin/String // io.github.kmpfacelink.model/ParticipantCalibrationLifecycle.Expired.component1|component1(){}[0]
+        final fun component2(): kotlin/ULong // io.github.kmpfacelink.model/ParticipantCalibrationLifecycle.Expired.component2|component2(){}[0]
+        final fun component3(): kotlin/Long // io.github.kmpfacelink.model/ParticipantCalibrationLifecycle.Expired.component3|component3(){}[0]
+        final fun copy(kotlin/String = ..., kotlin/ULong = ..., kotlin/Long = ...): io.github.kmpfacelink.model/ParticipantCalibrationLifecycle.Expired // io.github.kmpfacelink.model/ParticipantCalibrationLifecycle.Expired.copy|copy(kotlin.String;kotlin.ULong;kotlin.Long){}[0]
+        final fun equals(kotlin/Any?): kotlin/Boolean // io.github.kmpfacelink.model/ParticipantCalibrationLifecycle.Expired.equals|equals(kotlin.Any?){}[0]
+        final fun hashCode(): kotlin/Int // io.github.kmpfacelink.model/ParticipantCalibrationLifecycle.Expired.hashCode|hashCode(){}[0]
+        final fun toString(): kotlin/String // io.github.kmpfacelink.model/ParticipantCalibrationLifecycle.Expired.toString|toString(){}[0]
+    }
+
+    final class Mismatched : io.github.kmpfacelink.model/ParticipantCalibrationLifecycle { // io.github.kmpfacelink.model/ParticipantCalibrationLifecycle.Mismatched|null[0]
+        constructor <init>(kotlin/String?, kotlin/ULong?, kotlin.collections/Set<kotlin/String>) // io.github.kmpfacelink.model/ParticipantCalibrationLifecycle.Mismatched.<init>|<init>(kotlin.String?;kotlin.ULong?;kotlin.collections.Set<kotlin.String>){}[0]
+
+        final val differingFields // io.github.kmpfacelink.model/ParticipantCalibrationLifecycle.Mismatched.differingFields|{}differingFields[0]
+            final fun <get-differingFields>(): kotlin.collections/Set<kotlin/String> // io.github.kmpfacelink.model/ParticipantCalibrationLifecycle.Mismatched.differingFields.<get-differingFields>|<get-differingFields>(){}[0]
+        final val profileId // io.github.kmpfacelink.model/ParticipantCalibrationLifecycle.Mismatched.profileId|{}profileId[0]
+            final fun <get-profileId>(): kotlin/String? // io.github.kmpfacelink.model/ParticipantCalibrationLifecycle.Mismatched.profileId.<get-profileId>|<get-profileId>(){}[0]
+        final val profileRevision // io.github.kmpfacelink.model/ParticipantCalibrationLifecycle.Mismatched.profileRevision|{}profileRevision[0]
+            final fun <get-profileRevision>(): kotlin/ULong? // io.github.kmpfacelink.model/ParticipantCalibrationLifecycle.Mismatched.profileRevision.<get-profileRevision>|<get-profileRevision>(){}[0]
+
+        final fun component1(): kotlin/String? // io.github.kmpfacelink.model/ParticipantCalibrationLifecycle.Mismatched.component1|component1(){}[0]
+        final fun component2(): kotlin/ULong? // io.github.kmpfacelink.model/ParticipantCalibrationLifecycle.Mismatched.component2|component2(){}[0]
+        final fun component3(): kotlin.collections/Set<kotlin/String> // io.github.kmpfacelink.model/ParticipantCalibrationLifecycle.Mismatched.component3|component3(){}[0]
+        final fun copy(kotlin/String? = ..., kotlin/ULong? = ..., kotlin.collections/Set<kotlin/String> = ...): io.github.kmpfacelink.model/ParticipantCalibrationLifecycle.Mismatched // io.github.kmpfacelink.model/ParticipantCalibrationLifecycle.Mismatched.copy|copy(kotlin.String?;kotlin.ULong?;kotlin.collections.Set<kotlin.String>){}[0]
+        final fun equals(kotlin/Any?): kotlin/Boolean // io.github.kmpfacelink.model/ParticipantCalibrationLifecycle.Mismatched.equals|equals(kotlin.Any?){}[0]
+        final fun hashCode(): kotlin/Int // io.github.kmpfacelink.model/ParticipantCalibrationLifecycle.Mismatched.hashCode|hashCode(){}[0]
+        final fun toString(): kotlin/String // io.github.kmpfacelink.model/ParticipantCalibrationLifecycle.Mismatched.toString|toString(){}[0]
+    }
+
+    final class Ready : io.github.kmpfacelink.model/ParticipantCalibrationLifecycle { // io.github.kmpfacelink.model/ParticipantCalibrationLifecycle.Ready|null[0]
+        constructor <init>(io.github.kmpfacelink.model/ParticipantCalibrationProfile) // io.github.kmpfacelink.model/ParticipantCalibrationLifecycle.Ready.<init>|<init>(io.github.kmpfacelink.model.ParticipantCalibrationProfile){}[0]
+
+        final val profile // io.github.kmpfacelink.model/ParticipantCalibrationLifecycle.Ready.profile|{}profile[0]
+            final fun <get-profile>(): io.github.kmpfacelink.model/ParticipantCalibrationProfile // io.github.kmpfacelink.model/ParticipantCalibrationLifecycle.Ready.profile.<get-profile>|<get-profile>(){}[0]
+
+        final fun component1(): io.github.kmpfacelink.model/ParticipantCalibrationProfile // io.github.kmpfacelink.model/ParticipantCalibrationLifecycle.Ready.component1|component1(){}[0]
+        final fun copy(io.github.kmpfacelink.model/ParticipantCalibrationProfile = ...): io.github.kmpfacelink.model/ParticipantCalibrationLifecycle.Ready // io.github.kmpfacelink.model/ParticipantCalibrationLifecycle.Ready.copy|copy(io.github.kmpfacelink.model.ParticipantCalibrationProfile){}[0]
+        final fun equals(kotlin/Any?): kotlin/Boolean // io.github.kmpfacelink.model/ParticipantCalibrationLifecycle.Ready.equals|equals(kotlin.Any?){}[0]
+        final fun hashCode(): kotlin/Int // io.github.kmpfacelink.model/ParticipantCalibrationLifecycle.Ready.hashCode|hashCode(){}[0]
+        final fun toString(): kotlin/String // io.github.kmpfacelink.model/ParticipantCalibrationLifecycle.Ready.toString|toString(){}[0]
+    }
+
+    final class Rejected : io.github.kmpfacelink.model/ParticipantCalibrationLifecycle { // io.github.kmpfacelink.model/ParticipantCalibrationLifecycle.Rejected|null[0]
+        constructor <init>(kotlin/String, kotlin/ULong, kotlin/String, io.github.kmpfacelink.model/ParticipantCalibrationEvidenceReceipt) // io.github.kmpfacelink.model/ParticipantCalibrationLifecycle.Rejected.<init>|<init>(kotlin.String;kotlin.ULong;kotlin.String;io.github.kmpfacelink.model.ParticipantCalibrationEvidenceReceipt){}[0]
+
+        final val evidenceReceipt // io.github.kmpfacelink.model/ParticipantCalibrationLifecycle.Rejected.evidenceReceipt|{}evidenceReceipt[0]
+            final fun <get-evidenceReceipt>(): io.github.kmpfacelink.model/ParticipantCalibrationEvidenceReceipt // io.github.kmpfacelink.model/ParticipantCalibrationLifecycle.Rejected.evidenceReceipt.<get-evidenceReceipt>|<get-evidenceReceipt>(){}[0]
+        final val profileId // io.github.kmpfacelink.model/ParticipantCalibrationLifecycle.Rejected.profileId|{}profileId[0]
+            final fun <get-profileId>(): kotlin/String // io.github.kmpfacelink.model/ParticipantCalibrationLifecycle.Rejected.profileId.<get-profileId>|<get-profileId>(){}[0]
+        final val profileRevision // io.github.kmpfacelink.model/ParticipantCalibrationLifecycle.Rejected.profileRevision|{}profileRevision[0]
+            final fun <get-profileRevision>(): kotlin/ULong // io.github.kmpfacelink.model/ParticipantCalibrationLifecycle.Rejected.profileRevision.<get-profileRevision>|<get-profileRevision>(){}[0]
+        final val reason // io.github.kmpfacelink.model/ParticipantCalibrationLifecycle.Rejected.reason|{}reason[0]
+            final fun <get-reason>(): kotlin/String // io.github.kmpfacelink.model/ParticipantCalibrationLifecycle.Rejected.reason.<get-reason>|<get-reason>(){}[0]
+
+        final fun component1(): kotlin/String // io.github.kmpfacelink.model/ParticipantCalibrationLifecycle.Rejected.component1|component1(){}[0]
+        final fun component2(): kotlin/ULong // io.github.kmpfacelink.model/ParticipantCalibrationLifecycle.Rejected.component2|component2(){}[0]
+        final fun component3(): kotlin/String // io.github.kmpfacelink.model/ParticipantCalibrationLifecycle.Rejected.component3|component3(){}[0]
+        final fun component4(): io.github.kmpfacelink.model/ParticipantCalibrationEvidenceReceipt // io.github.kmpfacelink.model/ParticipantCalibrationLifecycle.Rejected.component4|component4(){}[0]
+        final fun copy(kotlin/String = ..., kotlin/ULong = ..., kotlin/String = ..., io.github.kmpfacelink.model/ParticipantCalibrationEvidenceReceipt = ...): io.github.kmpfacelink.model/ParticipantCalibrationLifecycle.Rejected // io.github.kmpfacelink.model/ParticipantCalibrationLifecycle.Rejected.copy|copy(kotlin.String;kotlin.ULong;kotlin.String;io.github.kmpfacelink.model.ParticipantCalibrationEvidenceReceipt){}[0]
+        final fun equals(kotlin/Any?): kotlin/Boolean // io.github.kmpfacelink.model/ParticipantCalibrationLifecycle.Rejected.equals|equals(kotlin.Any?){}[0]
+        final fun hashCode(): kotlin/Int // io.github.kmpfacelink.model/ParticipantCalibrationLifecycle.Rejected.hashCode|hashCode(){}[0]
+        final fun toString(): kotlin/String // io.github.kmpfacelink.model/ParticipantCalibrationLifecycle.Rejected.toString|toString(){}[0]
+    }
+
+    final class Unavailable : io.github.kmpfacelink.model/ParticipantCalibrationLifecycle { // io.github.kmpfacelink.model/ParticipantCalibrationLifecycle.Unavailable|null[0]
+        constructor <init>(kotlin/String) // io.github.kmpfacelink.model/ParticipantCalibrationLifecycle.Unavailable.<init>|<init>(kotlin.String){}[0]
+
+        final val reason // io.github.kmpfacelink.model/ParticipantCalibrationLifecycle.Unavailable.reason|{}reason[0]
+            final fun <get-reason>(): kotlin/String // io.github.kmpfacelink.model/ParticipantCalibrationLifecycle.Unavailable.reason.<get-reason>|<get-reason>(){}[0]
+
+        final fun component1(): kotlin/String // io.github.kmpfacelink.model/ParticipantCalibrationLifecycle.Unavailable.component1|component1(){}[0]
+        final fun copy(kotlin/String = ...): io.github.kmpfacelink.model/ParticipantCalibrationLifecycle.Unavailable // io.github.kmpfacelink.model/ParticipantCalibrationLifecycle.Unavailable.copy|copy(kotlin.String){}[0]
+        final fun equals(kotlin/Any?): kotlin/Boolean // io.github.kmpfacelink.model/ParticipantCalibrationLifecycle.Unavailable.equals|equals(kotlin.Any?){}[0]
+        final fun hashCode(): kotlin/Int // io.github.kmpfacelink.model/ParticipantCalibrationLifecycle.Unavailable.hashCode|hashCode(){}[0]
+        final fun toString(): kotlin/String // io.github.kmpfacelink.model/ParticipantCalibrationLifecycle.Unavailable.toString|toString(){}[0]
     }
 }
 
@@ -1202,6 +1349,47 @@ final class io.github.kmpfacelink.model/CalibrationConfig { // io.github.kmpface
     final fun equals(kotlin/Any?): kotlin/Boolean // io.github.kmpfacelink.model/CalibrationConfig.equals|equals(kotlin.Any?){}[0]
     final fun hashCode(): kotlin/Int // io.github.kmpfacelink.model/CalibrationConfig.hashCode|hashCode(){}[0]
     final fun toString(): kotlin/String // io.github.kmpfacelink.model/CalibrationConfig.toString|toString(){}[0]
+}
+
+final class io.github.kmpfacelink.model/DerivedFaceSignalDecision { // io.github.kmpfacelink.model/DerivedFaceSignalDecision|null[0]
+    final val candidateValue // io.github.kmpfacelink.model/DerivedFaceSignalDecision.candidateValue|{}candidateValue[0]
+        final fun <get-candidateValue>(): kotlin/Float? // io.github.kmpfacelink.model/DerivedFaceSignalDecision.candidateValue.<get-candidateValue>|<get-candidateValue>(){}[0]
+    final val canonicalBlendShape // io.github.kmpfacelink.model/DerivedFaceSignalDecision.canonicalBlendShape|{}canonicalBlendShape[0]
+        final fun <get-canonicalBlendShape>(): io.github.kmpfacelink.model/BlendShape // io.github.kmpfacelink.model/DerivedFaceSignalDecision.canonicalBlendShape.<get-canonicalBlendShape>|<get-canonicalBlendShape>(){}[0]
+    final val canonicalValue // io.github.kmpfacelink.model/DerivedFaceSignalDecision.canonicalValue|{}canonicalValue[0]
+        final fun <get-canonicalValue>(): kotlin/Float? // io.github.kmpfacelink.model/DerivedFaceSignalDecision.canonicalValue.<get-canonicalValue>|<get-canonicalValue>(){}[0]
+    final val lifecycle // io.github.kmpfacelink.model/DerivedFaceSignalDecision.lifecycle|{}lifecycle[0]
+        final fun <get-lifecycle>(): io.github.kmpfacelink.model/ParticipantCalibrationLifecycle // io.github.kmpfacelink.model/DerivedFaceSignalDecision.lifecycle.<get-lifecycle>|<get-lifecycle>(){}[0]
+    final val provenance // io.github.kmpfacelink.model/DerivedFaceSignalDecision.provenance|{}provenance[0]
+        final fun <get-provenance>(): io.github.kmpfacelink.model/ParticipantCalibrationDecisionProvenance // io.github.kmpfacelink.model/DerivedFaceSignalDecision.provenance.<get-provenance>|<get-provenance>(){}[0]
+    final val route // io.github.kmpfacelink.model/DerivedFaceSignalDecision.route|{}route[0]
+        final fun <get-route>(): io.github.kmpfacelink.model/BlendShapeRoute // io.github.kmpfacelink.model/DerivedFaceSignalDecision.route.<get-route>|<get-route>(){}[0]
+    final val signal // io.github.kmpfacelink.model/DerivedFaceSignalDecision.signal|{}signal[0]
+        final fun <get-signal>(): io.github.kmpfacelink.model/DerivedFaceSignal // io.github.kmpfacelink.model/DerivedFaceSignalDecision.signal.<get-signal>|<get-signal>(){}[0]
+    final val valueSemantics // io.github.kmpfacelink.model/DerivedFaceSignalDecision.valueSemantics|{}valueSemantics[0]
+        final fun <get-valueSemantics>(): io.github.kmpfacelink.model/DerivedFaceSignalValueSemantics // io.github.kmpfacelink.model/DerivedFaceSignalDecision.valueSemantics.<get-valueSemantics>|<get-valueSemantics>(){}[0]
+}
+
+final class io.github.kmpfacelink.model/DerivedFaceSignalSample { // io.github.kmpfacelink.model/DerivedFaceSignalSample|null[0]
+    constructor <init>(io.github.kmpfacelink.model/DerivedFaceSignal, kotlin/Float, kotlin/String, kotlin/String) // io.github.kmpfacelink.model/DerivedFaceSignalSample.<init>|<init>(io.github.kmpfacelink.model.DerivedFaceSignal;kotlin.Float;kotlin.String;kotlin.String){}[0]
+
+    final val artifactSha256 // io.github.kmpfacelink.model/DerivedFaceSignalSample.artifactSha256|{}artifactSha256[0]
+        final fun <get-artifactSha256>(): kotlin/String // io.github.kmpfacelink.model/DerivedFaceSignalSample.artifactSha256.<get-artifactSha256>|<get-artifactSha256>(){}[0]
+    final val candidateId // io.github.kmpfacelink.model/DerivedFaceSignalSample.candidateId|{}candidateId[0]
+        final fun <get-candidateId>(): kotlin/String // io.github.kmpfacelink.model/DerivedFaceSignalSample.candidateId.<get-candidateId>|<get-candidateId>(){}[0]
+    final val signal // io.github.kmpfacelink.model/DerivedFaceSignalSample.signal|{}signal[0]
+        final fun <get-signal>(): io.github.kmpfacelink.model/DerivedFaceSignal // io.github.kmpfacelink.model/DerivedFaceSignalSample.signal.<get-signal>|<get-signal>(){}[0]
+    final val value // io.github.kmpfacelink.model/DerivedFaceSignalSample.value|{}value[0]
+        final fun <get-value>(): kotlin/Float // io.github.kmpfacelink.model/DerivedFaceSignalSample.value.<get-value>|<get-value>(){}[0]
+
+    final fun component1(): io.github.kmpfacelink.model/DerivedFaceSignal // io.github.kmpfacelink.model/DerivedFaceSignalSample.component1|component1(){}[0]
+    final fun component2(): kotlin/Float // io.github.kmpfacelink.model/DerivedFaceSignalSample.component2|component2(){}[0]
+    final fun component3(): kotlin/String // io.github.kmpfacelink.model/DerivedFaceSignalSample.component3|component3(){}[0]
+    final fun component4(): kotlin/String // io.github.kmpfacelink.model/DerivedFaceSignalSample.component4|component4(){}[0]
+    final fun copy(io.github.kmpfacelink.model/DerivedFaceSignal = ..., kotlin/Float = ..., kotlin/String = ..., kotlin/String = ...): io.github.kmpfacelink.model/DerivedFaceSignalSample // io.github.kmpfacelink.model/DerivedFaceSignalSample.copy|copy(io.github.kmpfacelink.model.DerivedFaceSignal;kotlin.Float;kotlin.String;kotlin.String){}[0]
+    final fun equals(kotlin/Any?): kotlin/Boolean // io.github.kmpfacelink.model/DerivedFaceSignalSample.equals|equals(kotlin.Any?){}[0]
+    final fun hashCode(): kotlin/Int // io.github.kmpfacelink.model/DerivedFaceSignalSample.hashCode|hashCode(){}[0]
+    final fun toString(): kotlin/String // io.github.kmpfacelink.model/DerivedFaceSignalSample.toString|toString(){}[0]
 }
 
 final class io.github.kmpfacelink.model/DetectionConfig { // io.github.kmpfacelink.model/DetectionConfig|null[0]
@@ -1952,6 +2140,285 @@ final class io.github.kmpfacelink.model/ObservedResponseProfile { // io.github.k
     final fun toString(): kotlin/String // io.github.kmpfacelink.model/ObservedResponseProfile.toString|toString(){}[0]
 }
 
+final class io.github.kmpfacelink.model/ParticipantCalibrationArtifact { // io.github.kmpfacelink.model/ParticipantCalibrationArtifact|null[0]
+    constructor <init>(kotlin/String, io.github.kmpfacelink.model/ParticipantEnrollmentBinding, kotlin/String, io.github.kmpfacelink.model/DerivedFaceSignal, kotlin/String, kotlin/String, kotlin/String, kotlin/String, kotlin/String, io.github.kmpfacelink.model/MeasurementContext, kotlin/ULong, kotlin/Long, kotlin/Long) // io.github.kmpfacelink.model/ParticipantCalibrationArtifact.<init>|<init>(kotlin.String;io.github.kmpfacelink.model.ParticipantEnrollmentBinding;kotlin.String;io.github.kmpfacelink.model.DerivedFaceSignal;kotlin.String;kotlin.String;kotlin.String;kotlin.String;kotlin.String;io.github.kmpfacelink.model.MeasurementContext;kotlin.ULong;kotlin.Long;kotlin.Long){}[0]
+
+    final val artifactSha256 // io.github.kmpfacelink.model/ParticipantCalibrationArtifact.artifactSha256|{}artifactSha256[0]
+        final fun <get-artifactSha256>(): kotlin/String // io.github.kmpfacelink.model/ParticipantCalibrationArtifact.artifactSha256.<get-artifactSha256>|<get-artifactSha256>(){}[0]
+    final val candidateId // io.github.kmpfacelink.model/ParticipantCalibrationArtifact.candidateId|{}candidateId[0]
+        final fun <get-candidateId>(): kotlin/String // io.github.kmpfacelink.model/ParticipantCalibrationArtifact.candidateId.<get-candidateId>|<get-candidateId>(){}[0]
+    final val candidateImplementationSha256 // io.github.kmpfacelink.model/ParticipantCalibrationArtifact.candidateImplementationSha256|{}candidateImplementationSha256[0]
+        final fun <get-candidateImplementationSha256>(): kotlin/String // io.github.kmpfacelink.model/ParticipantCalibrationArtifact.candidateImplementationSha256.<get-candidateImplementationSha256>|<get-candidateImplementationSha256>(){}[0]
+    final val candidateModelSha256 // io.github.kmpfacelink.model/ParticipantCalibrationArtifact.candidateModelSha256|{}candidateModelSha256[0]
+        final fun <get-candidateModelSha256>(): kotlin/String // io.github.kmpfacelink.model/ParticipantCalibrationArtifact.candidateModelSha256.<get-candidateModelSha256>|<get-candidateModelSha256>(){}[0]
+    final val enrollmentBinding // io.github.kmpfacelink.model/ParticipantCalibrationArtifact.enrollmentBinding|{}enrollmentBinding[0]
+        final fun <get-enrollmentBinding>(): io.github.kmpfacelink.model/ParticipantEnrollmentBinding // io.github.kmpfacelink.model/ParticipantCalibrationArtifact.enrollmentBinding.<get-enrollmentBinding>|<get-enrollmentBinding>(){}[0]
+    final val expectedContext // io.github.kmpfacelink.model/ParticipantCalibrationArtifact.expectedContext|{}expectedContext[0]
+        final fun <get-expectedContext>(): io.github.kmpfacelink.model/MeasurementContext // io.github.kmpfacelink.model/ParticipantCalibrationArtifact.expectedContext.<get-expectedContext>|<get-expectedContext>(){}[0]
+    final val expiresAtEpochMs // io.github.kmpfacelink.model/ParticipantCalibrationArtifact.expiresAtEpochMs|{}expiresAtEpochMs[0]
+        final fun <get-expiresAtEpochMs>(): kotlin/Long // io.github.kmpfacelink.model/ParticipantCalibrationArtifact.expiresAtEpochMs.<get-expiresAtEpochMs>|<get-expiresAtEpochMs>(){}[0]
+    final val issuedAtEpochMs // io.github.kmpfacelink.model/ParticipantCalibrationArtifact.issuedAtEpochMs|{}issuedAtEpochMs[0]
+        final fun <get-issuedAtEpochMs>(): kotlin/Long // io.github.kmpfacelink.model/ParticipantCalibrationArtifact.issuedAtEpochMs.<get-issuedAtEpochMs>|<get-issuedAtEpochMs>(){}[0]
+    final val preprocessingSha256 // io.github.kmpfacelink.model/ParticipantCalibrationArtifact.preprocessingSha256|{}preprocessingSha256[0]
+        final fun <get-preprocessingSha256>(): kotlin/String // io.github.kmpfacelink.model/ParticipantCalibrationArtifact.preprocessingSha256.<get-preprocessingSha256>|<get-preprocessingSha256>(){}[0]
+    final val profileId // io.github.kmpfacelink.model/ParticipantCalibrationArtifact.profileId|{}profileId[0]
+        final fun <get-profileId>(): kotlin/String // io.github.kmpfacelink.model/ParticipantCalibrationArtifact.profileId.<get-profileId>|<get-profileId>(){}[0]
+    final val profileRevision // io.github.kmpfacelink.model/ParticipantCalibrationArtifact.profileRevision|{}profileRevision[0]
+        final fun <get-profileRevision>(): kotlin/ULong // io.github.kmpfacelink.model/ParticipantCalibrationArtifact.profileRevision.<get-profileRevision>|<get-profileRevision>(){}[0]
+    final val targetSignal // io.github.kmpfacelink.model/ParticipantCalibrationArtifact.targetSignal|{}targetSignal[0]
+        final fun <get-targetSignal>(): io.github.kmpfacelink.model/DerivedFaceSignal // io.github.kmpfacelink.model/ParticipantCalibrationArtifact.targetSignal.<get-targetSignal>|<get-targetSignal>(){}[0]
+    final val thresholdSha256 // io.github.kmpfacelink.model/ParticipantCalibrationArtifact.thresholdSha256|{}thresholdSha256[0]
+        final fun <get-thresholdSha256>(): kotlin/String // io.github.kmpfacelink.model/ParticipantCalibrationArtifact.thresholdSha256.<get-thresholdSha256>|<get-thresholdSha256>(){}[0]
+
+    final fun component1(): kotlin/String // io.github.kmpfacelink.model/ParticipantCalibrationArtifact.component1|component1(){}[0]
+    final fun component10(): io.github.kmpfacelink.model/MeasurementContext // io.github.kmpfacelink.model/ParticipantCalibrationArtifact.component10|component10(){}[0]
+    final fun component11(): kotlin/ULong // io.github.kmpfacelink.model/ParticipantCalibrationArtifact.component11|component11(){}[0]
+    final fun component12(): kotlin/Long // io.github.kmpfacelink.model/ParticipantCalibrationArtifact.component12|component12(){}[0]
+    final fun component13(): kotlin/Long // io.github.kmpfacelink.model/ParticipantCalibrationArtifact.component13|component13(){}[0]
+    final fun component2(): io.github.kmpfacelink.model/ParticipantEnrollmentBinding // io.github.kmpfacelink.model/ParticipantCalibrationArtifact.component2|component2(){}[0]
+    final fun component3(): kotlin/String // io.github.kmpfacelink.model/ParticipantCalibrationArtifact.component3|component3(){}[0]
+    final fun component4(): io.github.kmpfacelink.model/DerivedFaceSignal // io.github.kmpfacelink.model/ParticipantCalibrationArtifact.component4|component4(){}[0]
+    final fun component5(): kotlin/String // io.github.kmpfacelink.model/ParticipantCalibrationArtifact.component5|component5(){}[0]
+    final fun component6(): kotlin/String // io.github.kmpfacelink.model/ParticipantCalibrationArtifact.component6|component6(){}[0]
+    final fun component7(): kotlin/String // io.github.kmpfacelink.model/ParticipantCalibrationArtifact.component7|component7(){}[0]
+    final fun component8(): kotlin/String // io.github.kmpfacelink.model/ParticipantCalibrationArtifact.component8|component8(){}[0]
+    final fun component9(): kotlin/String // io.github.kmpfacelink.model/ParticipantCalibrationArtifact.component9|component9(){}[0]
+    final fun copy(kotlin/String = ..., io.github.kmpfacelink.model/ParticipantEnrollmentBinding = ..., kotlin/String = ..., io.github.kmpfacelink.model/DerivedFaceSignal = ..., kotlin/String = ..., kotlin/String = ..., kotlin/String = ..., kotlin/String = ..., kotlin/String = ..., io.github.kmpfacelink.model/MeasurementContext = ..., kotlin/ULong = ..., kotlin/Long = ..., kotlin/Long = ...): io.github.kmpfacelink.model/ParticipantCalibrationArtifact // io.github.kmpfacelink.model/ParticipantCalibrationArtifact.copy|copy(kotlin.String;io.github.kmpfacelink.model.ParticipantEnrollmentBinding;kotlin.String;io.github.kmpfacelink.model.DerivedFaceSignal;kotlin.String;kotlin.String;kotlin.String;kotlin.String;kotlin.String;io.github.kmpfacelink.model.MeasurementContext;kotlin.ULong;kotlin.Long;kotlin.Long){}[0]
+    final fun equals(kotlin/Any?): kotlin/Boolean // io.github.kmpfacelink.model/ParticipantCalibrationArtifact.equals|equals(kotlin.Any?){}[0]
+    final fun hashCode(): kotlin/Int // io.github.kmpfacelink.model/ParticipantCalibrationArtifact.hashCode|hashCode(){}[0]
+    final fun toString(): kotlin/String // io.github.kmpfacelink.model/ParticipantCalibrationArtifact.toString|toString(){}[0]
+}
+
+final class io.github.kmpfacelink.model/ParticipantCalibrationCollection { // io.github.kmpfacelink.model/ParticipantCalibrationCollection|null[0]
+    constructor <init>(io.github.kmpfacelink.model/ParticipantEnrollmentBinding, kotlin/Int, kotlin/Int) // io.github.kmpfacelink.model/ParticipantCalibrationCollection.<init>|<init>(io.github.kmpfacelink.model.ParticipantEnrollmentBinding;kotlin.Int;kotlin.Int){}[0]
+
+    final val collectedUnits // io.github.kmpfacelink.model/ParticipantCalibrationCollection.collectedUnits|{}collectedUnits[0]
+        final fun <get-collectedUnits>(): kotlin/Int // io.github.kmpfacelink.model/ParticipantCalibrationCollection.collectedUnits.<get-collectedUnits>|<get-collectedUnits>(){}[0]
+    final val enrollmentBinding // io.github.kmpfacelink.model/ParticipantCalibrationCollection.enrollmentBinding|{}enrollmentBinding[0]
+        final fun <get-enrollmentBinding>(): io.github.kmpfacelink.model/ParticipantEnrollmentBinding // io.github.kmpfacelink.model/ParticipantCalibrationCollection.enrollmentBinding.<get-enrollmentBinding>|<get-enrollmentBinding>(){}[0]
+    final val requiredUnits // io.github.kmpfacelink.model/ParticipantCalibrationCollection.requiredUnits|{}requiredUnits[0]
+        final fun <get-requiredUnits>(): kotlin/Int // io.github.kmpfacelink.model/ParticipantCalibrationCollection.requiredUnits.<get-requiredUnits>|<get-requiredUnits>(){}[0]
+
+    final fun component1(): io.github.kmpfacelink.model/ParticipantEnrollmentBinding // io.github.kmpfacelink.model/ParticipantCalibrationCollection.component1|component1(){}[0]
+    final fun component2(): kotlin/Int // io.github.kmpfacelink.model/ParticipantCalibrationCollection.component2|component2(){}[0]
+    final fun component3(): kotlin/Int // io.github.kmpfacelink.model/ParticipantCalibrationCollection.component3|component3(){}[0]
+    final fun copy(io.github.kmpfacelink.model/ParticipantEnrollmentBinding = ..., kotlin/Int = ..., kotlin/Int = ...): io.github.kmpfacelink.model/ParticipantCalibrationCollection // io.github.kmpfacelink.model/ParticipantCalibrationCollection.copy|copy(io.github.kmpfacelink.model.ParticipantEnrollmentBinding;kotlin.Int;kotlin.Int){}[0]
+    final fun equals(kotlin/Any?): kotlin/Boolean // io.github.kmpfacelink.model/ParticipantCalibrationCollection.equals|equals(kotlin.Any?){}[0]
+    final fun hashCode(): kotlin/Int // io.github.kmpfacelink.model/ParticipantCalibrationCollection.hashCode|hashCode(){}[0]
+    final fun toString(): kotlin/String // io.github.kmpfacelink.model/ParticipantCalibrationCollection.toString|toString(){}[0]
+}
+
+final class io.github.kmpfacelink.model/ParticipantCalibrationDecisionInput { // io.github.kmpfacelink.model/ParticipantCalibrationDecisionInput|null[0]
+    constructor <init>(io.github.kmpfacelink.model/ParticipantCalibrationReductionInput, kotlin.collections/Map<io.github.kmpfacelink.model/BlendShape, kotlin/Float>, io.github.kmpfacelink.model/DerivedFaceSignalSample?) // io.github.kmpfacelink.model/ParticipantCalibrationDecisionInput.<init>|<init>(io.github.kmpfacelink.model.ParticipantCalibrationReductionInput;kotlin.collections.Map<io.github.kmpfacelink.model.BlendShape,kotlin.Float>;io.github.kmpfacelink.model.DerivedFaceSignalSample?){}[0]
+
+    final val candidate // io.github.kmpfacelink.model/ParticipantCalibrationDecisionInput.candidate|{}candidate[0]
+        final fun <get-candidate>(): io.github.kmpfacelink.model/DerivedFaceSignalSample? // io.github.kmpfacelink.model/ParticipantCalibrationDecisionInput.candidate.<get-candidate>|<get-candidate>(){}[0]
+    final val canonicalBlendShapes // io.github.kmpfacelink.model/ParticipantCalibrationDecisionInput.canonicalBlendShapes|{}canonicalBlendShapes[0]
+        final fun <get-canonicalBlendShapes>(): kotlin.collections/Map<io.github.kmpfacelink.model/BlendShape, kotlin/Float> // io.github.kmpfacelink.model/ParticipantCalibrationDecisionInput.canonicalBlendShapes.<get-canonicalBlendShapes>|<get-canonicalBlendShapes>(){}[0]
+    final val reductionInput // io.github.kmpfacelink.model/ParticipantCalibrationDecisionInput.reductionInput|{}reductionInput[0]
+        final fun <get-reductionInput>(): io.github.kmpfacelink.model/ParticipantCalibrationReductionInput // io.github.kmpfacelink.model/ParticipantCalibrationDecisionInput.reductionInput.<get-reductionInput>|<get-reductionInput>(){}[0]
+
+    final fun component1(): io.github.kmpfacelink.model/ParticipantCalibrationReductionInput // io.github.kmpfacelink.model/ParticipantCalibrationDecisionInput.component1|component1(){}[0]
+    final fun component2(): kotlin.collections/Map<io.github.kmpfacelink.model/BlendShape, kotlin/Float> // io.github.kmpfacelink.model/ParticipantCalibrationDecisionInput.component2|component2(){}[0]
+    final fun component3(): io.github.kmpfacelink.model/DerivedFaceSignalSample? // io.github.kmpfacelink.model/ParticipantCalibrationDecisionInput.component3|component3(){}[0]
+    final fun copy(io.github.kmpfacelink.model/ParticipantCalibrationReductionInput = ..., kotlin.collections/Map<io.github.kmpfacelink.model/BlendShape, kotlin/Float> = ..., io.github.kmpfacelink.model/DerivedFaceSignalSample? = ...): io.github.kmpfacelink.model/ParticipantCalibrationDecisionInput // io.github.kmpfacelink.model/ParticipantCalibrationDecisionInput.copy|copy(io.github.kmpfacelink.model.ParticipantCalibrationReductionInput;kotlin.collections.Map<io.github.kmpfacelink.model.BlendShape,kotlin.Float>;io.github.kmpfacelink.model.DerivedFaceSignalSample?){}[0]
+    final fun equals(kotlin/Any?): kotlin/Boolean // io.github.kmpfacelink.model/ParticipantCalibrationDecisionInput.equals|equals(kotlin.Any?){}[0]
+    final fun hashCode(): kotlin/Int // io.github.kmpfacelink.model/ParticipantCalibrationDecisionInput.hashCode|hashCode(){}[0]
+    final fun toString(): kotlin/String // io.github.kmpfacelink.model/ParticipantCalibrationDecisionInput.toString|toString(){}[0]
+}
+
+final class io.github.kmpfacelink.model/ParticipantCalibrationDecisionProvenance { // io.github.kmpfacelink.model/ParticipantCalibrationDecisionProvenance|null[0]
+    constructor <init>(io.github.kmpfacelink.model/DerivedFaceSignal, io.github.kmpfacelink.model/BlendShape, kotlin/String, kotlin/String, kotlin/String?, kotlin/ULong?, kotlin/String?, kotlin/String?) // io.github.kmpfacelink.model/ParticipantCalibrationDecisionProvenance.<init>|<init>(io.github.kmpfacelink.model.DerivedFaceSignal;io.github.kmpfacelink.model.BlendShape;kotlin.String;kotlin.String;kotlin.String?;kotlin.ULong?;kotlin.String?;kotlin.String?){}[0]
+
+    final val candidateId // io.github.kmpfacelink.model/ParticipantCalibrationDecisionProvenance.candidateId|{}candidateId[0]
+        final fun <get-candidateId>(): kotlin/String? // io.github.kmpfacelink.model/ParticipantCalibrationDecisionProvenance.candidateId.<get-candidateId>|<get-candidateId>(){}[0]
+    final val canonicalBlendShape // io.github.kmpfacelink.model/ParticipantCalibrationDecisionProvenance.canonicalBlendShape|{}canonicalBlendShape[0]
+        final fun <get-canonicalBlendShape>(): io.github.kmpfacelink.model/BlendShape // io.github.kmpfacelink.model/ParticipantCalibrationDecisionProvenance.canonicalBlendShape.<get-canonicalBlendShape>|<get-canonicalBlendShape>(){}[0]
+    final val evidenceReceiptSha256 // io.github.kmpfacelink.model/ParticipantCalibrationDecisionProvenance.evidenceReceiptSha256|{}evidenceReceiptSha256[0]
+        final fun <get-evidenceReceiptSha256>(): kotlin/String? // io.github.kmpfacelink.model/ParticipantCalibrationDecisionProvenance.evidenceReceiptSha256.<get-evidenceReceiptSha256>|<get-evidenceReceiptSha256>(){}[0]
+    final val profileId // io.github.kmpfacelink.model/ParticipantCalibrationDecisionProvenance.profileId|{}profileId[0]
+        final fun <get-profileId>(): kotlin/String? // io.github.kmpfacelink.model/ParticipantCalibrationDecisionProvenance.profileId.<get-profileId>|<get-profileId>(){}[0]
+    final val profileRevision // io.github.kmpfacelink.model/ParticipantCalibrationDecisionProvenance.profileRevision|{}profileRevision[0]
+        final fun <get-profileRevision>(): kotlin/ULong? // io.github.kmpfacelink.model/ParticipantCalibrationDecisionProvenance.profileRevision.<get-profileRevision>|<get-profileRevision>(){}[0]
+    final val runtimeConfigurationFingerprint // io.github.kmpfacelink.model/ParticipantCalibrationDecisionProvenance.runtimeConfigurationFingerprint|{}runtimeConfigurationFingerprint[0]
+        final fun <get-runtimeConfigurationFingerprint>(): kotlin/String // io.github.kmpfacelink.model/ParticipantCalibrationDecisionProvenance.runtimeConfigurationFingerprint.<get-runtimeConfigurationFingerprint>|<get-runtimeConfigurationFingerprint>(){}[0]
+    final val runtimeEpochFingerprint // io.github.kmpfacelink.model/ParticipantCalibrationDecisionProvenance.runtimeEpochFingerprint|{}runtimeEpochFingerprint[0]
+        final fun <get-runtimeEpochFingerprint>(): kotlin/String // io.github.kmpfacelink.model/ParticipantCalibrationDecisionProvenance.runtimeEpochFingerprint.<get-runtimeEpochFingerprint>|<get-runtimeEpochFingerprint>(){}[0]
+    final val targetSignal // io.github.kmpfacelink.model/ParticipantCalibrationDecisionProvenance.targetSignal|{}targetSignal[0]
+        final fun <get-targetSignal>(): io.github.kmpfacelink.model/DerivedFaceSignal // io.github.kmpfacelink.model/ParticipantCalibrationDecisionProvenance.targetSignal.<get-targetSignal>|<get-targetSignal>(){}[0]
+
+    final fun component1(): io.github.kmpfacelink.model/DerivedFaceSignal // io.github.kmpfacelink.model/ParticipantCalibrationDecisionProvenance.component1|component1(){}[0]
+    final fun component2(): io.github.kmpfacelink.model/BlendShape // io.github.kmpfacelink.model/ParticipantCalibrationDecisionProvenance.component2|component2(){}[0]
+    final fun component3(): kotlin/String // io.github.kmpfacelink.model/ParticipantCalibrationDecisionProvenance.component3|component3(){}[0]
+    final fun component4(): kotlin/String // io.github.kmpfacelink.model/ParticipantCalibrationDecisionProvenance.component4|component4(){}[0]
+    final fun component5(): kotlin/String? // io.github.kmpfacelink.model/ParticipantCalibrationDecisionProvenance.component5|component5(){}[0]
+    final fun component6(): kotlin/ULong? // io.github.kmpfacelink.model/ParticipantCalibrationDecisionProvenance.component6|component6(){}[0]
+    final fun component7(): kotlin/String? // io.github.kmpfacelink.model/ParticipantCalibrationDecisionProvenance.component7|component7(){}[0]
+    final fun component8(): kotlin/String? // io.github.kmpfacelink.model/ParticipantCalibrationDecisionProvenance.component8|component8(){}[0]
+    final fun copy(io.github.kmpfacelink.model/DerivedFaceSignal = ..., io.github.kmpfacelink.model/BlendShape = ..., kotlin/String = ..., kotlin/String = ..., kotlin/String? = ..., kotlin/ULong? = ..., kotlin/String? = ..., kotlin/String? = ...): io.github.kmpfacelink.model/ParticipantCalibrationDecisionProvenance // io.github.kmpfacelink.model/ParticipantCalibrationDecisionProvenance.copy|copy(io.github.kmpfacelink.model.DerivedFaceSignal;io.github.kmpfacelink.model.BlendShape;kotlin.String;kotlin.String;kotlin.String?;kotlin.ULong?;kotlin.String?;kotlin.String?){}[0]
+    final fun equals(kotlin/Any?): kotlin/Boolean // io.github.kmpfacelink.model/ParticipantCalibrationDecisionProvenance.equals|equals(kotlin.Any?){}[0]
+    final fun hashCode(): kotlin/Int // io.github.kmpfacelink.model/ParticipantCalibrationDecisionProvenance.hashCode|hashCode(){}[0]
+    final fun toString(): kotlin/String // io.github.kmpfacelink.model/ParticipantCalibrationDecisionProvenance.toString|toString(){}[0]
+}
+
+final class io.github.kmpfacelink.model/ParticipantCalibrationEvidenceReceipt { // io.github.kmpfacelink.model/ParticipantCalibrationEvidenceReceipt|null[0]
+    constructor <init>(kotlin/String, kotlin/String, kotlin/ULong, kotlin/String, kotlin/String, kotlin/String, kotlin/String, kotlin/String, kotlin/String, kotlin/String, kotlin/String, kotlin/String, io.github.kmpfacelink.model/EvidenceScope) // io.github.kmpfacelink.model/ParticipantCalibrationEvidenceReceipt.<init>|<init>(kotlin.String;kotlin.String;kotlin.ULong;kotlin.String;kotlin.String;kotlin.String;kotlin.String;kotlin.String;kotlin.String;kotlin.String;kotlin.String;kotlin.String;io.github.kmpfacelink.model.EvidenceScope){}[0]
+
+    final val artifactSha256 // io.github.kmpfacelink.model/ParticipantCalibrationEvidenceReceipt.artifactSha256|{}artifactSha256[0]
+        final fun <get-artifactSha256>(): kotlin/String // io.github.kmpfacelink.model/ParticipantCalibrationEvidenceReceipt.artifactSha256.<get-artifactSha256>|<get-artifactSha256>(){}[0]
+    final val enrollmentProtocolId // io.github.kmpfacelink.model/ParticipantCalibrationEvidenceReceipt.enrollmentProtocolId|{}enrollmentProtocolId[0]
+        final fun <get-enrollmentProtocolId>(): kotlin/String // io.github.kmpfacelink.model/ParticipantCalibrationEvidenceReceipt.enrollmentProtocolId.<get-enrollmentProtocolId>|<get-enrollmentProtocolId>(){}[0]
+    final val enrollmentRunId // io.github.kmpfacelink.model/ParticipantCalibrationEvidenceReceipt.enrollmentRunId|{}enrollmentRunId[0]
+        final fun <get-enrollmentRunId>(): kotlin/String // io.github.kmpfacelink.model/ParticipantCalibrationEvidenceReceipt.enrollmentRunId.<get-enrollmentRunId>|<get-enrollmentRunId>(){}[0]
+    final val evidenceScope // io.github.kmpfacelink.model/ParticipantCalibrationEvidenceReceipt.evidenceScope|{}evidenceScope[0]
+        final fun <get-evidenceScope>(): io.github.kmpfacelink.model/EvidenceScope // io.github.kmpfacelink.model/ParticipantCalibrationEvidenceReceipt.evidenceScope.<get-evidenceScope>|<get-evidenceScope>(){}[0]
+    final val profileId // io.github.kmpfacelink.model/ParticipantCalibrationEvidenceReceipt.profileId|{}profileId[0]
+        final fun <get-profileId>(): kotlin/String // io.github.kmpfacelink.model/ParticipantCalibrationEvidenceReceipt.profileId.<get-profileId>|<get-profileId>(){}[0]
+    final val profileRevision // io.github.kmpfacelink.model/ParticipantCalibrationEvidenceReceipt.profileRevision|{}profileRevision[0]
+        final fun <get-profileRevision>(): kotlin/ULong // io.github.kmpfacelink.model/ParticipantCalibrationEvidenceReceipt.profileRevision.<get-profileRevision>|<get-profileRevision>(){}[0]
+    final val publicReviewPacketSha256 // io.github.kmpfacelink.model/ParticipantCalibrationEvidenceReceipt.publicReviewPacketSha256|{}publicReviewPacketSha256[0]
+        final fun <get-publicReviewPacketSha256>(): kotlin/String // io.github.kmpfacelink.model/ParticipantCalibrationEvidenceReceipt.publicReviewPacketSha256.<get-publicReviewPacketSha256>|<get-publicReviewPacketSha256>(){}[0]
+    final val qualificationProtocolId // io.github.kmpfacelink.model/ParticipantCalibrationEvidenceReceipt.qualificationProtocolId|{}qualificationProtocolId[0]
+        final fun <get-qualificationProtocolId>(): kotlin/String // io.github.kmpfacelink.model/ParticipantCalibrationEvidenceReceipt.qualificationProtocolId.<get-qualificationProtocolId>|<get-qualificationProtocolId>(){}[0]
+    final val qualificationReceiptSha256 // io.github.kmpfacelink.model/ParticipantCalibrationEvidenceReceipt.qualificationReceiptSha256|{}qualificationReceiptSha256[0]
+        final fun <get-qualificationReceiptSha256>(): kotlin/String // io.github.kmpfacelink.model/ParticipantCalibrationEvidenceReceipt.qualificationReceiptSha256.<get-qualificationReceiptSha256>|<get-qualificationReceiptSha256>(){}[0]
+    final val qualificationRunId // io.github.kmpfacelink.model/ParticipantCalibrationEvidenceReceipt.qualificationRunId|{}qualificationRunId[0]
+        final fun <get-qualificationRunId>(): kotlin/String // io.github.kmpfacelink.model/ParticipantCalibrationEvidenceReceipt.qualificationRunId.<get-qualificationRunId>|<get-qualificationRunId>(){}[0]
+    final val receiptSha256 // io.github.kmpfacelink.model/ParticipantCalibrationEvidenceReceipt.receiptSha256|{}receiptSha256[0]
+        final fun <get-receiptSha256>(): kotlin/String // io.github.kmpfacelink.model/ParticipantCalibrationEvidenceReceipt.receiptSha256.<get-receiptSha256>|<get-receiptSha256>(){}[0]
+    final val reviewedBinarySha256 // io.github.kmpfacelink.model/ParticipantCalibrationEvidenceReceipt.reviewedBinarySha256|{}reviewedBinarySha256[0]
+        final fun <get-reviewedBinarySha256>(): kotlin/String // io.github.kmpfacelink.model/ParticipantCalibrationEvidenceReceipt.reviewedBinarySha256.<get-reviewedBinarySha256>|<get-reviewedBinarySha256>(){}[0]
+    final val sdkSourceSha256 // io.github.kmpfacelink.model/ParticipantCalibrationEvidenceReceipt.sdkSourceSha256|{}sdkSourceSha256[0]
+        final fun <get-sdkSourceSha256>(): kotlin/String // io.github.kmpfacelink.model/ParticipantCalibrationEvidenceReceipt.sdkSourceSha256.<get-sdkSourceSha256>|<get-sdkSourceSha256>(){}[0]
+
+    final fun component1(): kotlin/String // io.github.kmpfacelink.model/ParticipantCalibrationEvidenceReceipt.component1|component1(){}[0]
+    final fun component10(): kotlin/String // io.github.kmpfacelink.model/ParticipantCalibrationEvidenceReceipt.component10|component10(){}[0]
+    final fun component11(): kotlin/String // io.github.kmpfacelink.model/ParticipantCalibrationEvidenceReceipt.component11|component11(){}[0]
+    final fun component12(): kotlin/String // io.github.kmpfacelink.model/ParticipantCalibrationEvidenceReceipt.component12|component12(){}[0]
+    final fun component13(): io.github.kmpfacelink.model/EvidenceScope // io.github.kmpfacelink.model/ParticipantCalibrationEvidenceReceipt.component13|component13(){}[0]
+    final fun component2(): kotlin/String // io.github.kmpfacelink.model/ParticipantCalibrationEvidenceReceipt.component2|component2(){}[0]
+    final fun component3(): kotlin/ULong // io.github.kmpfacelink.model/ParticipantCalibrationEvidenceReceipt.component3|component3(){}[0]
+    final fun component4(): kotlin/String // io.github.kmpfacelink.model/ParticipantCalibrationEvidenceReceipt.component4|component4(){}[0]
+    final fun component5(): kotlin/String // io.github.kmpfacelink.model/ParticipantCalibrationEvidenceReceipt.component5|component5(){}[0]
+    final fun component6(): kotlin/String // io.github.kmpfacelink.model/ParticipantCalibrationEvidenceReceipt.component6|component6(){}[0]
+    final fun component7(): kotlin/String // io.github.kmpfacelink.model/ParticipantCalibrationEvidenceReceipt.component7|component7(){}[0]
+    final fun component8(): kotlin/String // io.github.kmpfacelink.model/ParticipantCalibrationEvidenceReceipt.component8|component8(){}[0]
+    final fun component9(): kotlin/String // io.github.kmpfacelink.model/ParticipantCalibrationEvidenceReceipt.component9|component9(){}[0]
+    final fun copy(kotlin/String = ..., kotlin/String = ..., kotlin/ULong = ..., kotlin/String = ..., kotlin/String = ..., kotlin/String = ..., kotlin/String = ..., kotlin/String = ..., kotlin/String = ..., kotlin/String = ..., kotlin/String = ..., kotlin/String = ..., io.github.kmpfacelink.model/EvidenceScope = ...): io.github.kmpfacelink.model/ParticipantCalibrationEvidenceReceipt // io.github.kmpfacelink.model/ParticipantCalibrationEvidenceReceipt.copy|copy(kotlin.String;kotlin.String;kotlin.ULong;kotlin.String;kotlin.String;kotlin.String;kotlin.String;kotlin.String;kotlin.String;kotlin.String;kotlin.String;kotlin.String;io.github.kmpfacelink.model.EvidenceScope){}[0]
+    final fun equals(kotlin/Any?): kotlin/Boolean // io.github.kmpfacelink.model/ParticipantCalibrationEvidenceReceipt.equals|equals(kotlin.Any?){}[0]
+    final fun hashCode(): kotlin/Int // io.github.kmpfacelink.model/ParticipantCalibrationEvidenceReceipt.hashCode|hashCode(){}[0]
+    final fun toString(): kotlin/String // io.github.kmpfacelink.model/ParticipantCalibrationEvidenceReceipt.toString|toString(){}[0]
+}
+
+final class io.github.kmpfacelink.model/ParticipantCalibrationProfile { // io.github.kmpfacelink.model/ParticipantCalibrationProfile|null[0]
+    constructor <init>(io.github.kmpfacelink.model/ParticipantCalibrationArtifact, io.github.kmpfacelink.model/ParticipantCalibrationEvidenceReceipt) // io.github.kmpfacelink.model/ParticipantCalibrationProfile.<init>|<init>(io.github.kmpfacelink.model.ParticipantCalibrationArtifact;io.github.kmpfacelink.model.ParticipantCalibrationEvidenceReceipt){}[0]
+
+    final val artifact // io.github.kmpfacelink.model/ParticipantCalibrationProfile.artifact|{}artifact[0]
+        final fun <get-artifact>(): io.github.kmpfacelink.model/ParticipantCalibrationArtifact // io.github.kmpfacelink.model/ParticipantCalibrationProfile.artifact.<get-artifact>|<get-artifact>(){}[0]
+    final val evidenceReceipt // io.github.kmpfacelink.model/ParticipantCalibrationProfile.evidenceReceipt|{}evidenceReceipt[0]
+        final fun <get-evidenceReceipt>(): io.github.kmpfacelink.model/ParticipantCalibrationEvidenceReceipt // io.github.kmpfacelink.model/ParticipantCalibrationProfile.evidenceReceipt.<get-evidenceReceipt>|<get-evidenceReceipt>(){}[0]
+
+    final fun component1(): io.github.kmpfacelink.model/ParticipantCalibrationArtifact // io.github.kmpfacelink.model/ParticipantCalibrationProfile.component1|component1(){}[0]
+    final fun component2(): io.github.kmpfacelink.model/ParticipantCalibrationEvidenceReceipt // io.github.kmpfacelink.model/ParticipantCalibrationProfile.component2|component2(){}[0]
+    final fun copy(io.github.kmpfacelink.model/ParticipantCalibrationArtifact = ..., io.github.kmpfacelink.model/ParticipantCalibrationEvidenceReceipt = ...): io.github.kmpfacelink.model/ParticipantCalibrationProfile // io.github.kmpfacelink.model/ParticipantCalibrationProfile.copy|copy(io.github.kmpfacelink.model.ParticipantCalibrationArtifact;io.github.kmpfacelink.model.ParticipantCalibrationEvidenceReceipt){}[0]
+    final fun equals(kotlin/Any?): kotlin/Boolean // io.github.kmpfacelink.model/ParticipantCalibrationProfile.equals|equals(kotlin.Any?){}[0]
+    final fun hashCode(): kotlin/Int // io.github.kmpfacelink.model/ParticipantCalibrationProfile.hashCode|hashCode(){}[0]
+    final fun toString(): kotlin/String // io.github.kmpfacelink.model/ParticipantCalibrationProfile.toString|toString(){}[0]
+}
+
+final class io.github.kmpfacelink.model/ParticipantCalibrationReducer { // io.github.kmpfacelink.model/ParticipantCalibrationReducer|null[0]
+    constructor <init>(io.github.kmpfacelink.model/ParticipantCalibrationClock) // io.github.kmpfacelink.model/ParticipantCalibrationReducer.<init>|<init>(io.github.kmpfacelink.model.ParticipantCalibrationClock){}[0]
+
+    final fun reduce(io.github.kmpfacelink.model/ParticipantCalibrationReductionInput): io.github.kmpfacelink.model/ParticipantCalibrationLifecycle // io.github.kmpfacelink.model/ParticipantCalibrationReducer.reduce|reduce(io.github.kmpfacelink.model.ParticipantCalibrationReductionInput){}[0]
+}
+
+final class io.github.kmpfacelink.model/ParticipantCalibrationReductionInput { // io.github.kmpfacelink.model/ParticipantCalibrationReductionInput|null[0]
+    constructor <init>(io.github.kmpfacelink.model/ParticipantCalibrationProfile?, io.github.kmpfacelink.model/ParticipantCalibrationCollection?, io.github.kmpfacelink.model/ParticipantCalibrationRuntimeIdentity, io.github.kmpfacelink.model/EvidenceAcceptance) // io.github.kmpfacelink.model/ParticipantCalibrationReductionInput.<init>|<init>(io.github.kmpfacelink.model.ParticipantCalibrationProfile?;io.github.kmpfacelink.model.ParticipantCalibrationCollection?;io.github.kmpfacelink.model.ParticipantCalibrationRuntimeIdentity;io.github.kmpfacelink.model.EvidenceAcceptance){}[0]
+
+    final val collection // io.github.kmpfacelink.model/ParticipantCalibrationReductionInput.collection|{}collection[0]
+        final fun <get-collection>(): io.github.kmpfacelink.model/ParticipantCalibrationCollection? // io.github.kmpfacelink.model/ParticipantCalibrationReductionInput.collection.<get-collection>|<get-collection>(){}[0]
+    final val evidenceAcceptance // io.github.kmpfacelink.model/ParticipantCalibrationReductionInput.evidenceAcceptance|{}evidenceAcceptance[0]
+        final fun <get-evidenceAcceptance>(): io.github.kmpfacelink.model/EvidenceAcceptance // io.github.kmpfacelink.model/ParticipantCalibrationReductionInput.evidenceAcceptance.<get-evidenceAcceptance>|<get-evidenceAcceptance>(){}[0]
+    final val profile // io.github.kmpfacelink.model/ParticipantCalibrationReductionInput.profile|{}profile[0]
+        final fun <get-profile>(): io.github.kmpfacelink.model/ParticipantCalibrationProfile? // io.github.kmpfacelink.model/ParticipantCalibrationReductionInput.profile.<get-profile>|<get-profile>(){}[0]
+    final val runtime // io.github.kmpfacelink.model/ParticipantCalibrationReductionInput.runtime|{}runtime[0]
+        final fun <get-runtime>(): io.github.kmpfacelink.model/ParticipantCalibrationRuntimeIdentity // io.github.kmpfacelink.model/ParticipantCalibrationReductionInput.runtime.<get-runtime>|<get-runtime>(){}[0]
+
+    final fun component1(): io.github.kmpfacelink.model/ParticipantCalibrationProfile? // io.github.kmpfacelink.model/ParticipantCalibrationReductionInput.component1|component1(){}[0]
+    final fun component2(): io.github.kmpfacelink.model/ParticipantCalibrationCollection? // io.github.kmpfacelink.model/ParticipantCalibrationReductionInput.component2|component2(){}[0]
+    final fun component3(): io.github.kmpfacelink.model/ParticipantCalibrationRuntimeIdentity // io.github.kmpfacelink.model/ParticipantCalibrationReductionInput.component3|component3(){}[0]
+    final fun component4(): io.github.kmpfacelink.model/EvidenceAcceptance // io.github.kmpfacelink.model/ParticipantCalibrationReductionInput.component4|component4(){}[0]
+    final fun copy(io.github.kmpfacelink.model/ParticipantCalibrationProfile? = ..., io.github.kmpfacelink.model/ParticipantCalibrationCollection? = ..., io.github.kmpfacelink.model/ParticipantCalibrationRuntimeIdentity = ..., io.github.kmpfacelink.model/EvidenceAcceptance = ...): io.github.kmpfacelink.model/ParticipantCalibrationReductionInput // io.github.kmpfacelink.model/ParticipantCalibrationReductionInput.copy|copy(io.github.kmpfacelink.model.ParticipantCalibrationProfile?;io.github.kmpfacelink.model.ParticipantCalibrationCollection?;io.github.kmpfacelink.model.ParticipantCalibrationRuntimeIdentity;io.github.kmpfacelink.model.EvidenceAcceptance){}[0]
+    final fun equals(kotlin/Any?): kotlin/Boolean // io.github.kmpfacelink.model/ParticipantCalibrationReductionInput.equals|equals(kotlin.Any?){}[0]
+    final fun hashCode(): kotlin/Int // io.github.kmpfacelink.model/ParticipantCalibrationReductionInput.hashCode|hashCode(){}[0]
+    final fun toString(): kotlin/String // io.github.kmpfacelink.model/ParticipantCalibrationReductionInput.toString|toString(){}[0]
+}
+
+final class io.github.kmpfacelink.model/ParticipantCalibrationRuntimeIdentity { // io.github.kmpfacelink.model/ParticipantCalibrationRuntimeIdentity|null[0]
+    constructor <init>(kotlin/String, kotlin/ULong, io.github.kmpfacelink.model/ParticipantEnrollmentBinding, io.github.kmpfacelink.model/TrackingContextEpoch, kotlin/String, io.github.kmpfacelink.model/DerivedFaceSignal, kotlin/String, kotlin/String, kotlin/String, kotlin/String, kotlin/String, kotlin/String, kotlin/String, kotlin/String) // io.github.kmpfacelink.model/ParticipantCalibrationRuntimeIdentity.<init>|<init>(kotlin.String;kotlin.ULong;io.github.kmpfacelink.model.ParticipantEnrollmentBinding;io.github.kmpfacelink.model.TrackingContextEpoch;kotlin.String;io.github.kmpfacelink.model.DerivedFaceSignal;kotlin.String;kotlin.String;kotlin.String;kotlin.String;kotlin.String;kotlin.String;kotlin.String;kotlin.String){}[0]
+
+    final val binarySha256 // io.github.kmpfacelink.model/ParticipantCalibrationRuntimeIdentity.binarySha256|{}binarySha256[0]
+        final fun <get-binarySha256>(): kotlin/String // io.github.kmpfacelink.model/ParticipantCalibrationRuntimeIdentity.binarySha256.<get-binarySha256>|<get-binarySha256>(){}[0]
+    final val candidateArtifactSha256 // io.github.kmpfacelink.model/ParticipantCalibrationRuntimeIdentity.candidateArtifactSha256|{}candidateArtifactSha256[0]
+        final fun <get-candidateArtifactSha256>(): kotlin/String // io.github.kmpfacelink.model/ParticipantCalibrationRuntimeIdentity.candidateArtifactSha256.<get-candidateArtifactSha256>|<get-candidateArtifactSha256>(){}[0]
+    final val candidateId // io.github.kmpfacelink.model/ParticipantCalibrationRuntimeIdentity.candidateId|{}candidateId[0]
+        final fun <get-candidateId>(): kotlin/String // io.github.kmpfacelink.model/ParticipantCalibrationRuntimeIdentity.candidateId.<get-candidateId>|<get-candidateId>(){}[0]
+    final val candidateImplementationSha256 // io.github.kmpfacelink.model/ParticipantCalibrationRuntimeIdentity.candidateImplementationSha256|{}candidateImplementationSha256[0]
+        final fun <get-candidateImplementationSha256>(): kotlin/String // io.github.kmpfacelink.model/ParticipantCalibrationRuntimeIdentity.candidateImplementationSha256.<get-candidateImplementationSha256>|<get-candidateImplementationSha256>(){}[0]
+    final val candidateModelSha256 // io.github.kmpfacelink.model/ParticipantCalibrationRuntimeIdentity.candidateModelSha256|{}candidateModelSha256[0]
+        final fun <get-candidateModelSha256>(): kotlin/String // io.github.kmpfacelink.model/ParticipantCalibrationRuntimeIdentity.candidateModelSha256.<get-candidateModelSha256>|<get-candidateModelSha256>(){}[0]
+    final val contextEpoch // io.github.kmpfacelink.model/ParticipantCalibrationRuntimeIdentity.contextEpoch|{}contextEpoch[0]
+        final fun <get-contextEpoch>(): io.github.kmpfacelink.model/TrackingContextEpoch // io.github.kmpfacelink.model/ParticipantCalibrationRuntimeIdentity.contextEpoch.<get-contextEpoch>|<get-contextEpoch>(){}[0]
+    final val enrollmentBinding // io.github.kmpfacelink.model/ParticipantCalibrationRuntimeIdentity.enrollmentBinding|{}enrollmentBinding[0]
+        final fun <get-enrollmentBinding>(): io.github.kmpfacelink.model/ParticipantEnrollmentBinding // io.github.kmpfacelink.model/ParticipantCalibrationRuntimeIdentity.enrollmentBinding.<get-enrollmentBinding>|<get-enrollmentBinding>(){}[0]
+    final val evidenceReceiptSha256 // io.github.kmpfacelink.model/ParticipantCalibrationRuntimeIdentity.evidenceReceiptSha256|{}evidenceReceiptSha256[0]
+        final fun <get-evidenceReceiptSha256>(): kotlin/String // io.github.kmpfacelink.model/ParticipantCalibrationRuntimeIdentity.evidenceReceiptSha256.<get-evidenceReceiptSha256>|<get-evidenceReceiptSha256>(){}[0]
+    final val preprocessingSha256 // io.github.kmpfacelink.model/ParticipantCalibrationRuntimeIdentity.preprocessingSha256|{}preprocessingSha256[0]
+        final fun <get-preprocessingSha256>(): kotlin/String // io.github.kmpfacelink.model/ParticipantCalibrationRuntimeIdentity.preprocessingSha256.<get-preprocessingSha256>|<get-preprocessingSha256>(){}[0]
+    final val profileId // io.github.kmpfacelink.model/ParticipantCalibrationRuntimeIdentity.profileId|{}profileId[0]
+        final fun <get-profileId>(): kotlin/String // io.github.kmpfacelink.model/ParticipantCalibrationRuntimeIdentity.profileId.<get-profileId>|<get-profileId>(){}[0]
+    final val profileRevision // io.github.kmpfacelink.model/ParticipantCalibrationRuntimeIdentity.profileRevision|{}profileRevision[0]
+        final fun <get-profileRevision>(): kotlin/ULong // io.github.kmpfacelink.model/ParticipantCalibrationRuntimeIdentity.profileRevision.<get-profileRevision>|<get-profileRevision>(){}[0]
+    final val sdkSourceSha256 // io.github.kmpfacelink.model/ParticipantCalibrationRuntimeIdentity.sdkSourceSha256|{}sdkSourceSha256[0]
+        final fun <get-sdkSourceSha256>(): kotlin/String // io.github.kmpfacelink.model/ParticipantCalibrationRuntimeIdentity.sdkSourceSha256.<get-sdkSourceSha256>|<get-sdkSourceSha256>(){}[0]
+    final val targetSignal // io.github.kmpfacelink.model/ParticipantCalibrationRuntimeIdentity.targetSignal|{}targetSignal[0]
+        final fun <get-targetSignal>(): io.github.kmpfacelink.model/DerivedFaceSignal // io.github.kmpfacelink.model/ParticipantCalibrationRuntimeIdentity.targetSignal.<get-targetSignal>|<get-targetSignal>(){}[0]
+    final val thresholdSha256 // io.github.kmpfacelink.model/ParticipantCalibrationRuntimeIdentity.thresholdSha256|{}thresholdSha256[0]
+        final fun <get-thresholdSha256>(): kotlin/String // io.github.kmpfacelink.model/ParticipantCalibrationRuntimeIdentity.thresholdSha256.<get-thresholdSha256>|<get-thresholdSha256>(){}[0]
+
+    final fun component1(): kotlin/String // io.github.kmpfacelink.model/ParticipantCalibrationRuntimeIdentity.component1|component1(){}[0]
+    final fun component10(): kotlin/String // io.github.kmpfacelink.model/ParticipantCalibrationRuntimeIdentity.component10|component10(){}[0]
+    final fun component11(): kotlin/String // io.github.kmpfacelink.model/ParticipantCalibrationRuntimeIdentity.component11|component11(){}[0]
+    final fun component12(): kotlin/String // io.github.kmpfacelink.model/ParticipantCalibrationRuntimeIdentity.component12|component12(){}[0]
+    final fun component13(): kotlin/String // io.github.kmpfacelink.model/ParticipantCalibrationRuntimeIdentity.component13|component13(){}[0]
+    final fun component14(): kotlin/String // io.github.kmpfacelink.model/ParticipantCalibrationRuntimeIdentity.component14|component14(){}[0]
+    final fun component2(): kotlin/ULong // io.github.kmpfacelink.model/ParticipantCalibrationRuntimeIdentity.component2|component2(){}[0]
+    final fun component3(): io.github.kmpfacelink.model/ParticipantEnrollmentBinding // io.github.kmpfacelink.model/ParticipantCalibrationRuntimeIdentity.component3|component3(){}[0]
+    final fun component4(): io.github.kmpfacelink.model/TrackingContextEpoch // io.github.kmpfacelink.model/ParticipantCalibrationRuntimeIdentity.component4|component4(){}[0]
+    final fun component5(): kotlin/String // io.github.kmpfacelink.model/ParticipantCalibrationRuntimeIdentity.component5|component5(){}[0]
+    final fun component6(): io.github.kmpfacelink.model/DerivedFaceSignal // io.github.kmpfacelink.model/ParticipantCalibrationRuntimeIdentity.component6|component6(){}[0]
+    final fun component7(): kotlin/String // io.github.kmpfacelink.model/ParticipantCalibrationRuntimeIdentity.component7|component7(){}[0]
+    final fun component8(): kotlin/String // io.github.kmpfacelink.model/ParticipantCalibrationRuntimeIdentity.component8|component8(){}[0]
+    final fun component9(): kotlin/String // io.github.kmpfacelink.model/ParticipantCalibrationRuntimeIdentity.component9|component9(){}[0]
+    final fun copy(kotlin/String = ..., kotlin/ULong = ..., io.github.kmpfacelink.model/ParticipantEnrollmentBinding = ..., io.github.kmpfacelink.model/TrackingContextEpoch = ..., kotlin/String = ..., io.github.kmpfacelink.model/DerivedFaceSignal = ..., kotlin/String = ..., kotlin/String = ..., kotlin/String = ..., kotlin/String = ..., kotlin/String = ..., kotlin/String = ..., kotlin/String = ..., kotlin/String = ...): io.github.kmpfacelink.model/ParticipantCalibrationRuntimeIdentity // io.github.kmpfacelink.model/ParticipantCalibrationRuntimeIdentity.copy|copy(kotlin.String;kotlin.ULong;io.github.kmpfacelink.model.ParticipantEnrollmentBinding;io.github.kmpfacelink.model.TrackingContextEpoch;kotlin.String;io.github.kmpfacelink.model.DerivedFaceSignal;kotlin.String;kotlin.String;kotlin.String;kotlin.String;kotlin.String;kotlin.String;kotlin.String;kotlin.String){}[0]
+    final fun equals(kotlin/Any?): kotlin/Boolean // io.github.kmpfacelink.model/ParticipantCalibrationRuntimeIdentity.equals|equals(kotlin.Any?){}[0]
+    final fun hashCode(): kotlin/Int // io.github.kmpfacelink.model/ParticipantCalibrationRuntimeIdentity.hashCode|hashCode(){}[0]
+    final fun toString(): kotlin/String // io.github.kmpfacelink.model/ParticipantCalibrationRuntimeIdentity.toString|toString(){}[0]
+}
+
+final class io.github.kmpfacelink.model/ParticipantEnrollmentBinding { // io.github.kmpfacelink.model/ParticipantEnrollmentBinding|null[0]
+    constructor <init>(kotlin/String) // io.github.kmpfacelink.model/ParticipantEnrollmentBinding.<init>|<init>(kotlin.String){}[0]
+
+    final val opaqueValue // io.github.kmpfacelink.model/ParticipantEnrollmentBinding.opaqueValue|{}opaqueValue[0]
+        final fun <get-opaqueValue>(): kotlin/String // io.github.kmpfacelink.model/ParticipantEnrollmentBinding.opaqueValue.<get-opaqueValue>|<get-opaqueValue>(){}[0]
+
+    final fun component1(): kotlin/String // io.github.kmpfacelink.model/ParticipantEnrollmentBinding.component1|component1(){}[0]
+    final fun copy(kotlin/String = ...): io.github.kmpfacelink.model/ParticipantEnrollmentBinding // io.github.kmpfacelink.model/ParticipantEnrollmentBinding.copy|copy(kotlin.String){}[0]
+    final fun equals(kotlin/Any?): kotlin/Boolean // io.github.kmpfacelink.model/ParticipantEnrollmentBinding.equals|equals(kotlin.Any?){}[0]
+    final fun hashCode(): kotlin/Int // io.github.kmpfacelink.model/ParticipantEnrollmentBinding.hashCode|hashCode(){}[0]
+    final fun toString(): kotlin/String // io.github.kmpfacelink.model/ParticipantEnrollmentBinding.toString|toString(){}[0]
+}
+
 final class io.github.kmpfacelink.model/PerformanceConfig { // io.github.kmpfacelink.model/PerformanceConfig|null[0]
     constructor <init>(kotlin/Int = ..., kotlin/Int = ..., io.github.kmpfacelink.model/InferenceDelegate = ..., io.github.kmpfacelink.model/InferenceRunningMode = ..., kotlin/Long = ..., kotlin/Long = ...) // io.github.kmpfacelink.model/PerformanceConfig.<init>|<init>(kotlin.Int;kotlin.Int;io.github.kmpfacelink.model.InferenceDelegate;io.github.kmpfacelink.model.InferenceRunningMode;kotlin.Long;kotlin.Long){}[0]
 
@@ -2591,6 +3058,11 @@ final object io.github.kmpfacelink.model/LiveLinkBlendShapes { // io.github.kmpf
 
     final fun lower(kotlin.collections/Map<io.github.kmpfacelink.model/BlendShape, kotlin/Float>): kotlin/FloatArray // io.github.kmpfacelink.model/LiveLinkBlendShapes.lower|lower(kotlin.collections.Map<io.github.kmpfacelink.model.BlendShape,kotlin.Float>){}[0]
     final fun ordinalToLiveLinkIndex(): kotlin/IntArray // io.github.kmpfacelink.model/LiveLinkBlendShapes.ordinalToLiveLinkIndex|ordinalToLiveLinkIndex(){}[0]
+}
+
+final object io.github.kmpfacelink.model/ParticipantCalibrationDecisionFactory { // io.github.kmpfacelink.model/ParticipantCalibrationDecisionFactory|null[0]
+    final fun disabled(io.github.kmpfacelink.model/DerivedFaceSignal = ..., io.github.kmpfacelink.model/BlendShapeRoute = ...): io.github.kmpfacelink.model/ParticipantCalibrationDecisionEngine // io.github.kmpfacelink.model/ParticipantCalibrationDecisionFactory.disabled|disabled(io.github.kmpfacelink.model.DerivedFaceSignal;io.github.kmpfacelink.model.BlendShapeRoute){}[0]
+    final fun enabled(io.github.kmpfacelink.model/DerivedFaceSignal = ..., io.github.kmpfacelink.model/ParticipantCalibrationClock, io.github.kmpfacelink.model/ParticipantCalibrationFallbackPolicy = ...): io.github.kmpfacelink.model/ParticipantCalibrationDecisionEngine // io.github.kmpfacelink.model/ParticipantCalibrationDecisionFactory.enabled|enabled(io.github.kmpfacelink.model.DerivedFaceSignal;io.github.kmpfacelink.model.ParticipantCalibrationClock;io.github.kmpfacelink.model.ParticipantCalibrationFallbackPolicy){}[0]
 }
 
 final object io.github.kmpfacelink.util/FaceLinkLogger { // io.github.kmpfacelink.util/FaceLinkLogger|null[0]

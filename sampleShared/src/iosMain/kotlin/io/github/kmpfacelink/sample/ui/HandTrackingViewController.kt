@@ -34,5 +34,6 @@ public fun HandTrackingViewController(
         onModeChange = onModeChange,
         onStartClick = onStartClick,
         onStopClick = onStopClick,
+        showModeToggle = false,
     )
 }

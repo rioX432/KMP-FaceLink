@@ -13,10 +13,16 @@ public object HeadPose {
     private const val YAW_SIN_INDEX = 2 // column-major r20 (col 0, row 2): -sin(yaw)
     private const val PITCH_SIN_INDEX = 9 // column-major r12 (col 2, row 1): -sin(pitch)
     private const val DEFAULT_MAX_YAW_SIN = 0.42f // ~sin(25deg)
+    private const val ROTATION_YY_INDEX = 5
+    private const val ROTATION_ZZ_INDEX = 10
 
     private fun degenerate(transform: FloatArray?): Boolean =
-        transform == null || transform.size < 16 ||
-            (transform[0] == 0f && transform[5] == 0f && transform[10] == 0f)
+        transform == null || transform.size < InferenceRecordFormat.TRANSFORM_FLOATS ||
+            (
+                transform[0] == 0f &&
+                    transform[ROTATION_YY_INDEX] == 0f &&
+                    transform[ROTATION_ZZ_INDEX] == 0f
+                )
 
     public fun yawSin(transform: FloatArray?): Float? =
         if (degenerate(transform)) null else transform!![YAW_SIN_INDEX]

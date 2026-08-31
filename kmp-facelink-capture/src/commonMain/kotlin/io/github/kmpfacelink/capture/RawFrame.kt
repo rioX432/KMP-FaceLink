@@ -32,6 +32,7 @@ package io.github.kmpfacelink.capture
  * @property phase which part of the scripted take this frame belongs to
  * @param pixels [RawFrameFormat.BYTES_PER_PIXEL] bytes per pixel, row-major, no padding
  */
+@Suppress("LongParameterList") // Frame bytes and their complete join/timing identity cannot split.
 public class RawFrame(
     public val width: Int,
     public val height: Int,

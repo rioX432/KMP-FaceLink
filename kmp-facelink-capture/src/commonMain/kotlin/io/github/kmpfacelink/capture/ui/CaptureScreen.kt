@@ -1,4 +1,8 @@
-@file:Suppress("TooManyFunctions") // One sequential study screen, split into state-specific panels.
+@file:Suppress(
+    "TooManyFunctions",
+    // State-specific composables keep their complete input contract explicit and previewable.
+    "LongParameterList",
+)
 
 package io.github.kmpfacelink.capture.ui
 
@@ -17,10 +21,7 @@ import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.ui.draw.clip
 import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
@@ -40,6 +41,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
@@ -51,22 +53,33 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import io.github.kmpfacelink.capture.CaptureFailureCategory
+import io.github.kmpfacelink.capture.CaptureFailurePresentation
+import io.github.kmpfacelink.capture.CaptureFailurePrimaryAction
 import io.github.kmpfacelink.capture.CaptureScenario
 import io.github.kmpfacelink.capture.CaptureSession
+import io.github.kmpfacelink.capture.CaptureStudyProtocol
 import io.github.kmpfacelink.capture.CaptureUiState
-import io.github.kmpfacelink.capture.HardGate
 import io.github.kmpfacelink.capture.GuidedCaptureAction
 import io.github.kmpfacelink.capture.GuidedCaptureFlow
 import io.github.kmpfacelink.capture.GuidedCaptureStage
+import io.github.kmpfacelink.capture.HardGate
+import io.github.kmpfacelink.capture.ParticipantQualificationPhase
 import io.github.kmpfacelink.capture.StudyTakeGroup
 import io.github.kmpfacelink.capture.StudyTakeRecord
 import io.github.kmpfacelink.capture.StudyTakeSlot
 import io.github.kmpfacelink.capture.TakeScript
 import io.github.kmpfacelink.capture.acceptedStudyTake
+import io.github.kmpfacelink.capture.cancelledCaptureFailurePresentation
 import io.github.kmpfacelink.capture.completedStudyTakeCount
 import io.github.kmpfacelink.capture.deleteStudyTake
+import io.github.kmpfacelink.capture.participantQualificationController
+import io.github.kmpfacelink.capture.runTerminalAwareRetakeDelete
+import io.github.kmpfacelink.capture.startPendingTakeIfEligible
 import io.github.kmpfacelink.capture.studyTakeRecords
 import io.github.kmpfacelink.capture.studyTakeSlots
+import io.github.kmpfacelink.capture.toCaptureFailureReceipt
+import io.github.kmpfacelink.capture.toPresentation
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.math.min
@@ -81,10 +94,9 @@ import kotlin.math.min
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-@Suppress("LongMethod", "CyclomaticComplexMethod")
+@Suppress("LongMethod", "CyclomaticComplexMethod", "ComplexCondition")
 public fun CaptureScreen(
     session: CaptureSession,
-    scenarios: List<CaptureScenario> = studyProtocol(),
     modifier: Modifier = Modifier,
     onOpenDiagnostics: (() -> Unit)? = null,
     verifiedReferenceTakeId: String? = null,
@@ -92,7 +104,11 @@ public fun CaptureScreen(
     preflightFailure: String? = null,
     onRunPreflight: (() -> Unit)? = null,
 ) {
+    val scenarios = session.studyProtocol.scenarios
     val state by session.uiState.collectAsState()
+    val qualification = remember(session) { participantQualificationController(session) }
+    val qualificationState = qualification?.state?.collectAsState()?.value
+    val qualificationMode = qualification != null
     val scope = rememberCoroutineScope()
     val takeRecords = remember(session) { studyTakeRecords(session) }
     val history by takeRecords.collectAsState()
@@ -109,6 +125,10 @@ public fun CaptureScreen(
     var sawRecording by remember(session) { mutableStateOf(false) }
     var deleting by remember(session) { mutableStateOf(false) }
     var failure by remember(session) { mutableStateOf<String?>(null) }
+    val qualificationTerminalFailure = CaptureFailurePresentation(
+        participantMessageJa = "この確認撮影は続行できません。データを選び直さず終了してください。",
+        primaryAction = CaptureFailurePrimaryAction.STOP_RUN,
+    )
     val referenceTake = history
         .filter { it.scenario == CaptureScenario.NEUTRAL }
         .minByOrNull(StudyTakeRecord::takeId)
@@ -116,9 +136,28 @@ public fun CaptureScreen(
         referenceTake != null &&
         referenceTake.takeId != verifiedReferenceTakeId
 
-    LaunchedEffect(preflightRequired, preflightInProgress, preflightFailure, referenceTake?.takeId) {
-        if (preflightRequired && !preflightInProgress && preflightFailure == null) {
+    LaunchedEffect(
+        preflightRequired,
+        preflightInProgress,
+        preflightFailure,
+        referenceTake?.takeId,
+        guided.stage,
+    ) {
+        if (
+            guided.stage != GuidedCaptureStage.TERMINATED &&
+            preflightRequired &&
+            !preflightInProgress &&
+            preflightFailure == null
+        ) {
             requireNotNull(onRunPreflight).invoke()
+        }
+    }
+
+    LaunchedEffect(guided.stage) {
+        if (guided.stage == GuidedCaptureStage.TERMINATED) {
+            showProgress = false
+            retakeTarget = null
+            deleting = false
         }
     }
 
@@ -126,44 +165,84 @@ public fun CaptureScreen(
         if (state.recording) sawRecording = true
     }
 
-    fun beginTake() {
-        val slot = selected ?: return
-        val scenario = slot.scenario
-        if (busy || !state.gate.passed) return
-        val knownIds = takeRecords.value.mapTo(hashSetOf(), StudyTakeRecord::takeId)
-        busy = true
-        sawRecording = false
-        failure = null
-        scope.launch {
-            val result = runCatching { session.record(scenario, saveFrames = true) }
-            val updated = takeRecords.value
-            result.onSuccess { outcome ->
-                if (outcome.reason == TAKE_CANCELLED) {
-                    failure = "撮影を中止しました。データは保存されていません。"
-                    guided = guidedFlow.onFailed(requireNotNull(failure))
-                } else if (outcome.error != null) {
-                    failure = "撮影を完了できませんでした。この回のデータは保存されていません。"
-                    guided = guidedFlow.onFailed(requireNotNull(failure))
-                } else {
-                    val published = updated
-                        .firstOrNull {
-                            it.takeId !in knownIds && it.scenario == scenario && it.attempt == slot.attempt
-                        }
-                    if (published == null) {
-                        failure = "保存結果を確認できませんでした。データを採用せず、同じテイクをやり直します。"
-                        guided = guidedFlow.onFailed(requireNotNull(failure))
-                    } else {
-                        savedTake = published
-                        guided = guidedFlow.onSaved()
-                    }
-                }
-            }
-            result.onFailure {
-                failure = "撮影を完了できませんでした。この回のデータは保存されていません。"
-                guided = guidedFlow.onFailed(requireNotNull(failure))
-            }
-            busy = false
+    LaunchedEffect(state.lastFailure?.code) {
+        val presentation = state.lastFailure?.toPresentation() ?: return@LaunchedEffect
+        if (
+            presentation.primaryAction == CaptureFailurePrimaryAction.STOP_RUN &&
+            guided.stage != GuidedCaptureStage.TERMINATED
+        ) {
+            guided = guidedFlow.onFailed(presentation)
         }
+    }
+
+    fun beginTake() {
+        val slot = selected
+        val started = startPendingTakeIfEligible(
+            flow = guidedFlow,
+            slotAvailable = slot != null,
+            busy = busy,
+            gatePassed = state.gate.passed,
+            onAccepted = { guided = it },
+            startRecorder = {
+                val acceptedSlot = requireNotNull(slot)
+                val scenario = acceptedSlot.scenario
+                val knownIds = takeRecords.value.mapTo(hashSetOf(), StudyTakeRecord::takeId)
+                busy = true
+                sawRecording = false
+                failure = null
+                scope.launch {
+                    val result = runCatching {
+                        session.record(scenario, session.studyRun.storageProfile)
+                    }
+                    if (guidedFlow.snapshot.stage == GuidedCaptureStage.TERMINATED) {
+                        busy = false
+                        return@launch
+                    }
+                    val updated = takeRecords.value
+                    result.onSuccess { outcome ->
+                        if (qualification?.state?.value?.phase == ParticipantQualificationPhase.TERMINATED) {
+                            failure = qualificationTerminalFailure.participantMessageJa
+                            guided = guidedFlow.onFailed(qualificationTerminalFailure)
+                        } else if (outcome.reason == TAKE_CANCELLED) {
+                            val presentation = cancelledCaptureFailurePresentation()
+                            failure = presentation.participantMessageJa
+                            guided = guidedFlow.onFailed(presentation)
+                        } else if (outcome.failure != null || outcome.error != null) {
+                            val receipt = outcome.failure ?: CaptureFailureCategory.UNKNOWN.receipt()
+                            failure = receipt.participantMessageJa
+                            guided = guidedFlow.onFailed(receipt.toPresentation())
+                        } else {
+                            val published = updated
+                                .firstOrNull {
+                                    it.takeId !in knownIds &&
+                                        it.scenario == scenario &&
+                                        it.attempt == acceptedSlot.attempt
+                                }
+                            if (published == null) {
+                                val receipt = CaptureFailureCategory.INTEGRITY.receipt()
+                                failure = receipt.participantMessageJa
+                                guided = guidedFlow.onFailed(receipt.toPresentation())
+                            } else {
+                                savedTake = published
+                                guided = guidedFlow.onSaved()
+                            }
+                        }
+                    }
+                    result.onFailure { throwable ->
+                        if (qualification?.state?.value?.phase == ParticipantQualificationPhase.TERMINATED) {
+                            failure = qualificationTerminalFailure.participantMessageJa
+                            guided = guidedFlow.onFailed(qualificationTerminalFailure)
+                        } else {
+                            val receipt = throwable.toCaptureFailureReceipt()
+                            failure = receipt.participantMessageJa
+                            guided = guidedFlow.onFailed(receipt.toPresentation())
+                        }
+                    }
+                    busy = false
+                }
+            },
+        )
+        if (!started) guided = guidedFlow.snapshot
     }
 
     fun advanceToNext() {
@@ -218,16 +297,32 @@ public fun CaptureScreen(
         }
     }
 
+    LaunchedEffect(selected?.key, history.size, qualificationState?.phase) {
+        if (
+            qualification != null && selected == null &&
+            qualification.state.value.phase == ParticipantQualificationPhase.OPEN
+        ) {
+            runCatching { qualification.seal() }
+        }
+    }
+
     Box(modifier.fillMaxSize().safeDrawingPadding().background(MaterialTheme.colorScheme.background)) {
         when {
+            qualificationState?.phase == ParticipantQualificationPhase.TERMINATED -> CaptureTerminatedPanel(
+                failure = qualificationTerminalFailure,
+            )
+            guided.stage == GuidedCaptureStage.TERMINATED -> CaptureTerminatedPanel(
+                failure = requireNotNull(guided.failure),
+            )
             preflightRequired -> PreflightPanel(
                 inProgress = preflightInProgress,
                 failure = preflightFailure,
                 onRetry = requireNotNull(onRunPreflight),
-                onRetake = { retakeTarget = referenceTake },
+                onRetake = if (qualificationMode) null else ({ retakeTarget = referenceTake }),
             )
             guided.stage == GuidedCaptureStage.INTRO -> GuidedIntroductionPanel(
                 total = slots.size,
+                qualificationMode = qualificationMode,
                 onConfirm = { guided = guidedFlow.confirmIntroduction() },
             )
             guided.stage == GuidedCaptureStage.PAUSED -> PausedPanel(
@@ -237,7 +332,7 @@ public fun CaptureScreen(
                 onResume = { guided = guidedFlow.resume() },
             )
             guided.stage == GuidedCaptureStage.FAILED -> CaptureFailurePanel(
-                message = guided.failure ?: "撮影を完了できませんでした。データは保存されていません。",
+                failure = requireNotNull(guided.failure),
                 onRetry = {
                     failure = null
                     guided = guidedFlow.retry()
@@ -253,7 +348,7 @@ public fun CaptureScreen(
                 total = slots.size,
                 autoAdvanceSeconds = guided.secondsRemaining,
                 onNext = ::advanceToNext,
-                onRetake = { retakeTarget = savedTake },
+                onRetake = if (qualificationMode) null else ({ retakeTarget = savedTake }),
                 onPause = ::pauseBetweenTakes,
                 onProgress = { showProgress = true },
             )
@@ -272,10 +367,12 @@ public fun CaptureScreen(
                 saving = sawRecording,
                 onStop = session::stop,
             )
+            selected == null && qualificationMode &&
+                qualificationState?.phase != ParticipantQualificationPhase.SEALED -> QualificationSealingPanel()
             selected == null -> SessionCompletePanel(
                 total = slots.size,
                 onProgress = { showProgress = true },
-                onRetake = { retakeTarget = latestStudyTake(slots, history) },
+                onRetake = if (qualificationMode) null else ({ retakeTarget = latestStudyTake(slots, history) }),
                 onOpenDiagnostics = onOpenDiagnostics,
             )
             else -> AlignmentPanel(
@@ -289,35 +386,48 @@ public fun CaptureScreen(
                 autoStartSeconds = guided.secondsRemaining,
                 onPause = ::pauseBetweenTakes,
                 onProgress = { showProgress = true },
-                onRetakeLatest = latestStudyTake(slots, history)?.let { take ->
-                    { retakeTarget = take }
+                onRetakeLatest = if (qualificationMode) null else latestStudyTake(slots, history)?.let { take ->
+                    {
+                        retakeTarget = take
+                    }
                 },
             )
         }
 
-        if (showProgress) {
+        if (showProgress && guided.stage != GuidedCaptureStage.TERMINATED) {
             ProgressSheet(
                 slots = slots,
                 history = history,
                 selected = selected,
                 onDismiss = { showProgress = false },
-                onRetake = { take ->
+                onRetake = if (qualificationMode) null else ({ take ->
                     showProgress = false
                     retakeTarget = take
-                },
+                }),
             )
         }
-        retakeTarget?.let { take ->
+        retakeTarget?.takeIf { guided.stage != GuidedCaptureStage.TERMINATED }
+            ?.takeIf { !qualificationMode }
+            ?.let { take ->
             DeleteRetakeSheet(
                 take = take,
                 enabled = !deleting,
                 onDismiss = { if (!deleting) retakeTarget = null },
                 onDelete = {
-                    if (deleting) return@DeleteRetakeSheet
+                    if (
+                        deleting ||
+                        guidedFlow.snapshot.stage == GuidedCaptureStage.TERMINATED
+                    ) {
+                        return@DeleteRetakeSheet
+                    }
                     deleting = true
                     scope.launch {
-                        runCatching { deleteStudyTake(session, take) }
-                            .onSuccess {
+                        runTerminalAwareRetakeDelete(
+                            isTerminal = {
+                                guidedFlow.snapshot.stage == GuidedCaptureStage.TERMINATED
+                            },
+                            delete = { deleteStudyTake(session, take) },
+                            onSuccess = {
                                 savedTake = null
                                 selected = slots.firstOrNull {
                                     it.scenario == take.scenario && it.attempt == take.attempt
@@ -328,11 +438,14 @@ public fun CaptureScreen(
                                     guidedFlow.prepareNext()
                                 }
                                 retakeTarget = null
-                            }
-                            .onFailure {
+                            },
+                            onFailure = {
                                 failure = "撮り直しの準備ができませんでした。もう一度お試しください。"
-                            }
-                        deleting = false
+                            },
+                        )
+                        if (guidedFlow.snapshot.stage != GuidedCaptureStage.TERMINATED) {
+                            deleting = false
+                        }
                     }
                 },
             )
@@ -368,7 +481,12 @@ public fun CapturePreviewCheckScreen(
             color = MaterialTheme.colorScheme.primary,
             fontWeight = FontWeight.Bold,
         )
-        FaceGuide(session, state, Modifier.fillMaxWidth().weight(1f))
+        FaceGuide(
+            session,
+            state,
+            Modifier.fillMaxWidth().weight(1f),
+            CaptureSurfaceMode.PREVIEW_ONLY,
+        )
         Text(
             gateGuidance(state),
             Modifier.fillMaxWidth().padding(top = 12.dp)
@@ -386,9 +504,9 @@ public fun CapturePreviewCheckScreen(
             Modifier.padding(top = 8.dp),
             color = if (state.resultsObserved > 0) PASSED_GREEN else MaterialTheme.colorScheme.onSurfaceVariant,
         )
-        state.lastError?.let { error ->
+        state.lastFailure?.let { error ->
             Text(
-                "カメラ処理を停止しました: $error",
+                error.participantMessageJa,
                 Modifier.fillMaxWidth().padding(top = 8.dp)
                     .semantics { liveRegion = LiveRegionMode.Assertive },
                 color = MaterialTheme.colorScheme.error,
@@ -399,33 +517,14 @@ public fun CapturePreviewCheckScreen(
 }
 
 /** The fixed order registered for the cheek-puff study. */
-public fun studyProtocol(): List<CaptureScenario> = listOf(
-    CaptureScenario.NEUTRAL,
-    CaptureScenario.JAW_OPEN,
-    CaptureScenario.CHEEK_PUFF_LIGHT,
-    CaptureScenario.CHEEK_PUFF_MID,
-    CaptureScenario.CHEEK_PUFF,
-    CaptureScenario.CHEEK_PUFF_LEFT,
-    CaptureScenario.CHEEK_PUFF_RIGHT,
-    CaptureScenario.BLOW,
-    CaptureScenario.BLOW,
-    CaptureScenario.PUCKER,
-    CaptureScenario.SMILE,
-    CaptureScenario.TONGUE_OUT,
-    CaptureScenario.NOSE_SNEER,
-    CaptureScenario.SPEECH,
-    CaptureScenario.CHEEK_PUFF_LIGHT,
-    CaptureScenario.CHEEK_PUFF_MID,
-    CaptureScenario.CHEEK_PUFF,
-    CaptureScenario.CHEEK_PUFF_YAW_RIGHT,
-    CaptureScenario.CHEEK_PUFF_YAW_LEFT,
-    CaptureScenario.EYE_WIDEN,
-    CaptureScenario.JAW_FORWARD,
-    CaptureScenario.CLENCH,
-)
+public fun studyProtocol(): List<CaptureScenario> = CaptureStudyProtocol.guided22().scenarios
 
 @Composable
-private fun GuidedIntroductionPanel(total: Int, onConfirm: () -> Unit) {
+private fun GuidedIntroductionPanel(
+    total: Int,
+    qualificationMode: Boolean,
+    onConfirm: () -> Unit,
+) {
     Column(
         Modifier.fillMaxSize().padding(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -440,7 +539,11 @@ private fun GuidedIntroductionPanel(total: Int, onConfirm: () -> Unit) {
         )
         Spacer(Modifier.height(12.dp))
         Text(
-            "全部で${total}回、表情を動かす時間は約8分です。途中で休憩でき、失敗しても同じ回からやり直せます。",
+            if (qualificationMode) {
+                "全部で12回、撮影動作は約4分24秒です。位置合わせや保存確認の時間と休憩が別に加わります。"
+            } else {
+                "全部で${total}回、表情を動かす時間は約8分です。途中で休憩でき、失敗しても同じ回からやり直せます。"
+            },
             textAlign = TextAlign.Center,
             style = MaterialTheme.typography.bodyLarge,
         )
@@ -462,7 +565,7 @@ private fun PreflightPanel(
     inProgress: Boolean,
     failure: String?,
     onRetry: () -> Unit,
-    onRetake: () -> Unit,
+    onRetake: (() -> Unit)?,
 ) {
     Column(
         Modifier.fillMaxSize().padding(24.dp),
@@ -490,7 +593,9 @@ private fun PreflightPanel(
             Button(onClick = onRetry, modifier = Modifier.fillMaxWidth().height(56.dp)) {
                 Text("もう一度確認する")
             }
-            TextButton(onClick = onRetake) { Text("中立テイクを撮り直す") }
+            onRetake?.let { callback ->
+                TextButton(onClick = callback) { Text("中立テイクを撮り直す") }
+            }
         }
     }
 }
@@ -522,7 +627,7 @@ private fun PausedPanel(
 
 @Composable
 private fun CaptureFailurePanel(
-    message: String,
+    failure: CaptureFailurePresentation,
     onRetry: () -> Unit,
     onPause: () -> Unit,
 ) {
@@ -533,12 +638,40 @@ private fun CaptureFailurePanel(
     ) {
         Text("このテイクは保存されていません", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
         Spacer(Modifier.height(16.dp))
-        Text(message, textAlign = TextAlign.Center, style = MaterialTheme.typography.bodyLarge)
+        Text(
+            failure.participantMessageJa,
+            textAlign = TextAlign.Center,
+            style = MaterialTheme.typography.bodyLarge,
+        )
         Spacer(Modifier.height(28.dp))
         Button(onClick = onRetry, modifier = Modifier.fillMaxWidth().height(56.dp)) {
             Text("同じテイクをもう一度準備")
         }
         TextButton(onClick = onPause) { Text("いったん休憩する") }
+    }
+}
+
+@Composable
+private fun CaptureTerminatedPanel(failure: CaptureFailurePresentation) {
+    Column(
+        Modifier.fillMaxSize().padding(24.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
+    ) {
+        Text("撮影を中止しました", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
+        Spacer(Modifier.height(16.dp))
+        Text(
+            failure.participantMessageJa,
+            Modifier.semantics { liveRegion = LiveRegionMode.Assertive },
+            textAlign = TextAlign.Center,
+            style = MaterialTheme.typography.bodyLarge,
+        )
+        Spacer(Modifier.height(16.dp))
+        Text(
+            "この撮影画面からは再開できません。必要な対応後に、撮影を最初から開始してください。",
+            textAlign = TextAlign.Center,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
     }
 }
 
@@ -577,9 +710,9 @@ private fun AlignmentPanel(
             fontWeight = FontWeight.Bold,
         )
         Spacer(Modifier.height(8.dp))
-        state.lastError?.let { error ->
+        state.lastFailure?.let { error ->
             Text(
-                "カメラ処理を停止しました: $error",
+                error.participantMessageJa,
                 Modifier.fillMaxWidth().semantics { liveRegion = LiveRegionMode.Assertive },
                 color = MaterialTheme.colorScheme.error,
                 textAlign = TextAlign.Center,
@@ -634,10 +767,10 @@ private fun WaitingPanel(
             FaceGuide(session, state, Modifier.fillMaxWidth().height(320.dp))
             Spacer(Modifier.height(16.dp))
             Text(gateGuidance(state), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
-            state.lastError?.let { error ->
+            state.lastFailure?.let { error ->
                 Spacer(Modifier.height(12.dp))
                 Text(
-                    "カメラ処理を停止しました: $error",
+                    error.participantMessageJa,
                     Modifier.fillMaxWidth().semantics { liveRegion = LiveRegionMode.Assertive },
                     color = MaterialTheme.colorScheme.error,
                     textAlign = TextAlign.Center,
@@ -675,7 +808,7 @@ private fun RecordingPanel(
             Text("撮影 ${index + 1} / $total", fontWeight = FontWeight.Bold)
         }
         Spacer(Modifier.height(8.dp))
-        FaceGuide(session, state, Modifier.fillMaxWidth().height(110.dp))
+        FaceGuide(session, state, Modifier.fillMaxWidth().weight(1f))
         Spacer(Modifier.height(10.dp))
         Text(
             CapturePrompts.cueJa(scenario, cue),
@@ -690,7 +823,11 @@ private fun RecordingPanel(
         CapturePrompts.nextCueJa(scenario, script.nextSpanAt(elapsedMs)?.cue)?.let { next ->
             Surface(
                 Modifier.fillMaxWidth(),
-                color = if (remaining <= TRANSITION_WARNING_SECONDS) WARNING_BACKGROUND else MaterialTheme.colorScheme.surfaceVariant,
+                color = if (remaining <= TRANSITION_WARNING_SECONDS) {
+                    WARNING_BACKGROUND
+                } else {
+                    MaterialTheme.colorScheme.surfaceVariant
+                },
                 shape = RoundedCornerShape(16.dp),
             ) {
                 Text(
@@ -703,7 +840,7 @@ private fun RecordingPanel(
                 )
             }
         }
-        Spacer(Modifier.weight(1f))
+        Spacer(Modifier.height(8.dp))
         TextButton(onClick = onStop) { Text("収録を中止") }
     }
 }
@@ -715,7 +852,7 @@ private fun SavedPanel(
     total: Int,
     autoAdvanceSeconds: Int?,
     onNext: () -> Unit,
-    onRetake: () -> Unit,
+    onRetake: (() -> Unit)?,
     onPause: () -> Unit,
     onProgress: () -> Unit,
 ) {
@@ -736,9 +873,36 @@ private fun SavedPanel(
         Spacer(Modifier.height(32.dp))
         Button(onClick = onNext, modifier = Modifier.fillMaxWidth().height(56.dp)) { Text("次のテイクへ") }
         Spacer(Modifier.height(12.dp))
-        OutlinedButton(onClick = onRetake, modifier = Modifier.fillMaxWidth().height(56.dp)) { Text("撮り直す") }
+        onRetake?.let { callback ->
+            OutlinedButton(onClick = callback, modifier = Modifier.fillMaxWidth().height(56.dp)) {
+                Text("撮り直す")
+            }
+        }
         TextButton(onClick = onPause) { Text("ここで休憩") }
         TextButton(onClick = onProgress) { Text("$total 件の進捗を見る") }
+    }
+}
+
+@Composable
+private fun QualificationSealingPanel() {
+    Column(
+        Modifier.fillMaxSize().padding(24.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
+    ) {
+        CircularProgressIndicator()
+        Spacer(Modifier.height(20.dp))
+        Text(
+            "12回の撮影データを確定しています",
+            style = MaterialTheme.typography.headlineSmall,
+            fontWeight = FontWeight.Bold,
+            textAlign = TextAlign.Center,
+        )
+        Spacer(Modifier.height(12.dp))
+        Text(
+            "確定後は撮り直しできません。判定値はこの画面に表示されません。",
+            textAlign = TextAlign.Center,
+        )
     }
 }
 
@@ -746,7 +910,7 @@ private fun SavedPanel(
 private fun SessionCompletePanel(
     total: Int,
     onProgress: () -> Unit,
-    onRetake: () -> Unit,
+    onRetake: (() -> Unit)?,
     onOpenDiagnostics: (() -> Unit)?,
 ) {
     Column(
@@ -759,7 +923,7 @@ private fun SessionCompletePanel(
         Text("$total / $total テイク保存済み", style = MaterialTheme.typography.titleLarge)
         Spacer(Modifier.height(24.dp))
         OutlinedButton(onClick = onProgress) { Text("収録履歴を確認") }
-        TextButton(onClick = onRetake) { Text("最新を撮り直す") }
+        onRetake?.let { callback -> TextButton(onClick = callback) { Text("最新を撮り直す") } }
         onOpenDiagnostics?.let { callback ->
             TextButton(onClick = callback) { Text("開発者向け: 保存データを検証") }
         }
@@ -805,8 +969,26 @@ private fun StudyTakeSupplement(slot: StudyTakeSlot) {
 }
 
 @Composable
-private fun FaceGuide(session: CaptureSession, state: CaptureUiState, modifier: Modifier) {
+@Suppress("LongMethod")
+private fun FaceGuide(
+    session: CaptureSession,
+    state: CaptureUiState,
+    modifier: Modifier,
+    mode: CaptureSurfaceMode = CaptureSurfaceMode.RECORDING_PROTOCOL,
+) {
     val shape = RoundedCornerShape(20.dp)
+    var resultAgeSeconds by remember(session) { mutableStateOf<Int?>(null) }
+    LaunchedEffect(session, state.resultsObserved) {
+        if (state.resultsObserved <= 0) {
+            resultAgeSeconds = null
+            return@LaunchedEffect
+        }
+        resultAgeSeconds = 0
+        while (true) {
+            delay(ONE_SECOND_MS)
+            resultAgeSeconds = min(requireNotNull(resultAgeSeconds) + 1, MAX_RESULT_AGE_SECONDS)
+        }
+    }
     Box(modifier.clip(shape).background(GUIDE_BACKGROUND)) {
         CaptureCameraPreview(
             session = session,
@@ -843,6 +1025,18 @@ private fun FaceGuide(session: CaptureSession, state: CaptureUiState, modifier: 
                 style = MaterialTheme.typography.labelLarge,
             )
         }
+        Surface(
+            Modifier.align(Alignment.BottomCenter).padding(bottom = 10.dp),
+            color = Color.Black.copy(alpha = 0.68f),
+            shape = RoundedCornerShape(999.dp),
+        ) {
+            Text(
+                gateDiagnosticSummary(state, mode, resultAgeSeconds),
+                Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
+                color = Color.White,
+                style = MaterialTheme.typography.labelSmall,
+            )
+        }
     }
 }
 
@@ -853,7 +1047,7 @@ private fun ProgressSheet(
     history: List<StudyTakeRecord>,
     selected: StudyTakeSlot?,
     onDismiss: () -> Unit,
-    onRetake: (StudyTakeRecord) -> Unit,
+    onRetake: ((StudyTakeRecord) -> Unit)?,
 ) {
     val completed = completedStudyTakeCount(slots, history)
     ModalBottomSheet(onDismissRequest = onDismiss) {
@@ -887,8 +1081,8 @@ private fun ProgressSheet(
                         Text(groupLabelJa(slot.group), style = MaterialTheme.typography.labelSmall)
                         acceptedTake?.let { Text(it.takeId, style = MaterialTheme.typography.bodySmall) }
                     }
-                    acceptedTake?.let { take ->
-                        TextButton(onClick = { onRetake(take) }) {
+                    acceptedTake?.takeIf { onRetake != null }?.let { take ->
+                        TextButton(onClick = { requireNotNull(onRetake).invoke(take) }) {
                             Text("撮り直す")
                         }
                     }
@@ -979,6 +1173,30 @@ private fun gateGuidance(state: CaptureUiState): String = when {
     else -> "準備できました"
 }
 
+internal enum class CaptureSurfaceMode { PREVIEW_ONLY, RECORDING_PROTOCOL }
+
+/** Ephemeral categories only; this string is never written to a take or exported. */
+internal fun gateDiagnosticSummary(
+    state: CaptureUiState,
+    mode: CaptureSurfaceMode,
+    resultAgeSeconds: Int?,
+): String {
+    val modeLabel = if (mode == CaptureSurfaceMode.PREVIEW_ONLY) "確認のみ" else "収録"
+    val inputLabel = if (state.resultsObserved > 0) "入力あり" else "入力待ち"
+    val faceLabel = if (state.gate.hasFace) "顔あり" else "顔なし"
+    val ageLabel = resultAgeSeconds?.let { "${it}s" } ?: "未観測"
+    val gateBits = buildString {
+        append("F").append(state.gate.hasFace.asBit())
+        append(" C").append(state.gate.centered.asBit())
+        append(" S").append(state.gate.sized.asBit())
+        append(" B").append(state.gate.bright.asBit())
+        append(" D").append(state.gate.distanced.asBit())
+    }
+    return "$modeLabel / $inputLabel / age=$ageLabel / $faceLabel / $gateBits"
+}
+
+private fun Boolean.asBit(): Int = if (this) 1 else 0
+
 @Suppress("CyclomaticComplexMethod")
 private fun studyTitleJa(scenario: CaptureScenario): String = when (scenario) {
     CaptureScenario.NEUTRAL -> "中立"
@@ -1003,6 +1221,7 @@ private fun studyTitleJa(scenario: CaptureScenario): String = when (scenario) {
 
 private const val TAKE_CANCELLED = "take_cancelled"
 private const val ONE_SECOND_MS = 1_000L
+private const val MAX_RESULT_AGE_SECONDS = 99
 private const val TRANSITION_WARNING_SECONDS = 3
 private const val GUIDE_STROKE_WIDTH = 5f
 private const val GUIDE_HEIGHT_FRACTION = 0.84f

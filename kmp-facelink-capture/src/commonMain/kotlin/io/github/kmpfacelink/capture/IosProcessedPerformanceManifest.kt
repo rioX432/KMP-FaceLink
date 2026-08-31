@@ -90,6 +90,12 @@ public data class IosProcessedPerformanceManifest(
 /** Deterministic aggregation and fail-closed accounting for iOS performance events. */
 public object IosProcessedPerformanceAggregator {
 
+    @Suppress(
+        "LongParameterList",
+        "LongMethod",
+        // One fail-closed aggregation pass deliberately accounts for every callback outcome.
+        "CyclomaticComplexMethod",
+    )
     public fun aggregate(
         runId: String,
         startedAtIso: String,
@@ -134,8 +140,8 @@ public object IosProcessedPerformanceAggregator {
         )
         val accounted = counters.fullOutputs + counters.interpolatedOutputs +
             counters.noActiveEpochDrops + counters.throttledDrops +
-            counters.interpolationUnavailableDrops + counters.epochChangedDrops
-            + counters.callbackFailures
+            counters.interpolationUnavailableDrops + counters.epochChangedDrops +
+            counters.callbackFailures
         val rejected = buildSet {
             if (sequences.isEmpty()) add("no callback events")
             if (sequences.firstOrNull()?.let { it != 1uL } == true) {
@@ -156,13 +162,20 @@ public object IosProcessedPerformanceAggregator {
             if (epochFingerprints.any { !it.isSha256Hex() }) add("invalid epoch fingerprint")
             if (accounted != ordered.size) add("callback accounting")
             if (counters.callbackFailures > 0) add("callback processing failure")
-            if (counters.enqueueAccepted + counters.enqueueRejected !=
+            if (
+                counters.enqueueAccepted + counters.enqueueRejected !=
                 counters.fullOutputs + counters.interpolatedOutputs
-            ) add("enqueue accounting")
-            if ((full + interpolated).any {
-                    it.configurationFingerprint == null || it.epochFingerprint == null
+            ) {
+                add("enqueue accounting")
+            }
+            if (
+                (full + interpolated).any { event ->
+                    event.configurationFingerprint == null ||
+                        event.epochFingerprint == null
                 }
-            ) add("output without runtime context")
+            ) {
+                add("output without runtime context")
+            }
         }
 
         return IosProcessedPerformanceManifest(

@@ -43,9 +43,9 @@ class QualityPresetTest {
     @Test
     fun applyToOverridesPowerModeAndResolution() {
         val config = QualityPreset.Medium.applyTo()
-        assertEquals(PowerMode.BALANCED, config.powerMode)
-        assertEquals(MEDIUM_WIDTH, config.analysisWidth)
-        assertEquals(MEDIUM_HEIGHT, config.analysisHeight)
+        assertEquals(PowerMode.BALANCED, config.powerConfig.powerMode)
+        assertEquals(MEDIUM_WIDTH, config.performanceConfig.analysisWidth)
+        assertEquals(MEDIUM_HEIGHT, config.performanceConfig.analysisHeight)
     }
 
     @Test
@@ -58,10 +58,10 @@ class QualityPresetTest {
             ),
         )
         val result = QualityPreset.Low.applyTo(base)
-        assertEquals(MAX_FACES_TEST, result.maxFaces)
-        assertEquals(baseFloat, result.minDetectionConfidence)
-        assertEquals(LOW_WIDTH, result.analysisWidth)
-        assertEquals(PowerMode.LOW_POWER, result.powerMode)
+        assertEquals(MAX_FACES_TEST, result.detectionConfig.maxFaces)
+        assertEquals(baseFloat, result.detectionConfig.minDetectionConfidence)
+        assertEquals(LOW_WIDTH, result.performanceConfig.analysisWidth)
+        assertEquals(PowerMode.LOW_POWER, result.powerConfig.powerMode)
     }
 
     // ── autoSelect rules ──

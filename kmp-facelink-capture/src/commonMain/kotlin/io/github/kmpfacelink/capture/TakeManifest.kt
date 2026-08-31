@@ -47,10 +47,31 @@ public data class TakeManifest(
     public val transformSha256: String,
     /** Participant workflow that initiated this take; missing v1 data decodes as manual. */
     public val captureWorkflow: CaptureWorkflow = CaptureWorkflow.LEGACY_MANUAL_V1,
+    /** Required for schema 4; legacy schema remains readable only for diagnostics. */
+    public val storageReceipt: CaptureStorageReceipt = CaptureStorageReceipt.legacyDiagnosticOnly(),
+    /** Required for schema 5; older takes are deliberately unscoped diagnostics. */
+    public val studyRun: StudyRunIdentity = StudyRunIdentity.legacyUnscoped(),
 ) {
+    init {
+        require(schemaVersion <= SCHEMA_VERSION) {
+            "unsupported take manifest schema $schemaVersion"
+        }
+        if (schemaVersion >= STORAGE_RECEIPT_SCHEMA_VERSION) {
+            storageReceipt.requireSchema4Consistency(framesStored)
+        }
+        if (schemaVersion >= SCHEMA_VERSION) {
+            require(studyRun.schemaVersion == StudyRunIdentity.SCHEMA_VERSION) {
+                "schema-5 takes require a current study run identity"
+            }
+            require(studyRun.storageProfile == storageReceipt.profile) {
+                "take storage profile differs from its study run"
+            }
+        }
+    }
     public companion object {
         /** Bumped whenever this file's layout changes in a way the analysis must know about. */
-        public const val SCHEMA_VERSION: Int = 3
+        public const val SCHEMA_VERSION: Int = 5
+        private const val STORAGE_RECEIPT_SCHEMA_VERSION: Int = 4
     }
 }
 

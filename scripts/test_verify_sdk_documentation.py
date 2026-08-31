@@ -40,6 +40,23 @@ def valid_documents() -> dict[str, str]:
     documents["docs/troubleshooting.md"] = (
         "ARFaceTrackingConfiguration.isSupported\n./scripts/setup-openseeface-models.sh"
     )
+    documents[
+        "kmp-facelink/src/commonMain/kotlin/io/github/kmpfacelink/model/FaceLandmark.kt"
+    ] = (
+        "current iOS ARKit adapter\n"
+        "image-normalized\n"
+        "face-local 3D coordinate contract\n"
+        "image-normalized x/y coordinates and adapter-defined z\n"
+        "0.0 does not distinguish measured zero from missing metadata\n"
+    )
+    documents[
+        "kmp-facelink/src/commonMain/kotlin/io/github/kmpfacelink/model/FaceTrackingData.kt"
+    ] = (
+        "current iOS ARKit adapter\n"
+        "image-normalized\n"
+        "x/y coordinates use the SDK's image-normalized\n"
+        "ARKit exposes native `ARFaceGeometry` vertices\n"
+    )
     documents["docs/migration.md"] = (
         "Current unreleased worktree (not published)\n"
         "already-compiled consumers must\n"
@@ -103,6 +120,27 @@ class DocumentationContractTest(unittest.TestCase):
         documents = valid_documents()
         documents["README.md"] += "TrueDepth front camera (face tracking)"
         self.assertTrue(any("TrueDepth" in item for item in self.check(documents)))
+
+    def test_arkit_geometry_is_not_described_as_unavailable(self):
+        documents = valid_documents()
+        documents[
+            "kmp-facelink/src/commonMain/kotlin/io/github/kmpfacelink/model/FaceTrackingData.kt"
+        ] += "ARKit does not expose raw face mesh vertices"
+        self.assertTrue(any("raw face mesh" in item for item in self.check(documents)))
+
+    def test_arkit_geometry_is_not_claimed_as_mapped_to_normalized_landmarks(self):
+        documents = valid_documents()
+        documents[
+            "kmp-facelink/src/commonMain/kotlin/io/github/kmpfacelink/model/FaceLandmark.kt"
+        ] += "mapped from ARFaceAnchor geometry vertices"
+        self.assertTrue(any("mapped from ARFaceAnchor" in item for item in self.check(documents)))
+
+    def test_optional_android_landmark_metadata_is_not_described_as_always_observed(self):
+        documents = valid_documents()
+        documents[
+            "kmp-facelink/src/commonMain/kotlin/io/github/kmpfacelink/model/FaceLandmark.kt"
+        ] += "On Android (MediaPipe) this comes from the model output"
+        self.assertTrue(any("comes from the model output" in item for item in self.check(documents)))
 
     def test_measurement_tier_omission_fails(self):
         documents = valid_documents()

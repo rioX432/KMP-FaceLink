@@ -21,9 +21,8 @@ import kotlinx.coroutines.flow.StateFlow
  * @property resultsObserved how many inference results have come back since the session opened.
  *   The operator needs to see that the pipeline is alive before starting a take, and "no face yet"
  *   and "no frames at all" look identical without it
- * @property lastError the most recent inference error message. Shown because an error the operator
- *   never sees is an error the take carries silently: they are counted in the manifest but cannot be
- *   attributed to a frame
+ * @property lastError legacy stable failure code. It never contains platform exception text or a
+ *   filesystem path; new code should use [lastFailure]
  * @property scriptElapsedMs position within the take script, or null when no take is running. The
  *   session publishes the same clock it stamps the spans with, so that what the operator is told to
  *   do and what the recording says they were told to do cannot drift apart. Deriving it in the UI
@@ -40,6 +39,15 @@ public data class CaptureUiState(
     val lastError: String? = null,
     val scriptElapsedMs: Long? = null,
 ) {
+    /**
+     * Additive public-safe view of [lastError]. Keeping it outside the primary constructor preserves
+     * the existing constructor, copy, equality, and component contracts.
+     */
+    public val lastFailure: CaptureFailureReceipt?
+        get() = lastError?.let { code ->
+            CaptureFailureCategory.entries.firstOrNull { it.code == code }?.receipt()
+        }
+
     // Generated equals would compare the landmark array by identity, which makes every emission
     // look like a change and recomposes the overlay on every frame regardless.
     override fun equals(other: Any?): Boolean {
@@ -70,6 +78,22 @@ public data class CaptureUiState(
     }
 }
 
+/** Clears stale live guidance when a non-retryable source failure terminates the run. */
+internal fun CaptureUiState.withTerminalCaptureFailure(
+    receipt: CaptureFailureReceipt,
+): CaptureUiState {
+    require(!receipt.retryable) { "terminal capture failure must not be retryable" }
+    return copy(
+        gate = HardGate.Result(false, false, false, false, false),
+        distanceHint = HardGate.DistanceHint.NONE,
+        progress = LiveProgress.None,
+        landmarks = null,
+        recording = false,
+        lastError = receipt.code,
+        scriptElapsedMs = null,
+    )
+}
+
 /** How a take ended. */
 public data class TakeOutcome(
     val scenario: CaptureScenario,
@@ -77,7 +101,13 @@ public data class TakeOutcome(
     val softValidationPassed: Boolean,
     val reason: String,
     val error: String? = null,
-)
+) {
+    /** Additive structured view of the legacy error field; unknown strings are never surfaced. */
+    public val failure: CaptureFailureReceipt?
+        get() = error?.let { code ->
+            CaptureFailureCategory.entries.firstOrNull { it.code == code }?.receipt()
+        }
+}
 
 /**
  * Drives one capture session: camera in, records out.
@@ -90,19 +120,27 @@ public data class TakeOutcome(
  */
 public interface CaptureSession {
 
+    /** One source of truth for the run identity, storage contract, and visible take order. */
+    public val studyProtocol: CaptureStudyProtocol
+
     /** Live state for the recording screen. */
     public val uiState: StateFlow<CaptureUiState>
+
+    /** Immutable active study boundary; published takes from another run never affect this UI. */
+    public val studyRun: StudyRunIdentity
 
     /**
      * Begins a take. Recording only starts once the configured bbox, luma, and inter-ocular proxy
      * bands pass. The returned outcome records that workflow condition; it does not certify the
      * physical environment or expression quality.
      *
-     * @param saveFrames record the analysis frames as well. Needed for any take that will be
-     *   re-inferred later under a different condition; costs roughly 300 KB per frame before
-     *   compression, so it is off by default.
+     * [storageProfile] is explicit: coefficient-only is safe by default in the guided UI, while
+     * canonical RGBA is a separately bounded, replay-specific choice.
      */
-    public suspend fun record(scenario: CaptureScenario, saveFrames: Boolean): TakeOutcome
+    public suspend fun record(
+        scenario: CaptureScenario,
+        storageProfile: CaptureStorageProfile,
+    ): TakeOutcome
 
     /** Stops an in-flight take early, keeping whatever was recorded. */
     public fun stop()

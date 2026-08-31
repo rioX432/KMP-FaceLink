@@ -191,7 +191,7 @@ class PerformanceRunManifestTest {
             stateCarryPolicy = OfflineStateCarryPolicy.CONTIGUOUS_WARMUP_TO_STEADY,
         ),
         expandedReplayTimelineSha256 = "f".repeat(64),
-        saveFrames = false,
+        retainsSourceFrames = false,
         inputArtifactsRetainedLocally = true,
         device = PerformanceDeviceContext(
             manufacturer = "test",

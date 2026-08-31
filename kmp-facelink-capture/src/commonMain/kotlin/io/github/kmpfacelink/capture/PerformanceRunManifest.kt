@@ -282,7 +282,7 @@ public data class PerformanceRunManifest(
     val replayTimestampPolicy: ReplayTimestampPolicy?,
     val replayProtocol: PerformanceReplayProtocol?,
     val expandedReplayTimelineSha256: String?,
-    val saveFrames: Boolean,
+    val retainsSourceFrames: Boolean,
     val inputArtifactsRetainedLocally: Boolean,
     val device: PerformanceDeviceContext,
     val condition: CaptureCondition,
@@ -327,6 +327,11 @@ public data class PerformanceRunManifest(
 public object PerformanceRunValidator {
 
     /** Returns every reason the manifest is not a valid aggregate-only benchmark artifact. */
+    @Suppress(
+        "LongMethod",
+        // Keeping every rejection in one accumulator makes omission and fail-open returns visible.
+        "CyclomaticComplexMethod",
+    )
     public fun rejectionReasons(
         manifest: PerformanceRunManifest,
         requireReproducibleSource: Boolean,
@@ -385,7 +390,7 @@ public object PerformanceRunValidator {
             if (manifest.condition.layer != MeasurementLayer.DEVICE_OFFLINE) {
                 add("paired run requires device-offline layer")
             }
-            if (manifest.saveFrames) add("paired run must not duplicate stored frames")
+            if (manifest.retainsSourceFrames) add("paired run must not duplicate stored frames")
             if (!manifest.inputArtifactsRetainedLocally) {
                 add("paired run requires local input retention")
             }
@@ -418,7 +423,10 @@ public object PerformanceRunValidator {
         if (manifest.condition.runningMode != "IMAGE") add("offline primary running mode")
         if (manifest.condition.numFaces != 1) add("offline primary face count")
         if (manifest.abortedReason != null) add("aborted run")
-        if (manifest.saveFrames != manifest.inputArtifactsRetainedLocally && !manifest.exactStoredPixelReplay) {
+        if (
+            manifest.retainsSourceFrames != manifest.inputArtifactsRetainedLocally &&
+            !manifest.exactStoredPixelReplay
+        ) {
             add("frame retention state")
         }
         if (expectedEvidence != null && manifest.evidence != expectedEvidence) {
@@ -450,9 +458,9 @@ public object PerformanceLatencyAggregator {
         }
         return PerformanceLatencySummary(
             sampleCount = values.size,
-            p50Ms = percentile(50, 100),
-            p95Ms = percentile(95, 100),
-            p99Ms = percentile(99, 100),
+            p50Ms = percentile(P50_NUMERATOR, PERCENTILE_DENOMINATOR),
+            p95Ms = percentile(P95_NUMERATOR, PERCENTILE_DENOMINATOR),
+            p99Ms = percentile(P99_NUMERATOR, PERCENTILE_DENOMINATOR),
             maxMs = values.last() / NANOS_PER_MILLISECOND,
         )
     }
@@ -463,3 +471,7 @@ internal fun String.isSha256Hex(): Boolean =
 
 private const val SHA256_HEX_LENGTH = 64
 private const val NANOS_PER_MILLISECOND = 1_000_000.0
+private const val P50_NUMERATOR = 50
+private const val P95_NUMERATOR = 95
+private const val P99_NUMERATOR = 99
+private const val PERCENTILE_DENOMINATOR = 100

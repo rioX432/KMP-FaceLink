@@ -1,15 +1,14 @@
 @file:OptIn(ExperimentalForeignApi::class)
+@file:Suppress(
+    // Swift-safe setup and publish-last cleanup must classify every Kotlin/Native failure.
+    "TooGenericExceptionCaught",
+    "InstanceOfCheckForException",
+)
 
 package io.github.kmpfacelink.capture
 
 import io.github.kmpfacelink.model.LiveLinkBlendShapes
 import kotlinx.cinterop.ExperimentalForeignApi
-import kotlinx.cinterop.FloatVar
-import kotlinx.cinterop.ObjCSignatureOverride
-import kotlinx.cinterop.get
-import kotlinx.cinterop.ptr
-import kotlinx.cinterop.reinterpret
-import kotlinx.cinterop.useContents
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -17,21 +16,31 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.encodeToString
-import platform.ARKit.ARFaceAnchor
-import platform.ARKit.ARFaceTrackingConfiguration
-import platform.ARKit.ARFrame
-import platform.ARKit.ARSession
-import platform.ARKit.ARSessionDelegateProtocol
-import platform.Foundation.NSError
+import platform.Foundation.NSData
 import platform.Foundation.NSLock
 import platform.Foundation.NSNumber
 import platform.Foundation.NSProcessInfo
-import platform.darwin.NSObject
-import platform.darwin.dispatch_queue_create
-import platform.darwin.dispatch_sync
+import platform.UIKit.UIView
 import kotlin.math.absoluteValue
 
 private const val ARKIT_PROVIDER_SHA256 = "2222770b59580b1925bec9cafae56c306ee8cc989867841ffbb8aeeb83a82ca4"
+
+/**
+ * A one-callback claim created before Swift copies an optional camera payload.
+ *
+ * The claim freezes whether this callback belongs to a take, closing the race where recording can
+ * start between a separate `needsPixels` query and frame delivery. It contains no ARKit object.
+ */
+public data class IosCaptureFrameDemand(
+    val analysisFrameSeq: Int,
+    val rawPixelsRequired: Boolean,
+)
+
+/** Swift-visible non-throwing setup result with a public-safe failure receipt. */
+public data class IosCaptureSessionOpenResult(
+    val session: IosCaptureSession?,
+    val failure: CaptureFailureReceipt?,
+)
 
 /**
  * Creates a capture session through a Swift-visible throwing boundary.
@@ -41,12 +50,42 @@ private const val ARKIT_PROVIDER_SHA256 = "2222770b59580b1925bec9cafae56c306ee8c
  * present any setup failure instead of allowing it to terminate the process.
  */
 public object IosCaptureSessionFactory {
+    public fun openRegisteredCoefficient17(
+        rootDirectory: String,
+        provenance: SourceProvenance,
+        captureWorkflow: CaptureWorkflow = CaptureWorkflow.GUIDED_GATE_AUTOSTART_V1,
+    ): IosCaptureSessionOpenResult = try {
+        IosCaptureSessionOpenResult(
+            session = createRegisteredCoefficient17(rootDirectory, provenance, captureWorkflow),
+            failure = null,
+        )
+    } catch (failure: Throwable) {
+        if (failure is Error) throw failure
+        IosCaptureSessionOpenResult(
+            session = null,
+            failure = failure.toCaptureFailureReceipt(CaptureFailureCategory.STORAGE_SETUP),
+        )
+    }
+
     @Throws(Exception::class)
     public fun create(
         rootDirectory: String,
         provenance: SourceProvenance,
         captureWorkflow: CaptureWorkflow = CaptureWorkflow.GUIDED_GATE_AUTOSTART_V1,
     ): IosCaptureSession = IosCaptureSession(rootDirectory, provenance, captureWorkflow)
+
+    /** Creates the exact coefficient-only 17-take iOS retake registered by the study protocol. */
+    @Throws(Exception::class)
+    public fun createRegisteredCoefficient17(
+        rootDirectory: String,
+        provenance: SourceProvenance,
+        captureWorkflow: CaptureWorkflow = CaptureWorkflow.GUIDED_GATE_AUTOSTART_V1,
+    ): IosCaptureSession = IosCaptureSession(
+        rootDirectory = rootDirectory,
+        provenance = provenance,
+        captureWorkflow = captureWorkflow,
+        studyProtocol = CaptureStudyProtocol.iosRegisteredCoefficient17(),
+    )
 }
 
 /** Records ARKit camera frames and raw face coefficients into the shared take format. */
@@ -55,20 +94,24 @@ public object IosCaptureSessionFactory {
     "TooGenericExceptionCaught",
     "InstanceOfCheckForException",
     "InjectDispatcher",
+    "ThrowsCount",
 )
 public class IosCaptureSession(
     rootDirectory: String,
     private val provenance: SourceProvenance,
     private val captureWorkflow: CaptureWorkflow = CaptureWorkflow.GUIDED_GATE_AUTOSTART_V1,
+    override val studyProtocol: CaptureStudyProtocol = CaptureStudyProtocol.guided22(),
 ) : CaptureSession {
-    private val store = IosCaptureStore(rootDirectory)
-    private val converter = IosFrameConverter()
-    private val arSession = ARSession()
-    private val delegate = SessionDelegate()
-    private val delegateQueue = dispatch_queue_create("io.github.kmpfacelink.capture.arkit", null)
+    private val store = IosCaptureStore(
+        rootDirectory,
+        studyProtocol.id,
+        studyProtocol.storageProfile,
+    )
+    override val studyRun: StudyRunIdentity = store.studyRun
     private val _uiState = MutableStateFlow(CaptureUiState())
     override val uiState: StateFlow<CaptureUiState> = _uiState.asStateFlow()
-    internal val studyTakeRecords = MutableStateFlow(readIosStudyTakeRecords(store.takesRoot))
+    internal val studyTakeRecords = MutableStateFlow(readIosStudyTakeRecords(store.takesRoot, studyRun))
+    private val frameLock = platform.Foundation.NSCondition()
 
     private var take: ActiveTake? = null
     private var frameSequence = 0
@@ -77,13 +120,23 @@ public class IosCaptureSession(
     private var stopRequested = false
     private var released = false
     private var arSessionLease: IosArSessionLease? = null
+    private var previewView: UIView? = null
+    private var preparedFrame: PreparedFrame? = null
+    private var frameSourceFailed = false
     private val runGuard = CaptureRunGuard()
 
     /**
-     * The one ARSession owned by this capture session for a display-only participant preview.
-     * Callers may attach it to an ARSCNView but must not run, pause, delegate, or otherwise own it.
+     * Gives the Compose host the Swift-owned native preview view. The view contains the one
+     * ARSession but KMP never receives it as an ARKit type or controls its lifecycle.
      */
-    internal fun previewArSession(): ARSession = arSession
+    public fun attachPreviewView(view: UIView) {
+        check(!released) { "capture session is released" }
+        check(previewView == null || previewView === view) { "a different native preview is already attached" }
+        previewView = view
+    }
+
+    internal fun attachedPreviewView(): UIView =
+        checkNotNull(previewView) { "Swift must attach the native AR preview before showing capture UI" }
 
     @Suppress("LongParameterList")
     private class ActiveTake(
@@ -94,7 +147,7 @@ public class IosCaptureSession(
         val script: TakeScript,
         val startedAtMs: Long,
         val startedAtNs: Long,
-        val frames: RawFrameSink?,
+        val frames: IosRawFrameSink?,
         val results: InferenceRecordSink,
     ) {
         val lock = NSLock()
@@ -109,73 +162,97 @@ public class IosCaptureSession(
         var failure: Throwable? = null
     }
 
-    /** Opens one ARKit session and keeps warm-up outside every measured take. */
+    private data class PreparedFrame(
+        val demand: IosCaptureFrameDemand,
+        val active: ActiveTake?,
+    )
+
+    /**
+     * Opens one ARKit session and keeps warm-up outside every measured take.
+     *
+     * Swift/ARC owns the ARSession, ARSCNView delegate, and all ARKit callback objects. This
+     * method acquires only the process-local lease; Swift configures and runs the already attached
+     * native preview immediately afterwards.
+     */
     @Throws(IllegalStateException::class)
     public fun start() {
-        check(!released) { "capture session is released" }
-        if (arSessionLease != null) return
-        check(ARFaceTrackingConfiguration.isSupported) {
-            "ARKit face tracking is not supported on this device"
-        }
-        val lease = IosArSessionLeaseRegistry.acquire("guided capture")
         try {
-            arSession.delegate = delegate
-            arSession.delegateQueue = delegateQueue
-            val configuration = ARFaceTrackingConfiguration().apply {
-                lightEstimationEnabled = true
-                maximumNumberOfTrackedFaces = 1L
-            }
-            arSession.runWithConfiguration(configuration)
-            arSessionLease = lease
+            check(!released) { "capture session is released" }
+            if (arSessionLease != null) return
+            arSessionLease = IosArSessionLeaseRegistry.acquire("guided capture")
         } catch (failure: Throwable) {
-            lease.release()
-            throw failure
+            if (failure is Error || failure is CaptureFailureException) throw failure
+            throw captureFailure(CaptureFailureCategory.ROOT_IN_USE, failure)
         }
     }
 
-    override suspend fun record(scenario: CaptureScenario, saveFrames: Boolean): TakeOutcome {
-        check(runGuard.tryEnter()) { "a take is already running or waiting for the hard gate" }
+    override suspend fun record(scenario: CaptureScenario, storageProfile: CaptureStorageProfile): TakeOutcome {
+        if (isFrameSourceFailed()) throw captureFailure(CaptureFailureCategory.FRAME_SOURCE)
+        if (!runGuard.tryEnter()) throw captureFailure(CaptureFailureCategory.CONFIGURATION)
         try {
-            return recordGuarded(scenario, saveFrames)
+            return recordGuarded(scenario, storageProfile)
+        } catch (failure: Throwable) {
+            if (failure.toCaptureFailureReceipt().code == CaptureFailureCategory.FRAME_SOURCE.code) {
+                markFrameSourceFailed(CaptureFailureCategory.FRAME_SOURCE.receipt())
+            }
+            throw failure
         } finally {
-            _uiState.value = _uiState.value.copy(
-                recording = false,
-                progress = LiveProgress.None,
-                scriptElapsedMs = null,
-            )
+            _uiState.value = if (isFrameSourceFailed()) {
+                _uiState.value.withTerminalCaptureFailure(CaptureFailureCategory.FRAME_SOURCE.receipt())
+            } else {
+                _uiState.value.copy(
+                    recording = false,
+                    progress = LiveProgress.None,
+                    scriptElapsedMs = null,
+                )
+            }
             runGuard.leave()
         }
     }
 
-    private suspend fun recordGuarded(scenario: CaptureScenario, saveFrames: Boolean): TakeOutcome {
-        check(take == null) { "a take is already running" }
-        check(!released) { "capture session is released" }
+    private suspend fun recordGuarded(
+        scenario: CaptureScenario,
+        storageProfile: CaptureStorageProfile,
+    ): TakeOutcome {
+        if (take != null || released || storageProfile != studyRun.storageProfile) {
+            throw captureFailure(CaptureFailureCategory.CONFIGURATION)
+        }
+        val attempt = nextProtocolAttempt(studyTakeRecords.value, studyProtocol, scenario)
         stopRequested = false
         if (!awaitGate()) return cancelledOutcome(scenario)
-        val attempt = nextStudyAttempt(studyTakeRecords.value, scenario)
         val startedAtMs = captureCurrentTimeMillis()
         val id = store.newTakeId(scenario, attempt, startedAtMs)
-        val directory = store.createTmpDir(id)
-        check(nativeWidth > 0 && nativeHeight > 0) { "no ARKit camera frame has arrived yet" }
-        val active = ActiveTake(
-            id = id,
-            directory = directory,
-            scenario = scenario,
-            attempt = attempt,
-            script = TakeScript(scenario),
-            startedAtMs = startedAtMs,
-            startedAtNs = monotonicNanos(),
-            frames = if (saveFrames) {
-                openRawFrameSink(
-                    ensureCaptureDirectory(joinCapturePath(directory, FRAMES_DIR)),
-                    nativeWidth,
-                    nativeHeight,
-                )
-            } else {
-                null
-            },
-            results = openInferenceRecordSink(directory),
-        )
+        val active = withIncompleteTakeDirectory(
+            create = { store.createTmpDir(id) },
+            discard = store::discard,
+        ) { directory ->
+            if (nativeWidth <= 0 || nativeHeight <= 0) {
+                throw captureFailure(CaptureFailureCategory.FRAME_SOURCE)
+            }
+            ActiveTake(
+                id = id,
+                directory = directory,
+                scenario = scenario,
+                attempt = attempt,
+                script = TakeScript(scenario),
+                startedAtMs = startedAtMs,
+                startedAtNs = monotonicNanos(),
+                frames = when (storageProfile) {
+                    CaptureStorageProfile.COEFFICIENTS_ONLY_V1 -> null
+                    // V2 intentionally fails closed until the Swift canonicalizer is added and its
+                    // asymmetric orientation fixture is source-tested. Native ARKit bytes are never a fallback.
+                    CaptureStorageProfile.CANONICAL_RGBA_240X320_V1,
+                    CaptureStorageProfile.LEGACY_DIAGNOSTIC_ONLY,
+                    -> throw captureFailure(CaptureFailureCategory.CONFIGURATION)
+                },
+                results = try {
+                    openInferenceRecordSink(directory)
+                } catch (failure: Throwable) {
+                    if (failure is Error || failure is CaptureFailureException) throw failure
+                    throw captureFailure(CaptureFailureCategory.STREAM_WRITE, failure)
+                },
+            )
+        }
         take = active
         _uiState.value = _uiState.value.copy(
             recording = true,
@@ -189,6 +266,7 @@ public class IosCaptureSession(
 
     private suspend fun runScript(active: ActiveTake): ScriptEnd {
         while (true) {
+            if (active.lock.withCaptureLock { active.failure != null }) return ScriptEnd.FAILED
             val elapsed = elapsedMs(active)
             _uiState.value = _uiState.value.copy(scriptElapsedMs = elapsed)
             if (elapsed >= active.script.totalMs) return ScriptEnd.COMPLETED
@@ -196,7 +274,6 @@ public class IosCaptureSession(
             if (active.scenario.goalDriven && active.lock.withCaptureLock { active.evaluator.isGoalReached() }) {
                 return ScriptEnd.COMPLETED
             }
-            if (active.lock.withCaptureLock { active.failure != null }) return ScriptEnd.FAILED
             delay(TICK_MS)
         }
     }
@@ -205,8 +282,8 @@ public class IosCaptureSession(
         val deadline = monotonicNanos() + GATE_TIMEOUT_NS
         while (!_uiState.value.gate.passed) {
             if (stopRequested) return false
-            check(monotonicNanos() < deadline) {
-                "the hard gate never passed: ${_uiState.value.gate}"
+            if (monotonicNanos() >= deadline) {
+                throw captureFailure(CaptureFailureCategory.FRAME_SOURCE)
             }
             delay(TICK_MS)
         }
@@ -220,49 +297,161 @@ public class IosCaptureSession(
         reason = "take_cancelled",
     )
 
-    @Suppress("LongMethod", "CyclomaticComplexMethod")
-    private fun onFrame(frame: ARFrame) {
-        val sequence = frameSequence++
-        val pixels = requireNotNull(frame.capturedImage) { "ARKit frame has no captured image" }
-        val geometry = converter.geometry(pixels)
-        nativeWidth = geometry.width
-        nativeHeight = geometry.height
-        val luma = converter.averageLuma(pixels)
-        val face = (frame.anchors.firstOrNull { it is ARFaceAnchor } as? ARFaceAnchor)
-            ?.takeIf { it.isTracked }
-        val transform = face?.let(::transformOf)
-        val blendshapes = face?.let(::blendshapesOf)
+    /**
+     * Freezes one callback's take membership before Swift decides whether to copy RGBA bytes.
+     * Swift serializes its renderer callbacks. The condition additionally makes stop/release wait
+     * for the one snapshot currently being copied before KMP closes the take sinks.
+     */
+    @Throws(IllegalStateException::class)
+    public fun prepareFrame(): IosCaptureFrameDemand {
+        return frameLock.withCaptureLock {
+            check(!released) { "capture session is released" }
+            check(!frameSourceFailed) { CaptureFailureCategory.FRAME_SOURCE.code }
+            check(preparedFrame == null) { "the previous ARKit frame demand was not completed" }
+            val active = take?.takeIf { candidate ->
+                candidate.lock.withCaptureLock { candidate.recording }
+            }
+            val demand = IosCaptureFrameDemand(
+                analysisFrameSeq = frameSequence++,
+                rawPixelsRequired = active?.frames != null,
+            )
+            preparedFrame = PreparedFrame(demand, active)
+            demand
+        }
+    }
+
+    /**
+     * Accepts a Swift-owned value snapshot. No ARKit/SceneKit/CoreVideo object is allowed here.
+     * `rgba` must be an immutable owned copy and is required only for a demand frozen inside a take.
+     */
+    @Suppress("LongMethod", "CyclomaticComplexMethod", "LongParameterList")
+    @Throws(IllegalStateException::class, IllegalArgumentException::class)
+    public fun acceptFrame(
+        demand: IosCaptureFrameDemand,
+        width: Int,
+        height: Int,
+        captureTimestampNs: Long,
+        luma: Float,
+        transform: List<NSNumber>?,
+        blendshapes: Map<String, NSNumber>?,
+        rgba: NSData?,
+    ) {
+        var prepared: PreparedFrame? = null
+        try {
+            prepared = frameLock.withCaptureLock {
+                val pending = checkNotNull(preparedFrame) { "no ARKit frame demand is pending" }
+                check(pending.demand == demand) { "ARKit frame demand does not match the pending callback" }
+                pending
+            }
+            onFrame(
+                checkNotNull(prepared),
+                width,
+                height,
+                captureTimestampNs,
+                luma,
+                transform,
+                blendshapes,
+                rgba,
+            )
+        } catch (failure: Throwable) {
+            if (failure is Error) throw failure
+            failSession(captureFailure(CaptureFailureCategory.FRAME_SOURCE, failure))
+        } finally {
+            frameLock.withCaptureLock {
+                if (preparedFrame?.demand == demand) {
+                    preparedFrame = null
+                    frameLock.broadcast()
+                }
+            }
+        }
+    }
+
+    /** Clears a demand when Swift cannot produce its owned snapshot. */
+    public fun rejectFrame(demand: IosCaptureFrameDemand, @Suppress("UNUSED_PARAMETER") message: String) {
+        frameLock.withCaptureLock {
+            if (preparedFrame?.demand == demand) {
+                preparedFrame = null
+                frameLock.broadcast()
+            }
+        }
+        failSession(captureFailure(CaptureFailureCategory.FRAME_SOURCE))
+    }
+
+    /** Surfaces an ARSession/Swift extraction failure without throwing through Objective-C. */
+    public fun reportFrameSourceFailure(@Suppress("UNUSED_PARAMETER") message: String) {
+        frameLock.withCaptureLock {
+            preparedFrame = null
+            frameLock.broadcast()
+        }
+        failSession(captureFailure(CaptureFailureCategory.FRAME_SOURCE))
+    }
+
+    @Suppress("LongMethod", "CyclomaticComplexMethod", "LongParameterList")
+    private fun onFrame(
+        prepared: PreparedFrame,
+        width: Int,
+        height: Int,
+        captureTimestampNs: Long,
+        luma: Float,
+        rawTransform: List<NSNumber>?,
+        rawBlendshapes: Map<String, NSNumber>?,
+        rgba: NSData?,
+    ) {
+        if (isFrameSourceFailed()) return
+        require(width > 0 && height > 0) { "ARKit frame geometry must be non-empty" }
+        require(captureTimestampNs >= 0L) { "ARKit capture timestamp must not be negative" }
+        require(luma.isFinite()) { "ARKit frame luma must be finite" }
+        require((rawTransform == null) == (rawBlendshapes == null)) {
+            "tracked face transform and blendshapes must be present together"
+        }
+        require(!prepared.demand.rawPixelsRequired || rgba != null) {
+            "the frozen ARKit frame demand requires owned RGBA bytes"
+        }
+        require(prepared.demand.rawPixelsRequired || rgba == null) {
+            "owned RGBA bytes were supplied outside a frozen recording demand"
+        }
+        nativeWidth = width
+        nativeHeight = height
+        val transform = rawTransform?.let(::transformOf)
+        val blendshapes = rawBlendshapes?.let(::blendshapesOf)
         val metrics = gateMetrics(transform)
         val gate = HardGate.evaluate(metrics?.box, luma, metrics?.iod ?: 0f)
         _uiState.value = _uiState.value.let { current ->
             current.copy(
                 gate = gate,
-                distanceHint = HardGate.distanceHint(metrics?.iod ?: 0f, face != null),
+                distanceHint = HardGate.distanceHint(metrics?.iod ?: 0f, transform != null),
                 // ARKit's native face topology is not MediaPipe's 478-point contract. The
                 // participant preview renders native ARSCNFaceGeometry separately; recordings do
                 // not relabel it as common landmarks.
                 landmarks = null,
-                aspect = geometry.height.toFloat() / geometry.width,
+                aspect = height.toFloat() / width,
                 resultsObserved = current.resultsObserved + 1,
             )
         }
+        if (isFrameSourceFailed()) {
+            _uiState.value = _uiState.value.withTerminalCaptureFailure(
+                CaptureFailureCategory.FRAME_SOURCE.receipt(),
+            )
+            return
+        }
 
-        val active = take ?: return
+        val active = prepared.active ?: return
         val elapsed = elapsedMs(active)
         val spanIndex = active.script.spans.indexOfFirst { elapsed < it.endMs }
         if (spanIndex < 0 || !active.lock.withCaptureLock { active.recording }) return
         val phase = active.script.spans[spanIndex].phase
-        val captureNs = (frame.timestamp * NS_PER_SECOND).toLong()
+        val sequence = prepared.demand.analysisFrameSeq
+        val captureNs = captureTimestampNs
         try {
-            active.frames?.write(
-                RawFrame(
-                    width = geometry.width,
-                    height = geometry.height,
+            active.frames?.writeOwned(
+                IosOwnedRawFrame(
+                    width = width,
+                    height = height,
                     analysisFrameSeq = sequence,
                     captureTimestampNs = captureNs,
                     inferenceTimestampMs = captureNs / NS_PER_MILLISECOND,
                     phase = phase,
-                    pixels = converter.rgba(pixels).pixels,
+                    pixels = checkNotNull(rgba),
                 ),
             )
             active.results.write(
@@ -271,7 +460,7 @@ public class IosCaptureSession(
                     captureTimestampNs = captureNs,
                     resultElapsedNs = monotonicNanos(),
                     phase = phase,
-                    hasFace = face != null,
+                    hasFace = transform != null,
                     inferenceFailed = false,
                     landmarks = null,
                     blendshapes = blendshapes,
@@ -281,11 +470,13 @@ public class IosCaptureSession(
             collect(active, spanIndex, sequence, captureNs, phase, metrics, blendshapes, transform)
         } catch (t: Throwable) {
             if (t is Error) throw t
+            val failure = captureFailure(CaptureFailureCategory.STREAM_WRITE, t)
             active.lock.withCaptureLock {
-                if (active.failure == null) active.failure = t
+                if (active.failure == null) active.failure = failure
                 active.recording = false
             }
-            _uiState.value = _uiState.value.copy(lastError = t.message ?: t::class.simpleName)
+            val receipt = failure.toCaptureFailureReceipt()
+            _uiState.value = _uiState.value.copy(lastError = receipt.code)
         }
     }
 
@@ -301,6 +492,7 @@ public class IosCaptureSession(
         transform: FloatArray?,
     ) {
         active.lock.withCaptureLock {
+            CaptureStorageReceipt.coefficientsOnly(0, 0).requireNextRecord(active.admitted)
             active.admitted++
             if (active.frames != null) active.stored++
             if (blendshapes == null) active.noFace++
@@ -324,35 +516,49 @@ public class IosCaptureSession(
 
     private fun finish(active: ActiveTake, end: ScriptEnd): TakeOutcome {
         active.lock.withCaptureLock { active.recording = false }
-        // A frame may already have passed the recording check on ARKit's delegate queue. Draining
-        // that queue before closing the sinks keeps every successful write in the take.
-        dispatch_sync(delegateQueue) {}
+        // Swift may still be copying the one callback whose demand was frozen before recording
+        // closed. Do not close the sinks until that owned snapshot is accepted or rejected.
+        drainPreparedFrame()
         take = null
         val validation = active.lock.withCaptureLock { active.evaluator.outcome() }
-        val resultFailure = runCatching { active.results.close() }.exceptionOrNull()
-        val frameFailure = active.frames?.let { runCatching { it.close() }.exceptionOrNull() }
+        val resultFailure = runCatching { active.results.close() }.exceptionOrNull()?.let {
+            captureFailure(CaptureFailureCategory.STREAM_WRITE, it)
+        }
+        val frameFailure = active.frames?.let { sink ->
+            runCatching { sink.close() }.exceptionOrNull()?.let {
+                captureFailure(CaptureFailureCategory.STREAM_WRITE, it)
+            }
+        }
         val failure = active.lock.withCaptureLock { active.failure } ?: resultFailure ?: frameFailure
         if (!shouldPublishTake(end, failure != null)) {
             store.discard(active.directory)
+            val receipt = failure?.toCaptureFailureReceipt() ?: CaptureFailureCategory.UNKNOWN.receipt()
             return TakeOutcome(
                 scenario = active.scenario,
                 recordCount = active.results.recordCount,
                 softValidationPassed = false,
                 reason = if (end == ScriptEnd.STOPPED) "take_cancelled" else "take_failed",
-                error = failure?.let { it.message ?: it::class.simpleName },
+                error = receipt.code,
             )
         }
         val hashes = active.results.hashes()
         val manifest = manifestFor(active, validation, hashes)
-        publishCaptureText(
-            active.directory,
-            InferenceRecordFormat.TAKE_MANIFEST_FILE,
-            rawFrameJson.encodeToString(manifest),
-        )
-        store.publish(active.directory, active.id)
+        cleanupIncompleteTakeOnFailure(active.directory, store::discard) {
+            try {
+                publishCaptureText(
+                    active.directory,
+                    InferenceRecordFormat.TAKE_MANIFEST_FILE,
+                    rawFrameJson.encodeToString(manifest),
+                )
+                store.publish(active.directory, active.id)
+            } catch (failure: Throwable) {
+                if (failure is Error || failure is CaptureFailureException) throw failure
+                throw captureFailure(CaptureFailureCategory.STREAM_WRITE, failure)
+            }
+        }
         studyTakeRecords.value = withPublishedStudyTake(
             studyTakeRecords.value,
-            StudyTakeRecord(active.id, active.scenario, active.attempt),
+            StudyTakeRecord(active.id, active.scenario, active.attempt, studyRun),
         )
         return TakeOutcome(
             scenario = active.scenario,
@@ -400,6 +606,8 @@ public class IosCaptureSession(
             blendshapesSha256 = hashes[2],
             transformSha256 = hashes[3],
             captureWorkflow = captureWorkflow,
+            storageReceipt = CaptureStorageReceipt.coefficientsOnly(nativeWidth, nativeHeight),
+            studyRun = studyRun,
         )
     }
 
@@ -409,26 +617,24 @@ public class IosCaptureSession(
         provenance = provenance,
     )
 
-    @Suppress("UNCHECKED_CAST")
-    private fun blendshapesOf(anchor: ARFaceAnchor): FloatArray {
-        val raw = anchor.blendShapes as? Map<String, NSNumber> ?: emptyMap()
+    private fun blendshapesOf(raw: Map<String, NSNumber>): FloatArray {
         val normalized = raw.entries.associate { normalizeArKitName(it.key) to it.value.floatValue }
         return FloatArray(LiveLinkBlendShapes.names.size) { index ->
             normalized[LiveLinkBlendShapes.names[index]] ?: 0f
         }
     }
 
+    private fun transformOf(raw: List<NSNumber>): FloatArray {
+        require(raw.size == InferenceRecordFormat.TRANSFORM_FLOATS) {
+            "ARKit face transform must contain ${InferenceRecordFormat.TRANSFORM_FLOATS} values"
+        }
+        return FloatArray(raw.size) { index -> raw[index].floatValue }
+    }
+
     private fun normalizeArKitName(name: String): String = when {
         name.endsWith("_L") -> name.dropLast(2) + "Left"
         name.endsWith("_R") -> name.dropLast(2) + "Right"
         else -> name
-    }
-
-    private fun transformOf(anchor: ARFaceAnchor): FloatArray = FloatArray(InferenceRecordFormat.TRANSFORM_FLOATS).also { out ->
-        anchor.transform.useContents {
-            val values = ptr.reinterpret<FloatVar>()
-            for (index in out.indices) out[index] = values[index]
-        }
     }
 
     /** Converts ARKit's metric face translation into the normalized inputs expected by HardGate. */
@@ -462,19 +668,29 @@ public class IosCaptureSession(
     }
 
     override fun release() {
-        released = true
-        stopRequested = true
-        take?.let { active ->
-            active.lock.withCaptureLock { active.recording = false }
-            runCatching { active.results.close() }
-            runCatching { active.frames?.close() }
-            store.discard(active.directory)
-            take = null
+        try {
+            released = true
+            stopRequested = true
+            take?.let { active -> active.lock.withCaptureLock { active.recording = false } }
+            // This also covers a no-record warm-up callback: release must not clear a demand while
+            // Swift is still copying its owned snapshot.
+            drainPreparedFrame()
+            take?.let { active ->
+                runCatching { active.results.close() }
+                runCatching { active.frames?.close() }
+                store.discard(active.directory)
+                take = null
+            }
+            frameLock.withCaptureLock {
+                preparedFrame = null
+                frameLock.broadcast()
+            }
+            previewView = null
+            arSessionLease?.release()
+            arSessionLease = null
+        } finally {
+            store.close()
         }
-        arSession.pause()
-        arSession.delegate = null
-        arSessionLease?.release()
-        arSessionLease = null
     }
 
     /** Directory containing only fully published takes. */
@@ -484,38 +700,35 @@ public class IosCaptureSession(
         studyTakeRecords.value = withoutStudyTake(studyTakeRecords.value, takeId)
     }
 
-    private inner class SessionDelegate : NSObject(), ARSessionDelegateProtocol {
-        @ObjCSignatureOverride
-        override fun session(session: ARSession, didUpdateFrame: ARFrame) {
-            // A Kotlin exception is not allowed to escape an Objective-C delegate callback: doing
-            // so terminates the process before SwiftUI can present a useful failure. Treat a bad
-            // frame/conversion as a capture-session failure and stop the callback stream instead.
-            try {
-                onFrame(didUpdateFrame)
-            } catch (failure: Throwable) {
-                failSession(
-                    "ARKit frame processing failed: ${failure.message ?: failure::class.simpleName}",
-                    failure,
-                )
+    private fun failSession(failure: Throwable) {
+        val receipt = failure.toCaptureFailureReceipt(CaptureFailureCategory.UNKNOWN)
+        _uiState.value = if (receipt.retryable) {
+            _uiState.value.copy(lastError = receipt.code)
+        } else {
+            if (receipt.code == CaptureFailureCategory.FRAME_SOURCE.code) {
+                markFrameSourceFailed(receipt)
             }
+            _uiState.value.withTerminalCaptureFailure(receipt)
         }
-
-        @ObjCSignatureOverride
-        override fun session(session: ARSession, didFailWithError: NSError) {
-            val message = didFailWithError.localizedDescription
-            failSession(message, IllegalStateException(message))
-        }
-    }
-
-    private fun failSession(message: String, failure: Throwable) {
-        _uiState.value = _uiState.value.copy(lastError = message)
         take?.let { active ->
             active.lock.withCaptureLock {
                 if (active.failure == null) active.failure = failure
                 active.recording = false
             }
         }
-        arSession.pause()
+    }
+
+    private fun isFrameSourceFailed(): Boolean = frameLock.withCaptureLock { frameSourceFailed }
+
+    private fun markFrameSourceFailed(receipt: CaptureFailureReceipt) {
+        frameLock.withCaptureLock { frameSourceFailed = true }
+        _uiState.value = _uiState.value.withTerminalCaptureFailure(receipt)
+    }
+
+    private fun drainPreparedFrame() {
+        frameLock.withCaptureLock {
+            while (preparedFrame != null) frameLock.wait()
+        }
     }
 
     private data class GateMetrics(val box: HardGate.FaceBox, val iod: Float)

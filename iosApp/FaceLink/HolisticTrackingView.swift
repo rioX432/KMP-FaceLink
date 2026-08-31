@@ -1,6 +1,6 @@
 import SwiftUI
 import ARKit
-import KMPFaceLink
+import SampleShared
 
 struct HolisticTrackingView: View {
     @StateObject private var viewModel = HolisticTrackingViewModel()
@@ -113,33 +113,7 @@ class HolisticTrackingViewModel: ObservableObject {
     private var observeTasks: [Task<Void, Never>] = []
 
     init() {
-        let config = HolisticTrackerConfig(
-            enableFace: true,
-            enableHand: true,
-            enableBody: true,
-            faceConfig: FaceTrackerConfig(
-                smoothingConfig: SmoothingConfig.Ema(alpha: 0.4),
-                enhancerConfig: BlendShapeEnhancerConfig.None(),
-                calibrationConfig: CalibrationConfig(),
-                cameraFacing: .front
-            ),
-            handConfig: HandTrackerConfig(
-                smoothingConfig: SmoothingConfig.Ema(alpha: 0.4),
-                maxHands: 2,
-                enableGestureRecognition: true,
-                cameraFacing: .front
-            ),
-            bodyConfig: BodyTrackerConfig(
-                smoothingConfig: SmoothingConfig.Ema(alpha: 0.4),
-                maxBodies: 1,
-                cameraFacing: .front
-            ),
-            cameraFacing: .front
-        )
-        tracker = HolisticTrackerFactory_iosKt.createHolisticTracker(
-            platformContext: PlatformContext(),
-            config: config
-        )
+        tracker = SampleTrackerConfigsKt.createSampleHolisticTracker()
     }
 
     func toggleTracking() {

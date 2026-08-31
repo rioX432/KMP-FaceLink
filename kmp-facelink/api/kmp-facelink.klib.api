@@ -182,6 +182,32 @@ final enum class io.github.kmpfacelink.model/CameraFacing : kotlin/Enum<io.githu
     final fun values(): kotlin/Array<io.github.kmpfacelink.model/CameraFacing> // io.github.kmpfacelink.model/CameraFacing.values|values#static(){}[0]
 }
 
+final enum class io.github.kmpfacelink.model/CapabilitySource : kotlin/Enum<io.github.kmpfacelink.model/CapabilitySource> { // io.github.kmpfacelink.model/CapabilitySource|null[0]
+    enum entry ASSUMED // io.github.kmpfacelink.model/CapabilitySource.ASSUMED|null[0]
+    enum entry DERIVED // io.github.kmpfacelink.model/CapabilitySource.DERIVED|null[0]
+    enum entry PLATFORM_DECLARED // io.github.kmpfacelink.model/CapabilitySource.PLATFORM_DECLARED|null[0]
+    enum entry PROBED // io.github.kmpfacelink.model/CapabilitySource.PROBED|null[0]
+
+    final val entries // io.github.kmpfacelink.model/CapabilitySource.entries|#static{}entries[0]
+        final fun <get-entries>(): kotlin.enums/EnumEntries<io.github.kmpfacelink.model/CapabilitySource> // io.github.kmpfacelink.model/CapabilitySource.entries.<get-entries>|<get-entries>#static(){}[0]
+
+    final fun valueOf(kotlin/String): io.github.kmpfacelink.model/CapabilitySource // io.github.kmpfacelink.model/CapabilitySource.valueOf|valueOf#static(kotlin.String){}[0]
+    final fun values(): kotlin/Array<io.github.kmpfacelink.model/CapabilitySource> // io.github.kmpfacelink.model/CapabilitySource.values|values#static(){}[0]
+}
+
+final enum class io.github.kmpfacelink.model/CapabilityState : kotlin/Enum<io.github.kmpfacelink.model/CapabilityState> { // io.github.kmpfacelink.model/CapabilityState|null[0]
+    enum entry AVAILABLE // io.github.kmpfacelink.model/CapabilityState.AVAILABLE|null[0]
+    enum entry NOT_APPLICABLE // io.github.kmpfacelink.model/CapabilityState.NOT_APPLICABLE|null[0]
+    enum entry UNAVAILABLE // io.github.kmpfacelink.model/CapabilityState.UNAVAILABLE|null[0]
+    enum entry UNKNOWN // io.github.kmpfacelink.model/CapabilityState.UNKNOWN|null[0]
+
+    final val entries // io.github.kmpfacelink.model/CapabilityState.entries|#static{}entries[0]
+        final fun <get-entries>(): kotlin.enums/EnumEntries<io.github.kmpfacelink.model/CapabilityState> // io.github.kmpfacelink.model/CapabilityState.entries.<get-entries>|<get-entries>#static(){}[0]
+
+    final fun valueOf(kotlin/String): io.github.kmpfacelink.model/CapabilityState // io.github.kmpfacelink.model/CapabilityState.valueOf|valueOf#static(kotlin.String){}[0]
+    final fun values(): kotlin/Array<io.github.kmpfacelink.model/CapabilityState> // io.github.kmpfacelink.model/CapabilityState.values|values#static(){}[0]
+}
+
 final enum class io.github.kmpfacelink.model/DerivedFaceSignalValueSemantics : kotlin/Enum<io.github.kmpfacelink.model/DerivedFaceSignalValueSemantics> { // io.github.kmpfacelink.model/DerivedFaceSignalValueSemantics|null[0]
     enum entry UNIT_INTERVAL_ACTIVATION // io.github.kmpfacelink.model/DerivedFaceSignalValueSemantics.UNIT_INTERVAL_ACTIVATION|null[0]
 
@@ -473,6 +499,17 @@ final enum class io.github.kmpfacelink.model/ThermalState : kotlin/Enum<io.githu
     final fun values(): kotlin/Array<io.github.kmpfacelink.model/ThermalState> // io.github.kmpfacelink.model/ThermalState.values|values#static(){}[0]
 }
 
+final enum class io.github.kmpfacelink.model/TrackerOperationStatus : kotlin/Enum<io.github.kmpfacelink.model/TrackerOperationStatus> { // io.github.kmpfacelink.model/TrackerOperationStatus|null[0]
+    enum entry APPLIED // io.github.kmpfacelink.model/TrackerOperationStatus.APPLIED|null[0]
+    enum entry UNSUPPORTED // io.github.kmpfacelink.model/TrackerOperationStatus.UNSUPPORTED|null[0]
+
+    final val entries // io.github.kmpfacelink.model/TrackerOperationStatus.entries|#static{}entries[0]
+        final fun <get-entries>(): kotlin.enums/EnumEntries<io.github.kmpfacelink.model/TrackerOperationStatus> // io.github.kmpfacelink.model/TrackerOperationStatus.entries.<get-entries>|<get-entries>#static(){}[0]
+
+    final fun valueOf(kotlin/String): io.github.kmpfacelink.model/TrackerOperationStatus // io.github.kmpfacelink.model/TrackerOperationStatus.valueOf|valueOf#static(kotlin.String){}[0]
+    final fun values(): kotlin/Array<io.github.kmpfacelink.model/TrackerOperationStatus> // io.github.kmpfacelink.model/TrackerOperationStatus.values|values#static(){}[0]
+}
+
 final enum class io.github.kmpfacelink.model/TrackingModality : kotlin/Enum<io.github.kmpfacelink.model/TrackingModality> { // io.github.kmpfacelink.model/TrackingModality|null[0]
     enum entry BODY // io.github.kmpfacelink.model/TrackingModality.BODY|null[0]
     enum entry FACE // io.github.kmpfacelink.model/TrackingModality.FACE|null[0]
@@ -556,8 +593,8 @@ abstract interface io.github.kmpfacelink.api/BodyTracker : io.github.kmpfacelink
         abstract fun <get-trackingData>(): kotlinx.coroutines.flow/Flow<io.github.kmpfacelink.model/BodyTrackingData> // io.github.kmpfacelink.api/BodyTracker.trackingData.<get-trackingData>|<get-trackingData>(){}[0]
 
     abstract fun release() // io.github.kmpfacelink.api/BodyTracker.release|release(){}[0]
-    abstract fun resetSmoothing() // io.github.kmpfacelink.api/BodyTracker.resetSmoothing|resetSmoothing(){}[0]
-    abstract fun updateSmoothing(io.github.kmpfacelink.model/SmoothingConfig) // io.github.kmpfacelink.api/BodyTracker.updateSmoothing|updateSmoothing(io.github.kmpfacelink.model.SmoothingConfig){}[0]
+    abstract fun resetSmoothing(): io.github.kmpfacelink.model/TrackerOperationStatus // io.github.kmpfacelink.api/BodyTracker.resetSmoothing|resetSmoothing(){}[0]
+    abstract fun updateSmoothing(io.github.kmpfacelink.model/SmoothingConfig): io.github.kmpfacelink.model/TrackerOperationStatus // io.github.kmpfacelink.api/BodyTracker.updateSmoothing|updateSmoothing(io.github.kmpfacelink.model.SmoothingConfig){}[0]
     abstract suspend fun start() // io.github.kmpfacelink.api/BodyTracker.start|start(){}[0]
     abstract suspend fun stop() // io.github.kmpfacelink.api/BodyTracker.stop|stop(){}[0]
     abstract suspend fun switchCamera(io.github.kmpfacelink.model/CameraFacing) // io.github.kmpfacelink.api/BodyTracker.switchCamera|switchCamera(io.github.kmpfacelink.model.CameraFacing){}[0]
@@ -574,9 +611,9 @@ abstract interface io.github.kmpfacelink.api/FaceTracker : io.github.kmpfacelink
         open fun <get-performanceEvents>(): kotlinx.coroutines.flow/Flow<io.github.kmpfacelink.model/FacePipelinePerformanceEvent> // io.github.kmpfacelink.api/FaceTracker.performanceEvents.<get-performanceEvents>|<get-performanceEvents>(){}[0]
 
     abstract fun release() // io.github.kmpfacelink.api/FaceTracker.release|release(){}[0]
-    abstract fun resetCalibration() // io.github.kmpfacelink.api/FaceTracker.resetCalibration|resetCalibration(){}[0]
-    abstract fun resetSmoothing() // io.github.kmpfacelink.api/FaceTracker.resetSmoothing|resetSmoothing(){}[0]
-    abstract fun updateSmoothing(io.github.kmpfacelink.model/SmoothingConfig) // io.github.kmpfacelink.api/FaceTracker.updateSmoothing|updateSmoothing(io.github.kmpfacelink.model.SmoothingConfig){}[0]
+    abstract fun resetCalibration(): io.github.kmpfacelink.model/TrackerOperationStatus // io.github.kmpfacelink.api/FaceTracker.resetCalibration|resetCalibration(){}[0]
+    abstract fun resetSmoothing(): io.github.kmpfacelink.model/TrackerOperationStatus // io.github.kmpfacelink.api/FaceTracker.resetSmoothing|resetSmoothing(){}[0]
+    abstract fun updateSmoothing(io.github.kmpfacelink.model/SmoothingConfig): io.github.kmpfacelink.model/TrackerOperationStatus // io.github.kmpfacelink.api/FaceTracker.updateSmoothing|updateSmoothing(io.github.kmpfacelink.model.SmoothingConfig){}[0]
     abstract suspend fun start() // io.github.kmpfacelink.api/FaceTracker.start|start(){}[0]
     abstract suspend fun stop() // io.github.kmpfacelink.api/FaceTracker.stop|stop(){}[0]
     abstract suspend fun switchCamera(io.github.kmpfacelink.model/CameraFacing) // io.github.kmpfacelink.api/FaceTracker.switchCamera|switchCamera(io.github.kmpfacelink.model.CameraFacing){}[0]
@@ -596,8 +633,8 @@ abstract interface io.github.kmpfacelink.api/HandTracker : io.github.kmpfacelink
         abstract fun <get-trackingData>(): kotlinx.coroutines.flow/Flow<io.github.kmpfacelink.model/HandTrackingData> // io.github.kmpfacelink.api/HandTracker.trackingData.<get-trackingData>|<get-trackingData>(){}[0]
 
     abstract fun release() // io.github.kmpfacelink.api/HandTracker.release|release(){}[0]
-    abstract fun resetSmoothing() // io.github.kmpfacelink.api/HandTracker.resetSmoothing|resetSmoothing(){}[0]
-    abstract fun updateSmoothing(io.github.kmpfacelink.model/SmoothingConfig) // io.github.kmpfacelink.api/HandTracker.updateSmoothing|updateSmoothing(io.github.kmpfacelink.model.SmoothingConfig){}[0]
+    abstract fun resetSmoothing(): io.github.kmpfacelink.model/TrackerOperationStatus // io.github.kmpfacelink.api/HandTracker.resetSmoothing|resetSmoothing(){}[0]
+    abstract fun updateSmoothing(io.github.kmpfacelink.model/SmoothingConfig): io.github.kmpfacelink.model/TrackerOperationStatus // io.github.kmpfacelink.api/HandTracker.updateSmoothing|updateSmoothing(io.github.kmpfacelink.model.SmoothingConfig){}[0]
     abstract suspend fun start() // io.github.kmpfacelink.api/HandTracker.start|start(){}[0]
     abstract suspend fun stop() // io.github.kmpfacelink.api/HandTracker.stop|stop(){}[0]
     abstract suspend fun switchCamera(io.github.kmpfacelink.model/CameraFacing) // io.github.kmpfacelink.api/HandTracker.switchCamera|switchCamera(io.github.kmpfacelink.model.CameraFacing){}[0]
@@ -614,8 +651,8 @@ abstract interface io.github.kmpfacelink.api/HolisticTracker : io.github.kmpface
         abstract fun <get-trackingData>(): kotlinx.coroutines.flow/Flow<io.github.kmpfacelink.model/HolisticTrackingData> // io.github.kmpfacelink.api/HolisticTracker.trackingData.<get-trackingData>|<get-trackingData>(){}[0]
 
     abstract fun release() // io.github.kmpfacelink.api/HolisticTracker.release|release(){}[0]
-    abstract fun resetSmoothing() // io.github.kmpfacelink.api/HolisticTracker.resetSmoothing|resetSmoothing(){}[0]
-    abstract fun updateSmoothing(io.github.kmpfacelink.model/SmoothingConfig) // io.github.kmpfacelink.api/HolisticTracker.updateSmoothing|updateSmoothing(io.github.kmpfacelink.model.SmoothingConfig){}[0]
+    abstract fun resetSmoothing(): io.github.kmpfacelink.model/TrackerOperationStatus // io.github.kmpfacelink.api/HolisticTracker.resetSmoothing|resetSmoothing(){}[0]
+    abstract fun updateSmoothing(io.github.kmpfacelink.model/SmoothingConfig): io.github.kmpfacelink.model/TrackerOperationStatus // io.github.kmpfacelink.api/HolisticTracker.updateSmoothing|updateSmoothing(io.github.kmpfacelink.model.SmoothingConfig){}[0]
     abstract suspend fun start() // io.github.kmpfacelink.api/HolisticTracker.start|start(){}[0]
     abstract suspend fun stop() // io.github.kmpfacelink.api/HolisticTracker.stop|stop(){}[0]
     abstract suspend fun switchCamera(io.github.kmpfacelink.model/CameraFacing) // io.github.kmpfacelink.api/HolisticTracker.switchCamera|switchCamera(io.github.kmpfacelink.model.CameraFacing){}[0]
@@ -1351,6 +1388,25 @@ final class io.github.kmpfacelink.model/CalibrationConfig { // io.github.kmpface
     final fun toString(): kotlin/String // io.github.kmpfacelink.model/CalibrationConfig.toString|toString(){}[0]
 }
 
+final class io.github.kmpfacelink.model/CapabilityAssessment { // io.github.kmpfacelink.model/CapabilityAssessment|null[0]
+    constructor <init>(io.github.kmpfacelink.model/CapabilityState, io.github.kmpfacelink.model/CapabilitySource, kotlin/String) // io.github.kmpfacelink.model/CapabilityAssessment.<init>|<init>(io.github.kmpfacelink.model.CapabilityState;io.github.kmpfacelink.model.CapabilitySource;kotlin.String){}[0]
+
+    final val basis // io.github.kmpfacelink.model/CapabilityAssessment.basis|{}basis[0]
+        final fun <get-basis>(): kotlin/String // io.github.kmpfacelink.model/CapabilityAssessment.basis.<get-basis>|<get-basis>(){}[0]
+    final val source // io.github.kmpfacelink.model/CapabilityAssessment.source|{}source[0]
+        final fun <get-source>(): io.github.kmpfacelink.model/CapabilitySource // io.github.kmpfacelink.model/CapabilityAssessment.source.<get-source>|<get-source>(){}[0]
+    final val state // io.github.kmpfacelink.model/CapabilityAssessment.state|{}state[0]
+        final fun <get-state>(): io.github.kmpfacelink.model/CapabilityState // io.github.kmpfacelink.model/CapabilityAssessment.state.<get-state>|<get-state>(){}[0]
+
+    final fun component1(): io.github.kmpfacelink.model/CapabilityState // io.github.kmpfacelink.model/CapabilityAssessment.component1|component1(){}[0]
+    final fun component2(): io.github.kmpfacelink.model/CapabilitySource // io.github.kmpfacelink.model/CapabilityAssessment.component2|component2(){}[0]
+    final fun component3(): kotlin/String // io.github.kmpfacelink.model/CapabilityAssessment.component3|component3(){}[0]
+    final fun copy(io.github.kmpfacelink.model/CapabilityState = ..., io.github.kmpfacelink.model/CapabilitySource = ..., kotlin/String = ...): io.github.kmpfacelink.model/CapabilityAssessment // io.github.kmpfacelink.model/CapabilityAssessment.copy|copy(io.github.kmpfacelink.model.CapabilityState;io.github.kmpfacelink.model.CapabilitySource;kotlin.String){}[0]
+    final fun equals(kotlin/Any?): kotlin/Boolean // io.github.kmpfacelink.model/CapabilityAssessment.equals|equals(kotlin.Any?){}[0]
+    final fun hashCode(): kotlin/Int // io.github.kmpfacelink.model/CapabilityAssessment.hashCode|hashCode(){}[0]
+    final fun toString(): kotlin/String // io.github.kmpfacelink.model/CapabilityAssessment.toString|toString(){}[0]
+}
+
 final class io.github.kmpfacelink.model/DerivedFaceSignalDecision { // io.github.kmpfacelink.model/DerivedFaceSignalDecision|null[0]
     final val candidateValue // io.github.kmpfacelink.model/DerivedFaceSignalDecision.candidateValue|{}candidateValue[0]
         final fun <get-candidateValue>(): kotlin/Float? // io.github.kmpfacelink.model/DerivedFaceSignalDecision.candidateValue.<get-candidateValue>|<get-candidateValue>(){}[0]
@@ -1420,25 +1476,44 @@ final class io.github.kmpfacelink.model/DetectionConfig { // io.github.kmpfaceli
 }
 
 final class io.github.kmpfacelink.model/DeviceCapabilityProfile { // io.github.kmpfacelink.model/DeviceCapabilityProfile|null[0]
-    constructor <init>(kotlin/Boolean, kotlin/Boolean, io.github.kmpfacelink.model/DeviceTier, io.github.kmpfacelink.model/NpuVendor = ...) // io.github.kmpfacelink.model/DeviceCapabilityProfile.<init>|<init>(kotlin.Boolean;kotlin.Boolean;io.github.kmpfacelink.model.DeviceTier;io.github.kmpfacelink.model.NpuVendor){}[0]
+    constructor <init>(io.github.kmpfacelink.model/CapabilityAssessment, io.github.kmpfacelink.model/CapabilityAssessment, io.github.kmpfacelink.model/NpuVendor?, io.github.kmpfacelink.model/DeviceTierRecommendation) // io.github.kmpfacelink.model/DeviceCapabilityProfile.<init>|<init>(io.github.kmpfacelink.model.CapabilityAssessment;io.github.kmpfacelink.model.CapabilityAssessment;io.github.kmpfacelink.model.NpuVendor?;io.github.kmpfacelink.model.DeviceTierRecommendation){}[0]
 
-    final val hasGpuAcceleration // io.github.kmpfacelink.model/DeviceCapabilityProfile.hasGpuAcceleration|{}hasGpuAcceleration[0]
-        final fun <get-hasGpuAcceleration>(): kotlin/Boolean // io.github.kmpfacelink.model/DeviceCapabilityProfile.hasGpuAcceleration.<get-hasGpuAcceleration>|<get-hasGpuAcceleration>(){}[0]
-    final val hasNpu // io.github.kmpfacelink.model/DeviceCapabilityProfile.hasNpu|{}hasNpu[0]
-        final fun <get-hasNpu>(): kotlin/Boolean // io.github.kmpfacelink.model/DeviceCapabilityProfile.hasNpu.<get-hasNpu>|<get-hasNpu>(){}[0]
+    final val gpuInference // io.github.kmpfacelink.model/DeviceCapabilityProfile.gpuInference|{}gpuInference[0]
+        final fun <get-gpuInference>(): io.github.kmpfacelink.model/CapabilityAssessment // io.github.kmpfacelink.model/DeviceCapabilityProfile.gpuInference.<get-gpuInference>|<get-gpuInference>(){}[0]
+    final val npuInference // io.github.kmpfacelink.model/DeviceCapabilityProfile.npuInference|{}npuInference[0]
+        final fun <get-npuInference>(): io.github.kmpfacelink.model/CapabilityAssessment // io.github.kmpfacelink.model/DeviceCapabilityProfile.npuInference.<get-npuInference>|<get-npuInference>(){}[0]
     final val npuVendor // io.github.kmpfacelink.model/DeviceCapabilityProfile.npuVendor|{}npuVendor[0]
-        final fun <get-npuVendor>(): io.github.kmpfacelink.model/NpuVendor // io.github.kmpfacelink.model/DeviceCapabilityProfile.npuVendor.<get-npuVendor>|<get-npuVendor>(){}[0]
-    final val tier // io.github.kmpfacelink.model/DeviceCapabilityProfile.tier|{}tier[0]
-        final fun <get-tier>(): io.github.kmpfacelink.model/DeviceTier // io.github.kmpfacelink.model/DeviceCapabilityProfile.tier.<get-tier>|<get-tier>(){}[0]
+        final fun <get-npuVendor>(): io.github.kmpfacelink.model/NpuVendor? // io.github.kmpfacelink.model/DeviceCapabilityProfile.npuVendor.<get-npuVendor>|<get-npuVendor>(){}[0]
+    final val qualityRecommendation // io.github.kmpfacelink.model/DeviceCapabilityProfile.qualityRecommendation|{}qualityRecommendation[0]
+        final fun <get-qualityRecommendation>(): io.github.kmpfacelink.model/DeviceTierRecommendation // io.github.kmpfacelink.model/DeviceCapabilityProfile.qualityRecommendation.<get-qualityRecommendation>|<get-qualityRecommendation>(){}[0]
 
-    final fun component1(): kotlin/Boolean // io.github.kmpfacelink.model/DeviceCapabilityProfile.component1|component1(){}[0]
-    final fun component2(): kotlin/Boolean // io.github.kmpfacelink.model/DeviceCapabilityProfile.component2|component2(){}[0]
-    final fun component3(): io.github.kmpfacelink.model/DeviceTier // io.github.kmpfacelink.model/DeviceCapabilityProfile.component3|component3(){}[0]
-    final fun component4(): io.github.kmpfacelink.model/NpuVendor // io.github.kmpfacelink.model/DeviceCapabilityProfile.component4|component4(){}[0]
-    final fun copy(kotlin/Boolean = ..., kotlin/Boolean = ..., io.github.kmpfacelink.model/DeviceTier = ..., io.github.kmpfacelink.model/NpuVendor = ...): io.github.kmpfacelink.model/DeviceCapabilityProfile // io.github.kmpfacelink.model/DeviceCapabilityProfile.copy|copy(kotlin.Boolean;kotlin.Boolean;io.github.kmpfacelink.model.DeviceTier;io.github.kmpfacelink.model.NpuVendor){}[0]
+    final fun component1(): io.github.kmpfacelink.model/CapabilityAssessment // io.github.kmpfacelink.model/DeviceCapabilityProfile.component1|component1(){}[0]
+    final fun component2(): io.github.kmpfacelink.model/CapabilityAssessment // io.github.kmpfacelink.model/DeviceCapabilityProfile.component2|component2(){}[0]
+    final fun component3(): io.github.kmpfacelink.model/NpuVendor? // io.github.kmpfacelink.model/DeviceCapabilityProfile.component3|component3(){}[0]
+    final fun component4(): io.github.kmpfacelink.model/DeviceTierRecommendation // io.github.kmpfacelink.model/DeviceCapabilityProfile.component4|component4(){}[0]
+    final fun copy(io.github.kmpfacelink.model/CapabilityAssessment = ..., io.github.kmpfacelink.model/CapabilityAssessment = ..., io.github.kmpfacelink.model/NpuVendor? = ..., io.github.kmpfacelink.model/DeviceTierRecommendation = ...): io.github.kmpfacelink.model/DeviceCapabilityProfile // io.github.kmpfacelink.model/DeviceCapabilityProfile.copy|copy(io.github.kmpfacelink.model.CapabilityAssessment;io.github.kmpfacelink.model.CapabilityAssessment;io.github.kmpfacelink.model.NpuVendor?;io.github.kmpfacelink.model.DeviceTierRecommendation){}[0]
     final fun equals(kotlin/Any?): kotlin/Boolean // io.github.kmpfacelink.model/DeviceCapabilityProfile.equals|equals(kotlin.Any?){}[0]
     final fun hashCode(): kotlin/Int // io.github.kmpfacelink.model/DeviceCapabilityProfile.hashCode|hashCode(){}[0]
     final fun toString(): kotlin/String // io.github.kmpfacelink.model/DeviceCapabilityProfile.toString|toString(){}[0]
+}
+
+final class io.github.kmpfacelink.model/DeviceTierRecommendation { // io.github.kmpfacelink.model/DeviceTierRecommendation|null[0]
+    constructor <init>(io.github.kmpfacelink.model/DeviceTier, io.github.kmpfacelink.model/CapabilitySource, kotlin/String) // io.github.kmpfacelink.model/DeviceTierRecommendation.<init>|<init>(io.github.kmpfacelink.model.DeviceTier;io.github.kmpfacelink.model.CapabilitySource;kotlin.String){}[0]
+
+    final val basis // io.github.kmpfacelink.model/DeviceTierRecommendation.basis|{}basis[0]
+        final fun <get-basis>(): kotlin/String // io.github.kmpfacelink.model/DeviceTierRecommendation.basis.<get-basis>|<get-basis>(){}[0]
+    final val source // io.github.kmpfacelink.model/DeviceTierRecommendation.source|{}source[0]
+        final fun <get-source>(): io.github.kmpfacelink.model/CapabilitySource // io.github.kmpfacelink.model/DeviceTierRecommendation.source.<get-source>|<get-source>(){}[0]
+    final val tier // io.github.kmpfacelink.model/DeviceTierRecommendation.tier|{}tier[0]
+        final fun <get-tier>(): io.github.kmpfacelink.model/DeviceTier // io.github.kmpfacelink.model/DeviceTierRecommendation.tier.<get-tier>|<get-tier>(){}[0]
+
+    final fun component1(): io.github.kmpfacelink.model/DeviceTier // io.github.kmpfacelink.model/DeviceTierRecommendation.component1|component1(){}[0]
+    final fun component2(): io.github.kmpfacelink.model/CapabilitySource // io.github.kmpfacelink.model/DeviceTierRecommendation.component2|component2(){}[0]
+    final fun component3(): kotlin/String // io.github.kmpfacelink.model/DeviceTierRecommendation.component3|component3(){}[0]
+    final fun copy(io.github.kmpfacelink.model/DeviceTier = ..., io.github.kmpfacelink.model/CapabilitySource = ..., kotlin/String = ...): io.github.kmpfacelink.model/DeviceTierRecommendation // io.github.kmpfacelink.model/DeviceTierRecommendation.copy|copy(io.github.kmpfacelink.model.DeviceTier;io.github.kmpfacelink.model.CapabilitySource;kotlin.String){}[0]
+    final fun equals(kotlin/Any?): kotlin/Boolean // io.github.kmpfacelink.model/DeviceTierRecommendation.equals|equals(kotlin.Any?){}[0]
+    final fun hashCode(): kotlin/Int // io.github.kmpfacelink.model/DeviceTierRecommendation.hashCode|hashCode(){}[0]
+    final fun toString(): kotlin/String // io.github.kmpfacelink.model/DeviceTierRecommendation.toString|toString(){}[0]
 }
 
 final class io.github.kmpfacelink.model/EstimatorArtifact { // io.github.kmpfacelink.model/EstimatorArtifact|null[0]
@@ -1489,25 +1564,25 @@ final class io.github.kmpfacelink.model/EvidenceScope { // io.github.kmpfacelink
 }
 
 final class io.github.kmpfacelink.model/FaceLandmark { // io.github.kmpfacelink.model/FaceLandmark|null[0]
-    constructor <init>(kotlin/Float, kotlin/Float, kotlin/Float = ..., kotlin/Float = ..., kotlin/Float = ...) // io.github.kmpfacelink.model/FaceLandmark.<init>|<init>(kotlin.Float;kotlin.Float;kotlin.Float;kotlin.Float;kotlin.Float){}[0]
+    constructor <init>(kotlin/Float, kotlin/Float, kotlin/Float? = ..., kotlin/Float? = ..., kotlin/Float? = ...) // io.github.kmpfacelink.model/FaceLandmark.<init>|<init>(kotlin.Float;kotlin.Float;kotlin.Float?;kotlin.Float?;kotlin.Float?){}[0]
 
     final val presence // io.github.kmpfacelink.model/FaceLandmark.presence|{}presence[0]
-        final fun <get-presence>(): kotlin/Float // io.github.kmpfacelink.model/FaceLandmark.presence.<get-presence>|<get-presence>(){}[0]
+        final fun <get-presence>(): kotlin/Float? // io.github.kmpfacelink.model/FaceLandmark.presence.<get-presence>|<get-presence>(){}[0]
+    final val relativeDepth // io.github.kmpfacelink.model/FaceLandmark.relativeDepth|{}relativeDepth[0]
+        final fun <get-relativeDepth>(): kotlin/Float? // io.github.kmpfacelink.model/FaceLandmark.relativeDepth.<get-relativeDepth>|<get-relativeDepth>(){}[0]
     final val visibility // io.github.kmpfacelink.model/FaceLandmark.visibility|{}visibility[0]
-        final fun <get-visibility>(): kotlin/Float // io.github.kmpfacelink.model/FaceLandmark.visibility.<get-visibility>|<get-visibility>(){}[0]
+        final fun <get-visibility>(): kotlin/Float? // io.github.kmpfacelink.model/FaceLandmark.visibility.<get-visibility>|<get-visibility>(){}[0]
     final val x // io.github.kmpfacelink.model/FaceLandmark.x|{}x[0]
         final fun <get-x>(): kotlin/Float // io.github.kmpfacelink.model/FaceLandmark.x.<get-x>|<get-x>(){}[0]
     final val y // io.github.kmpfacelink.model/FaceLandmark.y|{}y[0]
         final fun <get-y>(): kotlin/Float // io.github.kmpfacelink.model/FaceLandmark.y.<get-y>|<get-y>(){}[0]
-    final val z // io.github.kmpfacelink.model/FaceLandmark.z|{}z[0]
-        final fun <get-z>(): kotlin/Float // io.github.kmpfacelink.model/FaceLandmark.z.<get-z>|<get-z>(){}[0]
 
     final fun component1(): kotlin/Float // io.github.kmpfacelink.model/FaceLandmark.component1|component1(){}[0]
     final fun component2(): kotlin/Float // io.github.kmpfacelink.model/FaceLandmark.component2|component2(){}[0]
-    final fun component3(): kotlin/Float // io.github.kmpfacelink.model/FaceLandmark.component3|component3(){}[0]
-    final fun component4(): kotlin/Float // io.github.kmpfacelink.model/FaceLandmark.component4|component4(){}[0]
-    final fun component5(): kotlin/Float // io.github.kmpfacelink.model/FaceLandmark.component5|component5(){}[0]
-    final fun copy(kotlin/Float = ..., kotlin/Float = ..., kotlin/Float = ..., kotlin/Float = ..., kotlin/Float = ...): io.github.kmpfacelink.model/FaceLandmark // io.github.kmpfacelink.model/FaceLandmark.copy|copy(kotlin.Float;kotlin.Float;kotlin.Float;kotlin.Float;kotlin.Float){}[0]
+    final fun component3(): kotlin/Float? // io.github.kmpfacelink.model/FaceLandmark.component3|component3(){}[0]
+    final fun component4(): kotlin/Float? // io.github.kmpfacelink.model/FaceLandmark.component4|component4(){}[0]
+    final fun component5(): kotlin/Float? // io.github.kmpfacelink.model/FaceLandmark.component5|component5(){}[0]
+    final fun copy(kotlin/Float = ..., kotlin/Float = ..., kotlin/Float? = ..., kotlin/Float? = ..., kotlin/Float? = ...): io.github.kmpfacelink.model/FaceLandmark // io.github.kmpfacelink.model/FaceLandmark.copy|copy(kotlin.Float;kotlin.Float;kotlin.Float?;kotlin.Float?;kotlin.Float?){}[0]
     final fun equals(kotlin/Any?): kotlin/Boolean // io.github.kmpfacelink.model/FaceLandmark.equals|equals(kotlin.Any?){}[0]
     final fun hashCode(): kotlin/Int // io.github.kmpfacelink.model/FaceLandmark.hashCode|hashCode(){}[0]
     final fun toString(): kotlin/String // io.github.kmpfacelink.model/FaceLandmark.toString|toString(){}[0]
@@ -3090,15 +3165,14 @@ final val io.github.kmpfacelink.model/ALL_BLEND_SHAPES // io.github.kmpfacelink.
 final fun (io.github.kmpfacelink.api/Releasable?).io.github.kmpfacelink.util/releaseSafely(kotlin/String, kotlin/String) // io.github.kmpfacelink.util/releaseSafely|releaseSafely@io.github.kmpfacelink.api.Releasable?(kotlin.String;kotlin.String){}[0]
 final fun (io.github.kmpfacelink.model/Body3DConfig).io.github.kmpfacelink.util/createLiftingStrategy(): io.github.kmpfacelink.util/PoseLiftingStrategy? // io.github.kmpfacelink.util/createLiftingStrategy|createLiftingStrategy@io.github.kmpfacelink.model.Body3DConfig(){}[0]
 final fun (kotlin.collections/Map<io.github.kmpfacelink.model/BlendShape, kotlin/Float>).io.github.kmpfacelink.model/filterByActive(kotlin.collections/Set<io.github.kmpfacelink.model/BlendShape>): kotlin.collections/Map<io.github.kmpfacelink.model/BlendShape, kotlin/Float> // io.github.kmpfacelink.model/filterByActive|filterByActive@kotlin.collections.Map<io.github.kmpfacelink.model.BlendShape,kotlin.Float>(kotlin.collections.Set<io.github.kmpfacelink.model.BlendShape>){}[0]
-final fun (kotlin.collections/Map<io.github.kmpfacelink.model/BlendShape, kotlin/Float>).io.github.kmpfacelink.model/valueOf(io.github.kmpfacelink.model/BlendShape): kotlin/Float // io.github.kmpfacelink.model/valueOf|valueOf@kotlin.collections.Map<io.github.kmpfacelink.model.BlendShape,kotlin.Float>(io.github.kmpfacelink.model.BlendShape){}[0]
 final fun <#A: kotlin/Any?> (kotlinx.coroutines.flow/Flow<#A>).io.github.kmpfacelink.util/withPerformanceMonitor(io.github.kmpfacelink.util/PerformanceMonitor, kotlin/Function1<#A, kotlin/Long>): kotlinx.coroutines.flow/Flow<#A> // io.github.kmpfacelink.util/withPerformanceMonitor|withPerformanceMonitor@kotlinx.coroutines.flow.Flow<0:0>(io.github.kmpfacelink.util.PerformanceMonitor;kotlin.Function1<0:0,kotlin.Long>){0§<kotlin.Any?>}[0]
+final fun io.github.kmpfacelink.api/assessDeviceCapabilities(io.github.kmpfacelink.api/PlatformContext): io.github.kmpfacelink.model/DeviceCapabilityProfile // io.github.kmpfacelink.api/assessDeviceCapabilities|assessDeviceCapabilities(io.github.kmpfacelink.api.PlatformContext){}[0]
 final fun io.github.kmpfacelink.api/createBodyTracker(io.github.kmpfacelink.api/PlatformContext, io.github.kmpfacelink.model/BodyTrackerConfig = ...): io.github.kmpfacelink.api/BodyTracker // io.github.kmpfacelink.api/createBodyTracker|createBodyTracker(io.github.kmpfacelink.api.PlatformContext;io.github.kmpfacelink.model.BodyTrackerConfig){}[0]
 final fun io.github.kmpfacelink.api/createFaceTracker(io.github.kmpfacelink.api/PlatformContext, io.github.kmpfacelink.model/FaceTrackerConfig = ...): io.github.kmpfacelink.api/FaceTracker // io.github.kmpfacelink.api/createFaceTracker|createFaceTracker(io.github.kmpfacelink.api.PlatformContext;io.github.kmpfacelink.model.FaceTrackerConfig){}[0]
 final fun io.github.kmpfacelink.api/createHandTracker(io.github.kmpfacelink.api/PlatformContext, io.github.kmpfacelink.model/HandTrackerConfig = ...): io.github.kmpfacelink.api/HandTracker // io.github.kmpfacelink.api/createHandTracker|createHandTracker(io.github.kmpfacelink.api.PlatformContext;io.github.kmpfacelink.model.HandTrackerConfig){}[0]
 final fun io.github.kmpfacelink.api/createHolisticTracker(io.github.kmpfacelink.api/PlatformContext, io.github.kmpfacelink.model/HolisticTrackerConfig = ...): io.github.kmpfacelink.api/HolisticTracker // io.github.kmpfacelink.api/createHolisticTracker|createHolisticTracker(io.github.kmpfacelink.api.PlatformContext;io.github.kmpfacelink.model.HolisticTrackerConfig){}[0]
-final fun io.github.kmpfacelink.api/detectDeviceCapabilities(io.github.kmpfacelink.api/PlatformContext): io.github.kmpfacelink.model/DeviceCapabilityProfile // io.github.kmpfacelink.api/detectDeviceCapabilities|detectDeviceCapabilities(io.github.kmpfacelink.api.PlatformContext){}[0]
 final fun io.github.kmpfacelink.api/openOfflineFaceInference(io.github.kmpfacelink.api/PlatformContext, io.github.kmpfacelink.model/FaceTrackerConfig = ...): io.github.kmpfacelink.api/OfflineFaceInference // io.github.kmpfacelink.api/openOfflineFaceInference|openOfflineFaceInference(io.github.kmpfacelink.api.PlatformContext;io.github.kmpfacelink.model.FaceTrackerConfig){}[0]
-final fun io.github.kmpfacelink.model/emptyBlendShapeData(): kotlin.collections/Map<io.github.kmpfacelink.model/BlendShape, kotlin/Float> // io.github.kmpfacelink.model/emptyBlendShapeData|emptyBlendShapeData(){}[0]
+final fun io.github.kmpfacelink.model/allShapesAtRest(): kotlin.collections/Map<io.github.kmpfacelink.model/BlendShape, kotlin/Float> // io.github.kmpfacelink.model/allShapesAtRest|allShapesAtRest(){}[0]
 final inline fun <#A: kotlin/Any?> (io.github.kmpfacelink.util/PlatformLock).io.github.kmpfacelink.util/withLock(kotlin/Function0<#A>): #A // io.github.kmpfacelink.util/withLock|withLock@io.github.kmpfacelink.util.PlatformLock(kotlin.Function0<0:0>){0§<kotlin.Any?>}[0]
 
 // Targets: [ios]

@@ -29,13 +29,30 @@ internal object GazeEstimator {
      */
     private const val MAX_GAZE_ANGLE_DEGREES = 30f
 
+    /** The eight shapes this estimate is built from. */
+    private val REQUIRED_SHAPES = setOf(
+        BlendShape.EYE_LOOK_IN_LEFT,
+        BlendShape.EYE_LOOK_OUT_LEFT,
+        BlendShape.EYE_LOOK_UP_LEFT,
+        BlendShape.EYE_LOOK_DOWN_LEFT,
+        BlendShape.EYE_LOOK_IN_RIGHT,
+        BlendShape.EYE_LOOK_OUT_RIGHT,
+        BlendShape.EYE_LOOK_UP_RIGHT,
+        BlendShape.EYE_LOOK_DOWN_RIGHT,
+    )
+
     /**
      * Estimate gaze data from blend shapes.
      *
+     * Returns null unless every shape in [REQUIRED_SHAPES] was measured. Reading an absent shape as
+     * zero would make all eight cancel out and report a confident forward gaze, which is the one
+     * answer an estimator that never looked at the eyes must not give.
+     *
      * @param blendShapes Current frame blend shape values.
-     * @return Estimated gaze direction for both eyes.
+     * @return Estimated gaze direction for both eyes, or null when the inputs were not measured.
      */
-    fun estimate(blendShapes: BlendShapeData): GazeData {
+    fun estimate(blendShapes: BlendShapeData): GazeData? {
+        if (!blendShapes.keys.containsAll(REQUIRED_SHAPES)) return null
         // Left eye yaw: lookOut = looking left (negative yaw), lookIn = looking right (positive yaw)
         val leftEyeYaw = (
             blendShapes.valueOf(BlendShape.EYE_LOOK_IN_LEFT) -

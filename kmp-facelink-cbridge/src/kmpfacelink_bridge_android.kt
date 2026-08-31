@@ -1,7 +1,13 @@
-// Copyright (c) KMP-FaceLink contributors. Licensed under Apache-2.0.
+// Nothing builds this file. It is not in `settings.gradle.kts`, the CMake build does not reference
+// it, and no CI job compiles it — so it is a hand-written mirror of `FaceLinkUnityFacade` with no
+// mechanism keeping the two in step. The drift is already visible: this side grew
+// `getLatestBlendShapeMask`, `getLatestBlendShapeMaskLiveLink` and `getBlendShapeSchemaFingerprint`
+// and the facade did not, which is how the Unity boundary ended up with two contracts. Edits here
+// are checked by reading, not by compiling.
 
 package io.github.kmpfacelink.cbridge
 
+// Copyright (c) KMP-FaceLink contributors. Licensed under Apache-2.0.
 import android.content.Context
 import io.github.kmpfacelink.api.FaceTracker
 import io.github.kmpfacelink.api.HandTracker
@@ -9,11 +15,12 @@ import io.github.kmpfacelink.api.PlatformContext
 import io.github.kmpfacelink.api.createFaceTracker
 import io.github.kmpfacelink.api.createHandTracker
 import io.github.kmpfacelink.model.BlendShape
+import io.github.kmpfacelink.model.BlendShapeWireSchema
 import io.github.kmpfacelink.model.FaceTrackingData
 import io.github.kmpfacelink.model.HandTrackingData
 import io.github.kmpfacelink.model.Handedness
-import io.github.kmpfacelink.model.BlendShapeWireSchema
 import io.github.kmpfacelink.model.LiveLinkBlendShapes
+import io.github.kmpfacelink.model.densify
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -219,15 +226,12 @@ class FaceLinkBridgeFacade(
         private const val HAND_LANDMARK_COUNT = 21
         private const val COORDINATES_PER_LANDMARK = 3
 
+        // Unmeasured shapes arrive here as `substitute`, and `densify` keeps the record of which
+        // ones those were. This boundary drops that record because the array is all it can send;
+        // carrying it across would need a presence field in the Unity-side contract.
         private fun blendShapesToArray(
             blendShapes: Map<BlendShape, Float>,
-        ): FloatArray {
-            val result = FloatArray(BLEND_SHAPE_COUNT)
-            for (entry in blendShapes) {
-                result[entry.key.ordinal] = entry.value
-            }
-            return result
-        }
+        ): FloatArray = blendShapes.densify().values
 
         private fun handLandmarksToArray(
             landmarks: List<io.github.kmpfacelink.model.HandLandmarkPoint>,

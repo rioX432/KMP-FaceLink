@@ -1407,6 +1407,19 @@ final class io.github.kmpfacelink.model/CapabilityAssessment { // io.github.kmpf
     final fun toString(): kotlin/String // io.github.kmpfacelink.model/CapabilityAssessment.toString|toString(){}[0]
 }
 
+final class io.github.kmpfacelink.model/DensifiedBlendShapes { // io.github.kmpfacelink.model/DensifiedBlendShapes|null[0]
+    final val measured // io.github.kmpfacelink.model/DensifiedBlendShapes.measured|{}measured[0]
+        final fun <get-measured>(): kotlin.collections/Set<io.github.kmpfacelink.model/BlendShape> // io.github.kmpfacelink.model/DensifiedBlendShapes.measured.<get-measured>|<get-measured>(){}[0]
+    final val substitute // io.github.kmpfacelink.model/DensifiedBlendShapes.substitute|{}substitute[0]
+        final fun <get-substitute>(): kotlin/Float // io.github.kmpfacelink.model/DensifiedBlendShapes.substitute.<get-substitute>|<get-substitute>(){}[0]
+    final val substitutedCount // io.github.kmpfacelink.model/DensifiedBlendShapes.substitutedCount|{}substitutedCount[0]
+        final fun <get-substitutedCount>(): kotlin/Int // io.github.kmpfacelink.model/DensifiedBlendShapes.substitutedCount.<get-substitutedCount>|<get-substitutedCount>(){}[0]
+    final val values // io.github.kmpfacelink.model/DensifiedBlendShapes.values|{}values[0]
+        final fun <get-values>(): kotlin/FloatArray // io.github.kmpfacelink.model/DensifiedBlendShapes.values.<get-values>|<get-values>(){}[0]
+
+    final fun wasMeasured(io.github.kmpfacelink.model/BlendShape): kotlin/Boolean // io.github.kmpfacelink.model/DensifiedBlendShapes.wasMeasured|wasMeasured(io.github.kmpfacelink.model.BlendShape){}[0]
+}
+
 final class io.github.kmpfacelink.model/DerivedFaceSignalDecision { // io.github.kmpfacelink.model/DerivedFaceSignalDecision|null[0]
     final val candidateValue // io.github.kmpfacelink.model/DerivedFaceSignalDecision.candidateValue|{}candidateValue[0]
         final fun <get-candidateValue>(): kotlin/Float? // io.github.kmpfacelink.model/DerivedFaceSignalDecision.candidateValue.<get-candidateValue>|<get-candidateValue>(){}[0]
@@ -3174,6 +3187,7 @@ final val io.github.kmpfacelink.model/ALL_BLEND_SHAPES // io.github.kmpfacelink.
 
 final fun (io.github.kmpfacelink.api/Releasable?).io.github.kmpfacelink.util/releaseSafely(kotlin/String, kotlin/String) // io.github.kmpfacelink.util/releaseSafely|releaseSafely@io.github.kmpfacelink.api.Releasable?(kotlin.String;kotlin.String){}[0]
 final fun (io.github.kmpfacelink.model/Body3DConfig).io.github.kmpfacelink.util/createLiftingStrategy(): io.github.kmpfacelink.util/PoseLiftingStrategy? // io.github.kmpfacelink.util/createLiftingStrategy|createLiftingStrategy@io.github.kmpfacelink.model.Body3DConfig(){}[0]
+final fun (kotlin.collections/Map<io.github.kmpfacelink.model/BlendShape, kotlin/Float>).io.github.kmpfacelink.model/densify(kotlin/Float = ...): io.github.kmpfacelink.model/DensifiedBlendShapes // io.github.kmpfacelink.model/densify|densify@kotlin.collections.Map<io.github.kmpfacelink.model.BlendShape,kotlin.Float>(kotlin.Float){}[0]
 final fun (kotlin.collections/Map<io.github.kmpfacelink.model/BlendShape, kotlin/Float>).io.github.kmpfacelink.model/filterByActive(kotlin.collections/Set<io.github.kmpfacelink.model/BlendShape>): kotlin.collections/Map<io.github.kmpfacelink.model/BlendShape, kotlin/Float> // io.github.kmpfacelink.model/filterByActive|filterByActive@kotlin.collections.Map<io.github.kmpfacelink.model.BlendShape,kotlin.Float>(kotlin.collections.Set<io.github.kmpfacelink.model.BlendShape>){}[0]
 final fun <#A: kotlin/Any?> (kotlinx.coroutines.flow/Flow<#A>).io.github.kmpfacelink.util/withPerformanceMonitor(io.github.kmpfacelink.util/PerformanceMonitor, kotlin/Function1<#A, kotlin/Long>): kotlinx.coroutines.flow/Flow<#A> // io.github.kmpfacelink.util/withPerformanceMonitor|withPerformanceMonitor@kotlinx.coroutines.flow.Flow<0:0>(io.github.kmpfacelink.util.PerformanceMonitor;kotlin.Function1<0:0,kotlin.Long>){0§<kotlin.Any?>}[0]
 final fun io.github.kmpfacelink.api/assessDeviceCapabilities(io.github.kmpfacelink.api/PlatformContext): io.github.kmpfacelink.model/DeviceCapabilityProfile // io.github.kmpfacelink.api/assessDeviceCapabilities|assessDeviceCapabilities(io.github.kmpfacelink.api.PlatformContext){}[0]

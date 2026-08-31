@@ -699,6 +699,19 @@ public final class io/github/kmpfacelink/model/CapabilityState : java/lang/Enum 
 	public static fun values ()[Lio/github/kmpfacelink/model/CapabilityState;
 }
 
+public final class io/github/kmpfacelink/model/DensifiedBlendShapes {
+	public final fun getMeasured ()Ljava/util/Set;
+	public final fun getSubstitute ()F
+	public final fun getSubstitutedCount ()I
+	public final fun getValues ()[F
+	public final fun wasMeasured (Lio/github/kmpfacelink/model/BlendShape;)Z
+}
+
+public final class io/github/kmpfacelink/model/DensifiedBlendShapesKt {
+	public static final fun densify (Ljava/util/Map;F)Lio/github/kmpfacelink/model/DensifiedBlendShapes;
+	public static synthetic fun densify$default (Ljava/util/Map;FILjava/lang/Object;)Lio/github/kmpfacelink/model/DensifiedBlendShapes;
+}
+
 public abstract interface class io/github/kmpfacelink/model/DerivedFaceSignal {
 	public abstract fun getCanonicalBlendShape ()Lio/github/kmpfacelink/model/BlendShape;
 	public abstract fun getId ()Ljava/lang/String;

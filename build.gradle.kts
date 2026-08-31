@@ -484,7 +484,13 @@ val testSdkPublicSafety by tasks.registering(Exec::class) {
 val verifySparseBlendShapeContract by tasks.registering(Exec::class) {
     group = "verification"
     description = "Reject sources that fabricate values for blend shapes an estimator did not emit"
-    commandLine("python3", "scripts/verify-sparse-blendshape-contract.py")
+    commandLine("python3", "scripts/verify_sparse_blendshape_contract.py")
+}
+
+val testSparseBlendShapeContract by tasks.registering(Exec::class) {
+    group = "verification"
+    description = "Mutation controls for the sparse blend shape contract guard"
+    commandLine("python3", "-m", "unittest", "scripts/test_verify_sparse_blendshape_contract.py")
 }
 
 val verifySdkDocumentation by tasks.registering(Exec::class) {
@@ -661,6 +667,7 @@ tasks.register("sdkQualityCheck") {
         verifySdkPublicSafety,
         testSdkPublicSafety,
         verifySparseBlendShapeContract,
+        testSparseBlendShapeContract,
         verifySdkDocumentation,
         testSdkDocumentation,
         testCalibrationTooling,

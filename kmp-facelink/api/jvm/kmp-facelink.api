@@ -11,11 +11,11 @@ public abstract interface class io/github/kmpfacelink/api/BodyTracker : io/githu
 	public abstract fun getState ()Lkotlinx/coroutines/flow/StateFlow;
 	public abstract fun getTrackingData ()Lkotlinx/coroutines/flow/Flow;
 	public abstract fun release ()V
-	public abstract fun resetSmoothing ()V
+	public abstract fun resetSmoothing ()Lio/github/kmpfacelink/model/TrackerOperationStatus;
 	public abstract fun start (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun stop (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun switchCamera (Lio/github/kmpfacelink/model/CameraFacing;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public abstract fun updateSmoothing (Lio/github/kmpfacelink/model/SmoothingConfig;)V
+	public abstract fun updateSmoothing (Lio/github/kmpfacelink/model/SmoothingConfig;)Lio/github/kmpfacelink/model/TrackerOperationStatus;
 }
 
 public final class io/github/kmpfacelink/api/BodyTrackerFactory_jvmKt {
@@ -23,21 +23,64 @@ public final class io/github/kmpfacelink/api/BodyTrackerFactory_jvmKt {
 	public static synthetic fun createBodyTracker$default (Lio/github/kmpfacelink/api/PlatformContext;Lio/github/kmpfacelink/model/BodyTrackerConfig;ILjava/lang/Object;)Lio/github/kmpfacelink/api/BodyTracker;
 }
 
+public final class io/github/kmpfacelink/api/CheekPuffContourObservation {
+	public fun <init> (ZDDD)V
+	public final fun component1 ()Z
+	public final fun component2 ()D
+	public final fun component3 ()D
+	public final fun component4 ()D
+	public final fun copy (ZDDD)Lio/github/kmpfacelink/api/CheekPuffContourObservation;
+	public static synthetic fun copy$default (Lio/github/kmpfacelink/api/CheekPuffContourObservation;ZDDDILjava/lang/Object;)Lio/github/kmpfacelink/api/CheekPuffContourObservation;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getFired ()Z
+	public final fun getMouthWidthDelta ()D
+	public final fun getOvalChinDelta ()D
+	public final fun getOvalJawDelta ()D
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/github/kmpfacelink/api/CheekPuffContourObservationSession {
+	public static final field Companion Lio/github/kmpfacelink/api/CheekPuffContourObservationSession$Companion;
+	public static final field LANDMARK_COUNT I
+	public static final field MINIMUM_NEUTRAL_FRAMES I
+	public static final field MOUTH_WIDTH_MAXIMUM D
+	public static final field OVAL_CHIN_MAXIMUM D
+	public static final field OVAL_JAW_MINIMUM D
+	public static final field RECOMMENDED_NEUTRAL_FRAMES I
+	public fun <init> (II)V
+	public final fun addNeutralFrame (Ljava/util/List;J)V
+	public final fun finishNeutralCalibration ()V
+	public final fun getNeutralFrameCount ()I
+	public final fun isReady ()Z
+	public final fun observe (Ljava/util/List;J)Lio/github/kmpfacelink/api/CheekPuffContourObservation;
+}
+
+public final class io/github/kmpfacelink/api/CheekPuffContourObservationSession$Companion {
+}
+
 public final class io/github/kmpfacelink/api/DeviceCapabilityDetector_jvmKt {
-	public static final fun detectDeviceCapabilities (Lio/github/kmpfacelink/api/PlatformContext;)Lio/github/kmpfacelink/model/DeviceCapabilityProfile;
+	public static final fun assessDeviceCapabilities (Lio/github/kmpfacelink/api/PlatformContext;)Lio/github/kmpfacelink/model/DeviceCapabilityProfile;
 }
 
 public abstract interface class io/github/kmpfacelink/api/FaceTracker : io/github/kmpfacelink/api/Releasable {
 	public abstract fun getErrorMessage ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun getPerformanceEvents ()Lkotlinx/coroutines/flow/Flow;
 	public abstract fun getState ()Lkotlinx/coroutines/flow/StateFlow;
 	public abstract fun getTrackingData ()Lkotlinx/coroutines/flow/Flow;
+	public fun performanceEventsSnapshot ()Ljava/util/List;
 	public abstract fun release ()V
-	public abstract fun resetCalibration ()V
-	public abstract fun resetSmoothing ()V
+	public abstract fun resetCalibration ()Lio/github/kmpfacelink/model/TrackerOperationStatus;
+	public abstract fun resetSmoothing ()Lio/github/kmpfacelink/model/TrackerOperationStatus;
 	public abstract fun start (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun stop (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun switchCamera (Lio/github/kmpfacelink/model/CameraFacing;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public abstract fun updateSmoothing (Lio/github/kmpfacelink/model/SmoothingConfig;)V
+	public abstract fun updateSmoothing (Lio/github/kmpfacelink/model/SmoothingConfig;)Lio/github/kmpfacelink/model/TrackerOperationStatus;
+}
+
+public final class io/github/kmpfacelink/api/FaceTracker$DefaultImpls {
+	public static fun getPerformanceEvents (Lio/github/kmpfacelink/api/FaceTracker;)Lkotlinx/coroutines/flow/Flow;
+	public static fun performanceEventsSnapshot (Lio/github/kmpfacelink/api/FaceTracker;)Ljava/util/List;
 }
 
 public final class io/github/kmpfacelink/api/FaceTrackerFactory_jvmKt {
@@ -54,11 +97,11 @@ public abstract interface class io/github/kmpfacelink/api/HandTracker : io/githu
 	public abstract fun getState ()Lkotlinx/coroutines/flow/StateFlow;
 	public abstract fun getTrackingData ()Lkotlinx/coroutines/flow/Flow;
 	public abstract fun release ()V
-	public abstract fun resetSmoothing ()V
+	public abstract fun resetSmoothing ()Lio/github/kmpfacelink/model/TrackerOperationStatus;
 	public abstract fun start (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun stop (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun switchCamera (Lio/github/kmpfacelink/model/CameraFacing;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public abstract fun updateSmoothing (Lio/github/kmpfacelink/model/SmoothingConfig;)V
+	public abstract fun updateSmoothing (Lio/github/kmpfacelink/model/SmoothingConfig;)Lio/github/kmpfacelink/model/TrackerOperationStatus;
 }
 
 public final class io/github/kmpfacelink/api/HandTrackerFactory_jvmKt {
@@ -72,16 +115,91 @@ public abstract interface class io/github/kmpfacelink/api/HolisticTracker : io/g
 	public abstract fun getState ()Lkotlinx/coroutines/flow/StateFlow;
 	public abstract fun getTrackingData ()Lkotlinx/coroutines/flow/Flow;
 	public abstract fun release ()V
-	public abstract fun resetSmoothing ()V
+	public abstract fun resetSmoothing ()Lio/github/kmpfacelink/model/TrackerOperationStatus;
 	public abstract fun start (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun stop (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun switchCamera (Lio/github/kmpfacelink/model/CameraFacing;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public abstract fun updateSmoothing (Lio/github/kmpfacelink/model/SmoothingConfig;)V
+	public abstract fun updateSmoothing (Lio/github/kmpfacelink/model/SmoothingConfig;)Lio/github/kmpfacelink/model/TrackerOperationStatus;
 }
 
 public final class io/github/kmpfacelink/api/HolisticTrackerFactory_jvmKt {
 	public static final fun createHolisticTracker (Lio/github/kmpfacelink/api/PlatformContext;Lio/github/kmpfacelink/model/HolisticTrackerConfig;)Lio/github/kmpfacelink/api/HolisticTracker;
 	public static synthetic fun createHolisticTracker$default (Lio/github/kmpfacelink/api/PlatformContext;Lio/github/kmpfacelink/model/HolisticTrackerConfig;ILjava/lang/Object;)Lio/github/kmpfacelink/api/HolisticTracker;
+}
+
+public abstract interface class io/github/kmpfacelink/api/OfflineFaceInference : io/github/kmpfacelink/api/Releasable {
+	public abstract fun infer (Lio/github/kmpfacelink/api/OfflineFrame;)Lio/github/kmpfacelink/api/OfflineFaceResult;
+	public fun inferMeasured (Lio/github/kmpfacelink/api/OfflineFrame;)Lio/github/kmpfacelink/api/OfflineMeasuredFaceResult;
+}
+
+public final class io/github/kmpfacelink/api/OfflineFaceInference$DefaultImpls {
+	public static fun inferMeasured (Lio/github/kmpfacelink/api/OfflineFaceInference;Lio/github/kmpfacelink/api/OfflineFrame;)Lio/github/kmpfacelink/api/OfflineMeasuredFaceResult;
+}
+
+public final class io/github/kmpfacelink/api/OfflineFaceInference_jvmKt {
+	public static final fun openOfflineFaceInference (Lio/github/kmpfacelink/api/PlatformContext;Lio/github/kmpfacelink/model/FaceTrackerConfig;)Lio/github/kmpfacelink/api/OfflineFaceInference;
+	public static synthetic fun openOfflineFaceInference$default (Lio/github/kmpfacelink/api/PlatformContext;Lio/github/kmpfacelink/model/FaceTrackerConfig;ILjava/lang/Object;)Lio/github/kmpfacelink/api/OfflineFaceInference;
+}
+
+public final class io/github/kmpfacelink/api/OfflineFaceResult {
+	public fun <init> ([F[F[F)V
+	public final fun getBlendshapes ()[F
+	public final fun getHasFace ()Z
+	public final fun getLandmarks ()[F
+	public final fun getTransform ()[F
+}
+
+public final class io/github/kmpfacelink/api/OfflineFaceTiming {
+	public fun <init> (Lio/github/kmpfacelink/api/OfflineFaceTimingClock;JJJJ)V
+	public final fun component1 ()Lio/github/kmpfacelink/api/OfflineFaceTimingClock;
+	public final fun component2 ()J
+	public final fun component3 ()J
+	public final fun component4 ()J
+	public final fun component5 ()J
+	public final fun copy (Lio/github/kmpfacelink/api/OfflineFaceTimingClock;JJJJ)Lio/github/kmpfacelink/api/OfflineFaceTiming;
+	public static synthetic fun copy$default (Lio/github/kmpfacelink/api/OfflineFaceTiming;Lio/github/kmpfacelink/api/OfflineFaceTimingClock;JJJJILjava/lang/Object;)Lio/github/kmpfacelink/api/OfflineFaceTiming;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getClock ()Lio/github/kmpfacelink/api/OfflineFaceTimingClock;
+	public final fun getEstimatorCallNs ()J
+	public final fun getEstimatorToSdkOutputReadyNs ()J
+	public final fun getRawOutputMaterializationNs ()J
+	public final fun getSdkProcessToOutputReadyNs ()J
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/github/kmpfacelink/api/OfflineFaceTimingClock : java/lang/Enum {
+	public static final field ANDROID_ELAPSED_REALTIME_NANOS Lio/github/kmpfacelink/api/OfflineFaceTimingClock;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lio/github/kmpfacelink/api/OfflineFaceTimingClock;
+	public static fun values ()[Lio/github/kmpfacelink/api/OfflineFaceTimingClock;
+}
+
+public final class io/github/kmpfacelink/api/OfflineFrame {
+	public fun <init> (II[BJZ)V
+	public synthetic fun <init> (II[BJZILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun getHeight ()I
+	public final fun getMirroredBeforeInference ()Z
+	public final fun getRgba ()[B
+	public final fun getTimestampMs ()J
+	public final fun getWidth ()I
+}
+
+public final class io/github/kmpfacelink/api/OfflineMeasuredFaceResult {
+	public fun <init> (Lio/github/kmpfacelink/api/OfflineFaceResult;Lio/github/kmpfacelink/model/FaceTrackingData;Lio/github/kmpfacelink/model/TrackingContextEpoch;Lio/github/kmpfacelink/api/OfflineFaceTiming;)V
+	public final fun component1 ()Lio/github/kmpfacelink/api/OfflineFaceResult;
+	public final fun component2 ()Lio/github/kmpfacelink/model/FaceTrackingData;
+	public final fun component3 ()Lio/github/kmpfacelink/model/TrackingContextEpoch;
+	public final fun component4 ()Lio/github/kmpfacelink/api/OfflineFaceTiming;
+	public final fun copy (Lio/github/kmpfacelink/api/OfflineFaceResult;Lio/github/kmpfacelink/model/FaceTrackingData;Lio/github/kmpfacelink/model/TrackingContextEpoch;Lio/github/kmpfacelink/api/OfflineFaceTiming;)Lio/github/kmpfacelink/api/OfflineMeasuredFaceResult;
+	public static synthetic fun copy$default (Lio/github/kmpfacelink/api/OfflineMeasuredFaceResult;Lio/github/kmpfacelink/api/OfflineFaceResult;Lio/github/kmpfacelink/model/FaceTrackingData;Lio/github/kmpfacelink/model/TrackingContextEpoch;Lio/github/kmpfacelink/api/OfflineFaceTiming;ILjava/lang/Object;)Lio/github/kmpfacelink/api/OfflineMeasuredFaceResult;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getContextEpoch ()Lio/github/kmpfacelink/model/TrackingContextEpoch;
+	public final fun getProcessed ()Lio/github/kmpfacelink/model/FaceTrackingData;
+	public final fun getRaw ()Lio/github/kmpfacelink/api/OfflineFaceResult;
+	public final fun getTiming ()Lio/github/kmpfacelink/api/OfflineFaceTiming;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
 }
 
 public final class io/github/kmpfacelink/api/PlatformContext {
@@ -102,6 +220,26 @@ public final class io/github/kmpfacelink/api/TrackingState : java/lang/Enum {
 	public static fun getEntries ()Lkotlin/enums/EnumEntries;
 	public static fun valueOf (Ljava/lang/String;)Lio/github/kmpfacelink/api/TrackingState;
 	public static fun values ()[Lio/github/kmpfacelink/api/TrackingState;
+}
+
+public final class io/github/kmpfacelink/model/AlternativeSignalObservation {
+	public fun <init> (Ljava/lang/String;FLio/github/kmpfacelink/model/BlendShape;)V
+	public final fun getProducerId ()Ljava/lang/String;
+	public final fun getProposedTarget ()Lio/github/kmpfacelink/model/BlendShape;
+	public final fun getValue ()F
+}
+
+public final class io/github/kmpfacelink/model/AppliedTransform {
+	public fun <init> (Lio/github/kmpfacelink/model/TransformKind;Ljava/lang/String;)V
+	public final fun component1 ()Lio/github/kmpfacelink/model/TransformKind;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun copy (Lio/github/kmpfacelink/model/TransformKind;Ljava/lang/String;)Lio/github/kmpfacelink/model/AppliedTransform;
+	public static synthetic fun copy$default (Lio/github/kmpfacelink/model/AppliedTransform;Lio/github/kmpfacelink/model/TransformKind;Ljava/lang/String;ILjava/lang/Object;)Lio/github/kmpfacelink/model/AppliedTransform;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getKind ()Lio/github/kmpfacelink/model/TransformKind;
+	public final fun getTransformFingerprint ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
 }
 
 public final class io/github/kmpfacelink/model/ArmJointPoint {
@@ -215,10 +353,9 @@ public final class io/github/kmpfacelink/model/BlendShape$Companion {
 }
 
 public final class io/github/kmpfacelink/model/BlendShapeDataKt {
-	public static final fun emptyBlendShapeData ()Ljava/util/Map;
+	public static final fun allShapesAtRest ()Ljava/util/Map;
 	public static final fun filterByActive (Ljava/util/Map;Ljava/util/Set;)Ljava/util/Map;
 	public static final fun getALL_BLEND_SHAPES ()Ljava/util/Set;
-	public static final fun valueOf (Ljava/util/Map;Lio/github/kmpfacelink/model/BlendShape;)F
 }
 
 public abstract class io/github/kmpfacelink/model/BlendShapeEnhancerConfig {
@@ -254,6 +391,69 @@ public final class io/github/kmpfacelink/model/BlendShapeEnhancerConfig$None : i
 	public fun equals (Ljava/lang/Object;)Z
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
+}
+
+public abstract interface class io/github/kmpfacelink/model/BlendShapeFallbackPolicy {
+	public abstract fun decide (Lio/github/kmpfacelink/model/BlendShape;Lio/github/kmpfacelink/model/CapabilityEvidence;Lio/github/kmpfacelink/model/EvidenceAcceptance;)Lio/github/kmpfacelink/model/BlendShapeRoute;
+}
+
+public abstract interface class io/github/kmpfacelink/model/BlendShapeRoute {
+}
+
+public final class io/github/kmpfacelink/model/BlendShapeRoute$Alternative : io/github/kmpfacelink/model/BlendShapeRoute {
+	public fun <init> (Ljava/lang/String;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;)Lio/github/kmpfacelink/model/BlendShapeRoute$Alternative;
+	public static synthetic fun copy$default (Lio/github/kmpfacelink/model/BlendShapeRoute$Alternative;Ljava/lang/String;ILjava/lang/Object;)Lio/github/kmpfacelink/model/BlendShapeRoute$Alternative;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getId ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/github/kmpfacelink/model/BlendShapeRoute$Disabled : io/github/kmpfacelink/model/BlendShapeRoute {
+	public static final field INSTANCE Lio/github/kmpfacelink/model/BlendShapeRoute$Disabled;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/github/kmpfacelink/model/BlendShapeRoute$Estimator : io/github/kmpfacelink/model/BlendShapeRoute {
+	public static final field INSTANCE Lio/github/kmpfacelink/model/BlendShapeRoute$Estimator;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/github/kmpfacelink/model/BlendShapeRoute$ExplicitInput : io/github/kmpfacelink/model/BlendShapeRoute {
+	public static final field INSTANCE Lio/github/kmpfacelink/model/BlendShapeRoute$ExplicitInput;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/github/kmpfacelink/model/BlendShapeSchema {
+	public fun <init> (Ljava/lang/String;Lio/github/kmpfacelink/model/EstimatorArtifact;Lio/github/kmpfacelink/model/SchemaLayer;Ljava/util/Map;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Lio/github/kmpfacelink/model/EstimatorArtifact;
+	public final fun component3 ()Lio/github/kmpfacelink/model/SchemaLayer;
+	public final fun component4 ()Ljava/util/Map;
+	public final fun copy (Ljava/lang/String;Lio/github/kmpfacelink/model/EstimatorArtifact;Lio/github/kmpfacelink/model/SchemaLayer;Ljava/util/Map;)Lio/github/kmpfacelink/model/BlendShapeSchema;
+	public static synthetic fun copy$default (Lio/github/kmpfacelink/model/BlendShapeSchema;Ljava/lang/String;Lio/github/kmpfacelink/model/EstimatorArtifact;Lio/github/kmpfacelink/model/SchemaLayer;Ljava/util/Map;ILjava/lang/Object;)Lio/github/kmpfacelink/model/BlendShapeSchema;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getEstimator ()Lio/github/kmpfacelink/model/EstimatorArtifact;
+	public final fun getId ()Ljava/lang/String;
+	public final fun getLayer ()Lio/github/kmpfacelink/model/SchemaLayer;
+	public final fun getPresence ()Ljava/util/Map;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/github/kmpfacelink/model/BlendShapeWireSchema {
+	public static final field INSTANCE Lio/github/kmpfacelink/model/BlendShapeWireSchema;
+	public final fun getCHANNEL_COUNT ()I
+	public final fun getFINGERPRINT ()I
+	public final fun presentMaskByOrdinal (Ljava/util/Map;)J
 }
 
 public final class io/github/kmpfacelink/model/Body3DConfig {
@@ -427,12 +627,182 @@ public final class io/github/kmpfacelink/model/CalibrationConfig {
 	public fun toString ()Ljava/lang/String;
 }
 
+public final class io/github/kmpfacelink/model/CalibrationPhase : java/lang/Enum {
+	public static final field ACTIVE Lio/github/kmpfacelink/model/CalibrationPhase;
+	public static final field DISABLED Lio/github/kmpfacelink/model/CalibrationPhase;
+	public static final field WARMUP Lio/github/kmpfacelink/model/CalibrationPhase;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lio/github/kmpfacelink/model/CalibrationPhase;
+	public static fun values ()[Lio/github/kmpfacelink/model/CalibrationPhase;
+}
+
 public final class io/github/kmpfacelink/model/CameraFacing : java/lang/Enum {
 	public static final field BACK Lio/github/kmpfacelink/model/CameraFacing;
 	public static final field FRONT Lio/github/kmpfacelink/model/CameraFacing;
 	public static fun getEntries ()Lkotlin/enums/EnumEntries;
 	public static fun valueOf (Ljava/lang/String;)Lio/github/kmpfacelink/model/CameraFacing;
 	public static fun values ()[Lio/github/kmpfacelink/model/CameraFacing;
+}
+
+public final class io/github/kmpfacelink/model/CanonicalContextFingerprint {
+	public static final field INSTANCE Lio/github/kmpfacelink/model/CanonicalContextFingerprint;
+	public final fun computeConfiguration (Lio/github/kmpfacelink/model/TrackingContextEpoch;)Ljava/lang/String;
+	public final fun computeEpoch (Lio/github/kmpfacelink/model/TrackingContextEpoch;)Ljava/lang/String;
+	public final fun encodeConfiguration (Lio/github/kmpfacelink/model/TrackingContextEpoch;)[B
+	public final fun encodeEpoch (Lio/github/kmpfacelink/model/TrackingContextEpoch;)[B
+}
+
+public final class io/github/kmpfacelink/model/CapabilityAssessment {
+	public fun <init> (Lio/github/kmpfacelink/model/CapabilityState;Lio/github/kmpfacelink/model/CapabilitySource;Ljava/lang/String;)V
+	public final fun component1 ()Lio/github/kmpfacelink/model/CapabilityState;
+	public final fun component2 ()Lio/github/kmpfacelink/model/CapabilitySource;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun copy (Lio/github/kmpfacelink/model/CapabilityState;Lio/github/kmpfacelink/model/CapabilitySource;Ljava/lang/String;)Lio/github/kmpfacelink/model/CapabilityAssessment;
+	public static synthetic fun copy$default (Lio/github/kmpfacelink/model/CapabilityAssessment;Lio/github/kmpfacelink/model/CapabilityState;Lio/github/kmpfacelink/model/CapabilitySource;Ljava/lang/String;ILjava/lang/Object;)Lio/github/kmpfacelink/model/CapabilityAssessment;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getBasis ()Ljava/lang/String;
+	public final fun getSource ()Lio/github/kmpfacelink/model/CapabilitySource;
+	public final fun getState ()Lio/github/kmpfacelink/model/CapabilityState;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public abstract interface class io/github/kmpfacelink/model/CapabilityEvidence {
+}
+
+public final class io/github/kmpfacelink/model/CapabilityEvidence$NoApplicableEvidence : io/github/kmpfacelink/model/CapabilityEvidence {
+	public fun <init> (Ljava/lang/String;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;)Lio/github/kmpfacelink/model/CapabilityEvidence$NoApplicableEvidence;
+	public static synthetic fun copy$default (Lio/github/kmpfacelink/model/CapabilityEvidence$NoApplicableEvidence;Ljava/lang/String;ILjava/lang/Object;)Lio/github/kmpfacelink/model/CapabilityEvidence$NoApplicableEvidence;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getReason ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/github/kmpfacelink/model/CapabilityEvidence$RuntimeFiltered : io/github/kmpfacelink/model/CapabilityEvidence {
+	public fun <init> (Lio/github/kmpfacelink/model/BlendShape;)V
+	public final fun component1 ()Lio/github/kmpfacelink/model/BlendShape;
+	public final fun copy (Lio/github/kmpfacelink/model/BlendShape;)Lio/github/kmpfacelink/model/CapabilityEvidence$RuntimeFiltered;
+	public static synthetic fun copy$default (Lio/github/kmpfacelink/model/CapabilityEvidence$RuntimeFiltered;Lio/github/kmpfacelink/model/BlendShape;ILjava/lang/Object;)Lio/github/kmpfacelink/model/CapabilityEvidence$RuntimeFiltered;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getShape ()Lio/github/kmpfacelink/model/BlendShape;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/github/kmpfacelink/model/CapabilityEvidence$SchemaAbsent : io/github/kmpfacelink/model/CapabilityEvidence {
+	public fun <init> (Lio/github/kmpfacelink/model/BlendShapeSchema;)V
+	public final fun component1 ()Lio/github/kmpfacelink/model/BlendShapeSchema;
+	public final fun copy (Lio/github/kmpfacelink/model/BlendShapeSchema;)Lio/github/kmpfacelink/model/CapabilityEvidence$SchemaAbsent;
+	public static synthetic fun copy$default (Lio/github/kmpfacelink/model/CapabilityEvidence$SchemaAbsent;Lio/github/kmpfacelink/model/BlendShapeSchema;ILjava/lang/Object;)Lio/github/kmpfacelink/model/CapabilityEvidence$SchemaAbsent;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getSchema ()Lio/github/kmpfacelink/model/BlendShapeSchema;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/github/kmpfacelink/model/CapabilityEvidence$TechnicallyMatched : io/github/kmpfacelink/model/CapabilityEvidence {
+	public fun <init> (Lio/github/kmpfacelink/model/ObservedResponseProfile;Lio/github/kmpfacelink/model/ResponseObservation;)V
+	public final fun component1 ()Lio/github/kmpfacelink/model/ObservedResponseProfile;
+	public final fun component2 ()Lio/github/kmpfacelink/model/ResponseObservation;
+	public final fun copy (Lio/github/kmpfacelink/model/ObservedResponseProfile;Lio/github/kmpfacelink/model/ResponseObservation;)Lio/github/kmpfacelink/model/CapabilityEvidence$TechnicallyMatched;
+	public static synthetic fun copy$default (Lio/github/kmpfacelink/model/CapabilityEvidence$TechnicallyMatched;Lio/github/kmpfacelink/model/ObservedResponseProfile;Lio/github/kmpfacelink/model/ResponseObservation;ILjava/lang/Object;)Lio/github/kmpfacelink/model/CapabilityEvidence$TechnicallyMatched;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getObservation ()Lio/github/kmpfacelink/model/ResponseObservation;
+	public final fun getProfile ()Lio/github/kmpfacelink/model/ObservedResponseProfile;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/github/kmpfacelink/model/CapabilityMatcher {
+	public static final field INSTANCE Lio/github/kmpfacelink/model/CapabilityMatcher;
+	public final fun evidence (Lio/github/kmpfacelink/model/ObservedResponseProfile;Lio/github/kmpfacelink/model/BlendShapeSchema;Lio/github/kmpfacelink/model/FaceTrackingData;Lio/github/kmpfacelink/model/TrackedFace;Lio/github/kmpfacelink/model/BlendShape;)Lio/github/kmpfacelink/model/CapabilityEvidence;
+	public final fun match (Lio/github/kmpfacelink/model/ObservedResponseProfile;Lio/github/kmpfacelink/model/FaceTrackingData;Lio/github/kmpfacelink/model/TrackedFace;Lio/github/kmpfacelink/model/BlendShape;)Lio/github/kmpfacelink/model/TechnicalContextMatch;
+}
+
+public final class io/github/kmpfacelink/model/CapabilitySource : java/lang/Enum {
+	public static final field ASSUMED Lio/github/kmpfacelink/model/CapabilitySource;
+	public static final field DERIVED Lio/github/kmpfacelink/model/CapabilitySource;
+	public static final field PLATFORM_DECLARED Lio/github/kmpfacelink/model/CapabilitySource;
+	public static final field PROBED Lio/github/kmpfacelink/model/CapabilitySource;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lio/github/kmpfacelink/model/CapabilitySource;
+	public static fun values ()[Lio/github/kmpfacelink/model/CapabilitySource;
+}
+
+public final class io/github/kmpfacelink/model/CapabilityState : java/lang/Enum {
+	public static final field AVAILABLE Lio/github/kmpfacelink/model/CapabilityState;
+	public static final field NOT_APPLICABLE Lio/github/kmpfacelink/model/CapabilityState;
+	public static final field UNAVAILABLE Lio/github/kmpfacelink/model/CapabilityState;
+	public static final field UNKNOWN Lio/github/kmpfacelink/model/CapabilityState;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lio/github/kmpfacelink/model/CapabilityState;
+	public static fun values ()[Lio/github/kmpfacelink/model/CapabilityState;
+}
+
+public final class io/github/kmpfacelink/model/DensifiedBlendShapes {
+	public final fun getPresent ()Ljava/util/Set;
+	public final fun getSubstitute ()F
+	public final fun getSubstitutedCount ()I
+	public final fun getValues ()[F
+	public final fun isPresent (Lio/github/kmpfacelink/model/BlendShape;)Z
+}
+
+public final class io/github/kmpfacelink/model/DensifiedBlendShapesKt {
+	public static final fun densify (Ljava/util/Map;F)Lio/github/kmpfacelink/model/DensifiedBlendShapes;
+	public static synthetic fun densify$default (Ljava/util/Map;FILjava/lang/Object;)Lio/github/kmpfacelink/model/DensifiedBlendShapes;
+}
+
+public abstract interface class io/github/kmpfacelink/model/DerivedFaceSignal {
+	public abstract fun getCanonicalBlendShape ()Lio/github/kmpfacelink/model/BlendShape;
+	public abstract fun getId ()Ljava/lang/String;
+}
+
+public final class io/github/kmpfacelink/model/DerivedFaceSignal$CheekPuffCandidate : io/github/kmpfacelink/model/DerivedFaceSignal {
+	public static final field INSTANCE Lio/github/kmpfacelink/model/DerivedFaceSignal$CheekPuffCandidate;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun getCanonicalBlendShape ()Lio/github/kmpfacelink/model/BlendShape;
+	public fun getId ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/github/kmpfacelink/model/DerivedFaceSignalDecision {
+	public synthetic fun <init> (Lio/github/kmpfacelink/model/DerivedFaceSignal;Lio/github/kmpfacelink/model/BlendShape;Ljava/lang/Float;Ljava/lang/Float;Lio/github/kmpfacelink/model/DerivedFaceSignalValueSemantics;Lio/github/kmpfacelink/model/ParticipantCalibrationLifecycle;Lio/github/kmpfacelink/model/ParticipantCalibrationDecisionProvenance;Lio/github/kmpfacelink/model/BlendShapeRoute;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun getCandidateValue ()Ljava/lang/Float;
+	public final fun getCanonicalBlendShape ()Lio/github/kmpfacelink/model/BlendShape;
+	public final fun getCanonicalValue ()Ljava/lang/Float;
+	public final fun getLifecycle ()Lio/github/kmpfacelink/model/ParticipantCalibrationLifecycle;
+	public final fun getProvenance ()Lio/github/kmpfacelink/model/ParticipantCalibrationDecisionProvenance;
+	public final fun getRoute ()Lio/github/kmpfacelink/model/BlendShapeRoute;
+	public final fun getSignal ()Lio/github/kmpfacelink/model/DerivedFaceSignal;
+	public final fun getValueSemantics ()Lio/github/kmpfacelink/model/DerivedFaceSignalValueSemantics;
+}
+
+public final class io/github/kmpfacelink/model/DerivedFaceSignalSample {
+	public fun <init> (Lio/github/kmpfacelink/model/DerivedFaceSignal;FLjava/lang/String;Ljava/lang/String;)V
+	public final fun component1 ()Lio/github/kmpfacelink/model/DerivedFaceSignal;
+	public final fun component2 ()F
+	public final fun component3 ()Ljava/lang/String;
+	public final fun component4 ()Ljava/lang/String;
+	public final fun copy (Lio/github/kmpfacelink/model/DerivedFaceSignal;FLjava/lang/String;Ljava/lang/String;)Lio/github/kmpfacelink/model/DerivedFaceSignalSample;
+	public static synthetic fun copy$default (Lio/github/kmpfacelink/model/DerivedFaceSignalSample;Lio/github/kmpfacelink/model/DerivedFaceSignal;FLjava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Lio/github/kmpfacelink/model/DerivedFaceSignalSample;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getArtifactSha256 ()Ljava/lang/String;
+	public final fun getCandidateId ()Ljava/lang/String;
+	public final fun getSignal ()Lio/github/kmpfacelink/model/DerivedFaceSignal;
+	public final fun getValue ()F
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/github/kmpfacelink/model/DerivedFaceSignalValueSemantics : java/lang/Enum {
+	public static final field UNIT_INTERVAL_ACTIVATION Lio/github/kmpfacelink/model/DerivedFaceSignalValueSemantics;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lio/github/kmpfacelink/model/DerivedFaceSignalValueSemantics;
+	public static fun values ()[Lio/github/kmpfacelink/model/DerivedFaceSignalValueSemantics;
 }
 
 public final class io/github/kmpfacelink/model/DetectionConfig {
@@ -460,19 +830,18 @@ public final class io/github/kmpfacelink/model/DetectionConfig$Companion {
 }
 
 public final class io/github/kmpfacelink/model/DeviceCapabilityProfile {
-	public fun <init> (ZZLio/github/kmpfacelink/model/DeviceTier;Lio/github/kmpfacelink/model/NpuVendor;)V
-	public synthetic fun <init> (ZZLio/github/kmpfacelink/model/DeviceTier;Lio/github/kmpfacelink/model/NpuVendor;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public final fun component1 ()Z
-	public final fun component2 ()Z
-	public final fun component3 ()Lio/github/kmpfacelink/model/DeviceTier;
-	public final fun component4 ()Lio/github/kmpfacelink/model/NpuVendor;
-	public final fun copy (ZZLio/github/kmpfacelink/model/DeviceTier;Lio/github/kmpfacelink/model/NpuVendor;)Lio/github/kmpfacelink/model/DeviceCapabilityProfile;
-	public static synthetic fun copy$default (Lio/github/kmpfacelink/model/DeviceCapabilityProfile;ZZLio/github/kmpfacelink/model/DeviceTier;Lio/github/kmpfacelink/model/NpuVendor;ILjava/lang/Object;)Lio/github/kmpfacelink/model/DeviceCapabilityProfile;
+	public fun <init> (Lio/github/kmpfacelink/model/CapabilityAssessment;Lio/github/kmpfacelink/model/CapabilityAssessment;Lio/github/kmpfacelink/model/NpuVendor;Lio/github/kmpfacelink/model/DeviceTierRecommendation;)V
+	public final fun component1 ()Lio/github/kmpfacelink/model/CapabilityAssessment;
+	public final fun component2 ()Lio/github/kmpfacelink/model/CapabilityAssessment;
+	public final fun component3 ()Lio/github/kmpfacelink/model/NpuVendor;
+	public final fun component4 ()Lio/github/kmpfacelink/model/DeviceTierRecommendation;
+	public final fun copy (Lio/github/kmpfacelink/model/CapabilityAssessment;Lio/github/kmpfacelink/model/CapabilityAssessment;Lio/github/kmpfacelink/model/NpuVendor;Lio/github/kmpfacelink/model/DeviceTierRecommendation;)Lio/github/kmpfacelink/model/DeviceCapabilityProfile;
+	public static synthetic fun copy$default (Lio/github/kmpfacelink/model/DeviceCapabilityProfile;Lio/github/kmpfacelink/model/CapabilityAssessment;Lio/github/kmpfacelink/model/CapabilityAssessment;Lio/github/kmpfacelink/model/NpuVendor;Lio/github/kmpfacelink/model/DeviceTierRecommendation;ILjava/lang/Object;)Lio/github/kmpfacelink/model/DeviceCapabilityProfile;
 	public fun equals (Ljava/lang/Object;)Z
-	public final fun getHasGpuAcceleration ()Z
-	public final fun getHasNpu ()Z
+	public final fun getGpuInference ()Lio/github/kmpfacelink/model/CapabilityAssessment;
+	public final fun getNpuInference ()Lio/github/kmpfacelink/model/CapabilityAssessment;
 	public final fun getNpuVendor ()Lio/github/kmpfacelink/model/NpuVendor;
-	public final fun getTier ()Lio/github/kmpfacelink/model/DeviceTier;
+	public final fun getQualityRecommendation ()Lio/github/kmpfacelink/model/DeviceTierRecommendation;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
 }
@@ -486,24 +855,236 @@ public final class io/github/kmpfacelink/model/DeviceTier : java/lang/Enum {
 	public static fun values ()[Lio/github/kmpfacelink/model/DeviceTier;
 }
 
-public final class io/github/kmpfacelink/model/FaceLandmark {
-	public fun <init> (FFFFF)V
-	public synthetic fun <init> (FFFFFILkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public final fun component1 ()F
-	public final fun component2 ()F
-	public final fun component3 ()F
-	public final fun component4 ()F
-	public final fun component5 ()F
-	public final fun copy (FFFFF)Lio/github/kmpfacelink/model/FaceLandmark;
-	public static synthetic fun copy$default (Lio/github/kmpfacelink/model/FaceLandmark;FFFFFILjava/lang/Object;)Lio/github/kmpfacelink/model/FaceLandmark;
+public final class io/github/kmpfacelink/model/DeviceTierRecommendation {
+	public fun <init> (Lio/github/kmpfacelink/model/DeviceTier;Lio/github/kmpfacelink/model/CapabilitySource;Ljava/lang/String;)V
+	public final fun component1 ()Lio/github/kmpfacelink/model/DeviceTier;
+	public final fun component2 ()Lio/github/kmpfacelink/model/CapabilitySource;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun copy (Lio/github/kmpfacelink/model/DeviceTier;Lio/github/kmpfacelink/model/CapabilitySource;Ljava/lang/String;)Lio/github/kmpfacelink/model/DeviceTierRecommendation;
+	public static synthetic fun copy$default (Lio/github/kmpfacelink/model/DeviceTierRecommendation;Lio/github/kmpfacelink/model/DeviceTier;Lio/github/kmpfacelink/model/CapabilitySource;Ljava/lang/String;ILjava/lang/Object;)Lio/github/kmpfacelink/model/DeviceTierRecommendation;
 	public fun equals (Ljava/lang/Object;)Z
-	public final fun getPresence ()F
-	public final fun getVisibility ()F
-	public final fun getX ()F
-	public final fun getY ()F
-	public final fun getZ ()F
+	public final fun getBasis ()Ljava/lang/String;
+	public final fun getSource ()Lio/github/kmpfacelink/model/CapabilitySource;
+	public final fun getTier ()Lio/github/kmpfacelink/model/DeviceTier;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
+}
+
+public abstract interface class io/github/kmpfacelink/model/DimensionValue {
+}
+
+public final class io/github/kmpfacelink/model/DimensionValue$Known : io/github/kmpfacelink/model/DimensionValue {
+	public fun <init> (Ljava/lang/Object;)V
+	public final fun component1 ()Ljava/lang/Object;
+	public final fun copy (Ljava/lang/Object;)Lio/github/kmpfacelink/model/DimensionValue$Known;
+	public static synthetic fun copy$default (Lio/github/kmpfacelink/model/DimensionValue$Known;Ljava/lang/Object;ILjava/lang/Object;)Lio/github/kmpfacelink/model/DimensionValue$Known;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getValue ()Ljava/lang/Object;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/github/kmpfacelink/model/DimensionValue$NotApplicable : io/github/kmpfacelink/model/DimensionValue {
+	public static final field INSTANCE Lio/github/kmpfacelink/model/DimensionValue$NotApplicable;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/github/kmpfacelink/model/DimensionValue$Unknown : io/github/kmpfacelink/model/DimensionValue {
+	public static final field INSTANCE Lio/github/kmpfacelink/model/DimensionValue$Unknown;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/github/kmpfacelink/model/DistributableEvidenceValidator {
+	public static final field INSTANCE Lio/github/kmpfacelink/model/DistributableEvidenceValidator;
+	public final fun isDistributable (Lio/github/kmpfacelink/model/ObservedResponseProfile;)Z
+	public final fun rejectionReasons (Lio/github/kmpfacelink/model/ObservedResponseProfile;)Ljava/util/Set;
+}
+
+public final class io/github/kmpfacelink/model/EstimatorArtifact {
+	public fun <init> (Lio/github/kmpfacelink/model/FaceTrackingBackend;Lio/github/kmpfacelink/model/DimensionValue;Lio/github/kmpfacelink/model/DimensionValue;)V
+	public final fun component1 ()Lio/github/kmpfacelink/model/FaceTrackingBackend;
+	public final fun component2 ()Lio/github/kmpfacelink/model/DimensionValue;
+	public final fun component3 ()Lio/github/kmpfacelink/model/DimensionValue;
+	public final fun copy (Lio/github/kmpfacelink/model/FaceTrackingBackend;Lio/github/kmpfacelink/model/DimensionValue;Lio/github/kmpfacelink/model/DimensionValue;)Lio/github/kmpfacelink/model/EstimatorArtifact;
+	public static synthetic fun copy$default (Lio/github/kmpfacelink/model/EstimatorArtifact;Lio/github/kmpfacelink/model/FaceTrackingBackend;Lio/github/kmpfacelink/model/DimensionValue;Lio/github/kmpfacelink/model/DimensionValue;ILjava/lang/Object;)Lio/github/kmpfacelink/model/EstimatorArtifact;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getFamily ()Lio/github/kmpfacelink/model/FaceTrackingBackend;
+	public final fun getLibraryVersion ()Lio/github/kmpfacelink/model/DimensionValue;
+	public final fun getModelSha256 ()Lio/github/kmpfacelink/model/DimensionValue;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public abstract interface class io/github/kmpfacelink/model/EvidenceAcceptance {
+}
+
+public final class io/github/kmpfacelink/model/EvidenceAcceptance$Accepted : io/github/kmpfacelink/model/EvidenceAcceptance {
+	public fun <init> (Ljava/lang/String;Lio/github/kmpfacelink/model/EvidenceScope;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Lio/github/kmpfacelink/model/EvidenceScope;
+	public final fun copy (Ljava/lang/String;Lio/github/kmpfacelink/model/EvidenceScope;)Lio/github/kmpfacelink/model/EvidenceAcceptance$Accepted;
+	public static synthetic fun copy$default (Lio/github/kmpfacelink/model/EvidenceAcceptance$Accepted;Ljava/lang/String;Lio/github/kmpfacelink/model/EvidenceScope;ILjava/lang/Object;)Lio/github/kmpfacelink/model/EvidenceAcceptance$Accepted;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getAcceptedScope ()Lio/github/kmpfacelink/model/EvidenceScope;
+	public final fun getProfileId ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/github/kmpfacelink/model/EvidenceAcceptance$Rejected : io/github/kmpfacelink/model/EvidenceAcceptance {
+	public fun <init> (Ljava/lang/String;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;)Lio/github/kmpfacelink/model/EvidenceAcceptance$Rejected;
+	public static synthetic fun copy$default (Lio/github/kmpfacelink/model/EvidenceAcceptance$Rejected;Ljava/lang/String;ILjava/lang/Object;)Lio/github/kmpfacelink/model/EvidenceAcceptance$Rejected;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getReason ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public abstract interface class io/github/kmpfacelink/model/EvidenceAcceptancePolicy {
+	public abstract fun accept (Lio/github/kmpfacelink/model/BlendShape;Lio/github/kmpfacelink/model/CapabilityEvidence$TechnicallyMatched;)Lio/github/kmpfacelink/model/EvidenceAcceptance;
+}
+
+public final class io/github/kmpfacelink/model/EvidenceScope {
+	public fun <init> (Lio/github/kmpfacelink/model/ValidationClass;IIIILjava/util/List;)V
+	public final fun component1 ()Lio/github/kmpfacelink/model/ValidationClass;
+	public final fun component2 ()I
+	public final fun component3 ()I
+	public final fun component4 ()I
+	public final fun component5 ()I
+	public final fun component6 ()Ljava/util/List;
+	public final fun copy (Lio/github/kmpfacelink/model/ValidationClass;IIIILjava/util/List;)Lio/github/kmpfacelink/model/EvidenceScope;
+	public static synthetic fun copy$default (Lio/github/kmpfacelink/model/EvidenceScope;Lio/github/kmpfacelink/model/ValidationClass;IIIILjava/util/List;ILjava/lang/Object;)Lio/github/kmpfacelink/model/EvidenceScope;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getDeviceCount ()I
+	public final fun getEnvironmentCount ()I
+	public final fun getIndependentSessionCount ()I
+	public final fun getLimitations ()Ljava/util/List;
+	public final fun getParticipantCount ()I
+	public final fun getValidationClass ()Lio/github/kmpfacelink/model/ValidationClass;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/github/kmpfacelink/model/FaceLandmark {
+	public fun <init> (FFLjava/lang/Float;Ljava/lang/Float;Ljava/lang/Float;)V
+	public synthetic fun <init> (FFLjava/lang/Float;Ljava/lang/Float;Ljava/lang/Float;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()F
+	public final fun component2 ()F
+	public final fun component3 ()Ljava/lang/Float;
+	public final fun component4 ()Ljava/lang/Float;
+	public final fun component5 ()Ljava/lang/Float;
+	public final fun copy (FFLjava/lang/Float;Ljava/lang/Float;Ljava/lang/Float;)Lio/github/kmpfacelink/model/FaceLandmark;
+	public static synthetic fun copy$default (Lio/github/kmpfacelink/model/FaceLandmark;FFLjava/lang/Float;Ljava/lang/Float;Ljava/lang/Float;ILjava/lang/Object;)Lio/github/kmpfacelink/model/FaceLandmark;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getPresence ()Ljava/lang/Float;
+	public final fun getRelativeDepth ()Ljava/lang/Float;
+	public final fun getVisibility ()Ljava/lang/Float;
+	public final fun getX ()F
+	public final fun getY ()F
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/github/kmpfacelink/model/FaceObservationProvenance {
+	public synthetic fun <init> (JILio/github/kmpfacelink/model/FacePipelineKind;Ljava/util/List;Lio/github/kmpfacelink/model/CalibrationPhase;JJLio/github/kmpfacelink/model/InferenceMaterialization;Ljava/util/Set;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1-s-VKNKU ()J
+	public final fun component2 ()I
+	public final fun component3 ()Lio/github/kmpfacelink/model/FacePipelineKind;
+	public final fun component4 ()Ljava/util/List;
+	public final fun component5 ()Lio/github/kmpfacelink/model/CalibrationPhase;
+	public final fun component6-s-VKNKU ()J
+	public final fun component7-s-VKNKU ()J
+	public final fun component8 ()Lio/github/kmpfacelink/model/InferenceMaterialization;
+	public final fun component9 ()Ljava/util/Set;
+	public final fun copy-F0KOZrc (JILio/github/kmpfacelink/model/FacePipelineKind;Ljava/util/List;Lio/github/kmpfacelink/model/CalibrationPhase;JJLio/github/kmpfacelink/model/InferenceMaterialization;Ljava/util/Set;)Lio/github/kmpfacelink/model/FaceObservationProvenance;
+	public static synthetic fun copy-F0KOZrc$default (Lio/github/kmpfacelink/model/FaceObservationProvenance;JILio/github/kmpfacelink/model/FacePipelineKind;Ljava/util/List;Lio/github/kmpfacelink/model/CalibrationPhase;JJLio/github/kmpfacelink/model/InferenceMaterialization;Ljava/util/Set;ILjava/lang/Object;)Lio/github/kmpfacelink/model/FaceObservationProvenance;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getAppliedTransforms ()Ljava/util/List;
+	public final fun getCalibrationPhase ()Lio/github/kmpfacelink/model/CalibrationPhase;
+	public final fun getCalibrationStateRevision-s-VKNKU ()J
+	public final fun getContextEpochId-s-VKNKU ()J
+	public final fun getEmittedBlendShapes ()Ljava/util/Set;
+	public final fun getFaceIndex ()I
+	public final fun getMaterialization ()Lio/github/kmpfacelink/model/InferenceMaterialization;
+	public final fun getPipelineKind ()Lio/github/kmpfacelink/model/FacePipelineKind;
+	public final fun getProcessingStateRevision-s-VKNKU ()J
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/github/kmpfacelink/model/FacePipelineKind : java/lang/Enum {
+	public static final field PRIMARY Lio/github/kmpfacelink/model/FacePipelineKind;
+	public static final field SECONDARY Lio/github/kmpfacelink/model/FacePipelineKind;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lio/github/kmpfacelink/model/FacePipelineKind;
+	public static fun values ()[Lio/github/kmpfacelink/model/FacePipelineKind;
+}
+
+public final class io/github/kmpfacelink/model/FacePipelinePerformanceClock : java/lang/Enum {
+	public static final field IOS_MONOTONIC_CALLBACK_CLOCK Lio/github/kmpfacelink/model/FacePipelinePerformanceClock;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lio/github/kmpfacelink/model/FacePipelinePerformanceClock;
+	public static fun values ()[Lio/github/kmpfacelink/model/FacePipelinePerformanceClock;
+}
+
+public final class io/github/kmpfacelink/model/FacePipelinePerformanceEvent {
+	public synthetic fun <init> (JJLio/github/kmpfacelink/model/FacePipelinePerformanceClock;Lio/github/kmpfacelink/model/FacePipelinePerformanceOutcome;Lio/github/kmpfacelink/model/InferenceMaterialization;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Long;Ljava/lang/Long;Ljava/lang/Long;Ljava/lang/Long;Ljava/lang/Long;Ljava/lang/Boolean;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1-s-VKNKU ()J
+	public final fun component10 ()Ljava/lang/Long;
+	public final fun component11 ()Ljava/lang/Long;
+	public final fun component12 ()Ljava/lang/Long;
+	public final fun component13 ()Ljava/lang/Boolean;
+	public final fun component2-s-VKNKU ()J
+	public final fun component3 ()Lio/github/kmpfacelink/model/FacePipelinePerformanceClock;
+	public final fun component4 ()Lio/github/kmpfacelink/model/FacePipelinePerformanceOutcome;
+	public final fun component5 ()Lio/github/kmpfacelink/model/InferenceMaterialization;
+	public final fun component6 ()Ljava/lang/String;
+	public final fun component7 ()Ljava/lang/String;
+	public final fun component8 ()Ljava/lang/Long;
+	public final fun component9 ()Ljava/lang/Long;
+	public final fun copy-qPHEr7c (JJLio/github/kmpfacelink/model/FacePipelinePerformanceClock;Lio/github/kmpfacelink/model/FacePipelinePerformanceOutcome;Lio/github/kmpfacelink/model/InferenceMaterialization;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Long;Ljava/lang/Long;Ljava/lang/Long;Ljava/lang/Long;Ljava/lang/Long;Ljava/lang/Boolean;)Lio/github/kmpfacelink/model/FacePipelinePerformanceEvent;
+	public static synthetic fun copy-qPHEr7c$default (Lio/github/kmpfacelink/model/FacePipelinePerformanceEvent;JJLio/github/kmpfacelink/model/FacePipelinePerformanceClock;Lio/github/kmpfacelink/model/FacePipelinePerformanceOutcome;Lio/github/kmpfacelink/model/InferenceMaterialization;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Long;Ljava/lang/Long;Ljava/lang/Long;Ljava/lang/Long;Ljava/lang/Long;Ljava/lang/Boolean;ILjava/lang/Object;)Lio/github/kmpfacelink/model/FacePipelinePerformanceEvent;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getAnchorBatchSequence-s-VKNKU ()J
+	public final fun getCallbackSequence-s-VKNKU ()J
+	public final fun getCallbackToEnqueueReturnNs ()Ljava/lang/Long;
+	public final fun getCallbackToOutputReadyNs ()Ljava/lang/Long;
+	public final fun getCallbackToRawExtractionNs ()Ljava/lang/Long;
+	public final fun getClock ()Lio/github/kmpfacelink/model/FacePipelinePerformanceClock;
+	public final fun getConfigurationFingerprint ()Ljava/lang/String;
+	public final fun getEnqueueAccepted ()Ljava/lang/Boolean;
+	public final fun getEpochFingerprint ()Ljava/lang/String;
+	public final fun getMaterialization ()Lio/github/kmpfacelink/model/InferenceMaterialization;
+	public final fun getOutcome ()Lio/github/kmpfacelink/model/FacePipelinePerformanceOutcome;
+	public final fun getOutputReadyToEnqueueReturnNs ()Ljava/lang/Long;
+	public final fun getRawExtractionToOutputReadyNs ()Ljava/lang/Long;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/github/kmpfacelink/model/FacePipelinePerformanceOutcome : java/lang/Enum {
+	public static final field CALLBACK_FAILURE Lio/github/kmpfacelink/model/FacePipelinePerformanceOutcome;
+	public static final field DROPPED_EPOCH_CHANGED Lio/github/kmpfacelink/model/FacePipelinePerformanceOutcome;
+	public static final field DROPPED_INTERPOLATION_UNAVAILABLE Lio/github/kmpfacelink/model/FacePipelinePerformanceOutcome;
+	public static final field DROPPED_NO_ACTIVE_EPOCH Lio/github/kmpfacelink/model/FacePipelinePerformanceOutcome;
+	public static final field DROPPED_THROTTLED Lio/github/kmpfacelink/model/FacePipelinePerformanceOutcome;
+	public static final field FULL_OUTPUT Lio/github/kmpfacelink/model/FacePipelinePerformanceOutcome;
+	public static final field INTERPOLATED_OUTPUT Lio/github/kmpfacelink/model/FacePipelinePerformanceOutcome;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lio/github/kmpfacelink/model/FacePipelinePerformanceOutcome;
+	public static fun values ()[Lio/github/kmpfacelink/model/FacePipelinePerformanceOutcome;
+}
+
+public final class io/github/kmpfacelink/model/FaceSignalCandidates {
+	public fun <init> (Ljava/util/Map;Ljava/util/List;)V
+	public final fun getAlternatives ()Ljava/util/List;
+	public final fun getEstimator ()Ljava/util/Map;
 }
 
 public final class io/github/kmpfacelink/model/FaceTrackerConfig {
@@ -512,10 +1093,11 @@ public final class io/github/kmpfacelink/model/FaceTrackerConfig {
 	public static final field DEFAULT_ANALYSIS_WIDTH I
 	public static final field MAX_FACES I
 	public fun <init> ()V
-	public fun <init> (Lio/github/kmpfacelink/model/SmoothingConfig;Lio/github/kmpfacelink/model/BlendShapeEnhancerConfig;Lio/github/kmpfacelink/model/CalibrationConfig;Lio/github/kmpfacelink/model/CameraFacing;Ljava/lang/String;Lio/github/kmpfacelink/model/DetectionConfig;Lio/github/kmpfacelink/model/PowerConfig;Lio/github/kmpfacelink/model/PerformanceConfig;Lio/github/kmpfacelink/model/FrameSkipConfig;Ljava/util/Set;)V
-	public synthetic fun <init> (Lio/github/kmpfacelink/model/SmoothingConfig;Lio/github/kmpfacelink/model/BlendShapeEnhancerConfig;Lio/github/kmpfacelink/model/CalibrationConfig;Lio/github/kmpfacelink/model/CameraFacing;Ljava/lang/String;Lio/github/kmpfacelink/model/DetectionConfig;Lio/github/kmpfacelink/model/PowerConfig;Lio/github/kmpfacelink/model/PerformanceConfig;Lio/github/kmpfacelink/model/FrameSkipConfig;Ljava/util/Set;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (Lio/github/kmpfacelink/model/SmoothingConfig;Lio/github/kmpfacelink/model/BlendShapeEnhancerConfig;Lio/github/kmpfacelink/model/CalibrationConfig;Lio/github/kmpfacelink/model/CameraFacing;Ljava/lang/String;Lio/github/kmpfacelink/model/DetectionConfig;Lio/github/kmpfacelink/model/PowerConfig;Lio/github/kmpfacelink/model/PerformanceConfig;Lio/github/kmpfacelink/model/FrameSkipConfig;Ljava/util/Set;Lio/github/kmpfacelink/model/PerformanceInstrumentationConfig;)V
+	public synthetic fun <init> (Lio/github/kmpfacelink/model/SmoothingConfig;Lio/github/kmpfacelink/model/BlendShapeEnhancerConfig;Lio/github/kmpfacelink/model/CalibrationConfig;Lio/github/kmpfacelink/model/CameraFacing;Ljava/lang/String;Lio/github/kmpfacelink/model/DetectionConfig;Lio/github/kmpfacelink/model/PowerConfig;Lio/github/kmpfacelink/model/PerformanceConfig;Lio/github/kmpfacelink/model/FrameSkipConfig;Ljava/util/Set;Lio/github/kmpfacelink/model/PerformanceInstrumentationConfig;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun component1 ()Lio/github/kmpfacelink/model/SmoothingConfig;
 	public final fun component10 ()Ljava/util/Set;
+	public final fun component11 ()Lio/github/kmpfacelink/model/PerformanceInstrumentationConfig;
 	public final fun component2 ()Lio/github/kmpfacelink/model/BlendShapeEnhancerConfig;
 	public final fun component3 ()Lio/github/kmpfacelink/model/CalibrationConfig;
 	public final fun component4 ()Lio/github/kmpfacelink/model/CameraFacing;
@@ -524,8 +1106,8 @@ public final class io/github/kmpfacelink/model/FaceTrackerConfig {
 	public final fun component7 ()Lio/github/kmpfacelink/model/PowerConfig;
 	public final fun component8 ()Lio/github/kmpfacelink/model/PerformanceConfig;
 	public final fun component9 ()Lio/github/kmpfacelink/model/FrameSkipConfig;
-	public final fun copy (Lio/github/kmpfacelink/model/SmoothingConfig;Lio/github/kmpfacelink/model/BlendShapeEnhancerConfig;Lio/github/kmpfacelink/model/CalibrationConfig;Lio/github/kmpfacelink/model/CameraFacing;Ljava/lang/String;Lio/github/kmpfacelink/model/DetectionConfig;Lio/github/kmpfacelink/model/PowerConfig;Lio/github/kmpfacelink/model/PerformanceConfig;Lio/github/kmpfacelink/model/FrameSkipConfig;Ljava/util/Set;)Lio/github/kmpfacelink/model/FaceTrackerConfig;
-	public static synthetic fun copy$default (Lio/github/kmpfacelink/model/FaceTrackerConfig;Lio/github/kmpfacelink/model/SmoothingConfig;Lio/github/kmpfacelink/model/BlendShapeEnhancerConfig;Lio/github/kmpfacelink/model/CalibrationConfig;Lio/github/kmpfacelink/model/CameraFacing;Ljava/lang/String;Lio/github/kmpfacelink/model/DetectionConfig;Lio/github/kmpfacelink/model/PowerConfig;Lio/github/kmpfacelink/model/PerformanceConfig;Lio/github/kmpfacelink/model/FrameSkipConfig;Ljava/util/Set;ILjava/lang/Object;)Lio/github/kmpfacelink/model/FaceTrackerConfig;
+	public final fun copy (Lio/github/kmpfacelink/model/SmoothingConfig;Lio/github/kmpfacelink/model/BlendShapeEnhancerConfig;Lio/github/kmpfacelink/model/CalibrationConfig;Lio/github/kmpfacelink/model/CameraFacing;Ljava/lang/String;Lio/github/kmpfacelink/model/DetectionConfig;Lio/github/kmpfacelink/model/PowerConfig;Lio/github/kmpfacelink/model/PerformanceConfig;Lio/github/kmpfacelink/model/FrameSkipConfig;Ljava/util/Set;Lio/github/kmpfacelink/model/PerformanceInstrumentationConfig;)Lio/github/kmpfacelink/model/FaceTrackerConfig;
+	public static synthetic fun copy$default (Lio/github/kmpfacelink/model/FaceTrackerConfig;Lio/github/kmpfacelink/model/SmoothingConfig;Lio/github/kmpfacelink/model/BlendShapeEnhancerConfig;Lio/github/kmpfacelink/model/CalibrationConfig;Lio/github/kmpfacelink/model/CameraFacing;Ljava/lang/String;Lio/github/kmpfacelink/model/DetectionConfig;Lio/github/kmpfacelink/model/PowerConfig;Lio/github/kmpfacelink/model/PerformanceConfig;Lio/github/kmpfacelink/model/FrameSkipConfig;Ljava/util/Set;Lio/github/kmpfacelink/model/PerformanceInstrumentationConfig;ILjava/lang/Object;)Lio/github/kmpfacelink/model/FaceTrackerConfig;
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getActiveBlendShapes ()Ljava/util/Set;
 	public final fun getAnalysisHeight ()I
@@ -544,6 +1126,7 @@ public final class io/github/kmpfacelink/model/FaceTrackerConfig {
 	public final fun getMinTrackingConfidence ()F
 	public final fun getModelAssetPath ()Ljava/lang/String;
 	public final fun getPerformanceConfig ()Lio/github/kmpfacelink/model/PerformanceConfig;
+	public final fun getPerformanceInstrumentation ()Lio/github/kmpfacelink/model/PerformanceInstrumentationConfig;
 	public final fun getPowerConfig ()Lio/github/kmpfacelink/model/PowerConfig;
 	public final fun getPowerMode ()Lio/github/kmpfacelink/model/PowerMode;
 	public final fun getReleaseTimeoutMs ()J
@@ -557,12 +1140,22 @@ public final class io/github/kmpfacelink/model/FaceTrackerConfig {
 public final class io/github/kmpfacelink/model/FaceTrackerConfig$Companion {
 }
 
+public final class io/github/kmpfacelink/model/FaceTrackingBackend : java/lang/Enum {
+	public static final field ARKIT Lio/github/kmpfacelink/model/FaceTrackingBackend;
+	public static final field MEDIAPIPE Lio/github/kmpfacelink/model/FaceTrackingBackend;
+	public static final field ONNX Lio/github/kmpfacelink/model/FaceTrackingBackend;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lio/github/kmpfacelink/model/FaceTrackingBackend;
+	public static fun values ()[Lio/github/kmpfacelink/model/FaceTrackingBackend;
+}
+
 public final class io/github/kmpfacelink/model/FaceTrackingData {
 	public static final field Companion Lio/github/kmpfacelink/model/FaceTrackingData$Companion;
-	public fun <init> (Ljava/util/Map;Lio/github/kmpfacelink/model/HeadTransform;Lio/github/kmpfacelink/model/GazeData;Ljava/util/List;IIJZLjava/util/List;Lio/github/kmpfacelink/model/ThermalState;)V
-	public synthetic fun <init> (Ljava/util/Map;Lio/github/kmpfacelink/model/HeadTransform;Lio/github/kmpfacelink/model/GazeData;Ljava/util/List;IIJZLjava/util/List;Lio/github/kmpfacelink/model/ThermalState;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (Ljava/util/Map;Lio/github/kmpfacelink/model/HeadTransform;Lio/github/kmpfacelink/model/GazeData;Ljava/util/List;IIJZLjava/util/List;Lio/github/kmpfacelink/model/ThermalState;Lio/github/kmpfacelink/model/TrackingContextEpoch;)V
+	public synthetic fun <init> (Ljava/util/Map;Lio/github/kmpfacelink/model/HeadTransform;Lio/github/kmpfacelink/model/GazeData;Ljava/util/List;IIJZLjava/util/List;Lio/github/kmpfacelink/model/ThermalState;Lio/github/kmpfacelink/model/TrackingContextEpoch;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun component1 ()Ljava/util/Map;
 	public final fun component10 ()Lio/github/kmpfacelink/model/ThermalState;
+	public final fun component11 ()Lio/github/kmpfacelink/model/TrackingContextEpoch;
 	public final fun component2 ()Lio/github/kmpfacelink/model/HeadTransform;
 	public final fun component3 ()Lio/github/kmpfacelink/model/GazeData;
 	public final fun component4 ()Ljava/util/List;
@@ -571,10 +1164,11 @@ public final class io/github/kmpfacelink/model/FaceTrackingData {
 	public final fun component7 ()J
 	public final fun component8 ()Z
 	public final fun component9 ()Ljava/util/List;
-	public final fun copy (Ljava/util/Map;Lio/github/kmpfacelink/model/HeadTransform;Lio/github/kmpfacelink/model/GazeData;Ljava/util/List;IIJZLjava/util/List;Lio/github/kmpfacelink/model/ThermalState;)Lio/github/kmpfacelink/model/FaceTrackingData;
-	public static synthetic fun copy$default (Lio/github/kmpfacelink/model/FaceTrackingData;Ljava/util/Map;Lio/github/kmpfacelink/model/HeadTransform;Lio/github/kmpfacelink/model/GazeData;Ljava/util/List;IIJZLjava/util/List;Lio/github/kmpfacelink/model/ThermalState;ILjava/lang/Object;)Lio/github/kmpfacelink/model/FaceTrackingData;
+	public final fun copy (Ljava/util/Map;Lio/github/kmpfacelink/model/HeadTransform;Lio/github/kmpfacelink/model/GazeData;Ljava/util/List;IIJZLjava/util/List;Lio/github/kmpfacelink/model/ThermalState;Lio/github/kmpfacelink/model/TrackingContextEpoch;)Lio/github/kmpfacelink/model/FaceTrackingData;
+	public static synthetic fun copy$default (Lio/github/kmpfacelink/model/FaceTrackingData;Ljava/util/Map;Lio/github/kmpfacelink/model/HeadTransform;Lio/github/kmpfacelink/model/GazeData;Ljava/util/List;IIJZLjava/util/List;Lio/github/kmpfacelink/model/ThermalState;Lio/github/kmpfacelink/model/TrackingContextEpoch;ILjava/lang/Object;)Lio/github/kmpfacelink/model/FaceTrackingData;
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getBlendShapes ()Ljava/util/Map;
+	public final fun getContextEpoch ()Lio/github/kmpfacelink/model/TrackingContextEpoch;
 	public final fun getFaces ()Ljava/util/List;
 	public final fun getGazeData ()Lio/github/kmpfacelink/model/GazeData;
 	public final fun getHeadTransform ()Lio/github/kmpfacelink/model/HeadTransform;
@@ -933,6 +1527,23 @@ public final class io/github/kmpfacelink/model/InferenceDelegate : java/lang/Enu
 	public static fun values ()[Lio/github/kmpfacelink/model/InferenceDelegate;
 }
 
+public final class io/github/kmpfacelink/model/InferenceMaterialization : java/lang/Enum {
+	public static final field FULL_INFERENCE Lio/github/kmpfacelink/model/InferenceMaterialization;
+	public static final field INTERPOLATED Lio/github/kmpfacelink/model/InferenceMaterialization;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lio/github/kmpfacelink/model/InferenceMaterialization;
+	public static fun values ()[Lio/github/kmpfacelink/model/InferenceMaterialization;
+}
+
+public final class io/github/kmpfacelink/model/InferenceRunningMode : java/lang/Enum {
+	public static final field IMAGE Lio/github/kmpfacelink/model/InferenceRunningMode;
+	public static final field LIVE_STREAM Lio/github/kmpfacelink/model/InferenceRunningMode;
+	public static final field VIDEO Lio/github/kmpfacelink/model/InferenceRunningMode;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lio/github/kmpfacelink/model/InferenceRunningMode;
+	public static fun values ()[Lio/github/kmpfacelink/model/InferenceRunningMode;
+}
+
 public final class io/github/kmpfacelink/model/LiftingStrategy : java/lang/Enum {
 	public static final field PERSPECTIVE Lio/github/kmpfacelink/model/LiftingStrategy;
 	public static final field STATISTICAL Lio/github/kmpfacelink/model/LiftingStrategy;
@@ -948,6 +1559,61 @@ public final class io/github/kmpfacelink/model/LiveLinkBlendShapes {
 	public final fun getOrder ()Ljava/util/List;
 	public final fun lower (Ljava/util/Map;)[F
 	public final fun ordinalToLiveLinkIndex ()[I
+	public final fun presentMask (Ljava/util/Map;)J
+}
+
+public final class io/github/kmpfacelink/model/MeasuredOutputCondition {
+	public fun <init> (Lio/github/kmpfacelink/model/SchemaLayer;Lio/github/kmpfacelink/model/FacePipelineKind;Ljava/util/List;Lio/github/kmpfacelink/model/CalibrationPhase;Lio/github/kmpfacelink/model/InferenceMaterialization;Ljava/util/Set;Lio/github/kmpfacelink/model/SessionBinding;Lio/github/kmpfacelink/model/RevisionRequirement;)V
+	public final fun component1 ()Lio/github/kmpfacelink/model/SchemaLayer;
+	public final fun component2 ()Lio/github/kmpfacelink/model/FacePipelineKind;
+	public final fun component3 ()Ljava/util/List;
+	public final fun component4 ()Lio/github/kmpfacelink/model/CalibrationPhase;
+	public final fun component5 ()Lio/github/kmpfacelink/model/InferenceMaterialization;
+	public final fun component6 ()Ljava/util/Set;
+	public final fun component7 ()Lio/github/kmpfacelink/model/SessionBinding;
+	public final fun component8 ()Lio/github/kmpfacelink/model/RevisionRequirement;
+	public final fun copy (Lio/github/kmpfacelink/model/SchemaLayer;Lio/github/kmpfacelink/model/FacePipelineKind;Ljava/util/List;Lio/github/kmpfacelink/model/CalibrationPhase;Lio/github/kmpfacelink/model/InferenceMaterialization;Ljava/util/Set;Lio/github/kmpfacelink/model/SessionBinding;Lio/github/kmpfacelink/model/RevisionRequirement;)Lio/github/kmpfacelink/model/MeasuredOutputCondition;
+	public static synthetic fun copy$default (Lio/github/kmpfacelink/model/MeasuredOutputCondition;Lio/github/kmpfacelink/model/SchemaLayer;Lio/github/kmpfacelink/model/FacePipelineKind;Ljava/util/List;Lio/github/kmpfacelink/model/CalibrationPhase;Lio/github/kmpfacelink/model/InferenceMaterialization;Ljava/util/Set;Lio/github/kmpfacelink/model/SessionBinding;Lio/github/kmpfacelink/model/RevisionRequirement;ILjava/lang/Object;)Lio/github/kmpfacelink/model/MeasuredOutputCondition;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getAppliedTransforms ()Ljava/util/List;
+	public final fun getCalibrationPhase ()Lio/github/kmpfacelink/model/CalibrationPhase;
+	public final fun getMaterialization ()Lio/github/kmpfacelink/model/InferenceMaterialization;
+	public final fun getPipelineKind ()Lio/github/kmpfacelink/model/FacePipelineKind;
+	public final fun getRequiredEmittedShapes ()Ljava/util/Set;
+	public final fun getRevisionRequirement ()Lio/github/kmpfacelink/model/RevisionRequirement;
+	public final fun getSchemaLayer ()Lio/github/kmpfacelink/model/SchemaLayer;
+	public final fun getSessionBinding ()Lio/github/kmpfacelink/model/SessionBinding;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/github/kmpfacelink/model/MeasurementContext {
+	public fun <init> (Lio/github/kmpfacelink/model/EstimatorArtifact;Lio/github/kmpfacelink/model/PlatformIdentity;Lio/github/kmpfacelink/model/DimensionValue;Lio/github/kmpfacelink/model/DimensionValue;Lio/github/kmpfacelink/model/DimensionValue;Lio/github/kmpfacelink/model/DimensionValue;Lio/github/kmpfacelink/model/DimensionValue;Ljava/util/List;Ljava/util/Set;Ljava/lang/String;)V
+	public final fun component1 ()Lio/github/kmpfacelink/model/EstimatorArtifact;
+	public final fun component10 ()Ljava/lang/String;
+	public final fun component2 ()Lio/github/kmpfacelink/model/PlatformIdentity;
+	public final fun component3 ()Lio/github/kmpfacelink/model/DimensionValue;
+	public final fun component4 ()Lio/github/kmpfacelink/model/DimensionValue;
+	public final fun component5 ()Lio/github/kmpfacelink/model/DimensionValue;
+	public final fun component6 ()Lio/github/kmpfacelink/model/DimensionValue;
+	public final fun component7 ()Lio/github/kmpfacelink/model/DimensionValue;
+	public final fun component8 ()Ljava/util/List;
+	public final fun component9 ()Ljava/util/Set;
+	public final fun copy (Lio/github/kmpfacelink/model/EstimatorArtifact;Lio/github/kmpfacelink/model/PlatformIdentity;Lio/github/kmpfacelink/model/DimensionValue;Lio/github/kmpfacelink/model/DimensionValue;Lio/github/kmpfacelink/model/DimensionValue;Lio/github/kmpfacelink/model/DimensionValue;Lio/github/kmpfacelink/model/DimensionValue;Ljava/util/List;Ljava/util/Set;Ljava/lang/String;)Lio/github/kmpfacelink/model/MeasurementContext;
+	public static synthetic fun copy$default (Lio/github/kmpfacelink/model/MeasurementContext;Lio/github/kmpfacelink/model/EstimatorArtifact;Lio/github/kmpfacelink/model/PlatformIdentity;Lio/github/kmpfacelink/model/DimensionValue;Lio/github/kmpfacelink/model/DimensionValue;Lio/github/kmpfacelink/model/DimensionValue;Lio/github/kmpfacelink/model/DimensionValue;Lio/github/kmpfacelink/model/DimensionValue;Ljava/util/List;Ljava/util/Set;Ljava/lang/String;ILjava/lang/Object;)Lio/github/kmpfacelink/model/MeasurementContext;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getActiveBlendShapes ()Ljava/util/Set;
+	public final fun getConfigurationFingerprint ()Ljava/lang/String;
+	public final fun getConfiguredTransforms ()Ljava/util/List;
+	public final fun getEstimator ()Lio/github/kmpfacelink/model/EstimatorArtifact;
+	public final fun getInputHeight ()Lio/github/kmpfacelink/model/DimensionValue;
+	public final fun getInputWidth ()Lio/github/kmpfacelink/model/DimensionValue;
+	public final fun getMirroredBeforeInference ()Lio/github/kmpfacelink/model/DimensionValue;
+	public final fun getPlatform ()Lio/github/kmpfacelink/model/PlatformIdentity;
+	public final fun getResolvedDelegate ()Lio/github/kmpfacelink/model/DimensionValue;
+	public final fun getRunningMode ()Lio/github/kmpfacelink/model/DimensionValue;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
 }
 
 public final class io/github/kmpfacelink/model/NpuVendor : java/lang/Enum {
@@ -960,6 +1626,355 @@ public final class io/github/kmpfacelink/model/NpuVendor : java/lang/Enum {
 	public static fun values ()[Lio/github/kmpfacelink/model/NpuVendor;
 }
 
+public final class io/github/kmpfacelink/model/ObservedResponseClass : java/lang/Enum {
+	public static final field CEILING Lio/github/kmpfacelink/model/ObservedResponseClass;
+	public static final field FLOOR Lio/github/kmpfacelink/model/ObservedResponseClass;
+	public static final field RESPONDED Lio/github/kmpfacelink/model/ObservedResponseClass;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lio/github/kmpfacelink/model/ObservedResponseClass;
+	public static fun values ()[Lio/github/kmpfacelink/model/ObservedResponseClass;
+}
+
+public final class io/github/kmpfacelink/model/ObservedResponseProfile {
+	public fun <init> (Ljava/lang/String;Lio/github/kmpfacelink/model/MeasurementContext;Lio/github/kmpfacelink/model/MeasuredOutputCondition;Ljava/lang/String;Ljava/util/Map;Lio/github/kmpfacelink/model/EvidenceScope;Ljava/lang/String;Ljava/lang/String;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Lio/github/kmpfacelink/model/MeasurementContext;
+	public final fun component3 ()Lio/github/kmpfacelink/model/MeasuredOutputCondition;
+	public final fun component4 ()Ljava/lang/String;
+	public final fun component5 ()Ljava/util/Map;
+	public final fun component6 ()Lio/github/kmpfacelink/model/EvidenceScope;
+	public final fun component7 ()Ljava/lang/String;
+	public final fun component8 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;Lio/github/kmpfacelink/model/MeasurementContext;Lio/github/kmpfacelink/model/MeasuredOutputCondition;Ljava/lang/String;Ljava/util/Map;Lio/github/kmpfacelink/model/EvidenceScope;Ljava/lang/String;Ljava/lang/String;)Lio/github/kmpfacelink/model/ObservedResponseProfile;
+	public static synthetic fun copy$default (Lio/github/kmpfacelink/model/ObservedResponseProfile;Ljava/lang/String;Lio/github/kmpfacelink/model/MeasurementContext;Lio/github/kmpfacelink/model/MeasuredOutputCondition;Ljava/lang/String;Ljava/util/Map;Lio/github/kmpfacelink/model/EvidenceScope;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Lio/github/kmpfacelink/model/ObservedResponseProfile;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getContext ()Lio/github/kmpfacelink/model/MeasurementContext;
+	public final fun getId ()Ljava/lang/String;
+	public final fun getObservations ()Ljava/util/Map;
+	public final fun getOutputCondition ()Lio/github/kmpfacelink/model/MeasuredOutputCondition;
+	public final fun getProtocolId ()Ljava/lang/String;
+	public final fun getPublicReviewPacketSha256 ()Ljava/lang/String;
+	public final fun getSchemaId ()Ljava/lang/String;
+	public final fun getScope ()Lio/github/kmpfacelink/model/EvidenceScope;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/github/kmpfacelink/model/ParticipantCalibrationArtifact {
+	public synthetic fun <init> (Ljava/lang/String;Lio/github/kmpfacelink/model/ParticipantEnrollmentBinding;Ljava/lang/String;Lio/github/kmpfacelink/model/DerivedFaceSignal;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lio/github/kmpfacelink/model/MeasurementContext;JJJLkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component10 ()Lio/github/kmpfacelink/model/MeasurementContext;
+	public final fun component11-s-VKNKU ()J
+	public final fun component12 ()J
+	public final fun component13 ()J
+	public final fun component2 ()Lio/github/kmpfacelink/model/ParticipantEnrollmentBinding;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun component4 ()Lio/github/kmpfacelink/model/DerivedFaceSignal;
+	public final fun component5 ()Ljava/lang/String;
+	public final fun component6 ()Ljava/lang/String;
+	public final fun component7 ()Ljava/lang/String;
+	public final fun component8 ()Ljava/lang/String;
+	public final fun component9 ()Ljava/lang/String;
+	public final fun copy-8NkLE8E (Ljava/lang/String;Lio/github/kmpfacelink/model/ParticipantEnrollmentBinding;Ljava/lang/String;Lio/github/kmpfacelink/model/DerivedFaceSignal;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lio/github/kmpfacelink/model/MeasurementContext;JJJ)Lio/github/kmpfacelink/model/ParticipantCalibrationArtifact;
+	public static synthetic fun copy-8NkLE8E$default (Lio/github/kmpfacelink/model/ParticipantCalibrationArtifact;Ljava/lang/String;Lio/github/kmpfacelink/model/ParticipantEnrollmentBinding;Ljava/lang/String;Lio/github/kmpfacelink/model/DerivedFaceSignal;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lio/github/kmpfacelink/model/MeasurementContext;JJJILjava/lang/Object;)Lio/github/kmpfacelink/model/ParticipantCalibrationArtifact;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getArtifactSha256 ()Ljava/lang/String;
+	public final fun getCandidateId ()Ljava/lang/String;
+	public final fun getCandidateImplementationSha256 ()Ljava/lang/String;
+	public final fun getCandidateModelSha256 ()Ljava/lang/String;
+	public final fun getEnrollmentBinding ()Lio/github/kmpfacelink/model/ParticipantEnrollmentBinding;
+	public final fun getExpectedContext ()Lio/github/kmpfacelink/model/MeasurementContext;
+	public final fun getExpiresAtEpochMs ()J
+	public final fun getIssuedAtEpochMs ()J
+	public final fun getPreprocessingSha256 ()Ljava/lang/String;
+	public final fun getProfileId ()Ljava/lang/String;
+	public final fun getProfileRevision-s-VKNKU ()J
+	public final fun getTargetSignal ()Lio/github/kmpfacelink/model/DerivedFaceSignal;
+	public final fun getThresholdSha256 ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public abstract interface class io/github/kmpfacelink/model/ParticipantCalibrationClock {
+	public abstract fun nowEpochMs ()J
+}
+
+public final class io/github/kmpfacelink/model/ParticipantCalibrationCollection {
+	public fun <init> (Lio/github/kmpfacelink/model/ParticipantEnrollmentBinding;II)V
+	public final fun component1 ()Lio/github/kmpfacelink/model/ParticipantEnrollmentBinding;
+	public final fun component2 ()I
+	public final fun component3 ()I
+	public final fun copy (Lio/github/kmpfacelink/model/ParticipantEnrollmentBinding;II)Lio/github/kmpfacelink/model/ParticipantCalibrationCollection;
+	public static synthetic fun copy$default (Lio/github/kmpfacelink/model/ParticipantCalibrationCollection;Lio/github/kmpfacelink/model/ParticipantEnrollmentBinding;IIILjava/lang/Object;)Lio/github/kmpfacelink/model/ParticipantCalibrationCollection;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getCollectedUnits ()I
+	public final fun getEnrollmentBinding ()Lio/github/kmpfacelink/model/ParticipantEnrollmentBinding;
+	public final fun getRequiredUnits ()I
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public abstract interface class io/github/kmpfacelink/model/ParticipantCalibrationDecisionEngine {
+	public abstract fun decide (Lio/github/kmpfacelink/model/ParticipantCalibrationDecisionInput;)Lio/github/kmpfacelink/model/DerivedFaceSignalDecision;
+}
+
+public final class io/github/kmpfacelink/model/ParticipantCalibrationDecisionFactory {
+	public static final field INSTANCE Lio/github/kmpfacelink/model/ParticipantCalibrationDecisionFactory;
+	public final fun disabled (Lio/github/kmpfacelink/model/DerivedFaceSignal;Lio/github/kmpfacelink/model/BlendShapeRoute;)Lio/github/kmpfacelink/model/ParticipantCalibrationDecisionEngine;
+	public static synthetic fun disabled$default (Lio/github/kmpfacelink/model/ParticipantCalibrationDecisionFactory;Lio/github/kmpfacelink/model/DerivedFaceSignal;Lio/github/kmpfacelink/model/BlendShapeRoute;ILjava/lang/Object;)Lio/github/kmpfacelink/model/ParticipantCalibrationDecisionEngine;
+	public final fun enabled (Lio/github/kmpfacelink/model/DerivedFaceSignal;Lio/github/kmpfacelink/model/ParticipantCalibrationClock;Lio/github/kmpfacelink/model/ParticipantCalibrationFallbackPolicy;)Lio/github/kmpfacelink/model/ParticipantCalibrationDecisionEngine;
+	public static synthetic fun enabled$default (Lio/github/kmpfacelink/model/ParticipantCalibrationDecisionFactory;Lio/github/kmpfacelink/model/DerivedFaceSignal;Lio/github/kmpfacelink/model/ParticipantCalibrationClock;Lio/github/kmpfacelink/model/ParticipantCalibrationFallbackPolicy;ILjava/lang/Object;)Lio/github/kmpfacelink/model/ParticipantCalibrationDecisionEngine;
+}
+
+public final class io/github/kmpfacelink/model/ParticipantCalibrationDecisionInput {
+	public fun <init> (Lio/github/kmpfacelink/model/ParticipantCalibrationReductionInput;Ljava/util/Map;Lio/github/kmpfacelink/model/DerivedFaceSignalSample;)V
+	public final fun component1 ()Lio/github/kmpfacelink/model/ParticipantCalibrationReductionInput;
+	public final fun component2 ()Ljava/util/Map;
+	public final fun component3 ()Lio/github/kmpfacelink/model/DerivedFaceSignalSample;
+	public final fun copy (Lio/github/kmpfacelink/model/ParticipantCalibrationReductionInput;Ljava/util/Map;Lio/github/kmpfacelink/model/DerivedFaceSignalSample;)Lio/github/kmpfacelink/model/ParticipantCalibrationDecisionInput;
+	public static synthetic fun copy$default (Lio/github/kmpfacelink/model/ParticipantCalibrationDecisionInput;Lio/github/kmpfacelink/model/ParticipantCalibrationReductionInput;Ljava/util/Map;Lio/github/kmpfacelink/model/DerivedFaceSignalSample;ILjava/lang/Object;)Lio/github/kmpfacelink/model/ParticipantCalibrationDecisionInput;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getCandidate ()Lio/github/kmpfacelink/model/DerivedFaceSignalSample;
+	public final fun getCanonicalBlendShapes ()Ljava/util/Map;
+	public final fun getReductionInput ()Lio/github/kmpfacelink/model/ParticipantCalibrationReductionInput;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/github/kmpfacelink/model/ParticipantCalibrationDecisionProvenance {
+	public synthetic fun <init> (Lio/github/kmpfacelink/model/DerivedFaceSignal;Lio/github/kmpfacelink/model/BlendShape;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lkotlin/ULong;Ljava/lang/String;Ljava/lang/String;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Lio/github/kmpfacelink/model/DerivedFaceSignal;
+	public final fun component2 ()Lio/github/kmpfacelink/model/BlendShape;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun component4 ()Ljava/lang/String;
+	public final fun component5 ()Ljava/lang/String;
+	public final fun component6-6VbMDqA ()Lkotlin/ULong;
+	public final fun component7 ()Ljava/lang/String;
+	public final fun component8 ()Ljava/lang/String;
+	public final fun copy-9qbYHJM (Lio/github/kmpfacelink/model/DerivedFaceSignal;Lio/github/kmpfacelink/model/BlendShape;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lkotlin/ULong;Ljava/lang/String;Ljava/lang/String;)Lio/github/kmpfacelink/model/ParticipantCalibrationDecisionProvenance;
+	public static synthetic fun copy-9qbYHJM$default (Lio/github/kmpfacelink/model/ParticipantCalibrationDecisionProvenance;Lio/github/kmpfacelink/model/DerivedFaceSignal;Lio/github/kmpfacelink/model/BlendShape;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lkotlin/ULong;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Lio/github/kmpfacelink/model/ParticipantCalibrationDecisionProvenance;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getCandidateId ()Ljava/lang/String;
+	public final fun getCanonicalBlendShape ()Lio/github/kmpfacelink/model/BlendShape;
+	public final fun getEvidenceReceiptSha256 ()Ljava/lang/String;
+	public final fun getProfileId ()Ljava/lang/String;
+	public final fun getProfileRevision-6VbMDqA ()Lkotlin/ULong;
+	public final fun getRuntimeConfigurationFingerprint ()Ljava/lang/String;
+	public final fun getRuntimeEpochFingerprint ()Ljava/lang/String;
+	public final fun getTargetSignal ()Lio/github/kmpfacelink/model/DerivedFaceSignal;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/github/kmpfacelink/model/ParticipantCalibrationEvidenceReceipt {
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;JLjava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lio/github/kmpfacelink/model/EvidenceScope;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component10 ()Ljava/lang/String;
+	public final fun component11 ()Ljava/lang/String;
+	public final fun component12 ()Ljava/lang/String;
+	public final fun component13 ()Lio/github/kmpfacelink/model/EvidenceScope;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3-s-VKNKU ()J
+	public final fun component4 ()Ljava/lang/String;
+	public final fun component5 ()Ljava/lang/String;
+	public final fun component6 ()Ljava/lang/String;
+	public final fun component7 ()Ljava/lang/String;
+	public final fun component8 ()Ljava/lang/String;
+	public final fun component9 ()Ljava/lang/String;
+	public final fun copy-A-xj-Kk (Ljava/lang/String;Ljava/lang/String;JLjava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lio/github/kmpfacelink/model/EvidenceScope;)Lio/github/kmpfacelink/model/ParticipantCalibrationEvidenceReceipt;
+	public static synthetic fun copy-A-xj-Kk$default (Lio/github/kmpfacelink/model/ParticipantCalibrationEvidenceReceipt;Ljava/lang/String;Ljava/lang/String;JLjava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lio/github/kmpfacelink/model/EvidenceScope;ILjava/lang/Object;)Lio/github/kmpfacelink/model/ParticipantCalibrationEvidenceReceipt;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getArtifactSha256 ()Ljava/lang/String;
+	public final fun getEnrollmentProtocolId ()Ljava/lang/String;
+	public final fun getEnrollmentRunId ()Ljava/lang/String;
+	public final fun getEvidenceScope ()Lio/github/kmpfacelink/model/EvidenceScope;
+	public final fun getProfileId ()Ljava/lang/String;
+	public final fun getProfileRevision-s-VKNKU ()J
+	public final fun getPublicReviewPacketSha256 ()Ljava/lang/String;
+	public final fun getQualificationProtocolId ()Ljava/lang/String;
+	public final fun getQualificationReceiptSha256 ()Ljava/lang/String;
+	public final fun getQualificationRunId ()Ljava/lang/String;
+	public final fun getReceiptSha256 ()Ljava/lang/String;
+	public final fun getReviewedBinarySha256 ()Ljava/lang/String;
+	public final fun getSdkSourceSha256 ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public abstract interface class io/github/kmpfacelink/model/ParticipantCalibrationFallbackPolicy {
+	public abstract fun decide (Lio/github/kmpfacelink/model/DerivedFaceSignal;Lio/github/kmpfacelink/model/ParticipantCalibrationLifecycle;)Lio/github/kmpfacelink/model/BlendShapeRoute;
+}
+
+public abstract interface class io/github/kmpfacelink/model/ParticipantCalibrationLifecycle {
+}
+
+public final class io/github/kmpfacelink/model/ParticipantCalibrationLifecycle$Collecting : io/github/kmpfacelink/model/ParticipantCalibrationLifecycle {
+	public fun <init> (Lio/github/kmpfacelink/model/ParticipantEnrollmentBinding;II)V
+	public final fun component1 ()Lio/github/kmpfacelink/model/ParticipantEnrollmentBinding;
+	public final fun component2 ()I
+	public final fun component3 ()I
+	public final fun copy (Lio/github/kmpfacelink/model/ParticipantEnrollmentBinding;II)Lio/github/kmpfacelink/model/ParticipantCalibrationLifecycle$Collecting;
+	public static synthetic fun copy$default (Lio/github/kmpfacelink/model/ParticipantCalibrationLifecycle$Collecting;Lio/github/kmpfacelink/model/ParticipantEnrollmentBinding;IIILjava/lang/Object;)Lio/github/kmpfacelink/model/ParticipantCalibrationLifecycle$Collecting;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getCollectedUnits ()I
+	public final fun getEnrollmentBinding ()Lio/github/kmpfacelink/model/ParticipantEnrollmentBinding;
+	public final fun getRequiredUnits ()I
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/github/kmpfacelink/model/ParticipantCalibrationLifecycle$Expired : io/github/kmpfacelink/model/ParticipantCalibrationLifecycle {
+	public synthetic fun <init> (Ljava/lang/String;JJLkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2-s-VKNKU ()J
+	public final fun component3 ()J
+	public final fun copy-z13BHRw (Ljava/lang/String;JJ)Lio/github/kmpfacelink/model/ParticipantCalibrationLifecycle$Expired;
+	public static synthetic fun copy-z13BHRw$default (Lio/github/kmpfacelink/model/ParticipantCalibrationLifecycle$Expired;Ljava/lang/String;JJILjava/lang/Object;)Lio/github/kmpfacelink/model/ParticipantCalibrationLifecycle$Expired;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getExpiredAtEpochMs ()J
+	public final fun getProfileId ()Ljava/lang/String;
+	public final fun getProfileRevision-s-VKNKU ()J
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/github/kmpfacelink/model/ParticipantCalibrationLifecycle$Mismatched : io/github/kmpfacelink/model/ParticipantCalibrationLifecycle {
+	public synthetic fun <init> (Ljava/lang/String;Lkotlin/ULong;Ljava/util/Set;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2-6VbMDqA ()Lkotlin/ULong;
+	public final fun component3 ()Ljava/util/Set;
+	public final fun copy-trFcsSw (Ljava/lang/String;Lkotlin/ULong;Ljava/util/Set;)Lio/github/kmpfacelink/model/ParticipantCalibrationLifecycle$Mismatched;
+	public static synthetic fun copy-trFcsSw$default (Lio/github/kmpfacelink/model/ParticipantCalibrationLifecycle$Mismatched;Ljava/lang/String;Lkotlin/ULong;Ljava/util/Set;ILjava/lang/Object;)Lio/github/kmpfacelink/model/ParticipantCalibrationLifecycle$Mismatched;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getDifferingFields ()Ljava/util/Set;
+	public final fun getProfileId ()Ljava/lang/String;
+	public final fun getProfileRevision-6VbMDqA ()Lkotlin/ULong;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/github/kmpfacelink/model/ParticipantCalibrationLifecycle$Ready : io/github/kmpfacelink/model/ParticipantCalibrationLifecycle {
+	public fun <init> (Lio/github/kmpfacelink/model/ParticipantCalibrationProfile;)V
+	public final fun component1 ()Lio/github/kmpfacelink/model/ParticipantCalibrationProfile;
+	public final fun copy (Lio/github/kmpfacelink/model/ParticipantCalibrationProfile;)Lio/github/kmpfacelink/model/ParticipantCalibrationLifecycle$Ready;
+	public static synthetic fun copy$default (Lio/github/kmpfacelink/model/ParticipantCalibrationLifecycle$Ready;Lio/github/kmpfacelink/model/ParticipantCalibrationProfile;ILjava/lang/Object;)Lio/github/kmpfacelink/model/ParticipantCalibrationLifecycle$Ready;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getProfile ()Lio/github/kmpfacelink/model/ParticipantCalibrationProfile;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/github/kmpfacelink/model/ParticipantCalibrationLifecycle$Rejected : io/github/kmpfacelink/model/ParticipantCalibrationLifecycle {
+	public synthetic fun <init> (Ljava/lang/String;JLjava/lang/String;Lio/github/kmpfacelink/model/ParticipantCalibrationEvidenceReceipt;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2-s-VKNKU ()J
+	public final fun component3 ()Ljava/lang/String;
+	public final fun component4 ()Lio/github/kmpfacelink/model/ParticipantCalibrationEvidenceReceipt;
+	public final fun copy-32etgaw (Ljava/lang/String;JLjava/lang/String;Lio/github/kmpfacelink/model/ParticipantCalibrationEvidenceReceipt;)Lio/github/kmpfacelink/model/ParticipantCalibrationLifecycle$Rejected;
+	public static synthetic fun copy-32etgaw$default (Lio/github/kmpfacelink/model/ParticipantCalibrationLifecycle$Rejected;Ljava/lang/String;JLjava/lang/String;Lio/github/kmpfacelink/model/ParticipantCalibrationEvidenceReceipt;ILjava/lang/Object;)Lio/github/kmpfacelink/model/ParticipantCalibrationLifecycle$Rejected;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getEvidenceReceipt ()Lio/github/kmpfacelink/model/ParticipantCalibrationEvidenceReceipt;
+	public final fun getProfileId ()Ljava/lang/String;
+	public final fun getProfileRevision-s-VKNKU ()J
+	public final fun getReason ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/github/kmpfacelink/model/ParticipantCalibrationLifecycle$Unavailable : io/github/kmpfacelink/model/ParticipantCalibrationLifecycle {
+	public fun <init> (Ljava/lang/String;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;)Lio/github/kmpfacelink/model/ParticipantCalibrationLifecycle$Unavailable;
+	public static synthetic fun copy$default (Lio/github/kmpfacelink/model/ParticipantCalibrationLifecycle$Unavailable;Ljava/lang/String;ILjava/lang/Object;)Lio/github/kmpfacelink/model/ParticipantCalibrationLifecycle$Unavailable;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getReason ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/github/kmpfacelink/model/ParticipantCalibrationProfile {
+	public fun <init> (Lio/github/kmpfacelink/model/ParticipantCalibrationArtifact;Lio/github/kmpfacelink/model/ParticipantCalibrationEvidenceReceipt;)V
+	public final fun component1 ()Lio/github/kmpfacelink/model/ParticipantCalibrationArtifact;
+	public final fun component2 ()Lio/github/kmpfacelink/model/ParticipantCalibrationEvidenceReceipt;
+	public final fun copy (Lio/github/kmpfacelink/model/ParticipantCalibrationArtifact;Lio/github/kmpfacelink/model/ParticipantCalibrationEvidenceReceipt;)Lio/github/kmpfacelink/model/ParticipantCalibrationProfile;
+	public static synthetic fun copy$default (Lio/github/kmpfacelink/model/ParticipantCalibrationProfile;Lio/github/kmpfacelink/model/ParticipantCalibrationArtifact;Lio/github/kmpfacelink/model/ParticipantCalibrationEvidenceReceipt;ILjava/lang/Object;)Lio/github/kmpfacelink/model/ParticipantCalibrationProfile;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getArtifact ()Lio/github/kmpfacelink/model/ParticipantCalibrationArtifact;
+	public final fun getEvidenceReceipt ()Lio/github/kmpfacelink/model/ParticipantCalibrationEvidenceReceipt;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/github/kmpfacelink/model/ParticipantCalibrationReducer {
+	public fun <init> (Lio/github/kmpfacelink/model/ParticipantCalibrationClock;)V
+	public final fun reduce (Lio/github/kmpfacelink/model/ParticipantCalibrationReductionInput;)Lio/github/kmpfacelink/model/ParticipantCalibrationLifecycle;
+}
+
+public final class io/github/kmpfacelink/model/ParticipantCalibrationReductionInput {
+	public fun <init> (Lio/github/kmpfacelink/model/ParticipantCalibrationProfile;Lio/github/kmpfacelink/model/ParticipantCalibrationCollection;Lio/github/kmpfacelink/model/ParticipantCalibrationRuntimeIdentity;Lio/github/kmpfacelink/model/EvidenceAcceptance;)V
+	public final fun component1 ()Lio/github/kmpfacelink/model/ParticipantCalibrationProfile;
+	public final fun component2 ()Lio/github/kmpfacelink/model/ParticipantCalibrationCollection;
+	public final fun component3 ()Lio/github/kmpfacelink/model/ParticipantCalibrationRuntimeIdentity;
+	public final fun component4 ()Lio/github/kmpfacelink/model/EvidenceAcceptance;
+	public final fun copy (Lio/github/kmpfacelink/model/ParticipantCalibrationProfile;Lio/github/kmpfacelink/model/ParticipantCalibrationCollection;Lio/github/kmpfacelink/model/ParticipantCalibrationRuntimeIdentity;Lio/github/kmpfacelink/model/EvidenceAcceptance;)Lio/github/kmpfacelink/model/ParticipantCalibrationReductionInput;
+	public static synthetic fun copy$default (Lio/github/kmpfacelink/model/ParticipantCalibrationReductionInput;Lio/github/kmpfacelink/model/ParticipantCalibrationProfile;Lio/github/kmpfacelink/model/ParticipantCalibrationCollection;Lio/github/kmpfacelink/model/ParticipantCalibrationRuntimeIdentity;Lio/github/kmpfacelink/model/EvidenceAcceptance;ILjava/lang/Object;)Lio/github/kmpfacelink/model/ParticipantCalibrationReductionInput;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getCollection ()Lio/github/kmpfacelink/model/ParticipantCalibrationCollection;
+	public final fun getEvidenceAcceptance ()Lio/github/kmpfacelink/model/EvidenceAcceptance;
+	public final fun getProfile ()Lio/github/kmpfacelink/model/ParticipantCalibrationProfile;
+	public final fun getRuntime ()Lio/github/kmpfacelink/model/ParticipantCalibrationRuntimeIdentity;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/github/kmpfacelink/model/ParticipantCalibrationRuntimeIdentity {
+	public synthetic fun <init> (Ljava/lang/String;JLio/github/kmpfacelink/model/ParticipantEnrollmentBinding;Lio/github/kmpfacelink/model/TrackingContextEpoch;Ljava/lang/String;Lio/github/kmpfacelink/model/DerivedFaceSignal;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component10 ()Ljava/lang/String;
+	public final fun component11 ()Ljava/lang/String;
+	public final fun component12 ()Ljava/lang/String;
+	public final fun component13 ()Ljava/lang/String;
+	public final fun component14 ()Ljava/lang/String;
+	public final fun component2-s-VKNKU ()J
+	public final fun component3 ()Lio/github/kmpfacelink/model/ParticipantEnrollmentBinding;
+	public final fun component4 ()Lio/github/kmpfacelink/model/TrackingContextEpoch;
+	public final fun component5 ()Ljava/lang/String;
+	public final fun component6 ()Lio/github/kmpfacelink/model/DerivedFaceSignal;
+	public final fun component7 ()Ljava/lang/String;
+	public final fun component8 ()Ljava/lang/String;
+	public final fun component9 ()Ljava/lang/String;
+	public final fun copy-Ipnv5hA (Ljava/lang/String;JLio/github/kmpfacelink/model/ParticipantEnrollmentBinding;Lio/github/kmpfacelink/model/TrackingContextEpoch;Ljava/lang/String;Lio/github/kmpfacelink/model/DerivedFaceSignal;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Lio/github/kmpfacelink/model/ParticipantCalibrationRuntimeIdentity;
+	public static synthetic fun copy-Ipnv5hA$default (Lio/github/kmpfacelink/model/ParticipantCalibrationRuntimeIdentity;Ljava/lang/String;JLio/github/kmpfacelink/model/ParticipantEnrollmentBinding;Lio/github/kmpfacelink/model/TrackingContextEpoch;Ljava/lang/String;Lio/github/kmpfacelink/model/DerivedFaceSignal;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Lio/github/kmpfacelink/model/ParticipantCalibrationRuntimeIdentity;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getBinarySha256 ()Ljava/lang/String;
+	public final fun getCandidateArtifactSha256 ()Ljava/lang/String;
+	public final fun getCandidateId ()Ljava/lang/String;
+	public final fun getCandidateImplementationSha256 ()Ljava/lang/String;
+	public final fun getCandidateModelSha256 ()Ljava/lang/String;
+	public final fun getContextEpoch ()Lio/github/kmpfacelink/model/TrackingContextEpoch;
+	public final fun getEnrollmentBinding ()Lio/github/kmpfacelink/model/ParticipantEnrollmentBinding;
+	public final fun getEvidenceReceiptSha256 ()Ljava/lang/String;
+	public final fun getPreprocessingSha256 ()Ljava/lang/String;
+	public final fun getProfileId ()Ljava/lang/String;
+	public final fun getProfileRevision-s-VKNKU ()J
+	public final fun getSdkSourceSha256 ()Ljava/lang/String;
+	public final fun getTargetSignal ()Lio/github/kmpfacelink/model/DerivedFaceSignal;
+	public final fun getThresholdSha256 ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/github/kmpfacelink/model/ParticipantEnrollmentBinding {
+	public fun <init> (Ljava/lang/String;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;)Lio/github/kmpfacelink/model/ParticipantEnrollmentBinding;
+	public static synthetic fun copy$default (Lio/github/kmpfacelink/model/ParticipantEnrollmentBinding;Ljava/lang/String;ILjava/lang/Object;)Lio/github/kmpfacelink/model/ParticipantEnrollmentBinding;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getOpaqueValue ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
 public final class io/github/kmpfacelink/model/PerformanceConfig {
 	public static final field Companion Lio/github/kmpfacelink/model/PerformanceConfig$Companion;
 	public static final field DEFAULT_ANALYSIS_HEIGHT I
@@ -967,26 +1982,65 @@ public final class io/github/kmpfacelink/model/PerformanceConfig {
 	public static final field DEFAULT_RELEASE_TIMEOUT_MS J
 	public static final field DEFAULT_STOP_DRAIN_DELAY_MS J
 	public fun <init> ()V
-	public fun <init> (IILio/github/kmpfacelink/model/InferenceDelegate;JJ)V
-	public synthetic fun <init> (IILio/github/kmpfacelink/model/InferenceDelegate;JJILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (IILio/github/kmpfacelink/model/InferenceDelegate;Lio/github/kmpfacelink/model/InferenceRunningMode;JJ)V
+	public synthetic fun <init> (IILio/github/kmpfacelink/model/InferenceDelegate;Lio/github/kmpfacelink/model/InferenceRunningMode;JJILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun component1 ()I
 	public final fun component2 ()I
 	public final fun component3 ()Lio/github/kmpfacelink/model/InferenceDelegate;
-	public final fun component4 ()J
+	public final fun component4 ()Lio/github/kmpfacelink/model/InferenceRunningMode;
 	public final fun component5 ()J
-	public final fun copy (IILio/github/kmpfacelink/model/InferenceDelegate;JJ)Lio/github/kmpfacelink/model/PerformanceConfig;
-	public static synthetic fun copy$default (Lio/github/kmpfacelink/model/PerformanceConfig;IILio/github/kmpfacelink/model/InferenceDelegate;JJILjava/lang/Object;)Lio/github/kmpfacelink/model/PerformanceConfig;
+	public final fun component6 ()J
+	public final fun copy (IILio/github/kmpfacelink/model/InferenceDelegate;Lio/github/kmpfacelink/model/InferenceRunningMode;JJ)Lio/github/kmpfacelink/model/PerformanceConfig;
+	public static synthetic fun copy$default (Lio/github/kmpfacelink/model/PerformanceConfig;IILio/github/kmpfacelink/model/InferenceDelegate;Lio/github/kmpfacelink/model/InferenceRunningMode;JJILjava/lang/Object;)Lio/github/kmpfacelink/model/PerformanceConfig;
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getAnalysisHeight ()I
 	public final fun getAnalysisWidth ()I
 	public final fun getInferenceDelegate ()Lio/github/kmpfacelink/model/InferenceDelegate;
 	public final fun getReleaseTimeoutMs ()J
+	public final fun getRunningMode ()Lio/github/kmpfacelink/model/InferenceRunningMode;
 	public final fun getStopDrainDelayMs ()J
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
 }
 
 public final class io/github/kmpfacelink/model/PerformanceConfig$Companion {
+}
+
+public final class io/github/kmpfacelink/model/PerformanceInstrumentationConfig {
+	public static final field Companion Lio/github/kmpfacelink/model/PerformanceInstrumentationConfig$Companion;
+	public static final field DEFAULT_EVENT_BUFFER_CAPACITY I
+	public fun <init> ()V
+	public fun <init> (ZI)V
+	public synthetic fun <init> (ZIILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Z
+	public final fun component2 ()I
+	public final fun copy (ZI)Lio/github/kmpfacelink/model/PerformanceInstrumentationConfig;
+	public static synthetic fun copy$default (Lio/github/kmpfacelink/model/PerformanceInstrumentationConfig;ZIILjava/lang/Object;)Lio/github/kmpfacelink/model/PerformanceInstrumentationConfig;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getEnabled ()Z
+	public final fun getEventBufferCapacity ()I
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/github/kmpfacelink/model/PerformanceInstrumentationConfig$Companion {
+}
+
+public final class io/github/kmpfacelink/model/PlatformIdentity {
+	public fun <init> (Ljava/lang/String;Lio/github/kmpfacelink/model/DimensionValue;Lio/github/kmpfacelink/model/DimensionValue;Lio/github/kmpfacelink/model/DimensionValue;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Lio/github/kmpfacelink/model/DimensionValue;
+	public final fun component3 ()Lio/github/kmpfacelink/model/DimensionValue;
+	public final fun component4 ()Lio/github/kmpfacelink/model/DimensionValue;
+	public final fun copy (Ljava/lang/String;Lio/github/kmpfacelink/model/DimensionValue;Lio/github/kmpfacelink/model/DimensionValue;Lio/github/kmpfacelink/model/DimensionValue;)Lio/github/kmpfacelink/model/PlatformIdentity;
+	public static synthetic fun copy$default (Lio/github/kmpfacelink/model/PlatformIdentity;Ljava/lang/String;Lio/github/kmpfacelink/model/DimensionValue;Lio/github/kmpfacelink/model/DimensionValue;Lio/github/kmpfacelink/model/DimensionValue;ILjava/lang/Object;)Lio/github/kmpfacelink/model/PlatformIdentity;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getDeviceModel ()Lio/github/kmpfacelink/model/DimensionValue;
+	public final fun getEstimatorConfigurationId ()Lio/github/kmpfacelink/model/DimensionValue;
+	public final fun getOsVersion ()Lio/github/kmpfacelink/model/DimensionValue;
+	public final fun getPlatform ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
 }
 
 public final class io/github/kmpfacelink/model/PowerConfig {
@@ -1062,6 +2116,100 @@ public final class io/github/kmpfacelink/model/QualityPreset$Medium : io/github/
 	public fun getAnalysisHeight ()I
 	public fun getAnalysisWidth ()I
 	public fun getPowerMode ()Lio/github/kmpfacelink/model/PowerMode;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public abstract interface class io/github/kmpfacelink/model/ResponseObservation {
+}
+
+public final class io/github/kmpfacelink/model/ResponseObservation$Measured : io/github/kmpfacelink/model/ResponseObservation {
+	public fun <init> (Lio/github/kmpfacelink/model/ObservedResponseClass;Ljava/lang/String;)V
+	public final fun component1 ()Lio/github/kmpfacelink/model/ObservedResponseClass;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun copy (Lio/github/kmpfacelink/model/ObservedResponseClass;Ljava/lang/String;)Lio/github/kmpfacelink/model/ResponseObservation$Measured;
+	public static synthetic fun copy$default (Lio/github/kmpfacelink/model/ResponseObservation$Measured;Lio/github/kmpfacelink/model/ObservedResponseClass;Ljava/lang/String;ILjava/lang/Object;)Lio/github/kmpfacelink/model/ResponseObservation$Measured;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getEvidenceProfileId ()Ljava/lang/String;
+	public final fun getResponse ()Lio/github/kmpfacelink/model/ObservedResponseClass;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/github/kmpfacelink/model/ResponseObservation$Untested : io/github/kmpfacelink/model/ResponseObservation {
+	public static final field INSTANCE Lio/github/kmpfacelink/model/ResponseObservation$Untested;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public abstract interface class io/github/kmpfacelink/model/RevisionRequirement {
+}
+
+public final class io/github/kmpfacelink/model/RevisionRequirement$Exact : io/github/kmpfacelink/model/RevisionRequirement {
+	public synthetic fun <init> (JJLkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1-s-VKNKU ()J
+	public final fun component2-s-VKNKU ()J
+	public final fun copy-PWzV0Is (JJ)Lio/github/kmpfacelink/model/RevisionRequirement$Exact;
+	public static synthetic fun copy-PWzV0Is$default (Lio/github/kmpfacelink/model/RevisionRequirement$Exact;JJILjava/lang/Object;)Lio/github/kmpfacelink/model/RevisionRequirement$Exact;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getCalibrationStateRevision-s-VKNKU ()J
+	public final fun getProcessingStateRevision-s-VKNKU ()J
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/github/kmpfacelink/model/RevisionRequirement$NotApplicable : io/github/kmpfacelink/model/RevisionRequirement {
+	public static final field INSTANCE Lio/github/kmpfacelink/model/RevisionRequirement$NotApplicable;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/github/kmpfacelink/model/SchemaLayer : java/lang/Enum {
+	public static final field CANONICAL_SDK_OUTPUT Lio/github/kmpfacelink/model/SchemaLayer;
+	public static final field RAW_ESTIMATOR Lio/github/kmpfacelink/model/SchemaLayer;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lio/github/kmpfacelink/model/SchemaLayer;
+	public static fun values ()[Lio/github/kmpfacelink/model/SchemaLayer;
+}
+
+public final class io/github/kmpfacelink/model/SchemaPresence : java/lang/Enum {
+	public static final field ABSENT Lio/github/kmpfacelink/model/SchemaPresence;
+	public static final field PRESENT Lio/github/kmpfacelink/model/SchemaPresence;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lio/github/kmpfacelink/model/SchemaPresence;
+	public static fun values ()[Lio/github/kmpfacelink/model/SchemaPresence;
+}
+
+public abstract interface class io/github/kmpfacelink/model/SessionBinding {
+}
+
+public final class io/github/kmpfacelink/model/SessionBinding$Portable : io/github/kmpfacelink/model/SessionBinding {
+	public static final field INSTANCE Lio/github/kmpfacelink/model/SessionBinding$Portable;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/github/kmpfacelink/model/SessionBinding$SameSession : io/github/kmpfacelink/model/SessionBinding {
+	public fun <init> (Lio/github/kmpfacelink/model/SessionInstanceId;)V
+	public final fun component1 ()Lio/github/kmpfacelink/model/SessionInstanceId;
+	public final fun copy (Lio/github/kmpfacelink/model/SessionInstanceId;)Lio/github/kmpfacelink/model/SessionBinding$SameSession;
+	public static synthetic fun copy$default (Lio/github/kmpfacelink/model/SessionBinding$SameSession;Lio/github/kmpfacelink/model/SessionInstanceId;ILjava/lang/Object;)Lio/github/kmpfacelink/model/SessionBinding$SameSession;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getId ()Lio/github/kmpfacelink/model/SessionInstanceId;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/github/kmpfacelink/model/SessionInstanceId {
+	public fun <init> (Ljava/lang/String;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;)Lio/github/kmpfacelink/model/SessionInstanceId;
+	public static synthetic fun copy$default (Lio/github/kmpfacelink/model/SessionInstanceId;Ljava/lang/String;ILjava/lang/Object;)Lio/github/kmpfacelink/model/SessionInstanceId;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getOpaqueValue ()Ljava/lang/String;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
 }
@@ -1173,6 +2321,60 @@ public final class io/github/kmpfacelink/model/SmoothingConfig$OneEuro : io/gith
 	public fun toString ()Ljava/lang/String;
 }
 
+public abstract interface class io/github/kmpfacelink/model/TechnicalContextMatch {
+}
+
+public final class io/github/kmpfacelink/model/TechnicalContextMatch$Exact : io/github/kmpfacelink/model/TechnicalContextMatch {
+	public fun <init> (Lio/github/kmpfacelink/model/ObservedResponseProfile;)V
+	public final fun component1 ()Lio/github/kmpfacelink/model/ObservedResponseProfile;
+	public final fun copy (Lio/github/kmpfacelink/model/ObservedResponseProfile;)Lio/github/kmpfacelink/model/TechnicalContextMatch$Exact;
+	public static synthetic fun copy$default (Lio/github/kmpfacelink/model/TechnicalContextMatch$Exact;Lio/github/kmpfacelink/model/ObservedResponseProfile;ILjava/lang/Object;)Lio/github/kmpfacelink/model/TechnicalContextMatch$Exact;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getProfile ()Lio/github/kmpfacelink/model/ObservedResponseProfile;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/github/kmpfacelink/model/TechnicalContextMatch$Incompatible : io/github/kmpfacelink/model/TechnicalContextMatch {
+	public fun <init> (Ljava/util/Set;)V
+	public final fun component1 ()Ljava/util/Set;
+	public final fun copy (Ljava/util/Set;)Lio/github/kmpfacelink/model/TechnicalContextMatch$Incompatible;
+	public static synthetic fun copy$default (Lio/github/kmpfacelink/model/TechnicalContextMatch$Incompatible;Ljava/util/Set;ILjava/lang/Object;)Lio/github/kmpfacelink/model/TechnicalContextMatch$Incompatible;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getDifferingFields ()Ljava/util/Set;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/github/kmpfacelink/model/TechnicalContextMatch$NoFrameContext : io/github/kmpfacelink/model/TechnicalContextMatch {
+	public static final field INSTANCE Lio/github/kmpfacelink/model/TechnicalContextMatch$NoFrameContext;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/github/kmpfacelink/model/TechnicalContextMatch$RuntimeFiltered : io/github/kmpfacelink/model/TechnicalContextMatch {
+	public fun <init> (Lio/github/kmpfacelink/model/BlendShape;)V
+	public final fun component1 ()Lio/github/kmpfacelink/model/BlendShape;
+	public final fun copy (Lio/github/kmpfacelink/model/BlendShape;)Lio/github/kmpfacelink/model/TechnicalContextMatch$RuntimeFiltered;
+	public static synthetic fun copy$default (Lio/github/kmpfacelink/model/TechnicalContextMatch$RuntimeFiltered;Lio/github/kmpfacelink/model/BlendShape;ILjava/lang/Object;)Lio/github/kmpfacelink/model/TechnicalContextMatch$RuntimeFiltered;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getShape ()Lio/github/kmpfacelink/model/BlendShape;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/github/kmpfacelink/model/TechnicalContextMatch$Unknown : io/github/kmpfacelink/model/TechnicalContextMatch {
+	public fun <init> (Ljava/util/Set;)V
+	public final fun component1 ()Ljava/util/Set;
+	public final fun copy (Ljava/util/Set;)Lio/github/kmpfacelink/model/TechnicalContextMatch$Unknown;
+	public static synthetic fun copy$default (Lio/github/kmpfacelink/model/TechnicalContextMatch$Unknown;Ljava/util/Set;ILjava/lang/Object;)Lio/github/kmpfacelink/model/TechnicalContextMatch$Unknown;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getUnresolvedFields ()Ljava/util/Set;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
 public abstract class io/github/kmpfacelink/model/ThermalPolicy {
 }
 
@@ -1248,16 +2450,17 @@ public final class io/github/kmpfacelink/model/TrackedBody {
 }
 
 public final class io/github/kmpfacelink/model/TrackedFace {
-	public fun <init> (ILjava/util/Map;Lio/github/kmpfacelink/model/HeadTransform;Lio/github/kmpfacelink/model/GazeData;Ljava/util/List;F)V
-	public synthetic fun <init> (ILjava/util/Map;Lio/github/kmpfacelink/model/HeadTransform;Lio/github/kmpfacelink/model/GazeData;Ljava/util/List;FILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (ILjava/util/Map;Lio/github/kmpfacelink/model/HeadTransform;Lio/github/kmpfacelink/model/GazeData;Ljava/util/List;FLio/github/kmpfacelink/model/FaceObservationProvenance;)V
+	public synthetic fun <init> (ILjava/util/Map;Lio/github/kmpfacelink/model/HeadTransform;Lio/github/kmpfacelink/model/GazeData;Ljava/util/List;FLio/github/kmpfacelink/model/FaceObservationProvenance;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun component1 ()I
 	public final fun component2 ()Ljava/util/Map;
 	public final fun component3 ()Lio/github/kmpfacelink/model/HeadTransform;
 	public final fun component4 ()Lio/github/kmpfacelink/model/GazeData;
 	public final fun component5 ()Ljava/util/List;
 	public final fun component6 ()F
-	public final fun copy (ILjava/util/Map;Lio/github/kmpfacelink/model/HeadTransform;Lio/github/kmpfacelink/model/GazeData;Ljava/util/List;F)Lio/github/kmpfacelink/model/TrackedFace;
-	public static synthetic fun copy$default (Lio/github/kmpfacelink/model/TrackedFace;ILjava/util/Map;Lio/github/kmpfacelink/model/HeadTransform;Lio/github/kmpfacelink/model/GazeData;Ljava/util/List;FILjava/lang/Object;)Lio/github/kmpfacelink/model/TrackedFace;
+	public final fun component7 ()Lio/github/kmpfacelink/model/FaceObservationProvenance;
+	public final fun copy (ILjava/util/Map;Lio/github/kmpfacelink/model/HeadTransform;Lio/github/kmpfacelink/model/GazeData;Ljava/util/List;FLio/github/kmpfacelink/model/FaceObservationProvenance;)Lio/github/kmpfacelink/model/TrackedFace;
+	public static synthetic fun copy$default (Lio/github/kmpfacelink/model/TrackedFace;ILjava/util/Map;Lio/github/kmpfacelink/model/HeadTransform;Lio/github/kmpfacelink/model/GazeData;Ljava/util/List;FLio/github/kmpfacelink/model/FaceObservationProvenance;ILjava/lang/Object;)Lio/github/kmpfacelink/model/TrackedFace;
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getBlendShapes ()Ljava/util/Map;
 	public final fun getConfidence ()F
@@ -1265,6 +2468,7 @@ public final class io/github/kmpfacelink/model/TrackedFace {
 	public final fun getGazeData ()Lio/github/kmpfacelink/model/GazeData;
 	public final fun getHeadTransform ()Lio/github/kmpfacelink/model/HeadTransform;
 	public final fun getLandmarks ()Ljava/util/List;
+	public final fun getProvenance ()Lio/github/kmpfacelink/model/FaceObservationProvenance;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
 }
@@ -1287,6 +2491,47 @@ public final class io/github/kmpfacelink/model/TrackedHand {
 	public fun toString ()Ljava/lang/String;
 }
 
+public final class io/github/kmpfacelink/model/TrackerOperationStatus : java/lang/Enum {
+	public static final field APPLIED Lio/github/kmpfacelink/model/TrackerOperationStatus;
+	public static final field UNSUPPORTED Lio/github/kmpfacelink/model/TrackerOperationStatus;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lio/github/kmpfacelink/model/TrackerOperationStatus;
+	public static fun values ()[Lio/github/kmpfacelink/model/TrackerOperationStatus;
+}
+
+public final class io/github/kmpfacelink/model/TrackingContextEpoch {
+	public synthetic fun <init> (JLio/github/kmpfacelink/model/SessionInstanceId;Lio/github/kmpfacelink/model/EstimatorArtifact;Lio/github/kmpfacelink/model/PlatformIdentity;Lio/github/kmpfacelink/model/DimensionValue;Lio/github/kmpfacelink/model/DimensionValue;Lio/github/kmpfacelink/model/DimensionValue;Lio/github/kmpfacelink/model/DimensionValue;Lio/github/kmpfacelink/model/DimensionValue;Ljava/util/List;Ljava/util/Set;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1-s-VKNKU ()J
+	public final fun component10 ()Ljava/util/List;
+	public final fun component11 ()Ljava/util/Set;
+	public final fun component2 ()Lio/github/kmpfacelink/model/SessionInstanceId;
+	public final fun component3 ()Lio/github/kmpfacelink/model/EstimatorArtifact;
+	public final fun component4 ()Lio/github/kmpfacelink/model/PlatformIdentity;
+	public final fun component5 ()Lio/github/kmpfacelink/model/DimensionValue;
+	public final fun component6 ()Lio/github/kmpfacelink/model/DimensionValue;
+	public final fun component7 ()Lio/github/kmpfacelink/model/DimensionValue;
+	public final fun component8 ()Lio/github/kmpfacelink/model/DimensionValue;
+	public final fun component9 ()Lio/github/kmpfacelink/model/DimensionValue;
+	public final fun copy-oPeYpE8 (JLio/github/kmpfacelink/model/SessionInstanceId;Lio/github/kmpfacelink/model/EstimatorArtifact;Lio/github/kmpfacelink/model/PlatformIdentity;Lio/github/kmpfacelink/model/DimensionValue;Lio/github/kmpfacelink/model/DimensionValue;Lio/github/kmpfacelink/model/DimensionValue;Lio/github/kmpfacelink/model/DimensionValue;Lio/github/kmpfacelink/model/DimensionValue;Ljava/util/List;Ljava/util/Set;)Lio/github/kmpfacelink/model/TrackingContextEpoch;
+	public static synthetic fun copy-oPeYpE8$default (Lio/github/kmpfacelink/model/TrackingContextEpoch;JLio/github/kmpfacelink/model/SessionInstanceId;Lio/github/kmpfacelink/model/EstimatorArtifact;Lio/github/kmpfacelink/model/PlatformIdentity;Lio/github/kmpfacelink/model/DimensionValue;Lio/github/kmpfacelink/model/DimensionValue;Lio/github/kmpfacelink/model/DimensionValue;Lio/github/kmpfacelink/model/DimensionValue;Lio/github/kmpfacelink/model/DimensionValue;Ljava/util/List;Ljava/util/Set;ILjava/lang/Object;)Lio/github/kmpfacelink/model/TrackingContextEpoch;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getActiveBlendShapes ()Ljava/util/Set;
+	public final fun getConfigurationFingerprint ()Ljava/lang/String;
+	public final fun getConfiguredTransforms ()Ljava/util/List;
+	public final fun getEpochFingerprint ()Ljava/lang/String;
+	public final fun getEpochId-s-VKNKU ()J
+	public final fun getEstimator ()Lio/github/kmpfacelink/model/EstimatorArtifact;
+	public final fun getInputHeight ()Lio/github/kmpfacelink/model/DimensionValue;
+	public final fun getInputWidth ()Lio/github/kmpfacelink/model/DimensionValue;
+	public final fun getMirroredBeforeInference ()Lio/github/kmpfacelink/model/DimensionValue;
+	public final fun getPlatform ()Lio/github/kmpfacelink/model/PlatformIdentity;
+	public final fun getResolvedDelegate ()Lio/github/kmpfacelink/model/DimensionValue;
+	public final fun getRunningMode ()Lio/github/kmpfacelink/model/DimensionValue;
+	public final fun getSessionInstanceId ()Lio/github/kmpfacelink/model/SessionInstanceId;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
 public final class io/github/kmpfacelink/model/TrackingModality : java/lang/Enum {
 	public static final field BODY Lio/github/kmpfacelink/model/TrackingModality;
 	public static final field FACE Lio/github/kmpfacelink/model/TrackingModality;
@@ -1294,6 +2539,111 @@ public final class io/github/kmpfacelink/model/TrackingModality : java/lang/Enum
 	public static fun getEntries ()Lkotlin/enums/EnumEntries;
 	public static fun valueOf (Ljava/lang/String;)Lio/github/kmpfacelink/model/TrackingModality;
 	public static fun values ()[Lio/github/kmpfacelink/model/TrackingModality;
+}
+
+public final class io/github/kmpfacelink/model/TransformKind : java/lang/Enum {
+	public static final field ACTIVE_SHAPE_FILTER Lio/github/kmpfacelink/model/TransformKind;
+	public static final field CALIBRATOR Lio/github/kmpfacelink/model/TransformKind;
+	public static final field ENHANCER Lio/github/kmpfacelink/model/TransformKind;
+	public static final field INTERPOLATOR Lio/github/kmpfacelink/model/TransformKind;
+	public static final field SMOOTHER Lio/github/kmpfacelink/model/TransformKind;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lio/github/kmpfacelink/model/TransformKind;
+	public static fun values ()[Lio/github/kmpfacelink/model/TransformKind;
+}
+
+public final class io/github/kmpfacelink/model/TransformSpec {
+	public fun <init> (Lio/github/kmpfacelink/model/TransformKind;Ljava/lang/String;Ljava/lang/String;Lio/github/kmpfacelink/model/TransformStateDependence;)V
+	public synthetic fun <init> (Lio/github/kmpfacelink/model/TransformKind;Ljava/lang/String;Ljava/lang/String;Lio/github/kmpfacelink/model/TransformStateDependence;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Lio/github/kmpfacelink/model/TransformKind;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun component4 ()Lio/github/kmpfacelink/model/TransformStateDependence;
+	public final fun copy (Lio/github/kmpfacelink/model/TransformKind;Ljava/lang/String;Ljava/lang/String;Lio/github/kmpfacelink/model/TransformStateDependence;)Lio/github/kmpfacelink/model/TransformSpec;
+	public static synthetic fun copy$default (Lio/github/kmpfacelink/model/TransformSpec;Lio/github/kmpfacelink/model/TransformKind;Ljava/lang/String;Ljava/lang/String;Lio/github/kmpfacelink/model/TransformStateDependence;ILjava/lang/Object;)Lio/github/kmpfacelink/model/TransformSpec;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getConfigurationFingerprint ()Ljava/lang/String;
+	public final fun getImplementationId ()Ljava/lang/String;
+	public final fun getKind ()Lio/github/kmpfacelink/model/TransformKind;
+	public final fun getStateDependence ()Lio/github/kmpfacelink/model/TransformStateDependence;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/github/kmpfacelink/model/TransformStateDependence : java/lang/Enum {
+	public static final field PORTABLE_CONFIGURATION Lio/github/kmpfacelink/model/TransformStateDependence;
+	public static final field SESSION_LEARNED_STATE Lio/github/kmpfacelink/model/TransformStateDependence;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lio/github/kmpfacelink/model/TransformStateDependence;
+	public static fun values ()[Lio/github/kmpfacelink/model/TransformStateDependence;
+}
+
+public final class io/github/kmpfacelink/model/ValidationClass : java/lang/Enum {
+	public static final field EXPLORATORY_SINGLE_SESSION Lio/github/kmpfacelink/model/ValidationClass;
+	public static final field INDEPENDENT_SESSION Lio/github/kmpfacelink/model/ValidationClass;
+	public static final field MULTI_PARTICIPANT Lio/github/kmpfacelink/model/ValidationClass;
+	public static final field PRODUCT_VALIDATED Lio/github/kmpfacelink/model/ValidationClass;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lio/github/kmpfacelink/model/ValidationClass;
+	public static fun values ()[Lio/github/kmpfacelink/model/ValidationClass;
+}
+
+public final class io/github/kmpfacelink/research/FrozenC2C1Input {
+	public fun <init> (JLjava/util/Map;Ljava/util/List;II)V
+	public final fun component1 ()J
+	public final fun component2 ()Ljava/util/Map;
+	public final fun component3 ()Ljava/util/List;
+	public final fun component4 ()I
+	public final fun component5 ()I
+	public final fun copy (JLjava/util/Map;Ljava/util/List;II)Lio/github/kmpfacelink/research/FrozenC2C1Input;
+	public static synthetic fun copy$default (Lio/github/kmpfacelink/research/FrozenC2C1Input;JLjava/util/Map;Ljava/util/List;IIILjava/lang/Object;)Lio/github/kmpfacelink/research/FrozenC2C1Input;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getEstimator ()Ljava/util/Map;
+	public final fun getLandmarks ()Ljava/util/List;
+	public final fun getSourceHeight ()I
+	public final fun getSourceWidth ()I
+	public final fun getTimestampMillis ()J
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/github/kmpfacelink/research/FrozenC2C1Output {
+	public fun <init> (JLjava/lang/Float;Lio/github/kmpfacelink/research/FrozenResearchReadiness;Ljava/lang/String;)V
+	public final fun component1 ()J
+	public final fun component2 ()Ljava/lang/Float;
+	public final fun component3 ()Lio/github/kmpfacelink/research/FrozenResearchReadiness;
+	public final fun component4 ()Ljava/lang/String;
+	public final fun copy (JLjava/lang/Float;Lio/github/kmpfacelink/research/FrozenResearchReadiness;Ljava/lang/String;)Lio/github/kmpfacelink/research/FrozenC2C1Output;
+	public static synthetic fun copy$default (Lio/github/kmpfacelink/research/FrozenC2C1Output;JLjava/lang/Float;Lio/github/kmpfacelink/research/FrozenResearchReadiness;Ljava/lang/String;ILjava/lang/Object;)Lio/github/kmpfacelink/research/FrozenC2C1Output;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getReadiness ()Lio/github/kmpfacelink/research/FrozenResearchReadiness;
+	public final fun getReason ()Ljava/lang/String;
+	public final fun getTimestampMillis ()J
+	public final fun getValue ()Ljava/lang/Float;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/github/kmpfacelink/research/FrozenC2C1ResearchAdapter {
+	public static final field Companion Lio/github/kmpfacelink/research/FrozenC2C1ResearchAdapter$Companion;
+	public static final field IMPLEMENTATION_REVISION Ljava/lang/String;
+	public static final field PRODUCER_ID Ljava/lang/String;
+	public static final field VERIFIED_ORIGINAL_SOURCE_SHA256 Ljava/lang/String;
+	public fun <init> ()V
+	public final fun observe (Lio/github/kmpfacelink/research/FrozenC2C1Input;)Lio/github/kmpfacelink/research/FrozenC2C1Output;
+	public final fun reset ()V
+}
+
+public final class io/github/kmpfacelink/research/FrozenC2C1ResearchAdapter$Companion {
+}
+
+public final class io/github/kmpfacelink/research/FrozenResearchReadiness : java/lang/Enum {
+	public static final field NOT_READY Lio/github/kmpfacelink/research/FrozenResearchReadiness;
+	public static final field READY Lio/github/kmpfacelink/research/FrozenResearchReadiness;
+	public static final field REJECTED Lio/github/kmpfacelink/research/FrozenResearchReadiness;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lio/github/kmpfacelink/research/FrozenResearchReadiness;
+	public static fun values ()[Lio/github/kmpfacelink/research/FrozenResearchReadiness;
 }
 
 public final class io/github/kmpfacelink/util/CompositeGestureStrategy : io/github/kmpfacelink/api/GestureClassificationStrategy {

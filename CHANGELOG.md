@@ -6,6 +6,30 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+- Capability, provenance, fallback, offline-inference, and opt-in pipeline-performance contracts
+- Internal shared guided-capture harness and Android/iOS evaluation applications
+- `sdkQualityCheck` source/API/platform/capture/privacy gate and separate authorized private replay lane
+- Dependency-free paired-calibration parser/metric contract tests in `sdkQualityCheck`; the
+  NumPy evaluator and biometric golden parity remain an explicit authorized local lane
+
+### Changed
+- **BREAKING (unpublished worktree):** add constructor properties to `FaceTrackerConfig`, `PerformanceConfig`, `FaceTrackingData`, and `TrackedFace`; consumers must recompile rather than swap binaries
+- Default `FaceTrackerConfig.enhancerConfig` to `None`; experimental geometric enhancement now requires explicit opt-in
+- Treat ARKit as a reference signal and paired-output benchmarks as agreement/difference evidence, not physical ground truth or cross-platform accuracy
+- Pin JVM OpenSeeFace FP32 inputs to one upstream revision and verify model digests and ONNX contracts before camera access; unqualified INT8 output is no longer selected at runtime
+
+### Fixed
+- Reject tracked raster capture formats even when they appear outside a conventionally private
+  directory, with ordinary-path JPEG/PNG/WebP/DNG mutation controls
+- Decode the actual OpenSeeFace landmark output (`[1,198,28,28]`, grouped confidence/row/column channels) instead of casting it to a rank-2 interleaved 27×27 layout
+- Read face radius from the detection model's second `output` channel and use `maxpool` only for local-maximum suppression
+- Package pinned JVM model resources in publication jobs and exercise both models with synthetic zero-input contract tests
+
+### Documentation
+- Correct module graph, tool versions, current capture-app boundaries, and iOS runtime support wording
+- Separate source/synthetic CI, authorized same-recording replay, and independent device/measurement qualification
+
 ## [0.3.0] — 2026-06-29
 
 ### Added

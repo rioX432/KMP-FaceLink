@@ -6,13 +6,23 @@ import io.github.kmpfacelink.api.FaceTracker
 import io.github.kmpfacelink.api.TrackingState
 import io.github.kmpfacelink.model.BlendShape
 import io.github.kmpfacelink.model.BlendShapeData
+import io.github.kmpfacelink.model.CalibrationPhase
 import io.github.kmpfacelink.model.CameraFacing
+import io.github.kmpfacelink.model.FaceObservationProvenance
+import io.github.kmpfacelink.model.FacePipelineKind
+import io.github.kmpfacelink.model.FacePipelinePerformanceClock
+import io.github.kmpfacelink.model.FacePipelinePerformanceEvent
+import io.github.kmpfacelink.model.FacePipelinePerformanceOutcome
 import io.github.kmpfacelink.model.FaceTrackerConfig
 import io.github.kmpfacelink.model.FaceTrackingData
 import io.github.kmpfacelink.model.HeadTransform
+import io.github.kmpfacelink.model.InferenceMaterialization
 import io.github.kmpfacelink.model.QualityPreset
+import io.github.kmpfacelink.model.SessionInstanceId
 import io.github.kmpfacelink.model.SmoothingConfig
 import io.github.kmpfacelink.model.TrackedFace
+import io.github.kmpfacelink.model.TrackerOperationStatus
+import io.github.kmpfacelink.model.TrackingContextEpoch
 import io.github.kmpfacelink.model.filterByActive
 import io.github.kmpfacelink.util.BlendShapeInterpolator
 import io.github.kmpfacelink.util.BlendShapeMapPool
@@ -39,9 +49,12 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.drop
+import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
@@ -51,37 +64,61 @@ import platform.ARKit.ARSession
 import platform.ARKit.ARSessionDelegateProtocol
 import platform.Foundation.NSError
 import platform.Foundation.NSNumber
+import platform.Foundation.NSProcessInfo
 import platform.darwin.NSObject
 import kotlin.concurrent.atomics.ExperimentalAtomicApi
 
-@Suppress("TooManyFunctions") // Interface overrides + thermal quality policy helpers
+@Suppress(
+    "TooManyFunctions", // Interface overrides + thermal quality policy helpers
+    "TooGenericExceptionCaught", // Objective-C callbacks must not let any Kotlin throwable escape.
+)
 @OptIn(ExperimentalAtomicApi::class)
 internal class ARKitFaceTracker(
     private val config: FaceTrackerConfig,
+    private val sessionInstanceId: SessionInstanceId = newIosSessionInstanceId(),
+    private val monotonicNowNs: () -> Long = {
+        (NSProcessInfo.processInfo.systemUptime * NANOS_PER_SECOND).toLong()
+    },
 ) : BaseTracker<FaceTrackingData>(
     thermalMonitor = IosThermalMonitor(),
-    frameThrottler = FrameThrottler(config.thermalPolicy),
+    frameThrottler = FrameThrottler(config.powerConfig.thermalPolicy),
 ),
     FaceTracker {
 
     override val trackingData: Flow<FaceTrackingData> = super.trackingData
     override val state: StateFlow<TrackingState> = super.state
     override val errorMessage: StateFlow<String?> = super.errorMessage
+    private val mutablePerformanceEvents: MutableSharedFlow<FacePipelinePerformanceEvent>? =
+        if (config.performanceInstrumentation.enabled) {
+            MutableSharedFlow(extraBufferCapacity = config.performanceInstrumentation.eventBufferCapacity)
+        } else {
+            null
+        }
+    override val performanceEvents: Flow<FacePipelinePerformanceEvent> =
+        mutablePerformanceEvents?.asSharedFlow() ?: emptyFlow()
+    private val performanceBuffer = FacePipelinePerformanceBuffer(
+        config.performanceInstrumentation.eventBufferCapacity,
+    )
+    private val callbackBarrier = CallbackLifecycleBarrier()
+
+    override fun performanceEventsSnapshot(): List<FacePipelinePerformanceEvent> =
+        performanceBuffer.snapshot()
 
     private var smoother: BlendShapeSmoother? = config.createSmoother()
+    private var currentSmoothingConfig: SmoothingConfig = config.smoothingConfig
     private val calibrator = Calibrator(
         warmupFrames = config.calibrationConfig.warmupFrames,
         decayRate = config.calibrationConfig.rangeDecayRate,
     )
 
     private val batteryMonitor = IosBatteryMonitor()
-    private val powerModeManager: PowerModeManager? = config.powerMode?.let { mode ->
+    private val powerModeManager: PowerModeManager? = config.powerConfig.powerMode?.let { mode ->
         PowerModeManager(
             powerMode = mode,
             thermalMonitor = thermalMonitor,
             batteryMonitor = batteryMonitor,
-            lowBatteryThreshold = config.lowBatteryThreshold,
-            enableIdleDetection = config.enableIdleDetection,
+            lowBatteryThreshold = config.powerConfig.lowBatteryThreshold,
+            enableIdleDetection = config.powerConfig.enableIdleDetection,
         )
     }
 
@@ -90,6 +127,15 @@ internal class ARKitFaceTracker(
     private val frameSkipStrategy = ConfidenceFrameStrategy(config.frameSkipConfig)
     private val interpolator = BlendShapeInterpolator()
     private var lastConfidence: Float = 0f
+    private var nextEpochId: ULong = 1u
+    private var currentEpoch: TrackingContextEpoch? = null
+    private var interpolationEpoch: TrackingContextEpoch? = null
+    private var interpolationProvenance: FaceObservationProvenance? = null
+    private var calibrationFrameCount: ULong = 0u
+    private var calibrationStateRevision: ULong = 0u
+    private var processingStateRevision: ULong = 0u
+    private var nextAnchorBatchSequence: ULong = 1u
+    private var nextCallbackSequence: ULong = 1u
 
     // Pre-allocated scratch map for mapARKitBlendShapes — reused each frame.
     // Callers that store the result must copy via HashMap(result).
@@ -98,6 +144,17 @@ internal class ARKitFaceTracker(
 
     // Pre-allocated FloatArray for the 4x4 transform matrix — reused each frame.
     private val transformMatrix = FloatArray(16)
+
+    private data class ProcessedFrame(
+        val blendShapes: BlendShapeData,
+        val provenance: FaceObservationProvenance,
+    )
+
+    private data class CallbackMeasurementContext(
+        val anchorBatchSequence: ULong,
+        val callbackSequence: ULong,
+        val callbackStartedNs: Long,
+    )
 
     /**
      * The underlying ARSession, exposed for camera preview sharing.
@@ -126,6 +183,8 @@ internal class ARKitFaceTracker(
         val configuration = ARFaceTrackingConfiguration().apply {
             lightEstimationEnabled = false
         }
+        pipelineLock.withLock { rotateEpochLocked() }
+        callbackBarrier.open()
         session.runWithConfiguration(configuration)
 
         pipelineLock.withLock { transitionToTracking() }
@@ -134,19 +193,27 @@ internal class ARKitFaceTracker(
 
     override suspend fun stop() {
         stopQualityPolicyCollection()
+        arSession?.pause()
+        // ARSession.pause() prevents new work; the barrier waits for a callback already inside KMP
+        // so a post-stop snapshot cannot miss a tail event.
+        callbackBarrier.closeAndDrain()
         pipelineLock.withLock {
-            arSession?.pause()
+            currentEpoch = null
+            resetInterpolationLocked()
             mutableState.value = TrackingState.STOPPED
         }
     }
 
     override fun release() {
         stopQualityPolicyCollection()
+        arSession?.pause()
+        callbackBarrier.closeAndDrain()
         pipelineLock.withLock {
             released.store(1)
-            arSession?.pause()
             arSession?.delegate = null
             arSession = null
+            currentEpoch = null
+            resetInterpolationLocked()
             thermalMonitor.release()
             batteryMonitor.release()
             powerModeManager?.release()
@@ -154,33 +221,45 @@ internal class ARKitFaceTracker(
         }
     }
 
-    override fun resetCalibration() {
+    override fun resetCalibration(): TrackerOperationStatus {
         pipelineLock.withLock {
             checkNotReleased("reset calibration")
             calibrator.reset()
+            calibrationFrameCount = 0u
+            calibrationStateRevision++
             smoother?.reset()
+            processingStateRevision++
+            forceRotateEpochLocked()
         }
+        return TrackerOperationStatus.APPLIED
     }
 
-    override fun resetSmoothing() {
+    override fun resetSmoothing(): TrackerOperationStatus {
         pipelineLock.withLock {
             checkNotReleased("reset smoothing")
             smoother?.reset()
+            processingStateRevision++
+            forceRotateEpochLocked()
         }
+        return TrackerOperationStatus.APPLIED
     }
 
-    override fun updateSmoothing(config: SmoothingConfig) {
+    override fun updateSmoothing(config: SmoothingConfig): TrackerOperationStatus {
         pipelineLock.withLock {
             checkNotReleased("update smoothing")
             smoother = config.createFaceSmoother()
+            currentSmoothingConfig = config
+            processingStateRevision++
+            forceRotateEpochLocked()
         }
+        return TrackerOperationStatus.APPLIED
     }
 
     override suspend fun switchCamera(facing: CameraFacing) {
         pipelineLock.withLock { checkNotReleased("switch camera") }
         if (facing == CameraFacing.BACK) {
             throw UnsupportedOperationException(
-                "ARKit face tracking requires the front-facing TrueDepth camera",
+                "The KMP-FaceLink ARKit face tracker uses the front-facing camera",
             )
         }
         // Already using front camera — no-op
@@ -195,48 +274,123 @@ internal class ARKitFaceTracker(
         }
     }
 
-    private fun processFaceAnchor(faceAnchor: ARFaceAnchor) {
+    private fun processFaceAnchor(
+        faceAnchor: ARFaceAnchor,
+        measurement: CallbackMeasurementContext,
+    ) {
+        val epoch = pipelineLock.withLock { currentEpoch }
+        if (epoch == null) {
+            emitDropPerformance(
+                measurement.anchorBatchSequence,
+                measurement.callbackSequence,
+                FacePipelinePerformanceOutcome.DROPPED_NO_ACTIVE_EPOCH,
+            )
+            return
+        }
         val timestampMs = (arSession?.currentFrame?.timestamp?.times(1000))?.toLong()
-            ?: currentTimeMillis()
+            ?: monotonicNowNs() / NANOS_PER_MILLISECOND
 
         // Frame throttling: use PowerModeManager when available, else legacy FrameThrottler
-        if (!shouldProcessFrame(timestampMs)) return
+        if (!shouldProcessFrame(timestampMs)) {
+            emitDropPerformance(
+                measurement.anchorBatchSequence,
+                measurement.callbackSequence,
+                FacePipelinePerformanceOutcome.DROPPED_THROTTLED,
+                epoch,
+            )
+            return
+        }
 
         // Confidence-guided skip: emit interpolated data for stable frames
         val decision = frameSkipStrategy.evaluate(lastConfidence)
         if (decision == FrameDecision.SKIP) {
-            emitInterpolatedFrame(timestampMs)
+            val emitted = emitInterpolatedFrame(
+                timestampMs = timestampMs,
+                epoch = epoch,
+                measurement = measurement,
+            )
+            if (!emitted) {
+                emitDropPerformance(
+                    measurement.anchorBatchSequence,
+                    measurement.callbackSequence,
+                    FacePipelinePerformanceOutcome.DROPPED_INTERPOLATION_UNAVAILABLE,
+                    epoch,
+                )
+            }
             return
         }
 
         // Full processing path
         val faceConfidence = if (faceAnchor.isTracked) 1.0f else 0.0f
-        processFullFrame(faceAnchor, timestampMs, faceConfidence)
+        processFullFrame(
+            faceAnchor,
+            timestampMs,
+            faceConfidence,
+            epoch,
+            measurement,
+        )
     }
 
-    private fun processFullFrame(faceAnchor: ARFaceAnchor, timestampMs: Long, faceConfidence: Float) {
+    @Suppress("LongMethod")
+    private fun processFullFrame(
+        faceAnchor: ARFaceAnchor,
+        timestampMs: Long,
+        faceConfidence: Float,
+        epoch: TrackingContextEpoch,
+        measurement: CallbackMeasurementContext,
+    ) {
         @Suppress("UNCHECKED_CAST")
         val rawBlendShapes = faceAnchor.blendShapes as? Map<String, NSNumber> ?: emptyMap()
         var blendShapes: BlendShapeData = mapARKitBlendShapes(rawBlendShapes)
+        val headTransform = extractTransform(faceAnchor)
+        val rawExtractionEndedNs = monotonicNowNs()
 
-        val processedBlendShapes = pipelineLock.withLock {
-            if (isReleased()) return
+        val processed = pipelineLock.withLock {
+            if (isReleased()) return@withLock null
+            if (currentEpoch?.epochFingerprint != epoch.epochFingerprint) return@withLock null
 
             if (config.calibrationConfig.enabled) {
                 blendShapes = calibrator.calibrate(blendShapes)
+                calibrationFrameCount++
+                calibrationStateRevision++
             }
             smoother?.let { blendShapes = it.smooth(blendShapes, timestampMs) }
             powerModeManager?.onFrameProcessed(blendShapes, timestampMs)
-            HashMap(blendShapes).filterByActive(config.activeBlendShapes)
+            val emitted = HashMap(blendShapes).filterByActive(config.activeBlendShapes)
+            val processedFrame = ProcessedFrame(
+                blendShapes = emitted,
+                provenance = FaceObservationProvenance(
+                    contextEpochId = epoch.epochId,
+                    faceIndex = 0,
+                    pipelineKind = FacePipelineKind.PRIMARY,
+                    appliedTransforms = effectiveConfig().fullPrimaryAppliedTransforms(enhancerApplied = false),
+                    calibrationPhase = calibrationPhase(),
+                    calibrationStateRevision = calibrationStateRevision,
+                    processingStateRevision = processingStateRevision,
+                    materialization = InferenceMaterialization.FULL_INFERENCE,
+                    emittedBlendShapes = emitted.keys.toSet(),
+                ),
+            )
+            lastConfidence = faceConfidence
+            interpolator.onFrameProcessed(emitted, headTransform, timestampMs)
+            frameSkipStrategy.onFrameProcessed(emitted)
+            interpolationEpoch = epoch
+            interpolationProvenance = processedFrame.provenance
+            processedFrame
         }
+        if (processed == null) {
+            emitDropPerformance(
+                measurement.anchorBatchSequence,
+                measurement.callbackSequence,
+                FacePipelinePerformanceOutcome.DROPPED_EPOCH_CHANGED,
+                epoch,
+            )
+            return
+        }
+        val processedBlendShapes = processed.blendShapes
 
-        val headTransform = extractTransform(faceAnchor)
         val gazeData = GazeEstimator.estimate(processedBlendShapes)
-
-        // Update interpolator and strategy with processed data
-        lastConfidence = faceConfidence
-        interpolator.onFrameProcessed(processedBlendShapes, headTransform, timestampMs)
-        frameSkipStrategy.onFrameProcessed(processedBlendShapes)
+        val provenance = processed.provenance
 
         val trackedFace = TrackedFace(
             faceIndex = 0,
@@ -244,6 +398,7 @@ internal class ARKitFaceTracker(
             headTransform = headTransform,
             gazeData = gazeData,
             confidence = faceConfidence,
+            provenance = provenance,
         )
 
         val data = FaceTrackingData(
@@ -254,34 +409,92 @@ internal class ARKitFaceTracker(
             isTracking = true,
             faces = listOf(trackedFace),
             thermalState = thermalMonitor.thermalState.value,
+            contextEpoch = epoch,
         )
-
-        mutableTrackingData.tryEmit(data)
+        val outputReadyNs = monotonicNowNs()
+        val enqueueAccepted = mutableTrackingData.tryEmit(data)
+        val enqueueReturnedNs = monotonicNowNs()
+        emitPerformance(
+            FacePipelinePerformanceEvent(
+                callbackSequence = measurement.callbackSequence,
+                anchorBatchSequence = measurement.anchorBatchSequence,
+                clock = FacePipelinePerformanceClock.IOS_MONOTONIC_CALLBACK_CLOCK,
+                outcome = FacePipelinePerformanceOutcome.FULL_OUTPUT,
+                materialization = InferenceMaterialization.FULL_INFERENCE,
+                configurationFingerprint = epoch.configurationFingerprint,
+                epochFingerprint = epoch.epochFingerprint,
+                callbackToRawExtractionNs = rawExtractionEndedNs - measurement.callbackStartedNs,
+                rawExtractionToOutputReadyNs = outputReadyNs - rawExtractionEndedNs,
+                callbackToOutputReadyNs = outputReadyNs - measurement.callbackStartedNs,
+                outputReadyToEnqueueReturnNs = enqueueReturnedNs - outputReadyNs,
+                callbackToEnqueueReturnNs = enqueueReturnedNs - measurement.callbackStartedNs,
+                enqueueAccepted = enqueueAccepted,
+            ),
+        )
     }
 
-    private fun emitInterpolatedFrame(timestampMs: Long) {
-        val blendShapes = interpolator.interpolateBlendShapes(timestampMs) ?: return
-        val headTransform = interpolator.interpolateTransform(timestampMs) ?: return
-        val filtered = blendShapes.filterByActive(config.activeBlendShapes)
+    private fun emitInterpolatedFrame(
+        timestampMs: Long,
+        epoch: TrackingContextEpoch,
+        measurement: CallbackMeasurementContext,
+    ): Boolean {
+        val data = pipelineLock.withLock {
+            if (currentEpoch?.epochFingerprint != epoch.epochFingerprint) return@withLock null
+            if (interpolationEpoch?.epochFingerprint != epoch.epochFingerprint) return@withLock null
+            val sourceProvenance = interpolationProvenance ?: return@withLock null
+            val blendShapes = interpolator.interpolateBlendShapes(timestampMs) ?: return@withLock null
+            val headTransform = interpolator.interpolateTransform(timestampMs) ?: return@withLock null
+            val filtered = blendShapes.filterByActive(config.activeBlendShapes)
+            val gazeData = GazeEstimator.estimate(filtered)
+            val provenance = sourceProvenance.copy(
+                appliedTransforms = sourceProvenance.appliedTransforms +
+                    listOfNotNull(effectiveConfig().interpolatorAppliedTransform()),
+                materialization = InferenceMaterialization.INTERPOLATED,
+                emittedBlendShapes = filtered.keys.toSet(),
+            )
 
-        val data = FaceTrackingData(
-            blendShapes = filtered,
-            headTransform = headTransform,
-            gazeData = GazeEstimator.estimate(filtered),
-            timestampMs = timestampMs,
-            isTracking = true,
-            faces = listOf(
-                TrackedFace(
-                    faceIndex = 0,
-                    blendShapes = filtered,
-                    headTransform = headTransform,
-                    gazeData = GazeEstimator.estimate(filtered),
-                    confidence = lastConfidence,
+            FaceTrackingData(
+                blendShapes = filtered,
+                headTransform = headTransform,
+                gazeData = gazeData,
+                timestampMs = timestampMs,
+                isTracking = true,
+                faces = listOf(
+                    TrackedFace(
+                        faceIndex = 0,
+                        blendShapes = filtered,
+                        headTransform = headTransform,
+                        gazeData = gazeData,
+                        confidence = lastConfidence,
+                        provenance = provenance,
+                    ),
                 ),
+                thermalState = thermalMonitor.thermalState.value,
+                contextEpoch = epoch,
+            )
+        }
+        if (data == null) return false
+        val outputReadyNs = monotonicNowNs()
+        val enqueueAccepted = mutableTrackingData.tryEmit(data)
+        val enqueueReturnedNs = monotonicNowNs()
+        emitPerformance(
+            FacePipelinePerformanceEvent(
+                callbackSequence = measurement.callbackSequence,
+                anchorBatchSequence = measurement.anchorBatchSequence,
+                clock = FacePipelinePerformanceClock.IOS_MONOTONIC_CALLBACK_CLOCK,
+                outcome = FacePipelinePerformanceOutcome.INTERPOLATED_OUTPUT,
+                materialization = InferenceMaterialization.INTERPOLATED,
+                configurationFingerprint = epoch.configurationFingerprint,
+                epochFingerprint = epoch.epochFingerprint,
+                callbackToRawExtractionNs = null,
+                rawExtractionToOutputReadyNs = null,
+                callbackToOutputReadyNs = outputReadyNs - measurement.callbackStartedNs,
+                outputReadyToEnqueueReturnNs = enqueueReturnedNs - outputReadyNs,
+                callbackToEnqueueReturnNs = enqueueReturnedNs - measurement.callbackStartedNs,
+                enqueueAccepted = enqueueAccepted,
             ),
-            thermalState = thermalMonitor.thermalState.value,
         )
-        mutableTrackingData.tryEmit(data)
+        return true
     }
 
     private fun startQualityPolicyCollection(session: ARSession) {
@@ -314,20 +527,57 @@ internal class ARKitFaceTracker(
         qualityScope = null
     }
 
+    private fun calibrationPhase(): CalibrationPhase = when {
+        !config.calibrationConfig.enabled -> CalibrationPhase.DISABLED
+        calibrationFrameCount <= config.calibrationConfig.warmupFrames.toULong() -> CalibrationPhase.WARMUP
+        else -> CalibrationPhase.ACTIVE
+    }
+
+    private fun effectiveConfig(): FaceTrackerConfig = config.copy(smoothingConfig = currentSmoothingConfig)
+
+    private fun rotateEpochLocked(): TrackingContextEpoch {
+        val epoch = buildIosTrackingEpoch(
+            epochId = nextEpochId++,
+            sessionInstanceId = sessionInstanceId,
+            config = effectiveConfig(),
+        )
+        currentEpoch = epoch
+        resetInterpolationLocked()
+        interpolationEpoch = epoch
+        return epoch
+    }
+
+    private fun forceRotateEpochLocked() {
+        if (currentEpoch != null) rotateEpochLocked()
+    }
+
+    private fun resetInterpolationLocked() {
+        interpolationEpoch = null
+        interpolationProvenance = null
+        lastConfidence = 0f
+        interpolator.reset()
+        frameSkipStrategy.reset()
+    }
+
+    /**
+     * ARKit names its paired shapes `eyeBlink_L` / `eyeBlink_R`, while [BlendShape.arKitName]
+     * spells them `eyeBlinkLeft` / `eyeBlinkRight`. Looking the raw key up directly therefore
+     * misses every paired shape — the majority of the 52 — and only the unpaired ones match.
+     *
+     * That was invisible while this mapper filled absent shapes with `0f`: the map still had 52
+     * entries, and the dropped ones looked like a face at rest. `kmp-facelink-capture` has carried
+     * the same conversion for its own recording path all along.
+     */
+
     private fun mapARKitBlendShapes(rawBlendShapes: Map<String, NSNumber>): BlendShapeData {
         blendShapeScratch.clear()
 
         for ((key, value) in rawBlendShapes) {
-            val shape = BlendShape.fromArKitName(key) ?: continue
+            val shape = BlendShape.fromArKitName(normalizeArKitName(key)) ?: continue
             blendShapeScratch[shape] = value.floatValue.coerceIn(0f, 1f)
         }
 
-        // Fill missing shapes
-        for (shape in BlendShape.entries) {
-            if (shape !in blendShapeScratch) {
-                blendShapeScratch[shape] = 0f
-            }
-        }
+        // A shape ARKit did not report stays absent rather than becoming a measured zero.
         return blendShapeScratch
     }
 
@@ -345,17 +595,93 @@ internal class ARKitFaceTracker(
         return TransformUtils.fromMatrix(transformMatrix)
     }
 
+    private fun emitPerformance(event: FacePipelinePerformanceEvent) {
+        // A full buffer creates a visible callback-sequence gap in the collector, which makes the
+        // aggregate run fail closed instead of silently claiming complete accounting.
+        val events = mutablePerformanceEvents ?: return
+        performanceBuffer.append(event)
+        events.tryEmit(event)
+    }
+
+    private fun emitDropPerformance(
+        anchorBatchSequence: ULong,
+        callbackSequence: ULong,
+        outcome: FacePipelinePerformanceOutcome,
+        epoch: TrackingContextEpoch? = null,
+    ) {
+        emitPerformance(
+            FacePipelinePerformanceEvent(
+                callbackSequence = callbackSequence,
+                anchorBatchSequence = anchorBatchSequence,
+                clock = FacePipelinePerformanceClock.IOS_MONOTONIC_CALLBACK_CLOCK,
+                outcome = outcome,
+                materialization = null,
+                configurationFingerprint = epoch?.configurationFingerprint,
+                epochFingerprint = epoch?.epochFingerprint,
+                callbackToRawExtractionNs = null,
+                rawExtractionToOutputReadyNs = null,
+                callbackToOutputReadyNs = null,
+                outputReadyToEnqueueReturnNs = null,
+                callbackToEnqueueReturnNs = null,
+                enqueueAccepted = null,
+            ),
+        )
+    }
+
     private companion object {
         private const val TAG = "ARKitFaceTracker"
+        private const val NANOS_PER_SECOND = 1_000_000_000.0
+        private const val NANOS_PER_MILLISECOND = 1_000_000L
     }
 
     private inner class FaceTrackingDelegate : NSObject(), ARSessionDelegateProtocol {
         @ObjCSignatureOverride
         override fun session(session: ARSession, didUpdateAnchors: List<*>) {
-            for (anchor in didUpdateAnchors) {
-                if (anchor is ARFaceAnchor) {
-                    processFaceAnchor(anchor)
-                    break // Only process first face
+            // This must be the first callback statement: lock contention is part of the
+            // instrumented KMP callback path rather than silently excluded from it.
+            val callbackEnteredNs = monotonicNowNs()
+            callbackBarrier.inCallback(callbackEnteredNs) { enteredNs ->
+                val anchorBatchSequence = nextAnchorBatchSequence++
+                for (anchor in didUpdateAnchors) {
+                    if (anchor is ARFaceAnchor) {
+                        val measurement = CallbackMeasurementContext(
+                            anchorBatchSequence = anchorBatchSequence,
+                            callbackSequence = nextCallbackSequence++,
+                            callbackStartedNs = enteredNs,
+                        )
+                        try {
+                            processFaceAnchor(
+                                faceAnchor = anchor,
+                                measurement = measurement,
+                            )
+                        } catch (failure: Throwable) {
+                            // The terminal failure receives the already allocated sequence, so an
+                            // otherwise complete prefix can never look like a valid aggregate.
+                            emitPerformance(
+                                FacePipelinePerformanceEvent(
+                                    callbackSequence = measurement.callbackSequence,
+                                    anchorBatchSequence = measurement.anchorBatchSequence,
+                                    clock = FacePipelinePerformanceClock.IOS_MONOTONIC_CALLBACK_CLOCK,
+                                    outcome = FacePipelinePerformanceOutcome.CALLBACK_FAILURE,
+                                    materialization = null,
+                                    configurationFingerprint = null,
+                                    epochFingerprint = null,
+                                    callbackToRawExtractionNs = null,
+                                    rawExtractionToOutputReadyNs = null,
+                                    callbackToOutputReadyNs = null,
+                                    outputReadyToEnqueueReturnNs = null,
+                                    callbackToEnqueueReturnNs = null,
+                                    enqueueAccepted = null,
+                                ),
+                            )
+                            setError(
+                                "ARKit callback processing failed: " +
+                                    (failure.message ?: failure::class.simpleName),
+                            )
+                            this@ARKitFaceTracker.arSession?.pause()
+                        }
+                        break // Only process first face
+                    }
                 }
             }
         }
@@ -364,7 +690,9 @@ internal class ARKitFaceTracker(
         override fun session(session: ARSession, didRemoveAnchors: List<*>) {
             for (anchor in didRemoveAnchors) {
                 if (anchor is ARFaceAnchor) {
-                    mutableTrackingData.tryEmit(FaceTrackingData.notTracking(currentTimeMillis()))
+                    mutableTrackingData.tryEmit(
+                        FaceTrackingData.notTracking(monotonicNowNs() / NANOS_PER_MILLISECOND),
+                    )
                     break
                 }
             }
@@ -375,4 +703,19 @@ internal class ARKitFaceTracker(
             setError(didFailWithError.localizedDescription)
         }
     }
+}
+
+/**
+ * The SDK spelling for an ARKit blend shape location name.
+ *
+ * ARKit spells a paired shape `eyeBlink_L`; this SDK spells it `eyeBlinkLeft`. Looking the raw name
+ * up directly made every paired shape miss, and filling the gaps with `0f` hid that completely.
+ *
+ * `internal` so [ArKitBlendShapeNameTest] can exercise the conversion the tracker actually applies
+ * rather than a copy of it. `internal` declarations are not part of the published klib API.
+ */
+internal fun normalizeArKitName(name: String): String = when {
+    name.endsWith("_L") -> name.dropLast(2) + "Left"
+    name.endsWith("_R") -> name.dropLast(2) + "Right"
+    else -> name
 }

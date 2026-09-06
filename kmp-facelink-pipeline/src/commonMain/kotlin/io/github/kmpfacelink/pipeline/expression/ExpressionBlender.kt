@@ -34,6 +34,10 @@ public class ExpressionBlender(
         lipSync: Map<BlendShape, Float>,
         emotion: Map<BlendShape, Float>,
     ): Map<BlendShape, Float> {
+        // sparse-contract-exempt: blending two independent sources over the union of their keys.
+        // A shape one source does not carry contributes nothing to the blend, and zero is the
+        // correct weight for "no contribution" — unlike an estimator output, where zero would
+        // claim a measurement. The result carries only shapes at least one source produced.
         val allKeys = lipSync.keys + emotion.keys
         val result = mutableMapOf<BlendShape, Float>()
         for (shape in allKeys) {

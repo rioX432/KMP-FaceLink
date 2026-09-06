@@ -1,0 +1,95 @@
+# Quality Gates
+
+KMP-FaceLink separates deterministic source checks from measurement-based tracking quality. A
+green source build is necessary, but it cannot establish expression accuracy, device performance,
+capture usability, or production readiness.
+
+## Tier 1 — Pull-request source contract
+
+Run:
+
+```bash
+./gradlew sdkQualityCheck
+```
+
+This gate covers public API dumps, static analysis, core JVM/Android-host/iOS-Simulator tests,
+capture Android-host/iOS-Simulator tests, Android and iOS compilation, Android debug packaging,
+Android instrumentation-test compilation (not execution), unsigned capture and sample iOS
+Simulator builds, pinned generated-project drift, sample UI source-state controls,
+module/document dependency agreement, authorization logic, synthetic solver wiring, tracked-path
+name/suffix privacy checks, and the pinned OpenSeeFace FP32 supply/runtime contract. The JVM
+synthetic zero-input contract tests load
+both real public model files, verify their SHA-256 and ONNX metadata, and execute zero tensors through detection and landmark
+decoders. This proves model/decoder mechanics, not tracking quality or sustained performance.
+
+The take-manifest contract decodes schema 3 as a legacy diagnostic, schema 4 as a supported
+transitional form, and schema 5 as the current run-bound form. It rejects newer schema versions
+rather than treating fields from a later writer as understood.
+
+The paired-calibration contract runs five dependency-free parser/scalar/paired-difference controls
+in this lane. It uses only the Python standard library, installs nothing, and opens no measurement
+data. The NumPy-based evaluator and three Kotlin-golden parity controls remain in the explicitly
+authorized Tier 2 lane. A green Tier 1 run therefore does not claim evaluator execution or
+golden-vector parity.
+
+The synthetic cheek-puff fixture has one intended signal and two negative controls. It catches
+decision-wiring regressions only; it is not a face dataset and yields no accuracy, sensitivity, or
+false-positive claim.
+
+## Tier 2 — Authorized same-recording replay
+
+The private replay task is deliberately excluded from ordinary CI:
+
+```bash
+CHEEKPUFF_TESTDATA=/authorized/local/session \
+CHEEKPUFF_FROZEN_RULE=/authorized/local/frozen_rule.json \
+  ./gradlew :kmp-facelink:privateCheekPuffQualityCheck --rerun-tasks
+```
+
+It must run only on an authorized local or isolated runner. Raw frames, landmarks, transforms, and
+per-frame coefficients must not enter Git or hosted CI logs. Passing this task establishes parity
+with the frozen implementation on the same recording; it does not establish quality on an
+independent session, participant, device, or live product path.
+
+The optional paired-evaluator parity lane follows the same boundary:
+
+```bash
+FACELINK_CALIBRATION_GOLDENS=/authorized/local/golden-vectors \
+  /authorized/calibration-venv/bin/python -m unittest \
+    tools/calibration/tests/test_evaluate_cheekpuff_geometry.py
+```
+
+Create the isolated interpreter from `tools/calibration/requirements.txt` and record its Python and
+dependency versions with the private run artifact. Without the explicit golden path, the three
+biometric golden-vector cases skip before opening bytes. Tier 1 does not depend on this environment.
+
+## Tier 3 — Independent and physical qualification
+
+Before product adoption, use data that was not used to design the solver or choose its threshold.
+The protocol must preregister the exact source/binary/model/runtime context, take-level labels,
+positive and named-negative scenarios, missing/readiness accounting, and product acceptance costs.
+Frames are repeated observations within a take, not independent samples. ARKit may be a reference
+signal but is not physical ground truth.
+
+Physical qualification is platform-specific and must cover exact-binary launch, camera permission,
+preview/mesh visibility, callback continuity and tail behavior, lifecycle, no-write preview mode,
+sustained load/thermal behavior, and guided-capture accessibility. Android and iOS results are not
+pooled into a cross-platform accuracy or speed ranking.
+
+The current internal apps are:
+
+- `captureApp`: Android guided capture and explicit developer preview-check route.
+- `captureIosApp`: iOS guided capture, `--preview-check`, and separately signed
+  `--performance-diagnostic` route.
+- `kmp-facelink-capture`: shared workflow, manifest, gate, evaluator, and storage contract.
+
+Normal guided takes save private measurement payloads. Preview-check source paths do not call the
+recording API, but physical no-write behavior remains a device qualification until verified on the
+exact binary. Performance diagnostics require an exact-binary signed run authorization and write
+aggregate-only output by design.
+
+## Current evidence boundary
+
+Existing recordings are useful for regression and implementation-parity checks. They cannot fully
+qualify a solver tuned on the same material. Independent participant/session data and a defined
+product acceptance threshold remain required before enabling geometric correction by default.

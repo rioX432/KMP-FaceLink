@@ -7,6 +7,7 @@ import io.github.kmpfacelink.model.CameraFacing
 import io.github.kmpfacelink.model.FaceTrackerConfig
 import io.github.kmpfacelink.model.FaceTrackingData
 import io.github.kmpfacelink.model.SmoothingConfig
+import io.github.kmpfacelink.model.TrackerOperationStatus
 import io.github.kmpfacelink.util.FaceLinkLogger
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
@@ -90,19 +91,22 @@ internal class OnnxFaceTracker(
         _state.value = TrackingState.RELEASED
     }
 
-    override fun resetCalibration() {
+    override fun resetCalibration(): TrackerOperationStatus {
         checkNotReleased()
         // No calibration state in the ONNX tracker yet
+        return TrackerOperationStatus.UNSUPPORTED
     }
 
-    override fun resetSmoothing() {
+    override fun resetSmoothing(): TrackerOperationStatus {
         checkNotReleased()
         // No smoothing state in the ONNX tracker yet
+        return TrackerOperationStatus.UNSUPPORTED
     }
 
-    override fun updateSmoothing(config: SmoothingConfig) {
+    override fun updateSmoothing(config: SmoothingConfig): TrackerOperationStatus {
         checkNotReleased()
         // Smoothing is applied via the common BlendShapeSmoother in a future enhancement
+        return TrackerOperationStatus.UNSUPPORTED
     }
 
     override suspend fun switchCamera(facing: CameraFacing) {
@@ -119,8 +123,8 @@ internal class OnnxFaceTracker(
 
     private fun initializeCamera() {
         val cam = JavaCvCameraManager(
-            requestedWidth = config.analysisWidth,
-            requestedHeight = config.analysisHeight,
+            requestedWidth = config.performanceConfig.analysisWidth,
+            requestedHeight = config.performanceConfig.analysisHeight,
         )
         cam.start()
         cameraManager = cam

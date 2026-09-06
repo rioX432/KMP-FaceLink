@@ -64,11 +64,15 @@ internal class BlendShapeInterpolator {
         // Clamp extrapolation to avoid overshooting
         val clampedT = t.coerceIn(0f, MAX_EXTRAPOLATION_FACTOR)
 
+        // Only shapes the current frame actually carries. Walking every BlendShape and reading
+        // absent ones as 0f would put all 52 into the interpolated frame, re-creating the measured
+        // zeros this contract removes upstream — and it would do it silently, because the
+        // interpolated frame looks exactly like a measured one.
         scratchMap.clear()
-        for (shape in BlendShape.entries) {
-            val prevVal = previous[shape] ?: 0f
-            val curVal = current[shape] ?: 0f
-            // Linear extrapolation: current + (current - previous) * t
+        for ((shape, curVal) in current) {
+            // A shape the previous frame did not carry has no velocity to extrapolate from, so it
+            // is held at its current value rather than accelerated away from a fabricated zero.
+            val prevVal = previous[shape] ?: curVal
             val interpolated = curVal + (curVal - prevVal) * clampedT
             scratchMap[shape] = interpolated.coerceIn(0f, 1f)
         }

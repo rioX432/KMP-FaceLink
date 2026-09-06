@@ -2,7 +2,7 @@ package io.github.kmpfacelink
 
 import io.github.kmpfacelink.model.BlendShape
 import io.github.kmpfacelink.model.LiveLinkBlendShapes
-import io.github.kmpfacelink.model.emptyBlendShapeData
+import io.github.kmpfacelink.model.allShapesAtRest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -79,7 +79,7 @@ class LiveLinkBlendShapesTest {
 
     @Test
     fun lowerIdentityProducesAllZeros() {
-        val out = LiveLinkBlendShapes.lower(emptyBlendShapeData())
+        val out = LiveLinkBlendShapes.lower(allShapesAtRest())
         assertEquals(52, out.size)
         assertTrue(out.all { it == 0f }, "identity blendshapes must lower to all zeros")
     }

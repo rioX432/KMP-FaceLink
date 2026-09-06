@@ -1,7 +1,6 @@
 package io.github.kmpfacelink.avatar
 
 import io.github.kmpfacelink.model.FaceTrackingData
-import io.github.kmpfacelink.model.valueOf
 
 /**
  * Maps [FaceTrackingData] to VRM expression parameters.
@@ -59,10 +58,10 @@ public class VrmParameterMapper(
         mapping: ParameterMapping,
         data: FaceTrackingData,
     ): Float = when (mapping) {
-        is ParameterMapping.Direct -> data.blendShapes.valueOf(mapping.blendShape)
-        is ParameterMapping.Inverted -> 1f - data.blendShapes.valueOf(mapping.blendShape)
+        is ParameterMapping.Direct -> data.blendShapes.valueOrRestPose(mapping.blendShape)
+        is ParameterMapping.Inverted -> 1f - data.blendShapes.valueOrRestPose(mapping.blendShape)
         is ParameterMapping.Scaled -> {
-            val raw = data.blendShapes.valueOf(mapping.blendShape)
+            val raw = data.blendShapes.valueOrRestPose(mapping.blendShape)
             (raw * mapping.scale + mapping.offset).coerceIn(mapping.min, mapping.max)
         }
         is ParameterMapping.Custom -> mapping.compute(data)

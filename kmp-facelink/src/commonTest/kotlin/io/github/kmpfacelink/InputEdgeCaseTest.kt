@@ -9,7 +9,7 @@ import io.github.kmpfacelink.model.HandTrackingData
 import io.github.kmpfacelink.model.HeadTransform
 import io.github.kmpfacelink.model.HolisticTrackingData
 import io.github.kmpfacelink.model.ThermalState
-import io.github.kmpfacelink.model.emptyBlendShapeData
+import io.github.kmpfacelink.model.allShapesAtRest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -54,13 +54,15 @@ class InputEdgeCaseTest {
     @Test
     fun faceTrackingDataWithEmptyLandmarks() {
         val data = FaceTrackingData(
-            blendShapes = emptyBlendShapeData(),
+            blendShapes = allShapesAtRest(),
             headTransform = HeadTransform(),
             landmarks = emptyList(),
             timestampMs = 0L,
             isTracking = true,
         )
-        assertTrue(data.landmarks.isEmpty())
+        // An explicitly empty list stays empty: the estimator looked and produced no points, which
+        // is a different answer from the null a landmark-less estimator gives.
+        assertTrue(data.landmarks?.isEmpty() == true)
         assertTrue(data.isTracking)
     }
 
@@ -134,8 +136,8 @@ class InputEdgeCaseTest {
         val data = FaceTrackingData.notTracking()
         assertFalse(data.isTracking)
         assertEquals(0L, data.timestampMs)
-        assertTrue(data.blendShapes.isNotEmpty())
-        assertTrue(data.landmarks.isEmpty())
+        assertTrue(data.blendShapes.isEmpty(), "nothing was measured, so nothing is reported")
+        assertNull(data.landmarks)
         assertTrue(data.faces.isEmpty())
         assertNull(data.gazeData)
     }
@@ -203,7 +205,7 @@ class InputEdgeCaseTest {
         val landmark = FaceLandmark(
             x = Float.NaN,
             y = Float.NaN,
-            z = Float.NaN,
+            relativeDepth = Float.NaN,
         )
         assertTrue(landmark.x.isNaN())
     }
@@ -213,11 +215,11 @@ class InputEdgeCaseTest {
         val landmark = FaceLandmark(
             x = Float.MAX_VALUE,
             y = Float.MIN_VALUE,
-            z = Float.NEGATIVE_INFINITY,
+            relativeDepth = Float.NEGATIVE_INFINITY,
         )
         assertEquals(Float.MAX_VALUE, landmark.x)
         assertEquals(Float.MIN_VALUE, landmark.y)
-        assertTrue(landmark.z.isInfinite())
+        assertTrue(checkNotNull(landmark.relativeDepth).isInfinite())
     }
 
     // -- ThermalState in tracking data --
@@ -240,11 +242,11 @@ class InputEdgeCaseTest {
         assertEquals(ThermalState.NOMINAL, data.thermalState)
     }
 
-    // -- emptyBlendShapeData --
+    // -- allShapesAtRest --
 
     @Test
-    fun emptyBlendShapeDataContainsAllShapes() {
-        val data = emptyBlendShapeData()
+    fun allShapesAtRestContainsAllShapes() {
+        val data = allShapesAtRest()
         assertEquals(BlendShape.entries.size, data.size)
         for (shape in BlendShape.entries) {
             assertEquals(0f, data[shape])
@@ -252,9 +254,9 @@ class InputEdgeCaseTest {
     }
 
     @Test
-    fun emptyBlendShapeDataIsSameInstance() {
-        val a = emptyBlendShapeData()
-        val b = emptyBlendShapeData()
+    fun allShapesAtRestIsSameInstance() {
+        val a = allShapesAtRest()
+        val b = allShapesAtRest()
         // Should be the same cached instance
         assertTrue(a === b)
     }

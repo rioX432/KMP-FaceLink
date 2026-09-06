@@ -191,12 +191,17 @@ internal object LandmarkSolvers {
         return remap(delta, SNEER_LOW, SNEER_HIGH)
     }
 
-    /** Solve jawForward: chin pushed forward (Z-axis offset from nose bridge). */
-    fun solveJawForward(landmarks: List<FaceLandmark>): Float {
+    /**
+     * Solve jawForward: chin pushed forward (depth offset from the nose bridge).
+     *
+     * Returns null when the landmarks carry no depth. This movement is along the camera axis, so
+     * without depth there is no signal to read and a returned number would be about nothing.
+     */
+    fun solveJawForward(landmarks: List<FaceLandmark>): Float? {
         val iod = iod(landmarks)
         if (iod <= 0f) return 0f
-        val chinZ = landmarks[CHIN].z
-        val bridgeZ = landmarks[NOSE_BRIDGE].z
+        val chinZ = landmarks[CHIN].relativeDepth ?: return null
+        val bridgeZ = landmarks[NOSE_BRIDGE].relativeDepth ?: return null
         // When jaw is forward, chin Z approaches (or exceeds) bridge Z
         // More negative Z = closer to camera
         val delta = (bridgeZ - chinZ) / iod

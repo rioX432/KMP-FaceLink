@@ -5,6 +5,7 @@ import io.github.kmpfacelink.model.BlendShapeEnhancerConfig
 import io.github.kmpfacelink.model.FaceLandmark
 import io.github.kmpfacelink.util.BlendShapeEnhancer
 import kotlin.test.Test
+import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
@@ -207,4 +208,64 @@ class BlendShapeEnhancerTest {
         val value = result[BlendShape.BROW_DOWN_LEFT] ?: 0f
         assertTrue(value >= 0f && value <= 1f, "browDownLeft should be in [0,1], got $value")
     }
+
+    // region the estimator and alternative planes
+
+    @Test
+    fun observeLeavesTheEstimatorPlaneExactlyAsItArrived() {
+        val enhancer = assertNotNull(BlendShapeEnhancer.create(BlendShapeEnhancerConfig.Default()))
+        val estimator = mapOf(BlendShape.CHEEK_PUFF to 0.01f, BlendShape.JAW_OPEN to 0.4f)
+
+        val observed = enhancer.observe(estimator, neutralFaceLandmarks())
+
+        assertEquals(estimator, observed.estimator)
+    }
+
+    @Test
+    fun observeReportsWhichShapeEachProposalIsFor() {
+        val enhancer = assertNotNull(BlendShapeEnhancer.create(BlendShapeEnhancerConfig.Default()))
+
+        val observed = enhancer.observe(emptyMap(), neutralFaceLandmarks())
+
+        assertTrue(observed.alternatives.isNotEmpty(), "the solvers proposed nothing to check")
+        for (candidate in observed.alternatives) {
+            val target = assertNotNull(candidate.proposedTarget, "a proposal names the shape it is for")
+            assertTrue(
+                candidate.producerId.endsWith(target.name),
+                "producerId should identify the producer: ${candidate.producerId}",
+            )
+        }
+    }
+
+    @Test
+    fun aProposalThatLosesIsStillReported() {
+        // The whole reason the seam exists. The estimator reports a value above anything the
+        // solver can produce for a near-zero shape, so `select` keeps the estimator's - and the
+        // proposal has to survive anyway, or nothing downstream can tell that one was made.
+        val enhancer = assertNotNull(BlendShapeEnhancer.create(BlendShapeEnhancerConfig.Default()))
+        val landmarks = neutralFaceLandmarks()
+        val estimator = mapOf(BlendShape.CHEEK_PUFF to 1f)
+
+        val observed = enhancer.observe(estimator, landmarks)
+        val enhanced = enhancer.enhance(estimator, landmarks)
+
+        val cheekProposal = observed.alternatives.firstOrNull {
+            it.proposedTarget == BlendShape.CHEEK_PUFF
+        }
+        assertNotNull(cheekProposal, "the cheek solver made no proposal to lose")
+        assertTrue(cheekProposal.value <= 1f)
+        assertEquals(1f, enhanced[BlendShape.CHEEK_PUFF], "the estimator value should have won")
+    }
+
+    @Test
+    fun observeProposesNothingWhenTheLandmarksAreTooFew() {
+        val enhancer = assertNotNull(BlendShapeEnhancer.create(BlendShapeEnhancerConfig.Default()))
+
+        val observed = enhancer.observe(mapOf(BlendShape.JAW_OPEN to 0.2f), emptyList())
+
+        assertTrue(observed.alternatives.isEmpty())
+        assertEquals(mapOf(BlendShape.JAW_OPEN to 0.2f), observed.estimator)
+    }
+
+    // endregion
 }

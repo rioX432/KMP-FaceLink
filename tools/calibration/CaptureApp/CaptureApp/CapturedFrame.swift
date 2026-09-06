@@ -1,5 +1,4 @@
 import ARKit
-import CoreVideo
 
 /// A single captured frame containing ARKit blendshapes and the front camera image.
 struct CapturedFrame {
@@ -9,6 +8,9 @@ struct CapturedFrame {
     /// ARKit face blendshape coefficients for this frame.
     let blendShapes: [ARFaceAnchor.BlendShapeLocation: NSNumber]
 
-    /// Front-camera RGB pixel buffer captured at the same instant.
-    let pixelBuffer: CVPixelBuffer
+    /// JPEG-encoded front-camera RGB frame captured at the same instant.
+    ///
+    /// Keeping compressed bytes instead of a full CVPixelBuffer prevents a
+    /// short calibration clip from consuming several gigabytes of memory.
+    let jpegData: Data
 }

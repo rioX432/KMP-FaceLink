@@ -21,11 +21,26 @@ class LandmarkToBlendShapeMapperTest {
         return landmarks
     }
 
+    /**
+     * Pins the exact set this estimator emits.
+     *
+     * A shape only joins this set once a solver measures it, so adding a solver is a deliberate
+     * two-part change: the solver, and this expectation. That is what stops an implementation gap
+     * from quietly becoming, or quietly ceasing to be, part of the published schema.
+     */
     @Test
-    fun mapProducesAll52BlendShapes() {
-        val landmarks = neutralFaceLandmarks()
-        val result = LandmarkToBlendShapeMapper.map(landmarks)
-        assertEquals(BlendShape.entries.size, result.size, "Should produce all 52 blend shapes")
+    fun emittedShapesAreExactlyTheMeasuredSet() {
+        val result = LandmarkToBlendShapeMapper.map(neutralFaceLandmarks())
+        assertEquals(EMITTED_SHAPES, result.keys)
+    }
+
+    @Test
+    fun shapesThisInputCannotObserveAreAbsentRatherThanZero() {
+        val result = LandmarkToBlendShapeMapper.map(neutralFaceLandmarks())
+        for (shape in NOT_EMITTED_SHAPES) {
+            assertTrue(shape !in result, "$shape must be absent, not present as ${result[shape]}")
+        }
+        assertEquals(BlendShape.entries.size, EMITTED_SHAPES.size + NOT_EMITTED_SHAPES.size)
     }
 
     @Test
@@ -77,6 +92,48 @@ class LandmarkToBlendShapeMapperTest {
 
     companion object {
         private const val NUM_LANDMARKS = 66
+
+        /** Shapes measured by the eye, brow, and mouth solvers. */
+        private val EMITTED_SHAPES = setOf(
+            BlendShape.EYE_BLINK_LEFT, BlendShape.EYE_BLINK_RIGHT,
+            BlendShape.EYE_SQUINT_LEFT, BlendShape.EYE_SQUINT_RIGHT,
+            BlendShape.EYE_WIDE_LEFT, BlendShape.EYE_WIDE_RIGHT,
+            BlendShape.BROW_DOWN_LEFT, BlendShape.BROW_DOWN_RIGHT,
+            BlendShape.BROW_INNER_UP,
+            BlendShape.BROW_OUTER_UP_LEFT, BlendShape.BROW_OUTER_UP_RIGHT,
+            BlendShape.NOSE_SNEER_LEFT, BlendShape.NOSE_SNEER_RIGHT,
+            BlendShape.JAW_OPEN, BlendShape.JAW_LEFT, BlendShape.JAW_RIGHT,
+            BlendShape.MOUTH_SMILE_LEFT, BlendShape.MOUTH_SMILE_RIGHT,
+            BlendShape.MOUTH_FROWN_LEFT, BlendShape.MOUTH_FROWN_RIGHT,
+            BlendShape.MOUTH_PUCKER, BlendShape.MOUTH_FUNNEL,
+            BlendShape.MOUTH_LEFT, BlendShape.MOUTH_RIGHT,
+            BlendShape.MOUTH_CLOSE,
+            BlendShape.MOUTH_UPPER_UP_LEFT, BlendShape.MOUTH_UPPER_UP_RIGHT,
+            BlendShape.MOUTH_LOWER_DOWN_LEFT, BlendShape.MOUTH_LOWER_DOWN_RIGHT,
+            BlendShape.MOUTH_STRETCH_LEFT, BlendShape.MOUTH_STRETCH_RIGHT,
+            BlendShape.MOUTH_DIMPLE_LEFT, BlendShape.MOUTH_DIMPLE_RIGHT,
+            BlendShape.MOUTH_PRESS_LEFT, BlendShape.MOUTH_PRESS_RIGHT,
+            BlendShape.MOUTH_ROLL_UPPER, BlendShape.MOUTH_ROLL_LOWER,
+            BlendShape.MOUTH_SHRUG_UPPER, BlendShape.MOUTH_SHRUG_LOWER,
+        )
+
+        /**
+         * Shapes this estimator does not emit today.
+         *
+         * The eight gaze shapes need iris and pupil points, which the 66-point set does not carry;
+         * tongue has no observation point at all; jaw protrusion is not visible in a 2D contour;
+         * and the three cheek shapes are the subject of separate work. None of these is a statement
+         * that the platform can never support them.
+         */
+        private val NOT_EMITTED_SHAPES = setOf(
+            BlendShape.EYE_LOOK_IN_LEFT, BlendShape.EYE_LOOK_OUT_LEFT,
+            BlendShape.EYE_LOOK_UP_LEFT, BlendShape.EYE_LOOK_DOWN_LEFT,
+            BlendShape.EYE_LOOK_IN_RIGHT, BlendShape.EYE_LOOK_OUT_RIGHT,
+            BlendShape.EYE_LOOK_UP_RIGHT, BlendShape.EYE_LOOK_DOWN_RIGHT,
+            BlendShape.TONGUE_OUT, BlendShape.JAW_FORWARD,
+            BlendShape.CHEEK_PUFF,
+            BlendShape.CHEEK_SQUINT_LEFT, BlendShape.CHEEK_SQUINT_RIGHT,
+        )
 
         // Right eye landmark indices
         private const val RIGHT_EYE_UPPER = 37

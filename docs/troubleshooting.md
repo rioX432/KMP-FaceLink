@@ -2,6 +2,22 @@
 
 Common integration issues and their solutions. For platform-specific setup, see the [Android Quick Start](quick-start-android.md) and [iOS Quick Start](quick-start-ios.md). For error recovery patterns, see [API Overview: Error Recovery](api-overview.md#error-recovery).
 
+## JVM/Desktop
+
+### Pinned OpenSeeFace model is missing or rejected
+
+**Symptom:** `start()` enters `ERROR` before the camera opens with `Model resource not found`,
+`Model digest mismatch`, or an ONNX tensor-contract message.
+
+**Cause:** A local source build omitted the pinned model setup, the bytes changed, or the estimator
+artifact no longer matches the decoder contract. KMP-FaceLink intentionally fails before camera
+access instead of attempting inference with an unknown model.
+
+**Solution:** From the repository root, run `./scripts/setup-openseeface-models.sh` and rebuild.
+The script fixes the upstream revision and verifies SHA-256. Published JVM artifacts run the same
+setup in the publication workflow. Do not replace the model manually or treat a successful model
+load as evidence of expression accuracy or performance.
+
 ---
 
 ## Android
@@ -165,11 +181,13 @@ xcodegen generate
 
 ---
 
-### 7. Device without TrueDepth camera — face tracking unavailable
+### 7. ARKit face tracking is unsupported on this device/OS
 
-**Symptom:** `tracker.start()` transitions to `ERROR` with `"ARFaceTracking is not supported on this device"`. This happens on iPhone SE, iPad (non-Pro models), or the iOS Simulator.
+**Symptom:** `tracker.start()` transitions to `ERROR` with `"ARFaceTracking is not supported on this device"`.
 
-**Cause:** ARKit face tracking requires a TrueDepth front camera (Face ID hardware). Devices without this camera cannot perform face tracking. This is a **fatal error** — retrying `start()` will not help on the same device.
+**Cause:** `ARFaceTrackingConfiguration.isSupported` is false for the current device/OS
+combination. Do not infer a single hardware cause from this result. Retrying `start()` will not
+change the runtime capability on the same configuration.
 
 **Solution:**
 
@@ -187,7 +205,8 @@ xcodegen generate
       // Show unsupported device message
   }
   ```
-- **Hand and body tracking do NOT require TrueDepth.** They use the Vision framework with a standard camera via `AVCaptureSession` and work on all iOS 17+ devices.
+- **Hand and body tracking use separate Vision/AVCaptureSession paths.** Qualify their device/OS
+  support independently instead of inferring it from the ARKit face-tracking result.
 - **Add `arkit` to `UIRequiredDeviceCapabilities`** in `Info.plist` if your app requires face tracking to function — this prevents the app from being installed on unsupported devices:
   ```xml
   <key>UIRequiredDeviceCapabilities</key>

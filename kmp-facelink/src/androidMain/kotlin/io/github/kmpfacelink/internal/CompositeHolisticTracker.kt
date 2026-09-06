@@ -11,6 +11,7 @@ import io.github.kmpfacelink.model.HandTrackingData
 import io.github.kmpfacelink.model.HolisticTrackerConfig
 import io.github.kmpfacelink.model.HolisticTrackingData
 import io.github.kmpfacelink.model.SmoothingConfig
+import io.github.kmpfacelink.model.TrackerOperationStatus
 import io.github.kmpfacelink.model.TrackingModality
 import io.github.kmpfacelink.util.FaceLinkLogger
 import io.github.kmpfacelink.util.PlatformLock
@@ -221,21 +222,23 @@ internal class CompositeHolisticTracker(
         }
     }
 
-    override fun updateSmoothing(config: SmoothingConfig) {
-        pipelineLock.withLock {
+    override fun updateSmoothing(config: SmoothingConfig): TrackerOperationStatus {
+        return pipelineLock.withLock {
             check(released.load() == 0) { "Cannot update smoothing on a released tracker" }
-            faceTracker?.updateSmoothing(config)
-            handTracker?.updateSmoothing(config)
-            bodyTracker?.updateSmoothing(config)
+            val faceTrackerStatus = faceTracker?.updateSmoothing(config)
+            val handTrackerStatus = handTracker?.updateSmoothing(config)
+            val bodyTrackerStatus = bodyTracker?.updateSmoothing(config)
+            aggregate(faceTrackerStatus, handTrackerStatus, bodyTrackerStatus)
         }
     }
 
-    override fun resetSmoothing() {
-        pipelineLock.withLock {
+    override fun resetSmoothing(): TrackerOperationStatus {
+        return pipelineLock.withLock {
             check(released.load() == 0) { "Cannot reset smoothing on a released tracker" }
-            faceTracker?.resetSmoothing()
-            handTracker?.resetSmoothing()
-            bodyTracker?.resetSmoothing()
+            val faceTrackerStatus = faceTracker?.resetSmoothing()
+            val handTrackerStatus = handTracker?.resetSmoothing()
+            val bodyTrackerStatus = bodyTracker?.resetSmoothing()
+            aggregate(faceTrackerStatus, handTrackerStatus, bodyTrackerStatus)
         }
     }
 
@@ -297,5 +300,22 @@ internal class CompositeHolisticTracker(
 
     companion object {
         private const val TAG = "CompositeHolisticTracker"
+    }
+
+    /**
+     * The status for an operation forwarded to the sub-trackers.
+     *
+     * A composite reports [TrackerOperationStatus.APPLIED] only when every tracker it actually
+     * holds applied the operation. Reporting success while one sub-tracker silently ignored the
+     * call would hide exactly the gap this status exists to surface. Absent sub-trackers are not
+     * counted: the composite was not built with them.
+     */
+    private fun aggregate(vararg statuses: TrackerOperationStatus?): TrackerOperationStatus {
+        val present = statuses.filterNotNull()
+        return if (present.isNotEmpty() && present.all { it == TrackerOperationStatus.APPLIED }) {
+            TrackerOperationStatus.APPLIED
+        } else {
+            TrackerOperationStatus.UNSUPPORTED
+        }
     }
 }

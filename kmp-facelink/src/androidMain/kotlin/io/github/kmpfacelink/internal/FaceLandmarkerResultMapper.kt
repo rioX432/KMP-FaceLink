@@ -26,9 +26,11 @@ internal object FaceLandmarkerResultMapper {
             FaceLandmark(
                 x = landmark.x(),
                 y = landmark.y(),
-                z = landmark.z(),
-                visibility = landmark.visibility().orElse(0f),
-                presence = landmark.presence().orElse(0f),
+                relativeDepth = landmark.z(),
+                // MediaPipe reports these as optional. Collapsing an absent value to 0f made a
+                // missing quality signal indistinguishable from a landmark judged fully occluded.
+                visibility = landmark.visibility().orElse(null),
+                presence = landmark.presence().orElse(null),
             )
         }
     }

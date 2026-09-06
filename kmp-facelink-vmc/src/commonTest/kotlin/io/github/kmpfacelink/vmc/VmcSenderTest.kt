@@ -3,7 +3,7 @@ package io.github.kmpfacelink.vmc
 import io.github.kmpfacelink.model.BlendShape
 import io.github.kmpfacelink.model.FaceTrackingData
 import io.github.kmpfacelink.model.HeadTransform
-import io.github.kmpfacelink.model.emptyBlendShapeData
+import io.github.kmpfacelink.model.allShapesAtRest
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.flow
@@ -145,7 +145,7 @@ class VmcSenderTest {
     @Test
     fun sendFrameWithEmptyBlendShapes() {
         val sender = VmcSender(config)
-        sender.sendFrame(emptyBlendShapeData(), HeadTransform(), SAMPLE_TIMESTAMP_MS)
+        sender.sendFrame(allShapesAtRest(), HeadTransform(), SAMPLE_TIMESTAMP_MS)
         sender.stop()
     }
 

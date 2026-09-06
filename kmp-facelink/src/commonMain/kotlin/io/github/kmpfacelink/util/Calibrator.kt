@@ -74,9 +74,12 @@ internal class Calibrator(
                 value
             } else {
                 val range = newMax - newMin
-                val neutralValue = neutralBaseline?.get(shape) ?: 0f
+                // No baseline for this shape means no neutral was ever measured for it, so there
+                // is nothing to subtract. Writing a 0 here would arithmetically agree — but it
+                // would say the neutral pose was measured at rest, which is a different claim.
+                val neutralValue = neutralBaseline?.get(shape)
                 if (range > EPSILON) {
-                    ((value - neutralValue) / range).coerceIn(0f, 1f)
+                    ((value - (neutralValue ?: 0f)) / range).coerceIn(0f, 1f)
                 } else {
                     value
                 }
@@ -133,7 +136,11 @@ internal class Calibrator(
             if (shapes.isEmpty()) return 0f
             var totalVariance = 0f
             for (shape in shapes) {
-                val values = history.map { it[shape] ?: 0f }
+                // Only the frames that carried this shape. Counting a frame that never measured it
+                // as a zero sample would pull the mean down and inflate the variance, making a
+                // steady shape look unstable purely because another frame omitted it.
+                val values = history.mapNotNull { it[shape] }
+                if (values.isEmpty()) continue
                 val mean = values.sum() / values.size
                 val variance = values.sumOf { v -> ((v - mean) * (v - mean)).toDouble() }.toFloat() / values.size
                 totalVariance += variance
@@ -143,10 +150,10 @@ internal class Calibrator(
 
         private fun computeAverage(): BlendShapeData {
             val shapes = history.first().keys
-            return shapes.associateWith { shape ->
-                val values = history.map { it[shape] ?: 0f }
-                values.sum() / values.size
-            }
+            return shapes.mapNotNull { shape ->
+                val values = history.mapNotNull { it[shape] }
+                if (values.isEmpty()) null else shape to values.sum() / values.size
+            }.toMap()
         }
 
         private companion object {

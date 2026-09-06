@@ -84,7 +84,7 @@ internal object VisionBodyLandmarkMapper {
                     x = px,
                     y = 1f - py, // Flip Y: bottom-left → top-left
                     z = 0f,
-                    visibility = point.confidence.toFloat(),
+                    visibility = point.confidence,
                 )
             }
         }

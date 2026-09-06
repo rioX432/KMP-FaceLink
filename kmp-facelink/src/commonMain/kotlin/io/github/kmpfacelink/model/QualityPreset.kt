@@ -139,11 +139,16 @@ public sealed class QualityPreset {
          * stability.
          */
         public fun autoSelect(profile: DeviceCapabilityProfile): QualityPreset {
+            // Only a path known to be there earns an upgrade. An unknown path is treated the same
+            // as an absent one, so a target that never probed does not get promoted on the strength
+            // of a check it did not run.
+            val npuAvailable = profile.npuInference.state == CapabilityState.AVAILABLE
+            val gpuAvailable = profile.gpuInference.state == CapabilityState.AVAILABLE
             return when {
-                profile.hasNpu -> High
-                profile.tier == DeviceTier.HIGH -> High
-                profile.hasGpuAcceleration -> Medium
-                profile.tier == DeviceTier.MID -> Medium
+                npuAvailable -> High
+                profile.qualityRecommendation.tier == DeviceTier.HIGH -> High
+                gpuAvailable -> Medium
+                profile.qualityRecommendation.tier == DeviceTier.MID -> Medium
                 else -> Low
             }
         }

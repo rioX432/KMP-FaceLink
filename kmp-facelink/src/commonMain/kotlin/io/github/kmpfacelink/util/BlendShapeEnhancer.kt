@@ -1,9 +1,11 @@
 package io.github.kmpfacelink.util
 
+import io.github.kmpfacelink.model.AlternativeSignalObservation
 import io.github.kmpfacelink.model.BlendShape
 import io.github.kmpfacelink.model.BlendShapeData
 import io.github.kmpfacelink.model.BlendShapeEnhancerConfig
 import io.github.kmpfacelink.model.FaceLandmark
+import io.github.kmpfacelink.model.FaceSignalCandidates
 
 /**
  * Enhances MediaPipe blend shape output using geometric landmark calculations.
@@ -26,6 +28,9 @@ internal class BlendShapeEnhancer(
     // Callers that store the result must copy it via HashMap(result).
     private val scratch: HashMap<BlendShape, Float> = BlendShapeMapPool().create()
 
+    // Reused for the same reason. Callers that keep the candidates must copy the list.
+    private val candidates: ArrayList<AlternativeSignalObservation> = ArrayList(SOLVER_COUNT)
+
     /**
      * Enhance blend shape data using face landmarks.
      *
@@ -43,8 +48,8 @@ internal class BlendShapeEnhancer(
         scratch.putAll(blendShapes)
         val result = scratch
 
-        // Step 1: Geometric solver override
-        applyGeometricOverrides(result, landmarks)
+        // Step 1: choose between the estimator's values and what the solvers proposed
+        select(observe(blendShapes, landmarks), result)
 
         // Step 1.5: Expression correlation (FACS AU co-activation)
         if (config.enableCorrelation) {
@@ -61,27 +66,64 @@ internal class BlendShapeEnhancer(
     }
 
     /**
-     * Blend geometric solver values with ML values.
-     * - Near-zero shapes: max(geometric, ml) — geometric is strictly better
-     * - Low-accuracy shapes: weighted blend — both signals contribute
+     * The values the landmark solvers propose for this frame, with the estimator's own values
+     * beside them and nothing merged yet.
+     *
+     * This is the seam that keeps a derived value from arriving as a measurement. [enhance] is
+     * defined in terms of it rather than repeating the solver walk, so the two cannot drift: the
+     * merged output is always a selection over exactly these candidates.
      */
-    private fun applyGeometricOverrides(
-        result: MutableMap<BlendShape, Float>,
+    fun observe(
+        blendShapes: BlendShapeData,
         landmarks: List<FaceLandmark>,
-    ) {
-        // Near-zero shapes: use max(geometric, ml)
-        for ((shape, solver) in nearZeroSolvers) {
-            val ml = result[shape] ?: 0f
-            val geometric = solver(landmarks)
-            result[shape] = maxOf(geometric, ml).coerceIn(0f, 1f)
+    ): FaceSignalCandidates {
+        candidates.clear()
+        if (landmarks.size >= LandmarkSolvers.MIN_LANDMARKS) {
+            for ((shape, solver) in nearZeroSolvers) {
+                propose(shape, solver(landmarks))
+            }
+            for ((shape, solver) in lowAccuracySolvers) {
+                propose(shape, solver(landmarks))
+            }
         }
+        return FaceSignalCandidates(estimator = blendShapes, alternatives = candidates)
+    }
 
-        // Low-accuracy shapes: weighted blend
+    private fun propose(shape: BlendShape, value: Float?) {
+        if (value == null) return
+        candidates += AlternativeSignalObservation(
+            producerId = "$GEOMETRY_PRODUCER_PREFIX${shape.name}",
+            value = value,
+            proposedTarget = shape,
+        )
+    }
+
+    /**
+     * Decide, per shape, between the estimator's value and a proposed one.
+     * - Near-zero estimator shapes: take the larger of the two
+     * - Other configured shapes: combine both with the configured weight
+     *
+     * This algorithmic choice does not assert that the geometric signal is more accurate.
+     *
+     * A solver that could not run proposed nothing, so the shape stays as the estimator left it,
+     * including absent. An estimator that did not produce the shape leaves the proposal to stand
+     * alone: blending it against a substituted zero would drag a real value down toward one nobody
+     * produced.
+     */
+    private fun select(
+        proposals: FaceSignalCandidates,
+        result: MutableMap<BlendShape, Float>,
+    ) {
         val w = config.geometricBlendWeight
-        for ((shape, solver) in lowAccuracySolvers) {
-            val ml = result[shape] ?: 0f
-            val geometric = solver(landmarks)
-            result[shape] = (w * geometric + (1f - w) * ml).coerceIn(0f, 1f)
+        for (candidate in proposals.alternatives) {
+            val shape = candidate.proposedTarget ?: continue
+            val estimated = result[shape]
+            val combined = when {
+                estimated == null -> candidate.value
+                shape in nearZeroSolvers -> maxOf(candidate.value, estimated)
+                else -> w * candidate.value + (1f - w) * estimated
+            }
+            result[shape] = combined.coerceIn(0f, 1f)
         }
     }
 
@@ -102,6 +144,12 @@ internal class BlendShapeEnhancer(
     }
 
     companion object {
+        /** Names every landmark-derived proposal, so a reader can tell it from an estimator value. */
+        private const val GEOMETRY_PRODUCER_PREFIX = "landmark-geometry:"
+
+        /** Upper bound on proposals per frame; only used to size the reused list. */
+        private const val SOLVER_COUNT = 32
+
         /**
          * Create an enhancer from config, or null if enhancement is disabled.
          */
@@ -111,8 +159,8 @@ internal class BlendShapeEnhancer(
                 is BlendShapeEnhancerConfig.Default -> BlendShapeEnhancer(config)
             }
 
-        /** Shapes where ML almost always returns ~0. Use max(geometric, ml). */
-        private val nearZeroSolvers: Map<BlendShape, (List<FaceLandmark>) -> Float> = mapOf(
+        /** Shapes assigned to the explicitly enabled max-combination path. */
+        private val nearZeroSolvers: Map<BlendShape, (List<FaceLandmark>) -> Float?> = mapOf(
             BlendShape.CHEEK_PUFF to LandmarkSolvers::solveCheekPuff,
             BlendShape.CHEEK_SQUINT_LEFT to CheekBrowSolvers::solveCheekSquintLeft,
             BlendShape.CHEEK_SQUINT_RIGHT to CheekBrowSolvers::solveCheekSquintRight,
@@ -122,8 +170,8 @@ internal class BlendShapeEnhancer(
             BlendShape.NOSE_SNEER_RIGHT to LandmarkSolvers::solveNoseSneerRight,
         )
 
-        /** Shapes with low but non-zero ML accuracy. Use weighted blend. */
-        private val lowAccuracySolvers: Map<BlendShape, (List<FaceLandmark>) -> Float> = mapOf(
+        /** Shapes assigned to the explicitly enabled weighted-combination path. */
+        private val lowAccuracySolvers: Map<BlendShape, (List<FaceLandmark>) -> Float?> = mapOf(
             BlendShape.BROW_DOWN_LEFT to CheekBrowSolvers::solveBrowDownLeft,
             BlendShape.BROW_DOWN_RIGHT to CheekBrowSolvers::solveBrowDownRight,
             BlendShape.BROW_INNER_UP to CheekBrowSolvers::solveBrowInnerUp,

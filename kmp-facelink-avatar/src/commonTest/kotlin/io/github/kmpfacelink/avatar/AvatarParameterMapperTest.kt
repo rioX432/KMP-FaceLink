@@ -1,3 +1,7 @@
+// sparse-contract-exempt: the lambda inside these tests stands in for one an app author writes,
+// and the avatar layer is exactly where an absent shape becomes the rest pose. See
+// `RestPoseFallback` for why that substitution belongs here and nowhere earlier.
+
 package io.github.kmpfacelink.avatar
 
 import io.github.kmpfacelink.model.BlendShape

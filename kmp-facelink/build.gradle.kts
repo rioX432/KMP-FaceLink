@@ -1,4 +1,5 @@
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.plugin.mpp.apple.XCFramework
 
 plugins {
@@ -14,11 +15,26 @@ dokka {
 
 kotlin {
     explicitApi()
+    compilerOptions {
+        // expect/actual classes are an intentional public KMP boundary in this module.
+        freeCompilerArgs.add("-Xexpect-actual-classes")
+        // Keep compatibility accessors available, but prevent new source warnings in CI.
+        allWarningsAsErrors.set(true)
+    }
 
-    jvm()
+    jvm {
+        compilerOptions {
+            // Keep the public JVM artifact readable by the ABI validator even when Gradle runs on a newer JDK.
+            jvmTarget.set(JvmTarget.JVM_17)
+        }
+    }
 
     @OptIn(ExperimentalWasmDsl::class)
     wasmJs {
+        compilerOptions {
+            // This target's MediaPipe bridge is implemented through Kotlin/Wasm JS interop.
+            optIn.add("kotlin.js.ExperimentalWasmJsInterop")
+        }
         browser()
     }
 
@@ -120,11 +136,24 @@ kotlin {
 // Expose the shared cross-repo conformance fixture (kmp-facelink-cbridge/conformance/) to
 // LiveLinkConformanceFixtureTest so the golden file and LiveLinkBlendShapes cannot drift.
 // The fixture is declared as a task input so editing it re-runs the test (no stale cache hit).
-tasks.named<Test>("jvmTest") {
+val standardJvmTest = tasks.named<Test>("jvmTest") {
     val conformanceFixture = rootProject.layout.projectDirectory
         .file("kmp-facelink-cbridge/conformance/live_link_conformance.json")
     inputs.file(conformanceFixture)
         .withPropertyName("liveLinkConformanceFixture")
         .withPathSensitivity(PathSensitivity.NONE)
     systemProperty("kmpfacelink.conformance.fixture", conformanceFixture.asFile.absolutePath)
+    // Private biometric replay is a separately authorized local quality lane. It must not appear
+    // as a green test case in the source-only PR gate.
+    filter.excludeTestsMatching("*CheekPuffContourFrozenRuleTest*")
+}
+
+tasks.register<Test>("privateCheekPuffQualityCheck") {
+    group = "verification"
+    description = "Replay the frozen cheek-puff rule against locally authorized private inputs"
+    dependsOn("jvmTestClasses")
+    testClassesDirs = standardJvmTest.get().testClassesDirs
+    classpath = standardJvmTest.get().classpath
+    filter.includeTestsMatching("*CheekPuffContourFrozenRuleTest*")
+    shouldRunAfter(standardJvmTest)
 }

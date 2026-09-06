@@ -14,7 +14,11 @@ plugins {
 
 apiValidation {
     // Exclude sample apps (no public API to track)
-    ignoredProjects += listOf("androidApp", "sampleShared")
+    ignoredProjects += listOf("androidApp", "sampleShared", "captureApp")
+    // The capture module is the study's measurement harness, not a published artifact (it is absent
+    // from publishableModules). Tracking its ABI would only add churn: it has no consumers outside
+    // this repository, and its surface moves with the experiment.
+    ignoredProjects += listOf("kmp-facelink-capture")
     // Exclude BOM module (no code, only dependency constraints)
     ignoredProjects += listOf("kmp-facelink-bom")
 
@@ -154,6 +158,39 @@ subprojects {
             }
         }
     }
+}
+
+// Runtime provenance records the MediaPipe Tasks version. Keep those literals bound to the
+// dependency catalog so a library update cannot silently leave measurement manifests claiming the
+// previous engine version.
+val verifyMediaPipeVersionProvenance by tasks.registering {
+    val catalog = layout.projectDirectory.file("gradle/libs.versions.toml")
+    val runtimeSources = listOf(
+        layout.projectDirectory.file(
+            "kmp-facelink/src/androidMain/kotlin/io/github/kmpfacelink/internal/AndroidTrackingContext.kt",
+        ),
+        layout.projectDirectory.file(
+            "kmp-facelink-capture/src/androidMain/kotlin/io/github/kmpfacelink/capture/AndroidCaptureSession.kt",
+        ),
+    )
+    inputs.file(catalog)
+    inputs.files(runtimeSources)
+    doLast {
+        val version = Regex("(?m)^mediapipe\\s*=\\s*\"([^\"]+)\"")
+            .find(catalog.asFile.readText())
+            ?.groupValues
+            ?.get(1)
+            ?: error("mediapipe version is absent from ${catalog.asFile}")
+        runtimeSources.forEach { source ->
+            check("\"$version\"" in source.asFile.readText()) {
+                "${source.asFile} does not record catalog MediaPipe version $version"
+            }
+        }
+    }
+}
+
+tasks.named("detekt") {
+    dependsOn(verifyMediaPipeVersionProvenance)
 }
 
 // Configure detekt source paths for KMP modules
@@ -319,7 +356,12 @@ project(":kmp-facelink-compose") {
 // Allowed dependencies per module, based on the architecture spec in AGENTS.md
 tasks.register("validateModuleDependencies") {
     group = "verification"
-    description = "Validate module dependency graph against architecture rules"
+    description = "Validate documented, allowed, and actual module dependency graphs"
+
+    val architectureContractFile = providers.gradleProperty("architectureContractFile")
+        .map { file(it) }
+        .orElse(file("AGENTS.md"))
+    inputs.file(architectureContractFile)
 
     doLast {
         val core = ":kmp-facelink"
@@ -330,8 +372,8 @@ tasks.register("validateModuleDependencies") {
             ":kmp-facelink" to emptySet(),
             ":kmp-facelink-avatar" to setOf(core),
             ":kmp-facelink-actions" to setOf(core, ":kmp-facelink-interact"),
-            ":kmp-facelink-voice" to setOf(core),
-            ":kmp-facelink-llm" to setOf(core),
+            ":kmp-facelink-voice" to setOf(core, networking),
+            ":kmp-facelink-llm" to setOf(core, networking),
             ":kmp-facelink-pipeline" to setOf(
                 core,
                 ":kmp-facelink-voice",
@@ -346,7 +388,56 @@ tasks.register("validateModuleDependencies") {
             ":kmp-facelink-vts" to setOf(core),
             ":kmp-facelink-interact" to setOf(core),
             ":kmp-facelink-compose" to setOf(core),
+            ":kmp-facelink-capture" to setOf(core),
         )
+
+        val architectureText = architectureContractFile.get().readText()
+        val dependencyTree = Regex("(?s)### Dependency Tree\\s*```(.*?)```")
+            .find(architectureText)
+            ?.groupValues
+            ?.get(1)
+            ?: throw GradleException("AGENTS.md does not contain a Dependency Tree code block")
+        val dependencyLine = Regex(
+            "^\\s*[├└]──\\s+(kmp-facelink(?:-[a-z]+)?)\\s+→\\s+(.+)$",
+        )
+        if (!Regex("(?m)^kmp-facelink \\(core\\)$").containsMatchIn(dependencyTree)) {
+            throw GradleException("AGENTS.md dependency tree does not declare kmp-facelink (core)")
+        }
+        val documentedDependencies = mapOf(core to emptySet<String>()) + dependencyTree.lineSequence()
+            .mapNotNull { line ->
+                val match = dependencyLine.matchEntire(line) ?: return@mapNotNull null
+                val modulePath = ":${match.groupValues[1]}"
+                val descriptor = match.groupValues[2].substringBefore(" (")
+                val dependencies = when {
+                    descriptor.startsWith("standalone") -> emptySet()
+                    descriptor.startsWith("depends on ") -> descriptor
+                        .removePrefix("depends on ")
+                        .split(", ")
+                        .map { dependency ->
+                            if (dependency == "core") core else ":kmp-facelink-$dependency"
+                        }
+                        .toSet()
+                    else -> throw GradleException(
+                        "Unrecognized dependency descriptor for $modulePath: $descriptor",
+                    )
+                }
+                modulePath to dependencies
+            }
+            .toMap()
+
+        if (documentedDependencies != allowedDependencies) {
+            val missing = allowedDependencies.keys - documentedDependencies.keys
+            val extra = documentedDependencies.keys - allowedDependencies.keys
+            val mismatched = allowedDependencies.keys.intersect(documentedDependencies.keys)
+                .filter { documentedDependencies[it] != allowedDependencies[it] }
+                .associateWith { module ->
+                    "documented=${documentedDependencies[module]}, allowed=${allowedDependencies[module]}"
+                }
+            throw GradleException(
+                "AGENTS.md dependency tree differs from the executable allowlist: " +
+                    "missing=$missing, extra=$extra, mismatched=$mismatched",
+            )
+        }
 
         val violations = mutableListOf<String>()
 
@@ -371,6 +462,215 @@ tasks.register("validateModuleDependencies") {
             )
         }
 
-        logger.lifecycle("Module dependency validation passed. All ${allowedDependencies.size} modules comply.")
+        logger.lifecycle(
+            "Module dependency validation passed. Documentation, allowlist, and all " +
+                "${allowedDependencies.size} modules comply.",
+        )
     }
+}
+
+val verifySdkPublicSafety by tasks.registering(Exec::class) {
+    group = "verification"
+    description = "Reject tracked biometric capture payloads and private signing material"
+    commandLine("python3", "scripts/verify-sdk-public-safety.py")
+}
+
+val testSdkPublicSafety by tasks.registering(Exec::class) {
+    group = "verification"
+    description = "Mutation controls for the tracked-file privacy gate"
+    commandLine("python3", "-m", "unittest", "scripts/test_verify_sdk_public_safety.py")
+}
+
+val verifySparseBlendShapeContract by tasks.registering(Exec::class) {
+    group = "verification"
+    description = "Reject sources that fabricate values for blend shapes an estimator did not emit"
+    commandLine("python3", "scripts/verify_sparse_blendshape_contract.py")
+}
+
+val testSparseBlendShapeContract by tasks.registering(Exec::class) {
+    group = "verification"
+    description = "Mutation controls for the sparse blend shape contract guard"
+    commandLine("python3", "-m", "unittest", "scripts/test_verify_sparse_blendshape_contract.py")
+}
+
+val verifySdkDocumentation by tasks.registering(Exec::class) {
+    group = "verification"
+    description = "Verify current SDK documentation against source configuration and claim boundaries"
+    commandLine("python3", "scripts/verify-sdk-documentation.py")
+}
+
+val testSdkDocumentation by tasks.registering(Exec::class) {
+    group = "verification"
+    description = "Mutation controls for the SDK documentation contract"
+    commandLine("python3", "-m", "unittest", "scripts/test_verify_sdk_documentation.py")
+}
+
+val testCalibrationTooling by tasks.registering(Exec::class) {
+    group = "verification"
+    description = "Run dependency-free paired-calibration parser and metric contract tests"
+    commandLine(
+        "python3",
+        "-m",
+        "unittest",
+        "tools/calibration/tests/test_calibration_contract.py",
+    )
+}
+
+val iosAuthorizationTestBinary = layout.buildDirectory.file("verification/ios-run-authorization-tests")
+
+val compileIosRunAuthorizationTests by tasks.registering(Exec::class) {
+    group = "verification"
+    description = "Compile the iOS signed run-authorization mutation controls"
+    inputs.files(
+        "captureIosApp/FaceLinkCapture/RunAuthorization.swift",
+        "captureIosApp/Tests/RunAuthorizationVerifierTests.swift",
+    )
+    outputs.file(iosAuthorizationTestBinary)
+    doFirst {
+        iosAuthorizationTestBinary.get().asFile.parentFile.mkdirs()
+    }
+    commandLine(
+        "xcrun",
+        "swiftc",
+        "-parse-as-library",
+        "captureIosApp/FaceLinkCapture/RunAuthorization.swift",
+        "captureIosApp/Tests/RunAuthorizationVerifierTests.swift",
+        "-o",
+        iosAuthorizationTestBinary.get().asFile.absolutePath,
+    )
+}
+
+val testIosRunAuthorization by tasks.registering(Exec::class) {
+    group = "verification"
+    description = "Run the iOS signed run-authorization mutation controls"
+    dependsOn(compileIosRunAuthorizationTests)
+    commandLine(iosAuthorizationTestBinary.get().asFile.absolutePath)
+}
+
+val buildCaptureIosSimulator by tasks.registering(Exec::class) {
+    group = "verification"
+    description = "Build the guided iOS capture app without signing or a physical device"
+    val derivedData = layout.buildDirectory.dir("verification/capture-ios-simulator-derived")
+    inputs.dir("captureIosApp/FaceLinkCapture")
+    inputs.dir("captureIosApp/FaceLinkCapture.xcodeproj")
+    inputs.file("captureIosApp/project.yml")
+    outputs.dir(derivedData)
+    // Xcode's script phase consumes KMP sources outside the declared captureIosApp inputs. Always
+    // execute this external build so an incremental local quality run cannot accept a stale app.
+    outputs.upToDateWhen { false }
+    commandLine(
+        "xcodebuild",
+        "-project",
+        "captureIosApp/FaceLinkCapture.xcodeproj",
+        "-scheme",
+        "FaceLinkCapture",
+        "-sdk",
+        "iphonesimulator",
+        "-destination",
+        "generic/platform=iOS Simulator",
+        "-derivedDataPath",
+        derivedData.get().asFile.absolutePath,
+        "-configuration",
+        "Debug",
+        "CODE_SIGNING_ALLOWED=NO",
+        "build",
+    )
+}
+
+val verifySampleXcodeProject by tasks.registering(Exec::class) {
+    group = "verification"
+    description = "Verify the checked iOS sample project against pinned XcodeGen output"
+    commandLine("python3", "scripts/verify_sample_xcode_project.py")
+}
+
+val testSampleSourceContract by tasks.registering(Exec::class) {
+    group = "verification"
+    description = "Run dependency-free mutation controls for the sample source contract"
+    commandLine("python3", "-m", "unittest", "scripts/test_sample_source_contract.py")
+}
+
+val buildSampleIosSimulator by tasks.registering(Exec::class) {
+    group = "verification"
+    description = "Build the iOS sample app without signing or a physical device"
+    dependsOn(verifySampleXcodeProject)
+    val derivedData = layout.buildDirectory.dir("verification/sample-ios-simulator-derived")
+    inputs.dir("iosApp/FaceLink")
+    inputs.dir("iosApp/FaceLink.xcodeproj")
+    inputs.file("iosApp/project.yml")
+    outputs.dir(derivedData)
+    outputs.upToDateWhen { false }
+    commandLine(
+        "xcodebuild",
+        "-project",
+        "iosApp/FaceLink.xcodeproj",
+        "-scheme",
+        "FaceLink",
+        "-sdk",
+        "iphonesimulator",
+        "-destination",
+        "generic/platform=iOS Simulator",
+        "-derivedDataPath",
+        derivedData.get().asFile.absolutePath,
+        "-configuration",
+        "Debug",
+        "CODE_SIGNING_ALLOWED=NO",
+        "build",
+    )
+}
+
+tasks.register("sampleQualityCheck") {
+    group = "verification"
+    description = "Run deterministic Android and iOS sample source, package, and Simulator gates"
+    dependsOn(
+        ":androidApp:assembleDebug",
+        ":androidApp:assembleDebugAndroidTest",
+        ":sampleShared:compileKotlinIosSimulatorArm64",
+        ":sampleShared:iosSimulatorArm64Test",
+        verifySampleXcodeProject,
+        testSampleSourceContract,
+        buildSampleIosSimulator,
+    )
+}
+
+/**
+ * One CI/local entrypoint for the contracts required of KMP-FaceLink as AnotherBall's tracking
+ * foundation. Runtime accuracy and device performance remain separate, explicitly authorized
+ * protocols; this task covers deterministic source/API/platform/privacy regressions.
+ */
+tasks.register("sdkQualityCheck") {
+    group = "verification"
+    description = "Run SDK API, capability, platform, capture, authorization, and privacy gates"
+    dependsOn(
+        ":kmp-facelink:apiCheck",
+        ":kmp-facelink:detekt",
+        ":kmp-facelink:jvmTest",
+        ":kmp-facelink:testAndroidHostTest",
+        ":kmp-facelink:iosSimulatorArm64Test",
+        ":kmp-facelink:compileAndroidMain",
+        ":kmp-facelink:compileKotlinIosSimulatorArm64",
+        ":kmp-facelink-capture:detektAndroidHostTest",
+        ":kmp-facelink-capture:detektAndroidMain",
+        ":kmp-facelink-capture:detektMetadataCommonMain",
+        ":kmp-facelink-capture:detektMetadataIosMain",
+        ":kmp-facelink-capture:testAndroidHostTest",
+        ":kmp-facelink-capture:iosSimulatorArm64Test",
+        ":kmp-facelink-capture:compileKotlinIosSimulatorArm64",
+        ":captureApp:testDebugUnitTest",
+        ":captureApp:detekt",
+        ":captureApp:assembleDebug",
+        ":captureApp:assembleDebugAndroidTest",
+        ":captureApp:lintDebug",
+        buildCaptureIosSimulator,
+        testIosRunAuthorization,
+        verifyMediaPipeVersionProvenance,
+        "validateModuleDependencies",
+        verifySdkPublicSafety,
+        testSdkPublicSafety,
+        verifySparseBlendShapeContract,
+        testSparseBlendShapeContract,
+        verifySdkDocumentation,
+        testSdkDocumentation,
+        testCalibrationTooling,
+        "sampleQualityCheck",
+    )
 }

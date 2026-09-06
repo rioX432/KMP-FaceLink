@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 """
-Quantize OpenSeeFace ONNX models for ARM64 KleidiAI acceleration.
+Experimental OpenSeeFace ONNX quantization utility.
 
 Produces INT8 dynamic-quantized variants of the FP32 detection and landmark
-models. On ARM64 hosts (Apple Silicon, WoA), ONNX Runtime 1.22+ dispatches
-INT8 MatMul/IGEMM to KleidiAI kernels for ~2x speedup over FP32 SGEMM.
+models. Generated artifacts are not selected by the runtime or published. They
+must pass independent output-agreement and device-performance qualification
+before any runtime integration; this utility makes no speed or quality claim.
 
 Usage:
     python scripts/quantize_openseeface.py

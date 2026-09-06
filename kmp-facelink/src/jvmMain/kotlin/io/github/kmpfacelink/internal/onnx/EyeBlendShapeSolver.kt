@@ -35,7 +35,6 @@ internal object EyeBlendShapeSolver {
         solveEyeBlink(landmarks, faceIod, output)
         solveEyeWide(landmarks, output)
         solveEyeSquint(landmarks, faceIod, output)
-        solveEyeGaze(landmarks, faceIod, output)
     }
 
     private fun solveEyeBlink(landmarks: FloatArray, faceIod: Float, output: MutableMap<BlendShape, Float>) {
@@ -60,61 +59,6 @@ internal object EyeBlendShapeSolver {
         // Smaller distance = more squint
         output[BlendShape.EYE_SQUINT_RIGHT] = 1f - remap(rightLowerDist, SQUINT_LOW, SQUINT_HIGH)
         output[BlendShape.EYE_SQUINT_LEFT] = 1f - remap(leftLowerDist, SQUINT_LOW, SQUINT_HIGH)
-    }
-
-    private fun solveEyeGaze(landmarks: FloatArray, faceIod: Float, output: MutableMap<BlendShape, Float>) {
-        // Approximate gaze from eye center relative to eye bounding box
-        solveGazeForEye(
-            landmarks, faceIod,
-            outer = LM.RIGHT_EYE_OUTER, inner = LM.RIGHT_EYE_INNER,
-            upper = LM.RIGHT_EYE_UPPER_2, lower = LM.RIGHT_EYE_LOWER_2,
-            inShape = BlendShape.EYE_LOOK_IN_RIGHT, outShape = BlendShape.EYE_LOOK_OUT_RIGHT,
-            upShape = BlendShape.EYE_LOOK_UP_RIGHT, downShape = BlendShape.EYE_LOOK_DOWN_RIGHT,
-            isRightEye = true,
-            output = output,
-        )
-        solveGazeForEye(
-            landmarks, faceIod,
-            outer = LM.LEFT_EYE_OUTER, inner = LM.LEFT_EYE_INNER,
-            upper = LM.LEFT_EYE_UPPER_2, lower = LM.LEFT_EYE_LOWER_2,
-            inShape = BlendShape.EYE_LOOK_IN_LEFT, outShape = BlendShape.EYE_LOOK_OUT_LEFT,
-            upShape = BlendShape.EYE_LOOK_UP_LEFT, downShape = BlendShape.EYE_LOOK_DOWN_LEFT,
-            isRightEye = false,
-            output = output,
-        )
-    }
-
-    @Suppress("LongParameterList")
-    private fun solveGazeForEye(
-        landmarks: FloatArray,
-        faceIod: Float,
-        outer: Int,
-        inner: Int,
-        upper: Int,
-        lower: Int,
-        inShape: BlendShape,
-        outShape: BlendShape,
-        upShape: BlendShape,
-        downShape: BlendShape,
-        isRightEye: Boolean,
-        output: MutableMap<BlendShape, Float>,
-    ) {
-        // Eye center = average of the 4 cardinal points
-        val centerX = (x(landmarks, outer) + x(landmarks, inner)) / 2f
-        val centerY = (y(landmarks, upper) + y(landmarks, lower)) / 2f
-
-        // Midpoint of the eye opening
-        val midX = (x(landmarks, outer) + x(landmarks, inner)) / 2f
-        val eyeWidth = dist(landmarks, outer, inner)
-        if (eyeWidth <= 0f) return
-
-        // Horizontal gaze: offset from center normalized by eye width
-        // For 66-point landmarks without iris data, this provides limited gaze info
-        // We set minimal values since accurate gaze requires iris tracking
-        output[inShape] = 0f
-        output[outShape] = 0f
-        output[upShape] = 0f
-        output[downShape] = 0f
     }
 
     private fun rightEyeEar(landmarks: FloatArray): Float = eyeAspectRatio(

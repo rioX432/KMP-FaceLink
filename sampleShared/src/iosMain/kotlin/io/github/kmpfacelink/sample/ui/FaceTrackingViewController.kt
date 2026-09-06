@@ -3,6 +3,7 @@ package io.github.kmpfacelink.sample.ui
 import androidx.compose.ui.window.ComposeUIViewController
 import io.github.kmpfacelink.api.FaceTracker
 import io.github.kmpfacelink.model.FaceTrackingData
+import io.github.kmpfacelink.model.SmoothingConfig
 import kotlinx.coroutines.flow.StateFlow
 import platform.UIKit.UIViewController
 
@@ -24,6 +25,7 @@ import platform.UIKit.UIViewController
 public fun FaceTrackingViewController(
     faceTracker: FaceTracker,
     trackingDataState: StateFlow<FaceTrackingData?>,
+    initialSmoothingConfig: SmoothingConfig,
     onModeChange: (TrackingMode) -> Unit,
     onStartClick: () -> Unit,
     onStopClick: () -> Unit,
@@ -31,8 +33,10 @@ public fun FaceTrackingViewController(
     FaceTrackingScreen(
         faceTracker = faceTracker,
         trackingDataState = trackingDataState,
+        initialSmoothingConfig = initialSmoothingConfig,
         onModeChange = onModeChange,
         onStartClick = onStartClick,
         onStopClick = onStopClick,
+        showModeToggle = false,
     )
 }

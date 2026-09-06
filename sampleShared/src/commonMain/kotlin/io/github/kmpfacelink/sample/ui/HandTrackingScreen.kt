@@ -48,6 +48,7 @@ public fun HandTrackingScreen(
     onModeChange: (TrackingMode) -> Unit,
     onStartClick: () -> Unit,
     onStopClick: () -> Unit,
+    showModeToggle: Boolean = true,
 ) {
     val state by handTracker.state.collectAsState()
     val trackingData by trackingDataState.collectAsState()
@@ -82,6 +83,7 @@ public fun HandTrackingScreen(
         bottomContent = {
             HandBottomBar(trackingData)
         },
+        showModeToggle = showModeToggle,
     )
 }
 

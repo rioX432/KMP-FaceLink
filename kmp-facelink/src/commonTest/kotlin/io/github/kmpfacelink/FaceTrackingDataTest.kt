@@ -6,8 +6,7 @@ import io.github.kmpfacelink.model.FaceTrackingData
 import io.github.kmpfacelink.model.GazeData
 import io.github.kmpfacelink.model.HeadTransform
 import io.github.kmpfacelink.model.TrackedFace
-import io.github.kmpfacelink.model.emptyBlendShapeData
-import io.github.kmpfacelink.model.valueOf
+import io.github.kmpfacelink.model.allShapesAtRest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -22,7 +21,7 @@ class FaceTrackingDataTest {
         val data = FaceTrackingData.notTracking()
         assertFalse(data.isTracking)
         assertEquals(0L, data.timestampMs)
-        assertTrue(data.landmarks.isEmpty())
+        assertNull(data.landmarks, "no face was detected, so there are no landmarks to report")
         assertNull(data.gazeData)
         assertEquals(0, data.sourceImageWidth)
         assertEquals(0, data.sourceImageHeight)
@@ -38,15 +37,15 @@ class FaceTrackingDataTest {
     @Test
     fun notTrackingBlendShapesAreAllZero() {
         val data = FaceTrackingData.notTracking()
-        assertEquals(52, data.blendShapes.size)
-        for (shape in BlendShape.entries) {
-            assertEquals(0f, data.blendShapes.valueOf(shape))
-        }
+        assertTrue(
+            data.blendShapes.isEmpty(),
+            "no face was detected, so no shape has a value to report",
+        )
     }
 
     @Test
     fun constructorAssignsAllProperties() {
-        val blendShapes = emptyBlendShapeData().toMutableMap()
+        val blendShapes = allShapesAtRest().toMutableMap()
             .also { it[BlendShape.JAW_OPEN] = 0.5f }
         val headTransform = HeadTransform(pitch = 5f, yaw = -10f)
         val gazeData = GazeData(leftEyeYaw = 2f, leftEyePitch = -1f)
@@ -62,7 +61,7 @@ class FaceTrackingDataTest {
             isTracking = true,
         )
 
-        assertEquals(0.5f, data.blendShapes.valueOf(BlendShape.JAW_OPEN))
+        assertEquals(0.5f, data.blendShapes.getValue(BlendShape.JAW_OPEN))
         assertEquals(5f, data.headTransform.pitch)
         assertNotNull(data.gazeData)
         assertEquals(2f, checkNotNull(data.gazeData).leftEyeYaw)
@@ -75,7 +74,7 @@ class FaceTrackingDataTest {
     @Test
     fun isTrackingFalseByDefault() {
         val data = FaceTrackingData(
-            blendShapes = emptyBlendShapeData(),
+            blendShapes = allShapesAtRest(),
             headTransform = HeadTransform(),
             timestampMs = 0L,
             isTracking = false,
@@ -100,7 +99,7 @@ class FaceTrackingDataTest {
     @Test
     fun facesDefaultsToEmptyList() {
         val data = FaceTrackingData(
-            blendShapes = emptyBlendShapeData(),
+            blendShapes = allShapesAtRest(),
             headTransform = HeadTransform(),
             timestampMs = 0L,
             isTracking = false,
@@ -110,7 +109,7 @@ class FaceTrackingDataTest {
 
     @Test
     fun facesPropertyStoresTrackedFaces() {
-        val blendShapes = emptyBlendShapeData()
+        val blendShapes = allShapesAtRest()
         val headTransform = HeadTransform(pitch = 3f)
         val trackedFace = TrackedFace(
             faceIndex = 0,
@@ -135,19 +134,19 @@ class FaceTrackingDataTest {
     fun trackedFaceDefaultConfidenceIsOne() {
         val face = TrackedFace(
             faceIndex = 0,
-            blendShapes = emptyBlendShapeData(),
+            blendShapes = allShapesAtRest(),
             headTransform = HeadTransform(),
         )
         assertEquals(1.0f, face.confidence)
         assertNull(face.gazeData)
-        assertTrue(face.landmarks.isEmpty())
+        assertNull(face.landmarks, "an estimator that supplies no landmarks reports none")
     }
 
     @Test
     fun trackedFaceIndexIsPreserved() {
         val face = TrackedFace(
             faceIndex = 2,
-            blendShapes = emptyBlendShapeData(),
+            blendShapes = allShapesAtRest(),
             headTransform = HeadTransform(),
             confidence = 0.8f,
         )
@@ -156,10 +155,16 @@ class FaceTrackingDataTest {
     }
 
     @Test
-    fun faceLandmarkVisibilityAndPresenceDefaultToZero() {
-        val landmark = FaceLandmark(x = 0.5f, y = 0.5f, z = 0.1f)
-        assertEquals(0f, landmark.visibility)
-        assertEquals(0f, landmark.presence)
+    fun faceLandmarkQualitySignalsAreAbsentUntilAnEstimatorSuppliesThem() {
+        val landmark = FaceLandmark(x = 0.5f, y = 0.5f, relativeDepth = 0.1f)
+        assertNull(landmark.visibility, "an unsupplied quality signal is not a zero one")
+        assertNull(landmark.presence, "an unsupplied quality signal is not a zero one")
+    }
+
+    @Test
+    fun aTwoDimensionalEstimatorReportsNoDepthRatherThanZeroDepth() {
+        val landmark = FaceLandmark(x = 0.5f, y = 0.5f)
+        assertNull(landmark.relativeDepth)
     }
 
     @Test
@@ -167,7 +172,7 @@ class FaceTrackingDataTest {
         val landmark = FaceLandmark(
             x = 0.5f,
             y = 0.5f,
-            z = 0.1f,
+            relativeDepth = 0.1f,
             visibility = 0.95f,
             presence = 0.88f,
         )

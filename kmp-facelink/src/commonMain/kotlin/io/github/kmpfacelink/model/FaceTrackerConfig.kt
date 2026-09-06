@@ -104,6 +104,11 @@ public data class PowerConfig(
  *           Android (MediaPipe) and Wasm/Web: controls GPU vs CPU delegate selection.
  *           Has no effect on iOS (ARKit).
  *           Defaults to [InferenceDelegate.AUTO] (GPU with CPU fallback).
+ * @property runningMode How the model treats the frame sequence. Android only. The streaming
+ *           modes skip face detection while tracking holds, so this changes the output for the
+ *           same picture — see [InferenceRunningMode]. Defaults to
+ *           [InferenceRunningMode.LIVE_STREAM], which is what a live camera wants; the other two
+ *           exist so a recorded take can be re-run under a different mode and compared.
  * @property stopDrainDelayMs Milliseconds to wait after unbinding the camera before closing the
  *           MediaPipe landmarker, allowing any in-flight async detection result to be delivered.
  *           Android only.
@@ -114,6 +119,7 @@ public data class PerformanceConfig(
     val analysisWidth: Int = DEFAULT_ANALYSIS_WIDTH,
     val analysisHeight: Int = DEFAULT_ANALYSIS_HEIGHT,
     val inferenceDelegate: InferenceDelegate = InferenceDelegate.AUTO,
+    val runningMode: InferenceRunningMode = InferenceRunningMode.LIVE_STREAM,
     val stopDrainDelayMs: Long = DEFAULT_STOP_DRAIN_DELAY_MS,
     val releaseTimeoutMs: Long = DEFAULT_RELEASE_TIMEOUT_MS,
 ) {
@@ -137,6 +143,20 @@ public data class PerformanceConfig(
     }
 }
 
+/** Opt-in callback-side instrumentation for the local evaluation application. */
+public data class PerformanceInstrumentationConfig(
+    val enabled: Boolean = false,
+    val eventBufferCapacity: Int = DEFAULT_EVENT_BUFFER_CAPACITY,
+) {
+    init {
+        require(eventBufferCapacity > 0) { "eventBufferCapacity must be positive" }
+    }
+
+    public companion object {
+        public const val DEFAULT_EVENT_BUFFER_CAPACITY: Int = 512
+    }
+}
+
 /**
  * Configuration for [io.github.kmpfacelink.api.FaceTracker].
  *
@@ -152,8 +172,9 @@ public data class PerformanceConfig(
  *           [SmoothingConfig.Ema], or [SmoothingConfig.OneEuro].
  * @property enhancerConfig Blend shape enhancer configuration for improving low-accuracy
  *           MediaPipe parameters using geometric landmark calculations.
- *           Defaults to [BlendShapeEnhancerConfig.Default]. Use [BlendShapeEnhancerConfig.None]
- *           to disable. Android only — ARKit provides high-quality blend shapes natively,
+ *           This experimental path must be enabled explicitly after the application accepts
+ *           evidence for its exact runtime context. Defaults to [BlendShapeEnhancerConfig.None].
+ *           Android only — ARKit provides semantic blend shapes natively,
  *           so this setting has no effect on iOS.
  * @property calibrationConfig Per-session calibration configuration. See [CalibrationConfig].
  * @property cameraFacing Which camera to use
@@ -175,10 +196,12 @@ public data class PerformanceConfig(
  *           unselected shapes are excluded from the map, reducing serialization and network cost
  *           for applications that only need a subset of the 52 ARKit parameters.
  *           Defaults to all 52 blend shapes (no filtering).
+ * @property performanceInstrumentation Opt-in local measurement events. Disabled by default and
+ *           does not alter face values. iOS reports callback-side KMP boundaries only.
  */
 public data class FaceTrackerConfig(
     val smoothingConfig: SmoothingConfig = SmoothingConfig.Ema(),
-    val enhancerConfig: BlendShapeEnhancerConfig = BlendShapeEnhancerConfig.Default(),
+    val enhancerConfig: BlendShapeEnhancerConfig = BlendShapeEnhancerConfig.None,
     val calibrationConfig: CalibrationConfig = CalibrationConfig(),
     val cameraFacing: CameraFacing = CameraFacing.FRONT,
     val modelAssetPath: String = "models/face_landmarker_v2_with_blendshapes.task",
@@ -187,6 +210,8 @@ public data class FaceTrackerConfig(
     val performanceConfig: PerformanceConfig = PerformanceConfig(),
     val frameSkipConfig: FrameSkipConfig = FrameSkipConfig(),
     val activeBlendShapes: Set<BlendShape> = ALL_BLEND_SHAPES,
+    val performanceInstrumentation: PerformanceInstrumentationConfig =
+        PerformanceInstrumentationConfig(),
 ) {
     init {
         require(activeBlendShapes.isNotEmpty()) {
@@ -457,6 +482,6 @@ public enum class CameraFacing {
     /** Front-facing (selfie) camera. Supported on both Android and iOS. */
     FRONT,
 
-    /** Rear camera. Supported on Android only. iOS face tracking requires the TrueDepth front camera. */
+    /** Rear camera. Supported on Android only; the iOS ARKit implementation uses the front camera. */
     BACK,
 }

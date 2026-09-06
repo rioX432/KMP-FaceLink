@@ -2,13 +2,17 @@ package io.github.kmpfacelink.sample
 
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import io.github.kmpfacelink.sample.ui.HomeScreen
@@ -28,13 +32,31 @@ internal fun MainScreen(
     onStopClick: () -> Unit,
 ) {
     when (mode) {
-        TrackingMode.HOME -> HomeScreen(
-            onModeChange = { sharedMode -> onModeChange(sharedMode.toLocal()) },
-        )
+        TrackingMode.HOME -> Box(modifier = Modifier.fillMaxSize()) {
+            HomeScreen(
+                onModeChange = { sharedMode -> onModeChange(sharedMode.toLocal()) },
+            )
+            FloatingActionButton(
+                onClick = { onModeChange(TrackingMode.FACE_EVIDENCE) },
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .padding(20.dp),
+            ) {
+                Text("Evidence")
+            }
+        }
         TrackingMode.FACE -> FaceTrackingScreen(
             faceTracker = stateHolder.faceTracker,
             trackingDataState = stateHolder.faceTrackingDataState,
+            initialSmoothingConfig = stateHolder.faceSmoothingConfig,
             onModeChange = onModeChange,
+            onStartClick = onStartClick,
+            onStopClick = onStopClick,
+        )
+        TrackingMode.FACE_EVIDENCE -> FaceEvidenceScreen(
+            faceTracker = stateHolder.faceEvidenceTracker,
+            trackingDataState = stateHolder.faceEvidenceTrackingDataState,
+            onBackClick = { onModeChange(TrackingMode.HOME) },
             onStartClick = onStartClick,
             onStopClick = onStopClick,
         )
@@ -78,13 +100,15 @@ internal fun ModeToggle(
             .padding(horizontal = 8.dp),
         horizontalArrangement = Arrangement.spacedBy(4.dp),
     ) {
-        TrackingMode.entries.filter { it != TrackingMode.HOME }.forEach { mode ->
-            FilterChip(
-                selected = mode == currentMode,
-                onClick = { onModeChange(mode) },
-                label = { Text(mode.name.lowercase().replaceFirstChar { it.uppercase() }) },
-            )
-        }
+        TrackingMode.entries
+            .filter { it != TrackingMode.HOME && it != TrackingMode.FACE_EVIDENCE }
+            .forEach { mode ->
+                FilterChip(
+                    selected = mode == currentMode,
+                    onClick = { onModeChange(mode) },
+                    label = { Text(mode.name.lowercase().replaceFirstChar { it.uppercase() }) },
+                )
+            }
     }
 }
 

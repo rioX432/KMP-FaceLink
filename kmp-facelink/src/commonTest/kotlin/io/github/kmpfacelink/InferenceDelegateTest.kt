@@ -30,7 +30,7 @@ class InferenceDelegateTest {
     @Test
     fun faceTrackerConfigDefaultsToAuto() {
         val config = FaceTrackerConfig()
-        assertEquals(InferenceDelegate.AUTO, config.inferenceDelegate)
+        assertEquals(InferenceDelegate.AUTO, config.performanceConfig.inferenceDelegate)
     }
 
     @Test
@@ -38,7 +38,7 @@ class InferenceDelegateTest {
         val config = FaceTrackerConfig(
             performanceConfig = PerformanceConfig(inferenceDelegate = InferenceDelegate.GPU),
         )
-        assertEquals(InferenceDelegate.GPU, config.inferenceDelegate)
+        assertEquals(InferenceDelegate.GPU, config.performanceConfig.inferenceDelegate)
     }
 
     @Test
@@ -46,7 +46,7 @@ class InferenceDelegateTest {
         val config = FaceTrackerConfig(
             performanceConfig = PerformanceConfig(inferenceDelegate = InferenceDelegate.CPU),
         )
-        assertEquals(InferenceDelegate.CPU, config.inferenceDelegate)
+        assertEquals(InferenceDelegate.CPU, config.performanceConfig.inferenceDelegate)
     }
 
     @Test
@@ -54,7 +54,7 @@ class InferenceDelegateTest {
         val config = FaceTrackerConfig(
             performanceConfig = PerformanceConfig(inferenceDelegate = InferenceDelegate.NPU),
         )
-        assertEquals(InferenceDelegate.NPU, config.inferenceDelegate)
+        assertEquals(InferenceDelegate.NPU, config.performanceConfig.inferenceDelegate)
     }
 
     @Test
@@ -65,8 +65,8 @@ class InferenceDelegateTest {
         val copy = original.copy(
             detectionConfig = original.detectionConfig.copy(maxFaces = 2),
         )
-        assertEquals(InferenceDelegate.GPU, copy.inferenceDelegate)
-        assertEquals(2, copy.maxFaces)
+        assertEquals(InferenceDelegate.GPU, copy.performanceConfig.inferenceDelegate)
+        assertEquals(2, copy.detectionConfig.maxFaces)
     }
 
     @Test

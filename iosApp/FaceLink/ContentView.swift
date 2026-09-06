@@ -1,15 +1,11 @@
 import SwiftUI
 import ARKit
-import KMPFaceLink
 import SampleShared
 
 enum TrackingMode: String, CaseIterable {
     case home = "Home"
     case face = "Face"
     case hand = "Hand"
-    case holistic = "Holistic"
-    case actions = "Actions"
-    case voice = "Voice"
     case interact = "Interact"
 }
 
@@ -45,12 +41,6 @@ struct ContentView: View {
                 CMPFaceTrackingView()
             case .hand:
                 CMPHandTrackingView()
-            case .holistic:
-                HolisticTrackingView()
-            case .actions:
-                ActionsTrackingView()
-            case .voice:
-                VoiceTrackingView()
             case .interact:
                 CMPInteractDemoView()
             }
@@ -91,8 +81,8 @@ struct CMPHandTrackingView: View {
     var body: some View {
         ComposeViewControllerWrapper {
             HandTrackingViewControllerKt.HandTrackingViewController(
-                handTracker: viewModel.tracker,
-                trackingDataState: viewModel.dataFlow,
+                handTracker: viewModel.session.tracker,
+                trackingDataState: viewModel.session.trackingDataState,
                 onModeChange: { _ in
                     // Mode change is handled by SwiftUI's own mode picker above
                 },
@@ -110,36 +100,12 @@ struct CMPHandTrackingView: View {
 
 @MainActor
 class CMPHandTrackingViewModel: ObservableObject {
-    let tracker: HandTracker
-    let dataFlow: Kotlinx_coroutines_coreMutableStateFlow
-
-    private var observeTask: Task<Void, Never>?
-
-    init() {
-        let config = HandTrackerConfig(
-            smoothingConfig: SmoothingConfig.Ema(alpha: 0.4),
-            maxHands: 2,
-            enableGestureRecognition: true,
-            cameraFacing: .front
-        )
-        tracker = HandTrackerFactory_iosKt.createHandTracker(
-            platformContext: PlatformContext(),
-            config: config
-        )
-        dataFlow = FlowUtilsKt.createHandTrackingDataStateFlow()
-    }
+    let session = IosHandSampleSession()
 
     func startTracking() {
         Task {
             do {
-                observeTask = Task { [weak self] in
-                    guard let self else { return }
-                    for await data in self.tracker.trackingData {
-                        guard !Task.isCancelled else { break }
-                        self.dataFlow.value = data
-                    }
-                }
-                try await tracker.start()
+                try await session.start()
             } catch {
                 print("Failed to start hand tracking: \(error)")
             }
@@ -147,11 +113,9 @@ class CMPHandTrackingViewModel: ObservableObject {
     }
 
     func stopTracking() {
-        observeTask?.cancel()
-        observeTask = nil
         Task {
             do {
-                try await tracker.stop()
+                try await session.stop()
             } catch {
                 print("Failed to stop hand tracking: \(error)")
             }
@@ -159,8 +123,7 @@ class CMPHandTrackingViewModel: ObservableObject {
     }
 
     deinit {
-        observeTask?.cancel()
-        tracker.release()
+        session.release()
     }
 }
 
@@ -173,8 +136,9 @@ struct CMPFaceTrackingView: View {
     var body: some View {
         ComposeViewControllerWrapper {
             FaceTrackingViewControllerKt.FaceTrackingViewController(
-                faceTracker: viewModel.tracker,
-                trackingDataState: viewModel.dataFlow,
+                faceTracker: viewModel.session.tracker,
+                trackingDataState: viewModel.session.trackingDataState,
+                initialSmoothingConfig: viewModel.session.initialSmoothingConfig,
                 onModeChange: { _ in
                     // Mode change is handled by SwiftUI's own mode picker above
                 },
@@ -192,41 +156,12 @@ struct CMPFaceTrackingView: View {
 
 @MainActor
 class CMPFaceTrackingViewModel: ObservableObject {
-    let tracker: FaceTracker
-    let dataFlow: Kotlinx_coroutines_coreMutableStateFlow
-
-    private var observeTask: Task<Void, Never>?
-
-    init() {
-        let companion = BlendShapeEnhancerConfig.Companion.shared
-        let config = FaceTrackerConfig(
-            smoothingConfig: SmoothingConfig.Ema(alpha: 0.4),
-            enhancerConfig: BlendShapeEnhancerConfig.Default(
-                sensitivityOverrides: companion.defaultSensitivityMap,
-                deadZoneOverrides: companion.defaultDeadZoneMap,
-                geometricBlendWeight: 0.7
-            ),
-            calibrationConfig: CalibrationConfig(),
-            cameraFacing: .front
-        )
-        tracker = FaceTrackerFactory_iosKt.createFaceTracker(
-            platformContext: PlatformContext(),
-            config: config
-        )
-        dataFlow = FlowUtilsKt.createFaceTrackingDataStateFlow()
-    }
+    let session = IosFaceSampleSession()
 
     func startTracking() {
         Task {
             do {
-                observeTask = Task { [weak self] in
-                    guard let self else { return }
-                    for await data in self.tracker.trackingData {
-                        guard !Task.isCancelled else { break }
-                        self.dataFlow.value = data
-                    }
-                }
-                try await tracker.start()
+                try await session.start()
             } catch {
                 print("Failed to start tracking: \(error)")
             }
@@ -234,11 +169,9 @@ class CMPFaceTrackingViewModel: ObservableObject {
     }
 
     func stopTracking() {
-        observeTask?.cancel()
-        observeTask = nil
         Task {
             do {
-                try await tracker.stop()
+                try await session.stop()
             } catch {
                 print("Failed to stop face tracking: \(error)")
             }
@@ -246,8 +179,7 @@ class CMPFaceTrackingViewModel: ObservableObject {
     }
 
     deinit {
-        observeTask?.cancel()
-        tracker.release()
+        session.release()
     }
 }
 

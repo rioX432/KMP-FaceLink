@@ -10,6 +10,7 @@ import io.github.kmpfacelink.model.HandTrackingData
 import io.github.kmpfacelink.model.HolisticTrackerConfig
 import io.github.kmpfacelink.model.HolisticTrackingData
 import io.github.kmpfacelink.model.SmoothingConfig
+import io.github.kmpfacelink.model.TrackerOperationStatus
 import io.github.kmpfacelink.model.TrackingModality
 import io.github.kmpfacelink.util.FaceLinkLogger
 import io.github.kmpfacelink.util.PlatformLock
@@ -27,7 +28,7 @@ import kotlin.concurrent.atomics.ExperimentalAtomicApi
 
 /**
  * iOS implementation of [HolisticTracker] that composes:
- * - ARKit face tracker (TrueDepth sensor, independent)
+ * - ARKit face tracker (front-camera ARSession, independent)
  * - Vision hand + body trackers sharing one [SharedVisionCaptureSession] (RGB camera)
  *
  * ARKit and AVCaptureSession use different camera sensors, so they can run simultaneously.
@@ -222,21 +223,23 @@ internal class CompositeHolisticTracker(
         }
     }
 
-    override fun updateSmoothing(config: SmoothingConfig) {
-        pipelineLock.withLock {
+    override fun updateSmoothing(config: SmoothingConfig): TrackerOperationStatus {
+        return pipelineLock.withLock {
             check(released.load() == 0) { "Cannot update smoothing on a released tracker" }
-            faceTracker?.updateSmoothing(config)
-            handTracker?.updateSmoothing(config)
-            bodyTracker?.updateSmoothing(config)
+            val faceTrackerStatus = faceTracker?.updateSmoothing(config)
+            val handTrackerStatus = handTracker?.updateSmoothing(config)
+            val bodyTrackerStatus = bodyTracker?.updateSmoothing(config)
+            aggregate(faceTrackerStatus, handTrackerStatus, bodyTrackerStatus)
         }
     }
 
-    override fun resetSmoothing() {
-        pipelineLock.withLock {
+    override fun resetSmoothing(): TrackerOperationStatus {
+        return pipelineLock.withLock {
             check(released.load() == 0) { "Cannot reset smoothing on a released tracker" }
-            faceTracker?.resetSmoothing()
-            handTracker?.resetSmoothing()
-            bodyTracker?.resetSmoothing()
+            val faceTrackerStatus = faceTracker?.resetSmoothing()
+            val handTrackerStatus = handTracker?.resetSmoothing()
+            val bodyTrackerStatus = bodyTracker?.resetSmoothing()
+            aggregate(faceTrackerStatus, handTrackerStatus, bodyTrackerStatus)
         }
     }
 
@@ -247,7 +250,7 @@ internal class CompositeHolisticTracker(
             // ARKit face tracking only supports front camera
             if (config.enableFace && facing == CameraFacing.BACK) {
                 throw UnsupportedOperationException(
-                    "Cannot switch to back camera: ARKit face tracking requires TrueDepth front camera",
+                    "Cannot switch to back camera: this ARKit face tracker uses the front camera",
                 )
             }
             val wasTracking = _state.value == TrackingState.TRACKING
@@ -313,5 +316,22 @@ internal class CompositeHolisticTracker(
 
     companion object {
         private const val TAG = "CompositeHolisticTracker"
+    }
+
+    /**
+     * The status for an operation forwarded to the sub-trackers.
+     *
+     * A composite reports [TrackerOperationStatus.APPLIED] only when every tracker it actually
+     * holds applied the operation. Reporting success while one sub-tracker silently ignored the
+     * call would hide exactly the gap this status exists to surface. Absent sub-trackers are not
+     * counted: the composite was not built with them.
+     */
+    private fun aggregate(vararg statuses: TrackerOperationStatus?): TrackerOperationStatus {
+        val present = statuses.filterNotNull()
+        return if (present.isNotEmpty() && present.all { it == TrackerOperationStatus.APPLIED }) {
+            TrackerOperationStatus.APPLIED
+        } else {
+            TrackerOperationStatus.UNSUPPORTED
+        }
     }
 }

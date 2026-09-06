@@ -13,6 +13,7 @@ graph TD
         vmc["vmc<br/><small>OSC/UDP · VRM apps</small>"]
         ifm["ifm<br/><small>iFacialMocap proto</small>"]
         vts["vts<br/><small>VTube Studio</small>"]
+        stream["stream<br/><small>WebSocket streaming</small>"]
     end
 
     subgraph Mid-Level Modules
@@ -20,8 +21,9 @@ graph TD
         networking["networking<br/><small>UDP / time</small>"]
         llm["llm<br/><small>Cloud + On-device</small>"]
         avatar["avatar<br/><small>Live2D / VRM map</small>"]
-        actions["actions<br/><small>Gesture / emotion</small>"]
-        stream["stream<br/><small>WebSocket streaming</small>"]
+        actions["actions<br/><small>Gesture / emotion / stream events</small>"]
+        interact["interact<br/><small>Twitch / YouTube events</small>"]
+        compose["compose<br/><small>Lifecycle helpers</small>"]
     end
 
     subgraph core ["kmp-facelink (core)"]
@@ -33,18 +35,19 @@ graph TD
         ios["iOS: ARKit + Vision"]
     end
 
-    App --> pipeline & vmc & ifm & vts
-    pipeline --> voice
-    voice --> llm
-    llm --> actions
-    vmc --> networking
-    ifm --> networking
+    App --> pipeline & vmc & ifm & vts & stream & compose
+    pipeline --> voice & llm & actions & avatar & trackers
+    voice --> networking & trackers
+    llm --> networking & trackers
+    actions --> interact & trackers
+    interact --> trackers
+    vmc --> networking & trackers
+    ifm --> networking & trackers
     avatar --> trackers
     actions --> trackers
     stream --> trackers
-    networking --> trackers
     vts --> trackers
-    pipeline --> trackers
+    compose --> trackers
     trackers --> android & ios
 ```
 
@@ -111,7 +114,9 @@ val actionSystem = ActionSystem()
 // Register a gesture trigger
 actionSystem.register(
     ActionBinding(
-        trigger = GestureTrigger(gesture = HandGesture.VICTORY, holdTimeMs = 500),
+        actionId = "victory",
+        trigger = GestureTrigger(gesture = HandGesture.VICTORY),
+        holdTimeMs = 500,
         cooldownMs = 1000,
     )
 )
@@ -119,6 +124,7 @@ actionSystem.register(
 // Register an expression trigger
 actionSystem.register(
     ActionBinding(
+        actionId = "left-blink",
         trigger = ExpressionTrigger(
             blendShape = BlendShape.EYE_BLINK_LEFT,
             threshold = 0.8f,
@@ -128,7 +134,7 @@ actionSystem.register(
 
 // Collect action events
 actionSystem.events.collect { event ->
-    println("Action fired: ${event.bindingId}")
+    println("Action fired: ${event.actionId}")
 }
 
 // Feed tracking data
@@ -316,11 +322,13 @@ pipeline.output.collect { frame -> /* render avatar + play audio */ }
 val actions = ActionSystem()
 actions.register(
     ActionBinding(
-        trigger = GestureTrigger(HandGesture.THUMB_UP, holdTimeMs = 300),
+        actionId = "thumb-up",
+        trigger = GestureTrigger(HandGesture.THUMB_UP),
+        holdTimeMs = 300,
     )
 )
 actions.events.collect { event ->
-    when (event.bindingId) { /* handle actions */ }
+    when (event.actionId) { /* handle actions */ }
 }
 handTracker.trackingData.collect { actions.processHand(it) }
 ```
@@ -439,9 +447,10 @@ These indicate a permanent condition that retrying cannot fix:
 | Error | Platform | Typical `errorMessage` | Recovery |
 |-------|----------|----------------------|----------|
 | No camera hardware | Android | `"No front camera available"` | Cannot recover on this device |
-| No TrueDepth camera | iOS | `"ARFaceTracking is not supported on this device"` | Cannot recover; device lacks hardware |
+| ARKit face tracking unsupported | iOS | `"ARFaceTracking is not supported on this device"` | Cannot recover on this device/OS combination |
 | MediaPipe model load failure | Android | `"Failed to create FaceLandmarker..."` | Check model assets are bundled correctly; app bug |
-| Platform not supported | JVM/Wasm | `"Face tracking is not yet implemented on this platform"` | No native implementation available |
+| Platform not supported | Wasm holistic path | `"Face tracking is not yet implemented on this platform"` | No native implementation available |
+| Pinned ONNX resource missing/mismatched | JVM | `"Model resource not found..."` / `"Model digest mismatch..."` | Rebuild the artifact after the pinned model setup; do not retry camera startup |
 
 > **Distinguishing recoverable from fatal:** There is no programmatic flag. Use the `errorMessage` content and the device context to decide. A practical approach: allow a fixed number of retries with exponential backoff, then show the user an error UI with the message.
 

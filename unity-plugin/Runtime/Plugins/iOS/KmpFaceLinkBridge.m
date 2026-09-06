@@ -52,6 +52,12 @@ static int64_t _handTimestamp = 0;
 
 static void copyBlendShapesToBuffer(NSDictionary<KMPFaceLinkBlendShape *, NSNumber *> *blendShapeMap) {
     if (blendShapeMap == nil) return;
+    // The buffer is static and the map is sparse, so a channel present in one frame and absent in
+    // the next kept its old value and the expression froze there. That could not happen while the
+    // tracker padded every frame to 52; it became reachable the moment the tracker started
+    // reporting only what it measured. The canonical bridge in kmp-facelink-cbridge already
+    // cleared here — this copy of the same function did not.
+    memset(_blendShapes, 0, sizeof(_blendShapes));
     for (KMPFaceLinkBlendShape *shape in blendShapeMap) {
         NSNumber *value = blendShapeMap[shape];
         int32_t idx = shape.ordinal;

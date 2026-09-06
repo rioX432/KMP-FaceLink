@@ -41,10 +41,17 @@ int64_t KmpFaceLink_GetLatestFaceTimestamp(void);
 //
 // LEGACY ordering: indexed by KMP-FaceLink's BlendShape.ordinal (anatomical groups:
 // eyes, jaw, mouth, brow, cheek, nose, tongue). The channel ORDER is a stable binary
-// contract — kept unchanged. (Absent channels are 0-filled per frame; in practice the
-// tracker emits all 52 every frame, so this is not observable.) Prefer
+// contract — kept unchanged. Channels the tracker did not produce are 0-filled, and that
+// zero is indistinguishable from a measured rest value, and this ABI carries no way to
+// tell them apart. Trackers differ in what they produce — the desktop estimator emits 39
+// of 52, and MediaPipe has no tongueOut channel — so a consumer of this array reads
+// shapes it was never given. Closing that gap needs an added ABI entry point and is not
+// done. Prefer
 // KmpFaceLink_GetLatestBlendShapesLiveLink for new consumers.
 void KmpFaceLink_GetLatestBlendShapes(float* blendShapes, int count);
+
+
+
 
 // Copies up to `count` blend shape floats (max 52) into the caller's buffer, in
 // canonical ARKit Live Link Face wire order (== Apple ARFaceAnchor.BlendShapeLocation

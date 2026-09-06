@@ -1,3 +1,8 @@
+// sparse-contract-exempt: the Live Link Face wire array is 52 floats defined outside this SDK, so
+// lowering into it has to fill every slot. What keeps that from being silent is `presentMask`
+// below, which reports the same channels as a bit set. The flattening is unavoidable here; losing
+// the record of it is not, and callers that skip the mask are choosing to.
+
 package io.github.kmpfacelink.model
 
 /**
@@ -126,18 +131,41 @@ public object LiveLinkBlendShapes {
     /**
      * Lowers a [BlendShapeData] map into a 52-element [FloatArray] in Live Link order.
      *
-     * Channels absent from [blendShapes] (e.g. `tongueOut` on Android/MediaPipe, which
-     * does not produce a tongue channel) are **0-filled**. Values are copied verbatim
-     * (no clamping) in the range the tracker produced, nominally `0.0..1.0`.
+     * Channels absent from [blendShapes] (e.g. `tongueOut` on Android/MediaPipe, which does not
+     * produce a tongue channel) are **0-filled**, and that zero is indistinguishable from a
+     * value that was really there once it is in the array. Call [presentMask] alongside this to
+     * keep the two apart.
      *
      * @param blendShapes tracker output keyed by [BlendShape]; missing keys become `0f`.
      * @return a fresh `FloatArray(52)` in canonical Live Link order.
      */
     public fun lower(blendShapes: BlendShapeData): FloatArray {
+        val dense = blendShapes.densify()
         val out = FloatArray(COUNT)
         for (i in order.indices) {
-            out[i] = blendShapes[order[i]] ?: 0f
+            out[i] = dense.values[order[i].ordinal]
         }
         return out
+    }
+
+    /**
+     * Bit set of the channels [lower] filled from a value rather than from the substitute.
+     *
+     * The wire array is fixed at [COUNT] floats, so a channel the estimator never produced still
+     * occupies a slot and [lower] writes `0f` into it. That zero is indistinguishable from a
+     * value that was really there, once it leaves this process. This mask is what a reader consults
+     * to tell the two apart; bit `i` corresponds to channel `i` of [lower].
+     *
+     * The bit says the shape had a value in the map passed in. It does not say where that value
+     * came from - the estimator, a landmark-derived solver, or an interpolated frame all set it.
+     */
+    public fun presentMask(blendShapes: BlendShapeData): Long {
+        var mask = 0L
+        for (i in order.indices) {
+            if (order[i] in blendShapes) {
+                mask = mask or (1L shl i)
+            }
+        }
+        return mask
     }
 }

@@ -1,0 +1,116 @@
+name: FaceLinkCapture
+options:
+  bundleIdPrefix: io.github.kmpfacelink
+  deploymentTarget:
+    iOS: "17.0"
+  xcodeVersion: "16.0"
+
+settings:
+  base:
+    ENABLE_USER_SCRIPT_SANDBOXING: NO
+    FRAMEWORK_SEARCH_PATHS:
+      - $(inherited)
+      - $(SRCROOT)/../kmp-facelink-capture/build/xcode-frameworks/$(CONFIGURATION)/$(SDK_NAME)
+
+targets:
+  FaceLinkCapture:
+    type: application
+    platform: iOS
+    sources:
+      - path: FaceLinkCapture
+    settings:
+      base:
+        # The KMP module intentionally publishes iosSimulatorArm64, not an Intel simulator slice.
+        ARCHS: arm64
+        KMP_REVIEW_AUTHORIZATION_FILE: ""
+        SWIFT_VERSION: "5.9"
+        TARGETED_DEVICE_FAMILY: "1,2"
+    dependencies:
+      - framework: ../kmp-facelink-capture/build/xcode-frameworks/$(CONFIGURATION)/$(SDK_NAME)/KMPFaceLinkCapture.framework
+        embed: false
+    preBuildScripts:
+      - name: Validate Compose Info.plist Contract
+        script: |
+          value=$(/usr/libexec/PlistBuddy -c "Print :CADisableMinimumFrameDurationOnPhone" "$SRCROOT/FaceLinkCapture/Info.plist" 2>/dev/null || true)
+          if test "$value" != "true"; then
+            echo "error: Compose Multiplatform requires CADisableMinimumFrameDurationOnPhone=true"
+            exit 1
+          fi
+        basedOnDependencyAnalysis: false
+      - name: Build KMP Capture Framework
+        script: |
+          cd "$SRCROOT/.."
+          ./gradlew :kmp-facelink-capture:embedAndSignAppleFrameworkForXcode
+        basedOnDependencyAnalysis: false
+    postBuildScripts:
+      - name: Embed Source and Review Evidence
+        script: |
+          repo_root="$SRCROOT/.."
+          resources="$TARGET_BUILD_DIR/$UNLOCALIZED_RESOURCES_FOLDER_PATH"
+          provenance_resource="$resources/FaceLinkSourceProvenance.properties"
+          authorization_resource="$resources/FaceLinkReviewAuthorization.properties"
+          /bin/mkdir -p "$resources"
+
+          sha=$(/usr/bin/git -C "$repo_root" rev-parse HEAD 2>/dev/null || true)
+          branch=$(/usr/bin/git -C "$repo_root" rev-parse --abbrev-ref HEAD 2>/dev/null || true)
+          commit_time=$(/usr/bin/git -C "$repo_root" show -s --format=%cI HEAD 2>/dev/null || true)
+          if test -n "$(/usr/bin/git -C "$repo_root" status --porcelain 2>/dev/null)"; then dirty=true; else dirty=false; fi
+          if test -z "$sha" || test -z "$branch" || test -z "$commit_time"; then
+            echo "error: source provenance is incomplete"
+            exit 1
+          fi
+          if printf '%s\n%s\n%s' "$sha" "$branch" "$commit_time" | /usr/bin/grep -q $'\r'; then
+            echo "error: source provenance contains a carriage return"
+            exit 1
+          fi
+          /usr/bin/printf 'repo=KMP-FaceLink\nbranch=%s\ngitSha=%s\ncommitTimeIso=%s\ndirty=%s\n' \
+            "$branch" "$sha" "$commit_time" "$dirty" > "$provenance_resource"
+
+          authorization_file="$KMP_REVIEW_AUTHORIZATION_FILE"
+          if test -n "$authorization_file"; then
+            if ! test -f "$authorization_file"; then
+              echo "error: review authorization file not found: $authorization_file"
+              exit 1
+            fi
+            last_byte=$(/usr/bin/tail -c 1 "$authorization_file" | /usr/bin/od -An -t u1 | /usr/bin/tr -d '[:space:]')
+            if test "$last_byte" != "10"; then
+              echo "error: review authorization must end with one LF"
+              exit 1
+            fi
+            if ! /usr/bin/awk -F= '
+              NR == 1 && ($1 != "packetId" || NF != 2) { exit 1 }
+              NR == 2 && ($1 != "packetManifestSha256" || NF != 2) { exit 1 }
+              NR == 3 && ($1 != "sourceManifestSha256" || NF != 2) { exit 1 }
+              END { if (NR != 3) exit 1 }
+            ' "$authorization_file"; then
+              echo "error: review authorization must use the canonical three-line schema"
+              exit 1
+            fi
+            packet_id=$(/usr/bin/awk -F= 'NR == 1 {print $2}' "$authorization_file")
+            packet_sha=$(/usr/bin/awk -F= 'NR == 2 {print $2}' "$authorization_file")
+            source_sha=$(/usr/bin/awk -F= 'NR == 3 {print $2}' "$authorization_file")
+            if ! printf '%s' "$packet_id" | /usr/bin/grep -Eq '^[a-z0-9][a-z0-9._-]{0,127}$' || \
+              ! printf '%s' "$packet_sha" | /usr/bin/grep -Eq '^[0-9a-f]{64}$' || \
+              ! printf '%s' "$source_sha" | /usr/bin/grep -Eq '^[0-9a-f]{64}$'; then
+              echo "error: invalid review authorization file"
+              exit 1
+            fi
+            /bin/cp "$authorization_file" "$authorization_resource"
+          else
+            /bin/rm -f "$authorization_resource"
+          fi
+        basedOnDependencyAnalysis: false
+    info:
+      path: FaceLinkCapture/Info.plist
+      properties:
+        CADisableMinimumFrameDurationOnPhone: true
+        NSCameraUsageDescription: "Camera access is required for ARKit face tracking and raw frame capture."
+        UIRequiredDeviceCapabilities:
+          - arkit
+          - front-facing-camera
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
+        UISupportedInterfaceOrientations~ipad:
+          - UIInterfaceOrientationPortrait
+        UIRequiresFullScreen: true
+        UILaunchScreen: {}

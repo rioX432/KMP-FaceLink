@@ -1,7 +1,6 @@
 package io.github.kmpfacelink.avatar
 
 import io.github.kmpfacelink.model.BlendShape
-import io.github.kmpfacelink.model.valueOf
 
 /**
  * VRM emotion expression mappings derived from ARKit blend shapes.
@@ -34,10 +33,10 @@ internal object VrmEmotionMappings {
 
     private fun joy(): ParameterMapping = ParameterMapping.Custom { data ->
         val bs = data.blendShapes
-        val smileL = bs.valueOf(BlendShape.MOUTH_SMILE_LEFT)
-        val smileR = bs.valueOf(BlendShape.MOUTH_SMILE_RIGHT)
-        val cheekL = bs.valueOf(BlendShape.CHEEK_SQUINT_LEFT)
-        val cheekR = bs.valueOf(BlendShape.CHEEK_SQUINT_RIGHT)
+        val smileL = bs.valueOrRestPose(BlendShape.MOUTH_SMILE_LEFT)
+        val smileR = bs.valueOrRestPose(BlendShape.MOUTH_SMILE_RIGHT)
+        val cheekL = bs.valueOrRestPose(BlendShape.CHEEK_SQUINT_LEFT)
+        val cheekR = bs.valueOrRestPose(BlendShape.CHEEK_SQUINT_RIGHT)
         val smile = (smileL + smileR) * SMILE_WEIGHT
         val cheek = (cheekL + cheekR) * CHEEK_SQUINT_WEIGHT
         (smile + cheek).coerceIn(0f, 1f)
@@ -45,10 +44,10 @@ internal object VrmEmotionMappings {
 
     private fun angry(): ParameterMapping = ParameterMapping.Custom { data ->
         val bs = data.blendShapes
-        val browL = bs.valueOf(BlendShape.BROW_DOWN_LEFT)
-        val browR = bs.valueOf(BlendShape.BROW_DOWN_RIGHT)
-        val frownL = bs.valueOf(BlendShape.MOUTH_FROWN_LEFT)
-        val frownR = bs.valueOf(BlendShape.MOUTH_FROWN_RIGHT)
+        val browL = bs.valueOrRestPose(BlendShape.BROW_DOWN_LEFT)
+        val browR = bs.valueOrRestPose(BlendShape.BROW_DOWN_RIGHT)
+        val frownL = bs.valueOrRestPose(BlendShape.MOUTH_FROWN_LEFT)
+        val frownR = bs.valueOrRestPose(BlendShape.MOUTH_FROWN_RIGHT)
         val brow = (browL + browR) * BROW_DOWN_WEIGHT
         val frown = (frownL + frownR) * FROWN_WEIGHT
         (brow + frown).coerceIn(0f, 1f)
@@ -56,33 +55,33 @@ internal object VrmEmotionMappings {
 
     private fun sorrow(): ParameterMapping = ParameterMapping.Custom { data ->
         val bs = data.blendShapes
-        val browUp = bs.valueOf(BlendShape.BROW_INNER_UP) * BROW_INNER_UP_WEIGHT
-        val frownL = bs.valueOf(BlendShape.MOUTH_FROWN_LEFT)
-        val frownR = bs.valueOf(BlendShape.MOUTH_FROWN_RIGHT)
+        val browUp = bs.valueOrRestPose(BlendShape.BROW_INNER_UP) * BROW_INNER_UP_WEIGHT
+        val frownL = bs.valueOrRestPose(BlendShape.MOUTH_FROWN_LEFT)
+        val frownR = bs.valueOrRestPose(BlendShape.MOUTH_FROWN_RIGHT)
         val frown = (frownL + frownR) * FROWN_WEIGHT
         (browUp + frown).coerceIn(0f, 1f)
     }
 
     private fun surprise(): ParameterMapping = ParameterMapping.Custom { data ->
         val bs = data.blendShapes
-        val wideL = bs.valueOf(BlendShape.EYE_WIDE_LEFT)
-        val wideR = bs.valueOf(BlendShape.EYE_WIDE_RIGHT)
-        val jawOpen = bs.valueOf(BlendShape.JAW_OPEN) * JAW_OPEN_SURPRISE_WEIGHT
-        val browUp = bs.valueOf(BlendShape.BROW_INNER_UP) * BROW_INNER_UP_WEIGHT
+        val wideL = bs.valueOrRestPose(BlendShape.EYE_WIDE_LEFT)
+        val wideR = bs.valueOrRestPose(BlendShape.EYE_WIDE_RIGHT)
+        val jawOpen = bs.valueOrRestPose(BlendShape.JAW_OPEN) * JAW_OPEN_SURPRISE_WEIGHT
+        val browUp = bs.valueOrRestPose(BlendShape.BROW_INNER_UP) * BROW_INNER_UP_WEIGHT
         val wide = (wideL + wideR) * WIDE_EYE_WEIGHT
         (wide + jawOpen + browUp).coerceIn(0f, 1f)
     }
 
     private fun neutral(): ParameterMapping = ParameterMapping.Custom { data ->
         val bs = data.blendShapes
-        val smileL = bs.valueOf(BlendShape.MOUTH_SMILE_LEFT)
-        val smileR = bs.valueOf(BlendShape.MOUTH_SMILE_RIGHT)
+        val smileL = bs.valueOrRestPose(BlendShape.MOUTH_SMILE_LEFT)
+        val smileR = bs.valueOrRestPose(BlendShape.MOUTH_SMILE_RIGHT)
         val smileAvg = (smileL + smileR) * HALF
-        val frownL = bs.valueOf(BlendShape.MOUTH_FROWN_LEFT)
-        val frownR = bs.valueOf(BlendShape.MOUTH_FROWN_RIGHT)
+        val frownL = bs.valueOrRestPose(BlendShape.MOUTH_FROWN_LEFT)
+        val frownR = bs.valueOrRestPose(BlendShape.MOUTH_FROWN_RIGHT)
         val frownAvg = (frownL + frownR) * HALF
-        val browL = bs.valueOf(BlendShape.BROW_DOWN_LEFT)
-        val browR = bs.valueOf(BlendShape.BROW_DOWN_RIGHT)
+        val browL = bs.valueOrRestPose(BlendShape.BROW_DOWN_LEFT)
+        val browR = bs.valueOrRestPose(BlendShape.BROW_DOWN_RIGHT)
         val browDown = (browL + browR) * HALF
         val expressionIntensity = maxOf(smileAvg, frownAvg, browDown)
         (1f - expressionIntensity).coerceIn(0f, 1f)
@@ -90,11 +89,11 @@ internal object VrmEmotionMappings {
 
     private fun relaxed(): ParameterMapping = ParameterMapping.Custom { data ->
         val bs = data.blendShapes
-        val smileL = bs.valueOf(BlendShape.MOUTH_SMILE_LEFT)
-        val smileR = bs.valueOf(BlendShape.MOUTH_SMILE_RIGHT)
+        val smileL = bs.valueOrRestPose(BlendShape.MOUTH_SMILE_LEFT)
+        val smileR = bs.valueOrRestPose(BlendShape.MOUTH_SMILE_RIGHT)
         val smile = (smileL + smileR) * HALF
-        val browL = bs.valueOf(BlendShape.BROW_DOWN_LEFT)
-        val browR = bs.valueOf(BlendShape.BROW_DOWN_RIGHT)
+        val browL = bs.valueOrRestPose(BlendShape.BROW_DOWN_LEFT)
+        val browR = bs.valueOrRestPose(BlendShape.BROW_DOWN_RIGHT)
         val browDown = (browL + browR) * HALF
         (smile * (1f - browDown)).coerceIn(0f, 1f)
     }

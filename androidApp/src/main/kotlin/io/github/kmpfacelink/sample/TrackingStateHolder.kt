@@ -34,10 +34,26 @@ internal class TrackingStateHolder(
     platformContext: PlatformContext,
     private val scope: CoroutineScope,
 ) {
+    val faceSmoothingConfig: SmoothingConfig = SmoothingConfig.OneEuro()
+
     val faceTracker: FaceTracker by lazy {
         createFaceTracker(
             platformContext = platformContext,
-            config = FaceTrackerConfig(smoothingConfig = SmoothingConfig.OneEuro()),
+            config = FaceTrackerConfig(smoothingConfig = faceSmoothingConfig),
+        )
+    }
+
+    /**
+     * A deliberately unprocessed lane for conference/demo evidence.
+     *
+     * Keeping this tracker separate prevents the normal sample's smoothing choice from being
+     * changed just to make a recording. The default enhancer and calibration configs are both
+     * disabled, so the evidence screen shows the estimator output after name mapping only.
+     */
+    val faceEvidenceTracker: FaceTracker by lazy {
+        createFaceTracker(
+            platformContext = platformContext,
+            config = FaceTrackerConfig(smoothingConfig = SmoothingConfig.None),
         )
     }
 
@@ -59,12 +75,14 @@ internal class TrackingStateHolder(
     }
 
     val faceTrackingDataState = MutableStateFlow<FaceTrackingData?>(null)
+    val faceEvidenceTrackingDataState = MutableStateFlow<FaceTrackingData?>(null)
     val handTrackingDataState = MutableStateFlow<HandTrackingData?>(null)
     val holisticTrackingDataState = MutableStateFlow<HolisticTrackingData?>(null)
     val trackingModeState = MutableStateFlow(TrackingMode.HOME)
     val errorState = MutableStateFlow<String?>(null)
 
     private var faceCollectorJob: Job? = null
+    private var faceEvidenceCollectorJob: Job? = null
     private var handCollectorJob: Job? = null
     private var holisticCollectorJob: Job? = null
 
@@ -111,6 +129,7 @@ internal class TrackingStateHolder(
 
     fun release() {
         faceTracker.release()
+        faceEvidenceTracker.release()
         handTracker.release()
         holisticTracker.release()
     }
@@ -120,6 +139,7 @@ internal class TrackingStateHolder(
         TrackingMode.FACE, TrackingMode.ACTIONS,
         TrackingMode.VOICE,
         -> faceTracker.state.value == TrackingState.TRACKING
+        TrackingMode.FACE_EVIDENCE -> faceEvidenceTracker.state.value == TrackingState.TRACKING
         TrackingMode.HAND -> handTracker.state.value == TrackingState.TRACKING
         TrackingMode.HOLISTIC -> holisticTracker.state.value == TrackingState.TRACKING
     }
@@ -130,6 +150,7 @@ internal class TrackingStateHolder(
             when (mode) {
                 TrackingMode.HOME, TrackingMode.INTERACT -> { /* no tracker to stop */ }
                 TrackingMode.FACE -> stopFaceTracker()
+                TrackingMode.FACE_EVIDENCE -> stopFaceEvidenceTracker()
                 TrackingMode.HAND -> stopHandTracker()
                 TrackingMode.HOLISTIC -> stopHolisticTracker()
                 TrackingMode.ACTIONS, TrackingMode.VOICE -> stopFaceTracker()
@@ -147,6 +168,11 @@ internal class TrackingStateHolder(
         faceTracker.stop()
     }
 
+    private suspend fun stopFaceEvidenceTracker() {
+        faceEvidenceCollectorJob?.cancel()
+        faceEvidenceTracker.stop()
+    }
+
     private suspend fun stopHandTracker() {
         handCollectorJob?.cancel()
         handTracker.stop()
@@ -161,6 +187,7 @@ internal class TrackingStateHolder(
         when (mode) {
             TrackingMode.HOME, TrackingMode.INTERACT -> { /* no tracking needed */ }
             TrackingMode.FACE -> startFaceTracking()
+            TrackingMode.FACE_EVIDENCE -> startFaceEvidenceTracking()
             TrackingMode.HAND -> startHandTracking()
             TrackingMode.HOLISTIC -> startHolisticTracking()
             TrackingMode.ACTIONS, TrackingMode.VOICE -> startFaceTracking()
@@ -170,6 +197,14 @@ internal class TrackingStateHolder(
     private suspend fun startFaceTracking() {
         faceCollectorJob = launchTrackerCollection(faceTracker.trackingData, faceTrackingDataState)
         faceTracker.start()
+    }
+
+    private suspend fun startFaceEvidenceTracking() {
+        faceEvidenceCollectorJob = launchTrackerCollection(
+            faceEvidenceTracker.trackingData,
+            faceEvidenceTrackingDataState,
+        )
+        faceEvidenceTracker.start()
     }
 
     private suspend fun startHandTracking() {

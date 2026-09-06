@@ -1,8 +1,12 @@
 package io.github.kmpfacelink
 
+import io.github.kmpfacelink.model.CapabilityAssessment
+import io.github.kmpfacelink.model.CapabilitySource
+import io.github.kmpfacelink.model.CapabilityState
 import io.github.kmpfacelink.model.DetectionConfig
 import io.github.kmpfacelink.model.DeviceCapabilityProfile
 import io.github.kmpfacelink.model.DeviceTier
+import io.github.kmpfacelink.model.DeviceTierRecommendation
 import io.github.kmpfacelink.model.FaceTrackerConfig
 import io.github.kmpfacelink.model.NpuVendor
 import io.github.kmpfacelink.model.PowerMode
@@ -43,9 +47,9 @@ class QualityPresetTest {
     @Test
     fun applyToOverridesPowerModeAndResolution() {
         val config = QualityPreset.Medium.applyTo()
-        assertEquals(PowerMode.BALANCED, config.powerMode)
-        assertEquals(MEDIUM_WIDTH, config.analysisWidth)
-        assertEquals(MEDIUM_HEIGHT, config.analysisHeight)
+        assertEquals(PowerMode.BALANCED, config.powerConfig.powerMode)
+        assertEquals(MEDIUM_WIDTH, config.performanceConfig.analysisWidth)
+        assertEquals(MEDIUM_HEIGHT, config.performanceConfig.analysisHeight)
     }
 
     @Test
@@ -58,61 +62,83 @@ class QualityPresetTest {
             ),
         )
         val result = QualityPreset.Low.applyTo(base)
-        assertEquals(MAX_FACES_TEST, result.maxFaces)
-        assertEquals(baseFloat, result.minDetectionConfidence)
-        assertEquals(LOW_WIDTH, result.analysisWidth)
-        assertEquals(PowerMode.LOW_POWER, result.powerMode)
+        assertEquals(MAX_FACES_TEST, result.detectionConfig.maxFaces)
+        assertEquals(baseFloat, result.detectionConfig.minDetectionConfidence)
+        assertEquals(LOW_WIDTH, result.performanceConfig.analysisWidth)
+        assertEquals(PowerMode.LOW_POWER, result.powerConfig.powerMode)
     }
 
     // ── autoSelect rules ──
 
     @Test
     fun autoSelectReturnsHighWhenNpuPresent() {
-        val profile = DeviceCapabilityProfile(
-            hasGpuAcceleration = true,
-            hasNpu = true,
-            tier = DeviceTier.HIGH,
-            npuVendor = NpuVendor.QUALCOMM,
+        val profile = probedProfile(
+            CapabilityState.AVAILABLE,
+            CapabilityState.AVAILABLE,
+            DeviceTier.HIGH,
+            NpuVendor.QUALCOMM,
         )
         assertEquals(QualityPreset.High, QualityPreset.autoSelect(profile))
     }
 
     @Test
     fun autoSelectReturnsHighWhenTierIsHighEvenWithoutNpu() {
-        val profile = DeviceCapabilityProfile(
-            hasGpuAcceleration = true,
-            hasNpu = false,
-            tier = DeviceTier.HIGH,
+        val profile = probedProfile(
+            CapabilityState.AVAILABLE,
+            CapabilityState.UNAVAILABLE,
+            DeviceTier.HIGH,
         )
         assertEquals(QualityPreset.High, QualityPreset.autoSelect(profile))
     }
 
     @Test
     fun autoSelectReturnsMediumWhenGpuAvailableButNoNpu() {
-        val profile = DeviceCapabilityProfile(
-            hasGpuAcceleration = true,
-            hasNpu = false,
-            tier = DeviceTier.MID,
+        val profile = probedProfile(
+            CapabilityState.AVAILABLE,
+            CapabilityState.UNAVAILABLE,
+            DeviceTier.MID,
         )
         assertEquals(QualityPreset.Medium, QualityPreset.autoSelect(profile))
     }
 
     @Test
     fun autoSelectReturnsMediumWhenTierIsMidWithoutGpu() {
-        val profile = DeviceCapabilityProfile(
-            hasGpuAcceleration = false,
-            hasNpu = false,
-            tier = DeviceTier.MID,
+        val profile = probedProfile(
+            CapabilityState.UNAVAILABLE,
+            CapabilityState.UNAVAILABLE,
+            DeviceTier.MID,
         )
         assertEquals(QualityPreset.Medium, QualityPreset.autoSelect(profile))
     }
 
     @Test
+    fun autoSelectDoesNotPromoteOnAnUnprobedPath() {
+        // UNKNOWN means nothing looked. Treating it as available would upgrade a device on the
+        // strength of a check that never ran.
+        val unknown = CapabilityAssessment(
+            CapabilityState.UNKNOWN,
+            CapabilitySource.ASSUMED,
+            "test",
+        )
+        val unprobed = DeviceCapabilityProfile(
+            gpuInference = unknown,
+            npuInference = unknown,
+            npuVendor = null,
+            qualityRecommendation = DeviceTierRecommendation(
+                DeviceTier.LOW,
+                CapabilitySource.ASSUMED,
+                "test",
+            ),
+        )
+        assertEquals(QualityPreset.Low, QualityPreset.autoSelect(unprobed))
+    }
+
+    @Test
     fun autoSelectReturnsLowForCpuOnlyLowTierDevice() {
-        val profile = DeviceCapabilityProfile(
-            hasGpuAcceleration = false,
-            hasNpu = false,
-            tier = DeviceTier.LOW,
+        val profile = probedProfile(
+            CapabilityState.UNAVAILABLE,
+            CapabilityState.UNAVAILABLE,
+            DeviceTier.LOW,
         )
         assertEquals(QualityPreset.Low, QualityPreset.autoSelect(profile))
     }
@@ -121,10 +147,10 @@ class QualityPresetTest {
     fun autoSelectReturnsMediumWhenGpuAvailableButTierIsLow() {
         // GPU rule fires before the LOW-tier fallthrough — locks the
         // ordering of the autoSelect cases.
-        val profile = DeviceCapabilityProfile(
-            hasGpuAcceleration = true,
-            hasNpu = false,
-            tier = DeviceTier.LOW,
+        val profile = probedProfile(
+            CapabilityState.AVAILABLE,
+            CapabilityState.UNAVAILABLE,
+            DeviceTier.LOW,
         )
         assertEquals(QualityPreset.Medium, QualityPreset.autoSelect(profile))
     }
@@ -133,11 +159,11 @@ class QualityPresetTest {
     fun autoSelectNpuShortCircuitsEvenOnLowTier() {
         // An NPU-equipped device that somehow reported LOW tier should still
         // be treated as High, because the NPU is the strongest signal we have.
-        val profile = DeviceCapabilityProfile(
-            hasGpuAcceleration = false,
-            hasNpu = true,
-            tier = DeviceTier.LOW,
-            npuVendor = NpuVendor.MEDIATEK,
+        val profile = probedProfile(
+            CapabilityState.UNAVAILABLE,
+            CapabilityState.AVAILABLE,
+            DeviceTier.LOW,
+            NpuVendor.MEDIATEK,
         )
         assertEquals(QualityPreset.High, QualityPreset.autoSelect(profile))
     }
@@ -157,4 +183,29 @@ class QualityPresetTest {
 
         private const val MAX_FACES_TEST = 2
     }
+
+    /** Builds a profile as a probing target would report it. */
+    private fun probedProfile(
+        gpu: CapabilityState,
+        npu: CapabilityState,
+        tier: DeviceTier,
+        vendor: NpuVendor? = null,
+    ) = DeviceCapabilityProfile(
+        gpuInference = CapabilityAssessment(
+            gpu,
+            CapabilitySource.PROBED,
+            "test",
+        ),
+        npuInference = CapabilityAssessment(
+            npu,
+            CapabilitySource.PROBED,
+            "test",
+        ),
+        npuVendor = vendor,
+        qualityRecommendation = DeviceTierRecommendation(
+            tier,
+            CapabilitySource.DERIVED,
+            "test",
+        ),
+    )
 }

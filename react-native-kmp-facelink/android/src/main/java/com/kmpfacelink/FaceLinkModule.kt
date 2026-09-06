@@ -12,6 +12,7 @@ import io.github.kmpfacelink.api.createHandTracker
 import io.github.kmpfacelink.model.BlendShape
 import io.github.kmpfacelink.model.FaceTrackingData
 import io.github.kmpfacelink.model.HandTrackingData
+import io.github.kmpfacelink.model.densify
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -163,12 +164,11 @@ class FaceLinkModule(
             val buffer = ByteBuffer.allocate(FACE_BUFFER_SIZE)
                 .order(ByteOrder.LITTLE_ENDIAN)
 
-            // Write 52 blend shapes in ordinal order
-            val blendShapes = FloatArray(BLEND_SHAPE_COUNT)
-            for (entry in data.blendShapes) {
-                blendShapes[entry.key.ordinal] = entry.value
-            }
-            for (value in blendShapes) {
+            // Write 52 blend shapes in ordinal order. Shapes the estimator did not produce occupy
+            // a slot and read as a measured zero, and nothing on this bridge reports which ones
+            // were real: the buffer length is part of the JS-side contract, so adding a presence
+            // mask is a protocol change. The Kotlin and C bridges expose a mask; this one does not.
+            for (value in data.blendShapes.densify().values) {
                 buffer.putFloat(value)
             }
 

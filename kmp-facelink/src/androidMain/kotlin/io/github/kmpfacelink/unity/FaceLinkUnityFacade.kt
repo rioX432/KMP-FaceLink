@@ -7,10 +7,12 @@ import io.github.kmpfacelink.api.PlatformContext
 import io.github.kmpfacelink.api.createFaceTracker
 import io.github.kmpfacelink.api.createHandTracker
 import io.github.kmpfacelink.model.BlendShape
+import io.github.kmpfacelink.model.BlendShapeWireSchema
 import io.github.kmpfacelink.model.FaceTrackingData
 import io.github.kmpfacelink.model.HandTrackingData
 import io.github.kmpfacelink.model.Handedness
 import io.github.kmpfacelink.model.LiveLinkBlendShapes
+import io.github.kmpfacelink.model.densify
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -119,6 +121,33 @@ public class FaceLinkUnityFacade(
     }
 
     /**
+     * Bit set of the channels [getLatestBlendShapes] filled from a value, by ordinal.
+     *
+     * The array has a slot for every shape whether or not the estimator produced it, so a slot for
+     * an absent shape holds `0f` and reads exactly like a value that was really there. Estimators
+     * differ in what they produce, so a consumer that skips this mask will act on shapes it never
+     * received. The bit does not say where the value came from. Returns 0 when no face data is
+     * available.
+     */
+    public fun getLatestBlendShapeMask(): Long {
+        val data = latestFaceData.get() ?: return 0L
+        return BlendShapeWireSchema.presentMaskByOrdinal(data.blendShapes)
+    }
+
+    /**
+     * The same bit set for [getLatestBlendShapesLiveLink].
+     *
+     * The two orderings differ, so the masks are not interchangeable.
+     */
+    public fun getLatestBlendShapeMaskLiveLink(): Long {
+        val data = latestFaceData.get() ?: return 0L
+        return LiveLinkBlendShapes.presentMask(data.blendShapes)
+    }
+
+    /** FNV-1a over the blend shape names in ordinal order; see [BlendShapeWireSchema]. */
+    public fun getBlendShapeSchemaFingerprint(): Int = BlendShapeWireSchema.FINGERPRINT
+
+    /**
      * Returns head transform as 6 floats: [pitch, yaw, roll, posX, posY, posZ].
      * Rotations are Euler degrees; positions are meters in a right-handed camera-space
      * frame. See kmp-facelink-cbridge/README.md for the full contract.
@@ -162,19 +191,15 @@ public class FaceLinkUnityFacade(
     }
 
     private companion object {
-        private const val BLEND_SHAPE_COUNT = 52
         private const val HAND_LANDMARK_COUNT = 21
         private const val COORDINATES_PER_LANDMARK = 3
 
+        // Absent shapes arrive here as `substitute`, and `densify` keeps the record of which
+        // ones those were. This boundary drops that record because the array is all it can send;
+        // carrying it across would need a presence field in the Unity-side contract.
         private fun blendShapesToArray(
             blendShapes: Map<BlendShape, Float>,
-        ): FloatArray {
-            val result = FloatArray(BLEND_SHAPE_COUNT)
-            for (entry in blendShapes) {
-                result[entry.key.ordinal] = entry.value
-            }
-            return result
-        }
+        ): FloatArray = blendShapes.densify().values
 
         private fun handLandmarksToArray(
             landmarks: List<io.github.kmpfacelink.model.HandLandmarkPoint>,

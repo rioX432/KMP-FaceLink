@@ -1,7 +1,5 @@
 import Foundation
 import UIKit
-import ARKit
-import CoreVideo
 
 /// Exports a capture session's data to disk in the calibration dataset format.
 ///
@@ -20,7 +18,6 @@ enum SessionExporter {
 
     // MARK: - Constants
 
-    private static let jpegQuality: CGFloat = 0.92
     private static let framePadding = 6 // "000000" format
 
     // MARK: - Public API
@@ -29,7 +26,7 @@ enum SessionExporter {
     ///
     /// - Parameters:
     ///   - frames: Array of captured frames from `CaptureSession`.
-    ///   - subjectName: Name or identifier for the subject.
+    ///   - subjectName: Non-identifying participant pseudonym. Never pass a real name.
     ///   - notes: Free-form notes (lighting conditions, etc.).
     ///   - baseDirectory: Parent directory for the session folder.
     /// - Returns: URL of the created session directory.
@@ -80,15 +77,16 @@ enum SessionExporter {
         notes: String,
         frameCount: Int
     ) throws {
-        let device = UIDevice.current
         let metadata: [String: Any] = [
             "device_model": deviceModelIdentifier(),
-            "device_name": device.name,
-            "ios_version": device.systemVersion,
+            "ios_version": UIDevice.current.systemVersion,
             "subject_name": subjectName,
             "notes": notes,
             "frame_count": frameCount,
             "capture_date": ISO8601DateFormatter().string(from: Date()),
+            "capture_orientation": "portrait",
+            "rgb_orientation_normalization": "CIImage.oriented(.right)",
+            "camera_source": "ARSession.currentFrame.capturedImage",
             "app_version": "1.0.0"
         ]
 
@@ -160,40 +158,10 @@ enum SessionExporter {
         frames: [CapturedFrame],
         to framesDir: URL
     ) throws {
-        let ciContext = CIContext()
-
         for (index, frame) in frames.enumerated() {
             let filename = String(format: "%0\(framePadding)d.jpg", index)
             let url = framesDir.appendingPathComponent(filename)
-
-            guard let jpegData = convertToJPEG(
-                pixelBuffer: frame.pixelBuffer,
-                context: ciContext
-            ) else {
-                continue
-            }
-            try jpegData.write(to: url)
+            try frame.jpegData.write(to: url)
         }
-    }
-
-    /// Convert a CVPixelBuffer to JPEG data.
-    private static func convertToJPEG(
-        pixelBuffer: CVPixelBuffer,
-        context: CIContext
-    ) -> Data? {
-        let ciImage = CIImage(cvPixelBuffer: pixelBuffer)
-
-        // Rotate to portrait orientation (front camera is landscape-left)
-        let oriented = ciImage.oriented(.right)
-
-        guard let colorSpace = CGColorSpace(name: CGColorSpace.sRGB) else {
-            return nil
-        }
-
-        return context.jpegRepresentation(
-            of: oriented,
-            colorSpace: colorSpace,
-            options: [kCGImageDestinationLossyCompressionQuality: jpegQuality]
-        )
     }
 }

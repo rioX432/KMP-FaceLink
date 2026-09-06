@@ -2,7 +2,6 @@ package io.github.kmpfacelink.actions
 
 import io.github.kmpfacelink.model.FaceTrackingData
 import io.github.kmpfacelink.model.HandTrackingData
-import io.github.kmpfacelink.model.valueOf
 
 /**
  * Stateless evaluator that checks whether a trigger condition is met
@@ -38,7 +37,9 @@ internal object TriggerEvaluator {
         faceData: FaceTrackingData?,
     ): Boolean {
         if (faceData == null || !faceData.isTracking) return false
-        val value = faceData.blendShapes.valueOf(trigger.blendShape)
+        // A shape the estimator did not produce cannot satisfy a threshold. Reading it as zero
+        // would leave every BELOW trigger permanently fired on estimators that never emit it.
+        val value = faceData.blendShapes[trigger.blendShape] ?: return false
         return when (trigger.direction) {
             ThresholdDirection.ABOVE -> value >= trigger.threshold
             ThresholdDirection.BELOW -> value <= trigger.threshold

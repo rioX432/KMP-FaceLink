@@ -19,12 +19,17 @@ internal object LandmarkGeometry {
     }
 
     /**
-     * Euclidean distance between two landmarks in 3D (x, y, z).
+     * Euclidean distance between two landmarks in 3D, or null when either lacks depth.
+     *
+     * Falling back to the 2D distance would answer a different question under the same name, so a
+     * caller that needs depth is told it is missing rather than handed a planar result.
      */
-    fun distance3D(a: FaceLandmark, b: FaceLandmark): Float {
+    fun distance3D(a: FaceLandmark, b: FaceLandmark): Float? {
+        val az = a.relativeDepth ?: return null
+        val bz = b.relativeDepth ?: return null
         val dx = a.x - b.x
         val dy = a.y - b.y
-        val dz = a.z - b.z
+        val dz = az - bz
         return sqrt(dx * dx + dy * dy + dz * dz)
     }
 

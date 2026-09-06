@@ -20,6 +20,7 @@ import androidx.compose.ui.Modifier
  * @param overlay Slot for the landmark overlay drawn on top of the camera.
  * @param topContent Slot for controls above the mode toggle (e.g. top bar, error banner).
  * @param bottomContent Slot for content anchored to the bottom (e.g. blend shape bars).
+ * @param showModeToggle Whether this Compose shell owns mode navigation.
  * @param modifier Modifier applied to the root [Box].
  */
 @Composable
@@ -30,6 +31,7 @@ internal fun TrackingScreenScaffold(
     overlay: @Composable () -> Unit,
     topContent: @Composable ColumnScope.() -> Unit,
     bottomContent: @Composable ColumnScope.() -> Unit,
+    showModeToggle: Boolean = true,
     modifier: Modifier = Modifier,
 ) {
     Box(modifier = modifier.fillMaxSize()) {
@@ -39,7 +41,9 @@ internal fun TrackingScreenScaffold(
 
         Column(modifier = Modifier.fillMaxSize()) {
             topContent()
-            ModeToggle(currentMode = currentMode, onModeChange = onModeChange)
+            if (showModeToggle) {
+                ModeToggle(currentMode = currentMode, onModeChange = onModeChange)
+            }
 
             Spacer(modifier = Modifier.weight(1f))
 

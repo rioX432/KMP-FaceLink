@@ -15,7 +15,7 @@ import io.github.kmpfacelink.model.PerformanceConfig
 import io.github.kmpfacelink.model.PowerConfig
 import io.github.kmpfacelink.model.ThermalPolicy
 import io.github.kmpfacelink.model.TrackingModality
-import io.github.kmpfacelink.model.emptyBlendShapeData
+import io.github.kmpfacelink.model.allShapesAtRest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -52,7 +52,7 @@ class HolisticTrackingDataTest {
     fun isTrackingTrueWhenFaceIsTracking() {
         val data = HolisticTrackingData(
             face = FaceTrackingData(
-                blendShapes = emptyBlendShapeData(),
+                blendShapes = allShapesAtRest(),
                 headTransform = HeadTransform(),
                 timestampMs = 100L,
                 isTracking = true,

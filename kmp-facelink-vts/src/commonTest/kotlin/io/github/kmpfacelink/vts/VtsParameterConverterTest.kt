@@ -2,7 +2,7 @@ package io.github.kmpfacelink.vts
 
 import io.github.kmpfacelink.model.BlendShape
 import io.github.kmpfacelink.model.HeadTransform
-import io.github.kmpfacelink.model.emptyBlendShapeData
+import io.github.kmpfacelink.model.allShapesAtRest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
@@ -74,7 +74,7 @@ class VtsParameterConverterTest {
 
     @Test
     fun emptyBlendShapesProduceParameters() {
-        val blendShapes = emptyBlendShapeData()
+        val blendShapes = allShapesAtRest()
         val params = VtsParameterConverter.convertBlendShapes(blendShapes)
         // All zero blendshapes should still produce VTS parameters
         assertTrue(params.isNotEmpty(), "Should produce parameters even with zero values")

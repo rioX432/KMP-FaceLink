@@ -10,7 +10,7 @@ import io.github.kmpfacelink.model.FaceTrackingData
 import io.github.kmpfacelink.model.InferenceDelegate
 import io.github.kmpfacelink.model.SmoothingConfig
 import io.github.kmpfacelink.model.TrackedFace
-import io.github.kmpfacelink.model.emptyBlendShapeData
+import io.github.kmpfacelink.model.TrackerOperationStatus
 import io.github.kmpfacelink.model.filterByActive
 import io.github.kmpfacelink.util.FaceLinkLogger
 import io.github.kmpfacelink.util.GazeEstimator
@@ -98,7 +98,7 @@ internal class MediaPipeWasmFaceTracker(
         startTrackingLoop(lm, video)
     }
 
-    private suspend fun resolveBackend(): GpuBackend = when (config.inferenceDelegate) {
+    private suspend fun resolveBackend(): GpuBackend = when (config.performanceConfig.inferenceDelegate) {
         InferenceDelegate.CPU -> GpuBackend.NONE
         InferenceDelegate.GPU, InferenceDelegate.AUTO,
         InferenceDelegate.NPU,
@@ -108,14 +108,22 @@ internal class MediaPipeWasmFaceTracker(
     private suspend fun createLandmarkerWithFallback(delegate: String): JsFaceLandmarker =
         try {
             awaitJsPromise(
-                createFaceLandmarkerJs(config.modelAssetPath, config.maxFaces, delegate),
+                createFaceLandmarkerJs(
+                    config.modelAssetPath,
+                    config.detectionConfig.maxFaces,
+                    delegate,
+                ),
             )
         } catch (@Suppress("TooGenericExceptionCaught") e: Throwable) {
             if (delegate != CPU_DELEGATE) {
                 FaceLinkLogger.w(TAG, "GPU delegate failed, falling back to CPU", e)
                 activeBackend = GpuBackend.NONE
                 awaitJsPromise(
-                    createFaceLandmarkerJs(config.modelAssetPath, config.maxFaces, CPU_DELEGATE),
+                    createFaceLandmarkerJs(
+                        config.modelAssetPath,
+                        config.detectionConfig.maxFaces,
+                        CPU_DELEGATE,
+                    ),
                 )
             } else {
                 throw e
@@ -146,7 +154,7 @@ internal class MediaPipeWasmFaceTracker(
         val timestamp = frameCounter
         val jsResult = detectForVideoJs(lm, video, timestamp) ?: return
 
-        @Suppress("UNCHECKED_CAST")
+        @Suppress("UNCHECKED_CAST", "UNCHECKED_CAST_TO_EXTERNAL_INTERFACE")
         val result = jsResult as JsFaceLandmarkerResult
         val faceCount = getResultFaceCountJs(result)
 
@@ -229,19 +237,22 @@ internal class MediaPipeWasmFaceTracker(
         _state.value = TrackingState.RELEASED
     }
 
-    override fun resetCalibration() {
+    override fun resetCalibration(): TrackerOperationStatus {
         checkNotReleased("resetCalibration")
         // No calibration state in Wasm tracker yet
+        return TrackerOperationStatus.UNSUPPORTED
     }
 
-    override fun resetSmoothing() {
+    override fun resetSmoothing(): TrackerOperationStatus {
         checkNotReleased("resetSmoothing")
         // No smoothing state in Wasm face tracker yet
+        return TrackerOperationStatus.UNSUPPORTED
     }
 
-    override fun updateSmoothing(config: SmoothingConfig) {
+    override fun updateSmoothing(config: SmoothingConfig): TrackerOperationStatus {
         checkNotReleased("updateSmoothing")
         // Smoothing not yet implemented for Wasm tracker
+        return TrackerOperationStatus.UNSUPPORTED
     }
 
     override suspend fun switchCamera(facing: CameraFacing) {

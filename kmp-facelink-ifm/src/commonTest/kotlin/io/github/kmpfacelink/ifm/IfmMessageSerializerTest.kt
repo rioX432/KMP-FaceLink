@@ -3,7 +3,7 @@ package io.github.kmpfacelink.ifm
 import io.github.kmpfacelink.model.BlendShape
 import io.github.kmpfacelink.model.GazeData
 import io.github.kmpfacelink.model.HeadTransform
-import io.github.kmpfacelink.model.emptyBlendShapeData
+import io.github.kmpfacelink.model.allShapesAtRest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -14,7 +14,7 @@ class IfmMessageSerializerTest {
     @Test
     fun serializeV1ContainsDashSeparator() {
         val message = IfmMessageSerializer.serialize(
-            blendShapes = emptyBlendShapeData(),
+            blendShapes = allShapesAtRest(),
             headTransform = HeadTransform(),
             gazeData = null,
             dataVersion = DataVersion.V1,
@@ -27,7 +27,7 @@ class IfmMessageSerializerTest {
     @Test
     fun serializeV2ContainsAmpersandSeparator() {
         val message = IfmMessageSerializer.serialize(
-            blendShapes = emptyBlendShapeData(),
+            blendShapes = allShapesAtRest(),
             headTransform = HeadTransform(),
             gazeData = null,
             dataVersion = DataVersion.V2,
@@ -66,7 +66,7 @@ class IfmMessageSerializerTest {
             positionZ = 0.3f,
         )
         val message = IfmMessageSerializer.serialize(
-            blendShapes = emptyBlendShapeData(),
+            blendShapes = allShapesAtRest(),
             headTransform = head,
             gazeData = null,
             dataVersion = DataVersion.V1,
@@ -85,7 +85,7 @@ class IfmMessageSerializerTest {
             rightEyeYaw = -2.0f,
         )
         val message = IfmMessageSerializer.serialize(
-            blendShapes = emptyBlendShapeData(),
+            blendShapes = allShapesAtRest(),
             headTransform = HeadTransform(),
             gazeData = gaze,
             dataVersion = DataVersion.V1,
@@ -97,7 +97,7 @@ class IfmMessageSerializerTest {
     @Test
     fun serializeContainsAll52BlendShapes() {
         val message = IfmMessageSerializer.serialize(
-            blendShapes = emptyBlendShapeData(),
+            blendShapes = allShapesAtRest(),
             headTransform = HeadTransform(),
             gazeData = null,
             dataVersion = DataVersion.V1,

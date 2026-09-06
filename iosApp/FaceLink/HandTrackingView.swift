@@ -1,6 +1,6 @@
 import SwiftUI
 import AVFoundation
-import KMPFaceLink
+import SampleShared
 
 /// Hand tracking view with camera preview and landmark overlay
 struct HandTrackingView: View {
@@ -103,16 +103,7 @@ class HandTrackingViewModel: ObservableObject {
     private var observeTasks: [Task<Void, Never>] = []
 
     init() {
-        let config = HandTrackerConfig(
-            smoothingConfig: SmoothingConfig.Ema(alpha: 0.4),
-            maxHands: 2,
-            enableGestureRecognition: true,
-            cameraFacing: .front
-        )
-        let handTracker = HandTrackerFactory_iosKt.createHandTracker(
-            platformContext: PlatformContext(),
-            config: config
-        )
+        let handTracker = SampleTrackerConfigsKt.createSampleHandTracker()
         self.tracker = handTracker
 
         // Capture session is set after start() — see startTracking()

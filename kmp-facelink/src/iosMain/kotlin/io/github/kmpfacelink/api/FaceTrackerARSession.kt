@@ -10,7 +10,7 @@ import platform.ARKit.ARSession
  * Only returns a non-null value after [FaceTracker.start] has been called.
  *
  * Use this to share the tracker's session with an `ARSCNView` instead of creating
- * a second session that would compete for the TrueDepth camera.
+ * a second session that would compete for the front camera.
  *
  * This extension casts the public [FaceTracker] interface to the internal
  * [ARKitFaceTracker] implementation. It requires the tracker to be created

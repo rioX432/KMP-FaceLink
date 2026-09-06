@@ -1,0 +1,400 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		42C8920AD53DC37738754A48 /* RunAuthorization.swift in Sources */ = {isa = PBXBuildFile; fileRef = 571D0D89E7434C1056A4B1D3 /* RunAuthorization.swift */; };
+		5391F01B8C800A2117FB7835 /* KMPFaceLinkCapture.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5A7C20AA31550813533767CD /* KMPFaceLinkCapture.framework */; };
+		78A2216B4B007B0D1A500B80 /* CaptureRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E345A96DDB0E56CF0AFC6C75 /* CaptureRootView.swift */; };
+		D20A47DF59D97D6760683246 /* FaceLinkCaptureApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8F07B4D45B083541547BEE8F /* FaceLinkCaptureApp.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		010301C565137B668AD916A1 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		571D0D89E7434C1056A4B1D3 /* RunAuthorization.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RunAuthorization.swift; sourceTree = "<group>"; };
+		5A7C20AA31550813533767CD /* KMPFaceLinkCapture.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = KMPFaceLinkCapture.framework; path = "../kmp-facelink-capture/build/xcode-frameworks/$(CONFIGURATION)/$(SDK_NAME)/KMPFaceLinkCapture.framework"; sourceTree = "<group>"; };
+		8F07B4D45B083541547BEE8F /* FaceLinkCaptureApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FaceLinkCaptureApp.swift; sourceTree = "<group>"; };
+		B4DF42A2630207F33D7445D0 /* FaceLinkCapture.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = FaceLinkCapture.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		E345A96DDB0E56CF0AFC6C75 /* CaptureRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CaptureRootView.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		0550B3940FBCD37E7D4CCED7 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				5391F01B8C800A2117FB7835 /* KMPFaceLinkCapture.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		6988ABC7EB90B8898D0671BA /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				B4DF42A2630207F33D7445D0 /* FaceLinkCapture.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		93943DC55EA4CEEF195D9398 = {
+			isa = PBXGroup;
+			children = (
+				C609F1AEC339FFABBE1F3900 /* FaceLinkCapture */,
+				E123A48D87CD3A21888E6937 /* Frameworks */,
+				6988ABC7EB90B8898D0671BA /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		C609F1AEC339FFABBE1F3900 /* FaceLinkCapture */ = {
+			isa = PBXGroup;
+			children = (
+				E345A96DDB0E56CF0AFC6C75 /* CaptureRootView.swift */,
+				8F07B4D45B083541547BEE8F /* FaceLinkCaptureApp.swift */,
+				010301C565137B668AD916A1 /* Info.plist */,
+				571D0D89E7434C1056A4B1D3 /* RunAuthorization.swift */,
+			);
+			path = FaceLinkCapture;
+			sourceTree = "<group>";
+		};
+		E123A48D87CD3A21888E6937 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				5A7C20AA31550813533767CD /* KMPFaceLinkCapture.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		4AE013C7DF45BE158DDAB4E0 /* FaceLinkCapture */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = AED8BD4B99227EB01E5DE028 /* Build configuration list for PBXNativeTarget "FaceLinkCapture" */;
+			buildPhases = (
+				C875341BF6AB00230C4A7BE9 /* Validate Compose Info.plist Contract */,
+				940323C6B369C2BDCEA0730D /* Build KMP Capture Framework */,
+				ED80CAFF8ECDB71EDDBCBDFE /* Sources */,
+				0550B3940FBCD37E7D4CCED7 /* Frameworks */,
+				19DAFEE6C0918805A448BD9B /* Embed Source and Review Evidence */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = FaceLinkCapture;
+			packageProductDependencies = (
+			);
+			productName = FaceLinkCapture;
+			productReference = B4DF42A2630207F33D7445D0 /* FaceLinkCapture.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		0537A5A30B4F11D7F32E036B /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1600;
+				TargetAttributes = {
+				};
+			};
+			buildConfigurationList = D055950298A73C2474A9DCA6 /* Build configuration list for PBXProject "FaceLinkCapture" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = 93943DC55EA4CEEF195D9398;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 6988ABC7EB90B8898D0671BA /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				4AE013C7DF45BE158DDAB4E0 /* FaceLinkCapture */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		19DAFEE6C0918805A448BD9B /* Embed Source and Review Evidence */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Embed Source and Review Evidence";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "repo_root=\"$SRCROOT/..\"\nresources=\"$TARGET_BUILD_DIR/$UNLOCALIZED_RESOURCES_FOLDER_PATH\"\nprovenance_resource=\"$resources/FaceLinkSourceProvenance.properties\"\nauthorization_resource=\"$resources/FaceLinkReviewAuthorization.properties\"\n/bin/mkdir -p \"$resources\"\n\nsha=$(/usr/bin/git -C \"$repo_root\" rev-parse HEAD 2>/dev/null || true)\nbranch=$(/usr/bin/git -C \"$repo_root\" rev-parse --abbrev-ref HEAD 2>/dev/null || true)\ncommit_time=$(/usr/bin/git -C \"$repo_root\" show -s --format=%cI HEAD 2>/dev/null || true)\nif test -n \"$(/usr/bin/git -C \"$repo_root\" status --porcelain 2>/dev/null)\"; then dirty=true; else dirty=false; fi\nif test -z \"$sha\" || test -z \"$branch\" || test -z \"$commit_time\"; then\n  echo \"error: source provenance is incomplete\"\n  exit 1\nfi\nif printf '%s\\n%s\\n%s' \"$sha\" \"$branch\" \"$commit_time\" | /usr/bin/grep -q $'\\r'; then\n  echo \"error: source provenance contains a carriage return\"\n  exit 1\nfi\n/usr/bin/printf 'repo=KMP-FaceLink\\nbranch=%s\\ngitSha=%s\\ncommitTimeIso=%s\\ndirty=%s\\n' \\\n  \"$branch\" \"$sha\" \"$commit_time\" \"$dirty\" > \"$provenance_resource\"\n\nauthorization_file=\"$KMP_REVIEW_AUTHORIZATION_FILE\"\nif test -n \"$authorization_file\"; then\n  if ! test -f \"$authorization_file\"; then\n    echo \"error: review authorization file not found: $authorization_file\"\n    exit 1\n  fi\n  last_byte=$(/usr/bin/tail -c 1 \"$authorization_file\" | /usr/bin/od -An -t u1 | /usr/bin/tr -d '[:space:]')\n  if test \"$last_byte\" != \"10\"; then\n    echo \"error: review authorization must end with one LF\"\n    exit 1\n  fi\n  if ! /usr/bin/awk -F= '\n    NR == 1 && ($1 != \"packetId\" || NF != 2) { exit 1 }\n    NR == 2 && ($1 != \"packetManifestSha256\" || NF != 2) { exit 1 }\n    NR == 3 && ($1 != \"sourceManifestSha256\" || NF != 2) { exit 1 }\n    END { if (NR != 3) exit 1 }\n  ' \"$authorization_file\"; then\n    echo \"error: review authorization must use the canonical three-line schema\"\n    exit 1\n  fi\n  packet_id=$(/usr/bin/awk -F= 'NR == 1 {print $2}' \"$authorization_file\")\n  packet_sha=$(/usr/bin/awk -F= 'NR == 2 {print $2}' \"$authorization_file\")\n  source_sha=$(/usr/bin/awk -F= 'NR == 3 {print $2}' \"$authorization_file\")\n  if ! printf '%s' \"$packet_id\" | /usr/bin/grep -Eq '^[a-z0-9][a-z0-9._-]{0,127}$' || \\\n    ! printf '%s' \"$packet_sha\" | /usr/bin/grep -Eq '^[0-9a-f]{64}$' || \\\n    ! printf '%s' \"$source_sha\" | /usr/bin/grep -Eq '^[0-9a-f]{64}$'; then\n    echo \"error: invalid review authorization file\"\n    exit 1\n  fi\n  /bin/cp \"$authorization_file\" \"$authorization_resource\"\nelse\n  /bin/rm -f \"$authorization_resource\"\nfi\n";
+		};
+		940323C6B369C2BDCEA0730D /* Build KMP Capture Framework */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Build KMP Capture Framework";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "cd \"$SRCROOT/..\"\n./gradlew :kmp-facelink-capture:embedAndSignAppleFrameworkForXcode\n";
+		};
+		C875341BF6AB00230C4A7BE9 /* Validate Compose Info.plist Contract */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Validate Compose Info.plist Contract";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "value=$(/usr/libexec/PlistBuddy -c \"Print :CADisableMinimumFrameDurationOnPhone\" \"$SRCROOT/FaceLinkCapture/Info.plist\" 2>/dev/null || true)\nif test \"$value\" != \"true\"; then\n  echo \"error: Compose Multiplatform requires CADisableMinimumFrameDurationOnPhone=true\"\n  exit 1\nfi\n";
+		};
+/* End PBXShellScriptBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		ED80CAFF8ECDB71EDDBCBDFE /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				78A2216B4B007B0D1A500B80 /* CaptureRootView.swift in Sources */,
+				D20A47DF59D97D6760683246 /* FaceLinkCaptureApp.swift in Sources */,
+				42C8920AD53DC37738754A48 /* RunAuthorization.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		34237841C8F9B3D15CF64020 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(SRCROOT)/../kmp-facelink-capture/build/xcode-frameworks/$(CONFIGURATION)/$(SDK_NAME)",
+				);
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		3C08477DFAB92DF50BA0F225 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = arm64;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"\"../kmp-facelink-capture/build/xcode-frameworks/$(CONFIGURATION)/$(SDK_NAME)\"",
+				);
+				INFOPLIST_FILE = FaceLinkCapture/Info.plist;
+				KMP_REVIEW_AUTHORIZATION_FILE = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = io.github.kmpfacelink.FaceLinkCapture;
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 5.9;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		845B5FFD36CDB031A43C3E35 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(SRCROOT)/../kmp-facelink-capture/build/xcode-frameworks/$(CONFIGURATION)/$(SDK_NAME)",
+				);
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		92E27CC70AF6FDBA83DB8141 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = arm64;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"\"../kmp-facelink-capture/build/xcode-frameworks/$(CONFIGURATION)/$(SDK_NAME)\"",
+				);
+				INFOPLIST_FILE = FaceLinkCapture/Info.plist;
+				KMP_REVIEW_AUTHORIZATION_FILE = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = io.github.kmpfacelink.FaceLinkCapture;
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 5.9;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		AED8BD4B99227EB01E5DE028 /* Build configuration list for PBXNativeTarget "FaceLinkCapture" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				92E27CC70AF6FDBA83DB8141 /* Debug */,
+				3C08477DFAB92DF50BA0F225 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		D055950298A73C2474A9DCA6 /* Build configuration list for PBXProject "FaceLinkCapture" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				34237841C8F9B3D15CF64020 /* Debug */,
+				845B5FFD36CDB031A43C3E35 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 0537A5A30B4F11D7F32E036B /* Project object */;
+}

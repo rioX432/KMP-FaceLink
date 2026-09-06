@@ -1,9 +1,23 @@
 package io.github.kmpfacelink.util
 
+import io.github.kmpfacelink.ExperimentalFaceLinkApi
 import io.github.kmpfacelink.model.AlternativeSignalObservation
 import io.github.kmpfacelink.model.BlendShape
 import io.github.kmpfacelink.model.BlendShapeData
 import io.github.kmpfacelink.model.BlendShapeEnhancerConfig
+import io.github.kmpfacelink.model.CandidateInputIdentity
+import io.github.kmpfacelink.model.CandidateObservationInput
+import io.github.kmpfacelink.model.CandidateObservationProducer
+import io.github.kmpfacelink.model.CandidateObservationProducerFactory
+import io.github.kmpfacelink.model.CandidateObservationReceipt
+import io.github.kmpfacelink.model.CandidateObservationSession
+import io.github.kmpfacelink.model.CandidateProducerDescriptor
+import io.github.kmpfacelink.model.CandidateProducerOutput
+import io.github.kmpfacelink.model.CandidateReadiness
+import io.github.kmpfacelink.model.CandidateSelectionMode
+import io.github.kmpfacelink.model.CandidateSelectionPolicy
+import io.github.kmpfacelink.model.CandidateSelectionRoute
+import io.github.kmpfacelink.model.CandidateSemanticIntent
 import io.github.kmpfacelink.model.FaceLandmark
 import io.github.kmpfacelink.model.FaceSignalCandidates
 
@@ -18,6 +32,7 @@ import io.github.kmpfacelink.model.FaceSignalCandidates
  *
  * @see BlendShapeEnhancerConfig
  */
+@OptIn(ExperimentalFaceLinkApi::class)
 internal class BlendShapeEnhancer(
     private val config: BlendShapeEnhancerConfig.Default,
 ) {
@@ -28,8 +43,11 @@ internal class BlendShapeEnhancer(
     // Callers that store the result must copy it via HashMap(result).
     private val scratch: HashMap<BlendShape, Float> = BlendShapeMapPool().create()
 
-    // Reused for the same reason. Callers that keep the candidates must copy the list.
+    // Reused only while adapting the durable receipt to the legacy two-plane type.
     private val candidates: ArrayList<AlternativeSignalObservation> = ArrayList(SOLVER_COUNT)
+    private val candidateSession = CandidateObservationSession(createProducerFactories())
+    private val selectionPolicy = createSelectionPolicy(config.geometricBlendWeight)
+    private var legacyTimestampMs: Long = 0L
 
     /**
      * Enhance blend shape data using face landmarks.
@@ -42,27 +60,14 @@ internal class BlendShapeEnhancer(
         blendShapes: BlendShapeData,
         landmarks: List<FaceLandmark>,
     ): BlendShapeData {
-        if (landmarks.size < LandmarkSolvers.MIN_LANDMARKS) return blendShapes
-
-        scratch.clear()
-        scratch.putAll(blendShapes)
-        val result = scratch
-
-        // Step 1: choose between the estimator's values and what the solvers proposed
-        select(observe(blendShapes, landmarks), result)
-
-        // Step 1.5: Expression correlation (FACS AU co-activation)
-        if (config.enableCorrelation) {
-            correlator.apply(result)
-        }
-
-        // Step 2: Sensitivity scaling
-        applySensitivity(result)
-
-        // Step 3: Dead zone threshold
-        applyDeadZone(result)
-
-        return result
+        val receipt = observeReceipt(
+            identity = legacyIdentity(),
+            blendShapes = blendShapes,
+            landmarks = landmarks,
+            sourceImageWidth = NORMALIZED_IMAGE_SIZE,
+            sourceImageHeight = NORMALIZED_IMAGE_SIZE,
+        )
+        return postProcess(receipt.selected)
     }
 
     /**
@@ -77,53 +82,108 @@ internal class BlendShapeEnhancer(
         blendShapes: BlendShapeData,
         landmarks: List<FaceLandmark>,
     ): FaceSignalCandidates {
+        val receipt = observeReceipt(
+            identity = legacyIdentity(),
+            blendShapes = blendShapes,
+            landmarks = landmarks,
+            sourceImageWidth = NORMALIZED_IMAGE_SIZE,
+            sourceImageHeight = NORMALIZED_IMAGE_SIZE,
+        )
         candidates.clear()
-        if (landmarks.size >= LandmarkSolvers.MIN_LANDMARKS) {
-            for ((shape, solver) in nearZeroSolvers) {
-                propose(shape, solver(landmarks))
-            }
-            for ((shape, solver) in lowAccuracySolvers) {
-                propose(shape, solver(landmarks))
-            }
+        for (observation in receipt.alternatives) {
+            val value = observation.value ?: continue
+            candidates += AlternativeSignalObservation(
+                producerId = observation.producerId,
+                value = value,
+                proposedTarget = observation.proposedTarget,
+            )
         }
-        return FaceSignalCandidates(estimator = blendShapes, alternatives = candidates)
+        return FaceSignalCandidates(estimator = receipt.estimator, alternatives = candidates)
     }
 
-    private fun propose(shape: BlendShape, value: Float?) {
-        if (value == null) return
-        candidates += AlternativeSignalObservation(
+    /** Shared observation call used by live processing and controlled replay. */
+    fun observeReceipt(
+        identity: CandidateInputIdentity,
+        blendShapes: BlendShapeData,
+        landmarks: List<FaceLandmark>,
+        sourceImageWidth: Int,
+        sourceImageHeight: Int,
+    ): CandidateObservationReceipt = candidateSession.observe(
+        input = CandidateObservationInput(
+            identity = identity,
+            estimator = blendShapes,
+            landmarks = landmarks,
+            sourceImageWidth = sourceImageWidth,
+            sourceImageHeight = sourceImageHeight,
+        ),
+        selectionPolicy = selectionPolicy,
+    )
+
+    /** Applies only post-selection transforms to the already snapshotted selected plane. */
+    fun postProcess(selected: BlendShapeData): BlendShapeData {
+        scratch.clear()
+        scratch.putAll(selected)
+        if (config.enableCorrelation) {
+            correlator.apply(scratch)
+        }
+        applySensitivity(scratch)
+        applyDeadZone(scratch)
+        return scratch
+    }
+
+    private fun legacyIdentity(): CandidateInputIdentity = CandidateInputIdentity(
+        contextEpochId = 0u,
+        processingStateRevision = 0u,
+        faceIndex = 0,
+        timestampMs = legacyTimestampMs++,
+    )
+
+    private fun createSelectionPolicy(weight: Float): CandidateSelectionPolicy {
+        val routes = mutableMapOf<BlendShape, CandidateSelectionRoute>()
+        nearZeroSolvers.keys.forEach { shape ->
+            routes[shape] = CandidateSelectionRoute(
+                producerId = "$GEOMETRY_PRODUCER_PREFIX${shape.name}",
+                mode = CandidateSelectionMode.MAX_WITH_ESTIMATOR,
+            )
+        }
+        lowAccuracySolvers.keys.forEach { shape ->
+            routes[shape] = CandidateSelectionRoute(
+                producerId = "$GEOMETRY_PRODUCER_PREFIX${shape.name}",
+                mode = CandidateSelectionMode.WEIGHTED_WITH_ESTIMATOR,
+                alternativeWeight = weight,
+            )
+        }
+        return CandidateSelectionPolicy(routes)
+    }
+
+    private fun createProducerFactories(): List<CandidateObservationProducerFactory> =
+        (nearZeroSolvers + lowAccuracySolvers).map { (shape, solver) ->
+            GeometryProducerFactory(shape, solver)
+        }
+
+    private class GeometryProducerFactory(
+        shape: BlendShape,
+        private val solver: (List<FaceLandmark>) -> Float?,
+    ) : CandidateObservationProducerFactory {
+        override val descriptor: CandidateProducerDescriptor = CandidateProducerDescriptor(
             producerId = "$GEOMETRY_PRODUCER_PREFIX${shape.name}",
-            value = value,
+            implementationRevision = GENERIC_GEOMETRY_IMPLEMENTATION_REVISION,
+            semanticId = "canonical:${shape.arKitName}",
+            semanticIntent = CandidateSemanticIntent.CANONICAL_ALTERNATIVE_CANDIDATE,
             proposedTarget = shape,
         )
-    }
 
-    /**
-     * Decide, per shape, between the estimator's value and a proposed one.
-     * - Near-zero estimator shapes: take the larger of the two
-     * - Other configured shapes: combine both with the configured weight
-     *
-     * This algorithmic choice does not assert that the geometric signal is more accurate.
-     *
-     * A solver that could not run proposed nothing, so the shape stays as the estimator left it,
-     * including absent. An estimator that did not produce the shape leaves the proposal to stand
-     * alone: blending it against a substituted zero would drag a real value down toward one nobody
-     * produced.
-     */
-    private fun select(
-        proposals: FaceSignalCandidates,
-        result: MutableMap<BlendShape, Float>,
-    ) {
-        val w = config.geometricBlendWeight
-        for (candidate in proposals.alternatives) {
-            val shape = candidate.proposedTarget ?: continue
-            val estimated = result[shape]
-            val combined = when {
-                estimated == null -> candidate.value
-                shape in nearZeroSolvers -> maxOf(candidate.value, estimated)
-                else -> w * candidate.value + (1f - w) * estimated
+        override fun create(): CandidateObservationProducer = CandidateObservationProducer { input ->
+            if (input.landmarks.size < LandmarkSolvers.MIN_LANDMARKS) {
+                CandidateProducerOutput.absent(CandidateReadiness.MISSING_INPUT, "insufficient_landmarks")
+            } else {
+                val value = solver(input.landmarks)
+                if (value == null) {
+                    CandidateProducerOutput.absent(CandidateReadiness.NOT_READY, "solver_returned_no_value")
+                } else {
+                    CandidateProducerOutput.ready(value)
+                }
             }
-            result[shape] = combined.coerceIn(0f, 1f)
         }
     }
 
@@ -146,6 +206,14 @@ internal class BlendShapeEnhancer(
     companion object {
         /** Names every landmark-derived proposal, so a reader can tell it from an estimator value. */
         private const val GEOMETRY_PRODUCER_PREFIX = "landmark-geometry:"
+
+        /** Evidence identity for the pre-existing generic stateless solver family. */
+        internal const val GENERIC_GEOMETRY_IMPLEMENTATION_REVISION = "generic-stateless-landmark-solvers/v1"
+
+        /** Reserved research identity; never alias it to the generic stateless cheek solver. */
+        internal const val FROZEN_CONTOUR_PRODUCER_ID = "research:c1-frozen-contour"
+
+        private const val NORMALIZED_IMAGE_SIZE = 1
 
         /** Upper bound on proposals per frame; only used to size the reused list. */
         private const val SOLVER_COUNT = 32

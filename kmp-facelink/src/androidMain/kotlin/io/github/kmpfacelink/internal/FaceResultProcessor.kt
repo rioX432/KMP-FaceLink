@@ -1,8 +1,15 @@
 package io.github.kmpfacelink.internal
 
 import com.google.mediapipe.tasks.vision.facelandmarker.FaceLandmarkerResult
+import io.github.kmpfacelink.ExperimentalFaceLinkApi
 import io.github.kmpfacelink.model.BlendShapeData
 import io.github.kmpfacelink.model.CalibrationPhase
+import io.github.kmpfacelink.model.CandidateInputIdentity
+import io.github.kmpfacelink.model.CandidateObservationInput
+import io.github.kmpfacelink.model.CandidateObservationProducerFactory
+import io.github.kmpfacelink.model.CandidateObservationReceipt
+import io.github.kmpfacelink.model.CandidateObservationSession
+import io.github.kmpfacelink.model.DimensionValue
 import io.github.kmpfacelink.model.FaceLandmark
 import io.github.kmpfacelink.model.FaceObservationProvenance
 import io.github.kmpfacelink.model.FacePipelineKind
@@ -30,6 +37,8 @@ import io.github.kmpfacelink.util.withLock
  * (called from the MediaPipe callback thread). [resetCalibration] and [updateSmoothing] must
  * be called with [pipelineLock] already held by the caller.
  */
+@OptIn(ExperimentalFaceLinkApi::class)
+@Suppress("LongParameterList")
 internal class FaceResultProcessor private constructor(
     private val config: FaceTrackerConfig,
     private val pipelineLock: PlatformLock,
@@ -37,6 +46,7 @@ internal class FaceResultProcessor private constructor(
     private val isEnhancerDisabled: () -> Boolean,
     private val calibrationState: CalibrationPipelineState,
     private val processingStateRevision: ULong,
+    private val candidateProducerFactories: List<CandidateObservationProducerFactory>,
 ) {
 
     constructor(
@@ -51,15 +61,39 @@ internal class FaceResultProcessor private constructor(
         isEnhancerDisabled = isEnhancerDisabled,
         calibrationState = CalibrationPipelineState(config),
         processingStateRevision = 0u,
+        candidateProducerFactories = emptyList(),
     )
+
+    /** Research-only registration seam; selection remains default-off. */
+    constructor(
+        config: FaceTrackerConfig,
+        pipelineLock: PlatformLock,
+        isReleased: () -> Boolean,
+        isEnhancerDisabled: () -> Boolean,
+        candidateProducerFactories: List<CandidateObservationProducerFactory>,
+    ) : this(
+        config = config,
+        pipelineLock = pipelineLock,
+        isReleased = isReleased,
+        isEnhancerDisabled = isEnhancerDisabled,
+        calibrationState = CalibrationPipelineState(config),
+        processingStateRevision = 0u,
+        candidateProducerFactories = candidateProducerFactories.toList(),
+    ) {
+        require(config.enhancerConfig is io.github.kmpfacelink.model.BlendShapeEnhancerConfig.None) {
+            "research candidate registration requires the legacy enhancer to be disabled"
+        }
+    }
 
     private val primarySmoother: BlendShapeSmoother? = config.createSmoother()
     private val secondarySmoothers = mutableMapOf<Int, BlendShapeSmoother>()
     private val enhancer: BlendShapeEnhancer? = BlendShapeEnhancer.create(config.enhancerConfig)
+    private val defaultOffCandidateSession = CandidateObservationSession(candidateProducerFactories)
 
     internal data class ProcessedPrimary(
         val blendShapes: BlendShapeData,
         val provenance: FaceObservationProvenance,
+        val candidateObservation: CandidateObservationReceipt,
     )
 
     /** Runs enhance → calibrate → smooth on the primary face. Returns null if tracker is released. */
@@ -68,14 +102,56 @@ internal class FaceResultProcessor private constructor(
         landmarks: List<FaceLandmark>,
         timestampMs: Long,
         epoch: TrackingContextEpoch,
+    ): ProcessedPrimary? = processPrimary(
+        blendShapes = blendShapes,
+        landmarks = landmarks,
+        timestampMs = timestampMs,
+        epoch = epoch,
+        featurePlanes = emptyMap(),
+    )
+
+    /** Research-only additive feature-plane path; product callers use the empty-plane overload. */
+    fun processPrimary(
+        blendShapes: BlendShapeData,
+        landmarks: List<FaceLandmark>,
+        timestampMs: Long,
+        epoch: TrackingContextEpoch,
+        featurePlanes: Map<String, List<Float>>,
     ): ProcessedPrimary? {
-        var result = blendShapes
         return pipelineLock.withLock {
             if (isReleased()) return null
 
             val enhancerApplied = enhancer != null && !isEnhancerDisabled()
-            if (enhancerApplied) {
-                result = enhancer.enhance(result, landmarks)
+            val identity = CandidateInputIdentity(
+                contextEpochId = epoch.epochId,
+                processingStateRevision = processingStateRevision,
+                faceIndex = 0,
+                timestampMs = timestampMs,
+            )
+            val candidateObservation = if (enhancerApplied) {
+                checkNotNull(enhancer).observeReceipt(
+                    identity = identity,
+                    blendShapes = blendShapes,
+                    landmarks = landmarks,
+                    sourceImageWidth = epoch.inputWidth.requireKnown("inputWidth"),
+                    sourceImageHeight = epoch.inputHeight.requireKnown("inputHeight"),
+                )
+            } else {
+                defaultOffCandidateSession.observe(
+                    CandidateObservationInput(
+                        identity = identity,
+                        estimator = blendShapes,
+                        landmarks = landmarks,
+                        sourceImageWidth = epoch.inputWidth.requireKnown("inputWidth"),
+                        sourceImageHeight = epoch.inputHeight.requireKnown("inputHeight"),
+                        featurePlanes = featurePlanes,
+                    ),
+                )
+            }
+            var result = if (enhancerApplied) {
+                checkNotNull(enhancer).postProcess(candidateObservation.selected)
+            } else {
+                candidateObservation.selected
             }
 
             if (config.calibrationConfig.enabled) {
@@ -92,6 +168,7 @@ internal class FaceResultProcessor private constructor(
             val emitted = HashMap(result).filterByActive(config.activeBlendShapes)
             ProcessedPrimary(
                 blendShapes = emitted,
+                candidateObservation = candidateObservation,
                 provenance = FaceObservationProvenance(
                     contextEpochId = epoch.epochId,
                     faceIndex = 0,
@@ -141,6 +218,7 @@ internal class FaceResultProcessor private constructor(
             initialRevision = calibrationState.revision + 1u,
         ),
         processingStateRevision = processingStateRevision + 1u,
+        candidateProducerFactories = candidateProducerFactories,
     )
 
     /**
@@ -160,6 +238,7 @@ internal class FaceResultProcessor private constructor(
         isEnhancerDisabled = isEnhancerDisabled,
         calibrationState = calibrationState,
         processingStateRevision = processingStateRevision + 1u,
+        candidateProducerFactories = candidateProducerFactories,
     )
 
     private fun buildPrimaryFace(
@@ -219,6 +298,9 @@ internal class FaceResultProcessor private constructor(
     }
 
     private fun effectiveConfig(): FaceTrackerConfig = config
+
+    private fun DimensionValue<Int>.requireKnown(name: String): Int =
+        (this as? DimensionValue.Known)?.value ?: error("candidate observation requires known $name")
 
     private fun secondarySmoother(index: Int): BlendShapeSmoother? {
         if (config.smoothingConfig is SmoothingConfig.None) return null

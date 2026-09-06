@@ -182,6 +182,60 @@ final enum class io.github.kmpfacelink.model/CameraFacing : kotlin/Enum<io.githu
     final fun values(): kotlin/Array<io.github.kmpfacelink.model/CameraFacing> // io.github.kmpfacelink.model/CameraFacing.values|values#static(){}[0]
 }
 
+final enum class io.github.kmpfacelink.model/CandidateReadiness : kotlin/Enum<io.github.kmpfacelink.model/CandidateReadiness> { // io.github.kmpfacelink.model/CandidateReadiness|null[0]
+    enum entry DUPLICATE_INPUT // io.github.kmpfacelink.model/CandidateReadiness.DUPLICATE_INPUT|null[0]
+    enum entry MISSING_INPUT // io.github.kmpfacelink.model/CandidateReadiness.MISSING_INPUT|null[0]
+    enum entry NON_FINITE // io.github.kmpfacelink.model/CandidateReadiness.NON_FINITE|null[0]
+    enum entry NOT_READY // io.github.kmpfacelink.model/CandidateReadiness.NOT_READY|null[0]
+    enum entry OUT_OF_ORDER_INPUT // io.github.kmpfacelink.model/CandidateReadiness.OUT_OF_ORDER_INPUT|null[0]
+    enum entry READY // io.github.kmpfacelink.model/CandidateReadiness.READY|null[0]
+    enum entry REJECTED // io.github.kmpfacelink.model/CandidateReadiness.REJECTED|null[0]
+    enum entry RESET // io.github.kmpfacelink.model/CandidateReadiness.RESET|null[0]
+    enum entry UNAVAILABLE // io.github.kmpfacelink.model/CandidateReadiness.UNAVAILABLE|null[0]
+
+    final val entries // io.github.kmpfacelink.model/CandidateReadiness.entries|#static{}entries[0]
+        final fun <get-entries>(): kotlin.enums/EnumEntries<io.github.kmpfacelink.model/CandidateReadiness> // io.github.kmpfacelink.model/CandidateReadiness.entries.<get-entries>|<get-entries>#static(){}[0]
+
+    final fun valueOf(kotlin/String): io.github.kmpfacelink.model/CandidateReadiness // io.github.kmpfacelink.model/CandidateReadiness.valueOf|valueOf#static(kotlin.String){}[0]
+    final fun values(): kotlin/Array<io.github.kmpfacelink.model/CandidateReadiness> // io.github.kmpfacelink.model/CandidateReadiness.values|values#static(){}[0]
+}
+
+final enum class io.github.kmpfacelink.model/CandidateSelectionMode : kotlin/Enum<io.github.kmpfacelink.model/CandidateSelectionMode> { // io.github.kmpfacelink.model/CandidateSelectionMode|null[0]
+    enum entry MAX_WITH_ESTIMATOR // io.github.kmpfacelink.model/CandidateSelectionMode.MAX_WITH_ESTIMATOR|null[0]
+    enum entry REPLACE // io.github.kmpfacelink.model/CandidateSelectionMode.REPLACE|null[0]
+    enum entry WEIGHTED_WITH_ESTIMATOR // io.github.kmpfacelink.model/CandidateSelectionMode.WEIGHTED_WITH_ESTIMATOR|null[0]
+
+    final val entries // io.github.kmpfacelink.model/CandidateSelectionMode.entries|#static{}entries[0]
+        final fun <get-entries>(): kotlin.enums/EnumEntries<io.github.kmpfacelink.model/CandidateSelectionMode> // io.github.kmpfacelink.model/CandidateSelectionMode.entries.<get-entries>|<get-entries>#static(){}[0]
+
+    final fun valueOf(kotlin/String): io.github.kmpfacelink.model/CandidateSelectionMode // io.github.kmpfacelink.model/CandidateSelectionMode.valueOf|valueOf#static(kotlin.String){}[0]
+    final fun values(): kotlin/Array<io.github.kmpfacelink.model/CandidateSelectionMode> // io.github.kmpfacelink.model/CandidateSelectionMode.values|values#static(){}[0]
+}
+
+final enum class io.github.kmpfacelink.model/CandidateSelectionSource : kotlin/Enum<io.github.kmpfacelink.model/CandidateSelectionSource> { // io.github.kmpfacelink.model/CandidateSelectionSource|null[0]
+    enum entry ABSENT // io.github.kmpfacelink.model/CandidateSelectionSource.ABSENT|null[0]
+    enum entry ALTERNATIVE // io.github.kmpfacelink.model/CandidateSelectionSource.ALTERNATIVE|null[0]
+    enum entry ESTIMATOR // io.github.kmpfacelink.model/CandidateSelectionSource.ESTIMATOR|null[0]
+
+    final val entries // io.github.kmpfacelink.model/CandidateSelectionSource.entries|#static{}entries[0]
+        final fun <get-entries>(): kotlin.enums/EnumEntries<io.github.kmpfacelink.model/CandidateSelectionSource> // io.github.kmpfacelink.model/CandidateSelectionSource.entries.<get-entries>|<get-entries>#static(){}[0]
+
+    final fun valueOf(kotlin/String): io.github.kmpfacelink.model/CandidateSelectionSource // io.github.kmpfacelink.model/CandidateSelectionSource.valueOf|valueOf#static(kotlin.String){}[0]
+    final fun values(): kotlin/Array<io.github.kmpfacelink.model/CandidateSelectionSource> // io.github.kmpfacelink.model/CandidateSelectionSource.values|values#static(){}[0]
+}
+
+final enum class io.github.kmpfacelink.model/CandidateSemanticIntent : kotlin/Enum<io.github.kmpfacelink.model/CandidateSemanticIntent> { // io.github.kmpfacelink.model/CandidateSemanticIntent|null[0]
+    enum entry CANONICAL_ALTERNATIVE_CANDIDATE // io.github.kmpfacelink.model/CandidateSemanticIntent.CANONICAL_ALTERNATIVE_CANDIDATE|null[0]
+    enum entry INDEPENDENT_OBSERVATION // io.github.kmpfacelink.model/CandidateSemanticIntent.INDEPENDENT_OBSERVATION|null[0]
+    enum entry UNRESOLVED // io.github.kmpfacelink.model/CandidateSemanticIntent.UNRESOLVED|null[0]
+
+    final val entries // io.github.kmpfacelink.model/CandidateSemanticIntent.entries|#static{}entries[0]
+        final fun <get-entries>(): kotlin.enums/EnumEntries<io.github.kmpfacelink.model/CandidateSemanticIntent> // io.github.kmpfacelink.model/CandidateSemanticIntent.entries.<get-entries>|<get-entries>#static(){}[0]
+
+    final fun valueOf(kotlin/String): io.github.kmpfacelink.model/CandidateSemanticIntent // io.github.kmpfacelink.model/CandidateSemanticIntent.valueOf|valueOf#static(kotlin.String){}[0]
+    final fun values(): kotlin/Array<io.github.kmpfacelink.model/CandidateSemanticIntent> // io.github.kmpfacelink.model/CandidateSemanticIntent.values|values#static(){}[0]
+}
+
 final enum class io.github.kmpfacelink.model/CapabilitySource : kotlin/Enum<io.github.kmpfacelink.model/CapabilitySource> { // io.github.kmpfacelink.model/CapabilitySource|null[0]
     enum entry ASSUMED // io.github.kmpfacelink.model/CapabilitySource.ASSUMED|null[0]
     enum entry DERIVED // io.github.kmpfacelink.model/CapabilitySource.DERIVED|null[0]
@@ -560,6 +614,20 @@ final enum class io.github.kmpfacelink.model/ValidationClass : kotlin/Enum<io.gi
     final fun values(): kotlin/Array<io.github.kmpfacelink.model/ValidationClass> // io.github.kmpfacelink.model/ValidationClass.values|values#static(){}[0]
 }
 
+final enum class io.github.kmpfacelink.research/C1StandaloneFrameRole : kotlin/Enum<io.github.kmpfacelink.research/C1StandaloneFrameRole> { // io.github.kmpfacelink.research/C1StandaloneFrameRole|null[0]
+    enum entry BEFORE_CALIBRATION // io.github.kmpfacelink.research/C1StandaloneFrameRole.BEFORE_CALIBRATION|null[0]
+    enum entry EVALUATION // io.github.kmpfacelink.research/C1StandaloneFrameRole.EVALUATION|null[0]
+    enum entry OPENING_NEUTRAL_CALIBRATION // io.github.kmpfacelink.research/C1StandaloneFrameRole.OPENING_NEUTRAL_CALIBRATION|null[0]
+
+    final val encodedValue // io.github.kmpfacelink.research/C1StandaloneFrameRole.encodedValue|{}encodedValue[0]
+        final fun <get-encodedValue>(): kotlin/Float // io.github.kmpfacelink.research/C1StandaloneFrameRole.encodedValue.<get-encodedValue>|<get-encodedValue>(){}[0]
+    final val entries // io.github.kmpfacelink.research/C1StandaloneFrameRole.entries|#static{}entries[0]
+        final fun <get-entries>(): kotlin.enums/EnumEntries<io.github.kmpfacelink.research/C1StandaloneFrameRole> // io.github.kmpfacelink.research/C1StandaloneFrameRole.entries.<get-entries>|<get-entries>#static(){}[0]
+
+    final fun valueOf(kotlin/String): io.github.kmpfacelink.research/C1StandaloneFrameRole // io.github.kmpfacelink.research/C1StandaloneFrameRole.valueOf|valueOf#static(kotlin.String){}[0]
+    final fun values(): kotlin/Array<io.github.kmpfacelink.research/C1StandaloneFrameRole> // io.github.kmpfacelink.research/C1StandaloneFrameRole.values|values#static(){}[0]
+}
+
 final enum class io.github.kmpfacelink.research/FrozenResearchReadiness : kotlin/Enum<io.github.kmpfacelink.research/FrozenResearchReadiness> { // io.github.kmpfacelink.research/FrozenResearchReadiness|null[0]
     enum entry NOT_READY // io.github.kmpfacelink.research/FrozenResearchReadiness.NOT_READY|null[0]
     enum entry READY // io.github.kmpfacelink.research/FrozenResearchReadiness.READY|null[0]
@@ -572,12 +640,30 @@ final enum class io.github.kmpfacelink.research/FrozenResearchReadiness : kotlin
     final fun values(): kotlin/Array<io.github.kmpfacelink.research/FrozenResearchReadiness> // io.github.kmpfacelink.research/FrozenResearchReadiness.values|values#static(){}[0]
 }
 
+final enum class io.github.kmpfacelink.research/StaticAppearanceModelAvailability : kotlin/Enum<io.github.kmpfacelink.research/StaticAppearanceModelAvailability> { // io.github.kmpfacelink.research/StaticAppearanceModelAvailability|null[0]
+    enum entry ABSENT // io.github.kmpfacelink.research/StaticAppearanceModelAvailability.ABSENT|null[0]
+    enum entry AVAILABLE // io.github.kmpfacelink.research/StaticAppearanceModelAvailability.AVAILABLE|null[0]
+    enum entry HASH_MISMATCH // io.github.kmpfacelink.research/StaticAppearanceModelAvailability.HASH_MISMATCH|null[0]
+    enum entry LOAD_FAILED // io.github.kmpfacelink.research/StaticAppearanceModelAvailability.LOAD_FAILED|null[0]
+    enum entry PARSE_FAILED // io.github.kmpfacelink.research/StaticAppearanceModelAvailability.PARSE_FAILED|null[0]
+
+    final val entries // io.github.kmpfacelink.research/StaticAppearanceModelAvailability.entries|#static{}entries[0]
+        final fun <get-entries>(): kotlin.enums/EnumEntries<io.github.kmpfacelink.research/StaticAppearanceModelAvailability> // io.github.kmpfacelink.research/StaticAppearanceModelAvailability.entries.<get-entries>|<get-entries>#static(){}[0]
+
+    final fun valueOf(kotlin/String): io.github.kmpfacelink.research/StaticAppearanceModelAvailability // io.github.kmpfacelink.research/StaticAppearanceModelAvailability.valueOf|valueOf#static(kotlin.String){}[0]
+    final fun values(): kotlin/Array<io.github.kmpfacelink.research/StaticAppearanceModelAvailability> // io.github.kmpfacelink.research/StaticAppearanceModelAvailability.values|values#static(){}[0]
+}
+
 abstract fun interface io.github.kmpfacelink.api/Releasable { // io.github.kmpfacelink.api/Releasable|null[0]
     abstract fun release() // io.github.kmpfacelink.api/Releasable.release|release(){}[0]
 }
 
 abstract fun interface io.github.kmpfacelink.model/BlendShapeFallbackPolicy { // io.github.kmpfacelink.model/BlendShapeFallbackPolicy|null[0]
     abstract fun decide(io.github.kmpfacelink.model/BlendShape, io.github.kmpfacelink.model/CapabilityEvidence, io.github.kmpfacelink.model/EvidenceAcceptance): io.github.kmpfacelink.model/BlendShapeRoute // io.github.kmpfacelink.model/BlendShapeFallbackPolicy.decide|decide(io.github.kmpfacelink.model.BlendShape;io.github.kmpfacelink.model.CapabilityEvidence;io.github.kmpfacelink.model.EvidenceAcceptance){}[0]
+}
+
+abstract fun interface io.github.kmpfacelink.model/CandidateObservationProducer { // io.github.kmpfacelink.model/CandidateObservationProducer|null[0]
+    abstract fun observe(io.github.kmpfacelink.model/CandidateObservationInput): io.github.kmpfacelink.model/CandidateProducerOutput // io.github.kmpfacelink.model/CandidateObservationProducer.observe|observe(io.github.kmpfacelink.model.CandidateObservationInput){}[0]
 }
 
 abstract fun interface io.github.kmpfacelink.model/EvidenceAcceptancePolicy { // io.github.kmpfacelink.model/EvidenceAcceptancePolicy|null[0]
@@ -594,6 +680,18 @@ abstract fun interface io.github.kmpfacelink.model/ParticipantCalibrationDecisio
 
 abstract fun interface io.github.kmpfacelink.model/ParticipantCalibrationFallbackPolicy { // io.github.kmpfacelink.model/ParticipantCalibrationFallbackPolicy|null[0]
     abstract fun decide(io.github.kmpfacelink.model/DerivedFaceSignal, io.github.kmpfacelink.model/ParticipantCalibrationLifecycle): io.github.kmpfacelink.model/BlendShapeRoute // io.github.kmpfacelink.model/ParticipantCalibrationFallbackPolicy.decide|decide(io.github.kmpfacelink.model.DerivedFaceSignal;io.github.kmpfacelink.model.ParticipantCalibrationLifecycle){}[0]
+}
+
+abstract fun interface io.github.kmpfacelink.research/StaticAppearanceModelByteLoader { // io.github.kmpfacelink.research/StaticAppearanceModelByteLoader|null[0]
+    abstract fun load(): kotlin/ByteArray? // io.github.kmpfacelink.research/StaticAppearanceModelByteLoader.load|load(){}[0]
+}
+
+abstract fun interface io.github.kmpfacelink.research/StaticAppearanceModelParser { // io.github.kmpfacelink.research/StaticAppearanceModelParser|null[0]
+    abstract fun parse(kotlin/ByteArray): io.github.kmpfacelink.research/StaticAppearanceScoreModel // io.github.kmpfacelink.research/StaticAppearanceModelParser.parse|parse(kotlin.ByteArray){}[0]
+}
+
+abstract fun interface io.github.kmpfacelink.research/StaticAppearanceScoreModel { // io.github.kmpfacelink.research/StaticAppearanceScoreModel|null[0]
+    abstract fun score(kotlin.collections/List<kotlin/Float>): kotlin/Float // io.github.kmpfacelink.research/StaticAppearanceScoreModel.score|score(kotlin.collections.List<kotlin.Float>){}[0]
 }
 
 abstract interface io.github.kmpfacelink.api/BodyTracker : io.github.kmpfacelink.api/Releasable { // io.github.kmpfacelink.api/BodyTracker|null[0]
@@ -673,6 +771,13 @@ abstract interface io.github.kmpfacelink.api/HolisticTracker : io.github.kmpface
 abstract interface io.github.kmpfacelink.api/OfflineFaceInference : io.github.kmpfacelink.api/Releasable { // io.github.kmpfacelink.api/OfflineFaceInference|null[0]
     abstract fun infer(io.github.kmpfacelink.api/OfflineFrame): io.github.kmpfacelink.api/OfflineFaceResult // io.github.kmpfacelink.api/OfflineFaceInference.infer|infer(io.github.kmpfacelink.api.OfflineFrame){}[0]
     open fun inferMeasured(io.github.kmpfacelink.api/OfflineFrame): io.github.kmpfacelink.api/OfflineMeasuredFaceResult // io.github.kmpfacelink.api/OfflineFaceInference.inferMeasured|inferMeasured(io.github.kmpfacelink.api.OfflineFrame){}[0]
+}
+
+abstract interface io.github.kmpfacelink.model/CandidateObservationProducerFactory { // io.github.kmpfacelink.model/CandidateObservationProducerFactory|null[0]
+    abstract val descriptor // io.github.kmpfacelink.model/CandidateObservationProducerFactory.descriptor|{}descriptor[0]
+        abstract fun <get-descriptor>(): io.github.kmpfacelink.model/CandidateProducerDescriptor // io.github.kmpfacelink.model/CandidateObservationProducerFactory.descriptor.<get-descriptor>|<get-descriptor>(){}[0]
+
+    abstract fun create(): io.github.kmpfacelink.model/CandidateObservationProducer // io.github.kmpfacelink.model/CandidateObservationProducerFactory.create|create(){}[0]
 }
 
 abstract interface io.github.kmpfacelink.util/PoseLiftingStrategy { // io.github.kmpfacelink.util/PoseLiftingStrategy|null[0]
@@ -1459,6 +1564,151 @@ final class io.github.kmpfacelink.model/CalibrationConfig { // io.github.kmpface
     final fun equals(kotlin/Any?): kotlin/Boolean // io.github.kmpfacelink.model/CalibrationConfig.equals|equals(kotlin.Any?){}[0]
     final fun hashCode(): kotlin/Int // io.github.kmpfacelink.model/CalibrationConfig.hashCode|hashCode(){}[0]
     final fun toString(): kotlin/String // io.github.kmpfacelink.model/CalibrationConfig.toString|toString(){}[0]
+}
+
+final class io.github.kmpfacelink.model/CandidateInputIdentity { // io.github.kmpfacelink.model/CandidateInputIdentity|null[0]
+    constructor <init>(kotlin/ULong, kotlin/ULong, kotlin/Int, kotlin/Long) // io.github.kmpfacelink.model/CandidateInputIdentity.<init>|<init>(kotlin.ULong;kotlin.ULong;kotlin.Int;kotlin.Long){}[0]
+
+    final val contextEpochId // io.github.kmpfacelink.model/CandidateInputIdentity.contextEpochId|{}contextEpochId[0]
+        final fun <get-contextEpochId>(): kotlin/ULong // io.github.kmpfacelink.model/CandidateInputIdentity.contextEpochId.<get-contextEpochId>|<get-contextEpochId>(){}[0]
+    final val faceIndex // io.github.kmpfacelink.model/CandidateInputIdentity.faceIndex|{}faceIndex[0]
+        final fun <get-faceIndex>(): kotlin/Int // io.github.kmpfacelink.model/CandidateInputIdentity.faceIndex.<get-faceIndex>|<get-faceIndex>(){}[0]
+    final val processingStateRevision // io.github.kmpfacelink.model/CandidateInputIdentity.processingStateRevision|{}processingStateRevision[0]
+        final fun <get-processingStateRevision>(): kotlin/ULong // io.github.kmpfacelink.model/CandidateInputIdentity.processingStateRevision.<get-processingStateRevision>|<get-processingStateRevision>(){}[0]
+    final val timestampMs // io.github.kmpfacelink.model/CandidateInputIdentity.timestampMs|{}timestampMs[0]
+        final fun <get-timestampMs>(): kotlin/Long // io.github.kmpfacelink.model/CandidateInputIdentity.timestampMs.<get-timestampMs>|<get-timestampMs>(){}[0]
+}
+
+final class io.github.kmpfacelink.model/CandidateObservation { // io.github.kmpfacelink.model/CandidateObservation|null[0]
+    constructor <init>(io.github.kmpfacelink.model/CandidateInputIdentity, kotlin/String, kotlin/String, kotlin/String, io.github.kmpfacelink.model/CandidateSemanticIntent, io.github.kmpfacelink.model/BlendShape?, kotlin/Float?, io.github.kmpfacelink.model/CandidateReadiness, kotlin/String?) // io.github.kmpfacelink.model/CandidateObservation.<init>|<init>(io.github.kmpfacelink.model.CandidateInputIdentity;kotlin.String;kotlin.String;kotlin.String;io.github.kmpfacelink.model.CandidateSemanticIntent;io.github.kmpfacelink.model.BlendShape?;kotlin.Float?;io.github.kmpfacelink.model.CandidateReadiness;kotlin.String?){}[0]
+
+    final val identity // io.github.kmpfacelink.model/CandidateObservation.identity|{}identity[0]
+        final fun <get-identity>(): io.github.kmpfacelink.model/CandidateInputIdentity // io.github.kmpfacelink.model/CandidateObservation.identity.<get-identity>|<get-identity>(){}[0]
+    final val implementationRevision // io.github.kmpfacelink.model/CandidateObservation.implementationRevision|{}implementationRevision[0]
+        final fun <get-implementationRevision>(): kotlin/String // io.github.kmpfacelink.model/CandidateObservation.implementationRevision.<get-implementationRevision>|<get-implementationRevision>(){}[0]
+    final val producerId // io.github.kmpfacelink.model/CandidateObservation.producerId|{}producerId[0]
+        final fun <get-producerId>(): kotlin/String // io.github.kmpfacelink.model/CandidateObservation.producerId.<get-producerId>|<get-producerId>(){}[0]
+    final val proposedTarget // io.github.kmpfacelink.model/CandidateObservation.proposedTarget|{}proposedTarget[0]
+        final fun <get-proposedTarget>(): io.github.kmpfacelink.model/BlendShape? // io.github.kmpfacelink.model/CandidateObservation.proposedTarget.<get-proposedTarget>|<get-proposedTarget>(){}[0]
+    final val readiness // io.github.kmpfacelink.model/CandidateObservation.readiness|{}readiness[0]
+        final fun <get-readiness>(): io.github.kmpfacelink.model/CandidateReadiness // io.github.kmpfacelink.model/CandidateObservation.readiness.<get-readiness>|<get-readiness>(){}[0]
+    final val reason // io.github.kmpfacelink.model/CandidateObservation.reason|{}reason[0]
+        final fun <get-reason>(): kotlin/String? // io.github.kmpfacelink.model/CandidateObservation.reason.<get-reason>|<get-reason>(){}[0]
+    final val semanticId // io.github.kmpfacelink.model/CandidateObservation.semanticId|{}semanticId[0]
+        final fun <get-semanticId>(): kotlin/String // io.github.kmpfacelink.model/CandidateObservation.semanticId.<get-semanticId>|<get-semanticId>(){}[0]
+    final val semanticIntent // io.github.kmpfacelink.model/CandidateObservation.semanticIntent|{}semanticIntent[0]
+        final fun <get-semanticIntent>(): io.github.kmpfacelink.model/CandidateSemanticIntent // io.github.kmpfacelink.model/CandidateObservation.semanticIntent.<get-semanticIntent>|<get-semanticIntent>(){}[0]
+    final val value // io.github.kmpfacelink.model/CandidateObservation.value|{}value[0]
+        final fun <get-value>(): kotlin/Float? // io.github.kmpfacelink.model/CandidateObservation.value.<get-value>|<get-value>(){}[0]
+}
+
+final class io.github.kmpfacelink.model/CandidateObservationInput { // io.github.kmpfacelink.model/CandidateObservationInput|null[0]
+    constructor <init>(io.github.kmpfacelink.model/CandidateInputIdentity, kotlin.collections/Map<io.github.kmpfacelink.model/BlendShape, kotlin/Float>, kotlin.collections/List<io.github.kmpfacelink.model/FaceLandmark>, kotlin/Int, kotlin/Int) // io.github.kmpfacelink.model/CandidateObservationInput.<init>|<init>(io.github.kmpfacelink.model.CandidateInputIdentity;kotlin.collections.Map<io.github.kmpfacelink.model.BlendShape,kotlin.Float>;kotlin.collections.List<io.github.kmpfacelink.model.FaceLandmark>;kotlin.Int;kotlin.Int){}[0]
+    constructor <init>(io.github.kmpfacelink.model/CandidateInputIdentity, kotlin.collections/Map<io.github.kmpfacelink.model/BlendShape, kotlin/Float>, kotlin.collections/List<io.github.kmpfacelink.model/FaceLandmark>, kotlin/Int, kotlin/Int, kotlin.collections/Map<kotlin/String, kotlin.collections/List<kotlin/Float>>) // io.github.kmpfacelink.model/CandidateObservationInput.<init>|<init>(io.github.kmpfacelink.model.CandidateInputIdentity;kotlin.collections.Map<io.github.kmpfacelink.model.BlendShape,kotlin.Float>;kotlin.collections.List<io.github.kmpfacelink.model.FaceLandmark>;kotlin.Int;kotlin.Int;kotlin.collections.Map<kotlin.String,kotlin.collections.List<kotlin.Float>>){}[0]
+
+    final val estimator // io.github.kmpfacelink.model/CandidateObservationInput.estimator|{}estimator[0]
+        final fun <get-estimator>(): kotlin.collections/Map<io.github.kmpfacelink.model/BlendShape, kotlin/Float> // io.github.kmpfacelink.model/CandidateObservationInput.estimator.<get-estimator>|<get-estimator>(){}[0]
+    final val featurePlanes // io.github.kmpfacelink.model/CandidateObservationInput.featurePlanes|{}featurePlanes[0]
+        final fun <get-featurePlanes>(): kotlin.collections/Map<kotlin/String, kotlin.collections/List<kotlin/Float>> // io.github.kmpfacelink.model/CandidateObservationInput.featurePlanes.<get-featurePlanes>|<get-featurePlanes>(){}[0]
+    final val identity // io.github.kmpfacelink.model/CandidateObservationInput.identity|{}identity[0]
+        final fun <get-identity>(): io.github.kmpfacelink.model/CandidateInputIdentity // io.github.kmpfacelink.model/CandidateObservationInput.identity.<get-identity>|<get-identity>(){}[0]
+    final val landmarks // io.github.kmpfacelink.model/CandidateObservationInput.landmarks|{}landmarks[0]
+        final fun <get-landmarks>(): kotlin.collections/List<io.github.kmpfacelink.model/FaceLandmark> // io.github.kmpfacelink.model/CandidateObservationInput.landmarks.<get-landmarks>|<get-landmarks>(){}[0]
+    final val sourceImageHeight // io.github.kmpfacelink.model/CandidateObservationInput.sourceImageHeight|{}sourceImageHeight[0]
+        final fun <get-sourceImageHeight>(): kotlin/Int // io.github.kmpfacelink.model/CandidateObservationInput.sourceImageHeight.<get-sourceImageHeight>|<get-sourceImageHeight>(){}[0]
+    final val sourceImageWidth // io.github.kmpfacelink.model/CandidateObservationInput.sourceImageWidth|{}sourceImageWidth[0]
+        final fun <get-sourceImageWidth>(): kotlin/Int // io.github.kmpfacelink.model/CandidateObservationInput.sourceImageWidth.<get-sourceImageWidth>|<get-sourceImageWidth>(){}[0]
+}
+
+final class io.github.kmpfacelink.model/CandidateObservationReceipt { // io.github.kmpfacelink.model/CandidateObservationReceipt|null[0]
+    constructor <init>(io.github.kmpfacelink.model/CandidateInputIdentity, kotlin.collections/Map<io.github.kmpfacelink.model/BlendShape, kotlin/Float>, kotlin.collections/List<io.github.kmpfacelink.model/CandidateObservation>, kotlin.collections/Map<io.github.kmpfacelink.model/BlendShape, kotlin/Float>, kotlin.collections/List<io.github.kmpfacelink.model/CandidateSelectionProvenance>) // io.github.kmpfacelink.model/CandidateObservationReceipt.<init>|<init>(io.github.kmpfacelink.model.CandidateInputIdentity;kotlin.collections.Map<io.github.kmpfacelink.model.BlendShape,kotlin.Float>;kotlin.collections.List<io.github.kmpfacelink.model.CandidateObservation>;kotlin.collections.Map<io.github.kmpfacelink.model.BlendShape,kotlin.Float>;kotlin.collections.List<io.github.kmpfacelink.model.CandidateSelectionProvenance>){}[0]
+
+    final val alternatives // io.github.kmpfacelink.model/CandidateObservationReceipt.alternatives|{}alternatives[0]
+        final fun <get-alternatives>(): kotlin.collections/List<io.github.kmpfacelink.model/CandidateObservation> // io.github.kmpfacelink.model/CandidateObservationReceipt.alternatives.<get-alternatives>|<get-alternatives>(){}[0]
+    final val estimator // io.github.kmpfacelink.model/CandidateObservationReceipt.estimator|{}estimator[0]
+        final fun <get-estimator>(): kotlin.collections/Map<io.github.kmpfacelink.model/BlendShape, kotlin/Float> // io.github.kmpfacelink.model/CandidateObservationReceipt.estimator.<get-estimator>|<get-estimator>(){}[0]
+    final val identity // io.github.kmpfacelink.model/CandidateObservationReceipt.identity|{}identity[0]
+        final fun <get-identity>(): io.github.kmpfacelink.model/CandidateInputIdentity // io.github.kmpfacelink.model/CandidateObservationReceipt.identity.<get-identity>|<get-identity>(){}[0]
+    final val selected // io.github.kmpfacelink.model/CandidateObservationReceipt.selected|{}selected[0]
+        final fun <get-selected>(): kotlin.collections/Map<io.github.kmpfacelink.model/BlendShape, kotlin/Float> // io.github.kmpfacelink.model/CandidateObservationReceipt.selected.<get-selected>|<get-selected>(){}[0]
+    final val selectionProvenance // io.github.kmpfacelink.model/CandidateObservationReceipt.selectionProvenance|{}selectionProvenance[0]
+        final fun <get-selectionProvenance>(): kotlin.collections/List<io.github.kmpfacelink.model/CandidateSelectionProvenance> // io.github.kmpfacelink.model/CandidateObservationReceipt.selectionProvenance.<get-selectionProvenance>|<get-selectionProvenance>(){}[0]
+}
+
+final class io.github.kmpfacelink.model/CandidateObservationSession { // io.github.kmpfacelink.model/CandidateObservationSession|null[0]
+    constructor <init>(kotlin.collections/List<io.github.kmpfacelink.model/CandidateObservationProducerFactory> = ...) // io.github.kmpfacelink.model/CandidateObservationSession.<init>|<init>(kotlin.collections.List<io.github.kmpfacelink.model.CandidateObservationProducerFactory>){}[0]
+
+    final fun observe(io.github.kmpfacelink.model/CandidateObservationInput, io.github.kmpfacelink.model/CandidateSelectionPolicy = ...): io.github.kmpfacelink.model/CandidateObservationReceipt // io.github.kmpfacelink.model/CandidateObservationSession.observe|observe(io.github.kmpfacelink.model.CandidateObservationInput;io.github.kmpfacelink.model.CandidateSelectionPolicy){}[0]
+    final fun reset() // io.github.kmpfacelink.model/CandidateObservationSession.reset|reset(){}[0]
+}
+
+final class io.github.kmpfacelink.model/CandidateProducerDescriptor { // io.github.kmpfacelink.model/CandidateProducerDescriptor|null[0]
+    constructor <init>(kotlin/String, kotlin/String, kotlin/String, io.github.kmpfacelink.model/CandidateSemanticIntent, io.github.kmpfacelink.model/BlendShape?) // io.github.kmpfacelink.model/CandidateProducerDescriptor.<init>|<init>(kotlin.String;kotlin.String;kotlin.String;io.github.kmpfacelink.model.CandidateSemanticIntent;io.github.kmpfacelink.model.BlendShape?){}[0]
+
+    final val implementationRevision // io.github.kmpfacelink.model/CandidateProducerDescriptor.implementationRevision|{}implementationRevision[0]
+        final fun <get-implementationRevision>(): kotlin/String // io.github.kmpfacelink.model/CandidateProducerDescriptor.implementationRevision.<get-implementationRevision>|<get-implementationRevision>(){}[0]
+    final val producerId // io.github.kmpfacelink.model/CandidateProducerDescriptor.producerId|{}producerId[0]
+        final fun <get-producerId>(): kotlin/String // io.github.kmpfacelink.model/CandidateProducerDescriptor.producerId.<get-producerId>|<get-producerId>(){}[0]
+    final val proposedTarget // io.github.kmpfacelink.model/CandidateProducerDescriptor.proposedTarget|{}proposedTarget[0]
+        final fun <get-proposedTarget>(): io.github.kmpfacelink.model/BlendShape? // io.github.kmpfacelink.model/CandidateProducerDescriptor.proposedTarget.<get-proposedTarget>|<get-proposedTarget>(){}[0]
+    final val semanticId // io.github.kmpfacelink.model/CandidateProducerDescriptor.semanticId|{}semanticId[0]
+        final fun <get-semanticId>(): kotlin/String // io.github.kmpfacelink.model/CandidateProducerDescriptor.semanticId.<get-semanticId>|<get-semanticId>(){}[0]
+    final val semanticIntent // io.github.kmpfacelink.model/CandidateProducerDescriptor.semanticIntent|{}semanticIntent[0]
+        final fun <get-semanticIntent>(): io.github.kmpfacelink.model/CandidateSemanticIntent // io.github.kmpfacelink.model/CandidateProducerDescriptor.semanticIntent.<get-semanticIntent>|<get-semanticIntent>(){}[0]
+}
+
+final class io.github.kmpfacelink.model/CandidateProducerOutput { // io.github.kmpfacelink.model/CandidateProducerOutput|null[0]
+    constructor <init>(kotlin/Float?, io.github.kmpfacelink.model/CandidateReadiness, kotlin/String?) // io.github.kmpfacelink.model/CandidateProducerOutput.<init>|<init>(kotlin.Float?;io.github.kmpfacelink.model.CandidateReadiness;kotlin.String?){}[0]
+
+    final val readiness // io.github.kmpfacelink.model/CandidateProducerOutput.readiness|{}readiness[0]
+        final fun <get-readiness>(): io.github.kmpfacelink.model/CandidateReadiness // io.github.kmpfacelink.model/CandidateProducerOutput.readiness.<get-readiness>|<get-readiness>(){}[0]
+    final val reason // io.github.kmpfacelink.model/CandidateProducerOutput.reason|{}reason[0]
+        final fun <get-reason>(): kotlin/String? // io.github.kmpfacelink.model/CandidateProducerOutput.reason.<get-reason>|<get-reason>(){}[0]
+    final val value // io.github.kmpfacelink.model/CandidateProducerOutput.value|{}value[0]
+        final fun <get-value>(): kotlin/Float? // io.github.kmpfacelink.model/CandidateProducerOutput.value.<get-value>|<get-value>(){}[0]
+
+    final object Companion { // io.github.kmpfacelink.model/CandidateProducerOutput.Companion|null[0]
+        final fun absent(io.github.kmpfacelink.model/CandidateReadiness, kotlin/String): io.github.kmpfacelink.model/CandidateProducerOutput // io.github.kmpfacelink.model/CandidateProducerOutput.Companion.absent|absent(io.github.kmpfacelink.model.CandidateReadiness;kotlin.String){}[0]
+        final fun ready(kotlin/Float): io.github.kmpfacelink.model/CandidateProducerOutput // io.github.kmpfacelink.model/CandidateProducerOutput.Companion.ready|ready(kotlin.Float){}[0]
+    }
+}
+
+final class io.github.kmpfacelink.model/CandidateSelectionPolicy { // io.github.kmpfacelink.model/CandidateSelectionPolicy|null[0]
+    constructor <init>(kotlin.collections/Map<io.github.kmpfacelink.model/BlendShape, io.github.kmpfacelink.model/CandidateSelectionRoute> = ...) // io.github.kmpfacelink.model/CandidateSelectionPolicy.<init>|<init>(kotlin.collections.Map<io.github.kmpfacelink.model.BlendShape,io.github.kmpfacelink.model.CandidateSelectionRoute>){}[0]
+
+    final val routes // io.github.kmpfacelink.model/CandidateSelectionPolicy.routes|{}routes[0]
+        final fun <get-routes>(): kotlin.collections/Map<io.github.kmpfacelink.model/BlendShape, io.github.kmpfacelink.model/CandidateSelectionRoute> // io.github.kmpfacelink.model/CandidateSelectionPolicy.routes.<get-routes>|<get-routes>(){}[0]
+
+    final object Companion { // io.github.kmpfacelink.model/CandidateSelectionPolicy.Companion|null[0]
+        final val DEFAULT_OFF // io.github.kmpfacelink.model/CandidateSelectionPolicy.Companion.DEFAULT_OFF|{}DEFAULT_OFF[0]
+            final fun <get-DEFAULT_OFF>(): io.github.kmpfacelink.model/CandidateSelectionPolicy // io.github.kmpfacelink.model/CandidateSelectionPolicy.Companion.DEFAULT_OFF.<get-DEFAULT_OFF>|<get-DEFAULT_OFF>(){}[0]
+    }
+}
+
+final class io.github.kmpfacelink.model/CandidateSelectionProvenance { // io.github.kmpfacelink.model/CandidateSelectionProvenance|null[0]
+    constructor <init>(io.github.kmpfacelink.model/BlendShape, io.github.kmpfacelink.model/CandidateSelectionSource, kotlin/String?, io.github.kmpfacelink.model/CandidateSelectionMode?, kotlin/String?) // io.github.kmpfacelink.model/CandidateSelectionProvenance.<init>|<init>(io.github.kmpfacelink.model.BlendShape;io.github.kmpfacelink.model.CandidateSelectionSource;kotlin.String?;io.github.kmpfacelink.model.CandidateSelectionMode?;kotlin.String?){}[0]
+
+    final val mode // io.github.kmpfacelink.model/CandidateSelectionProvenance.mode|{}mode[0]
+        final fun <get-mode>(): io.github.kmpfacelink.model/CandidateSelectionMode? // io.github.kmpfacelink.model/CandidateSelectionProvenance.mode.<get-mode>|<get-mode>(){}[0]
+    final val producerId // io.github.kmpfacelink.model/CandidateSelectionProvenance.producerId|{}producerId[0]
+        final fun <get-producerId>(): kotlin/String? // io.github.kmpfacelink.model/CandidateSelectionProvenance.producerId.<get-producerId>|<get-producerId>(){}[0]
+    final val reason // io.github.kmpfacelink.model/CandidateSelectionProvenance.reason|{}reason[0]
+        final fun <get-reason>(): kotlin/String? // io.github.kmpfacelink.model/CandidateSelectionProvenance.reason.<get-reason>|<get-reason>(){}[0]
+    final val source // io.github.kmpfacelink.model/CandidateSelectionProvenance.source|{}source[0]
+        final fun <get-source>(): io.github.kmpfacelink.model/CandidateSelectionSource // io.github.kmpfacelink.model/CandidateSelectionProvenance.source.<get-source>|<get-source>(){}[0]
+    final val target // io.github.kmpfacelink.model/CandidateSelectionProvenance.target|{}target[0]
+        final fun <get-target>(): io.github.kmpfacelink.model/BlendShape // io.github.kmpfacelink.model/CandidateSelectionProvenance.target.<get-target>|<get-target>(){}[0]
+}
+
+final class io.github.kmpfacelink.model/CandidateSelectionRoute { // io.github.kmpfacelink.model/CandidateSelectionRoute|null[0]
+    constructor <init>(kotlin/String, io.github.kmpfacelink.model/CandidateSelectionMode = ..., kotlin/Float = ...) // io.github.kmpfacelink.model/CandidateSelectionRoute.<init>|<init>(kotlin.String;io.github.kmpfacelink.model.CandidateSelectionMode;kotlin.Float){}[0]
+
+    final val alternativeWeight // io.github.kmpfacelink.model/CandidateSelectionRoute.alternativeWeight|{}alternativeWeight[0]
+        final fun <get-alternativeWeight>(): kotlin/Float // io.github.kmpfacelink.model/CandidateSelectionRoute.alternativeWeight.<get-alternativeWeight>|<get-alternativeWeight>(){}[0]
+    final val mode // io.github.kmpfacelink.model/CandidateSelectionRoute.mode|{}mode[0]
+        final fun <get-mode>(): io.github.kmpfacelink.model/CandidateSelectionMode // io.github.kmpfacelink.model/CandidateSelectionRoute.mode.<get-mode>|<get-mode>(){}[0]
+    final val producerId // io.github.kmpfacelink.model/CandidateSelectionRoute.producerId|{}producerId[0]
+        final fun <get-producerId>(): kotlin/String // io.github.kmpfacelink.model/CandidateSelectionRoute.producerId.<get-producerId>|<get-producerId>(){}[0]
 }
 
 final class io.github.kmpfacelink.model/CapabilityAssessment { // io.github.kmpfacelink.model/CapabilityAssessment|null[0]
@@ -2868,6 +3118,33 @@ final class io.github.kmpfacelink.model/TransformSpec { // io.github.kmpfacelink
     final fun toString(): kotlin/String // io.github.kmpfacelink.model/TransformSpec.toString|toString(){}[0]
 }
 
+final class io.github.kmpfacelink.research/CheekSignalThresholdObservation { // io.github.kmpfacelink.research/CheekSignalThresholdObservation|null[0]
+    constructor <init>(io.github.kmpfacelink.model/CandidateInputIdentity, kotlin/Float, kotlin/Float, kotlin/Boolean, kotlin/Boolean, io.github.kmpfacelink.model/CandidateReadiness) // io.github.kmpfacelink.research/CheekSignalThresholdObservation.<init>|<init>(io.github.kmpfacelink.model.CandidateInputIdentity;kotlin.Float;kotlin.Float;kotlin.Boolean;kotlin.Boolean;io.github.kmpfacelink.model.CandidateReadiness){}[0]
+
+    final val active // io.github.kmpfacelink.research/CheekSignalThresholdObservation.active|{}active[0]
+        final fun <get-active>(): kotlin/Boolean // io.github.kmpfacelink.research/CheekSignalThresholdObservation.active.<get-active>|<get-active>(){}[0]
+    final val available // io.github.kmpfacelink.research/CheekSignalThresholdObservation.available|{}available[0]
+        final fun <get-available>(): kotlin/Boolean // io.github.kmpfacelink.research/CheekSignalThresholdObservation.available.<get-available>|<get-available>(){}[0]
+    final val identity // io.github.kmpfacelink.research/CheekSignalThresholdObservation.identity|{}identity[0]
+        final fun <get-identity>(): io.github.kmpfacelink.model/CandidateInputIdentity // io.github.kmpfacelink.research/CheekSignalThresholdObservation.identity.<get-identity>|<get-identity>(){}[0]
+    final val offThreshold // io.github.kmpfacelink.research/CheekSignalThresholdObservation.offThreshold|{}offThreshold[0]
+        final fun <get-offThreshold>(): kotlin/Float // io.github.kmpfacelink.research/CheekSignalThresholdObservation.offThreshold.<get-offThreshold>|<get-offThreshold>(){}[0]
+    final val onThreshold // io.github.kmpfacelink.research/CheekSignalThresholdObservation.onThreshold|{}onThreshold[0]
+        final fun <get-onThreshold>(): kotlin/Float // io.github.kmpfacelink.research/CheekSignalThresholdObservation.onThreshold.<get-onThreshold>|<get-onThreshold>(){}[0]
+    final val readiness // io.github.kmpfacelink.research/CheekSignalThresholdObservation.readiness|{}readiness[0]
+        final fun <get-readiness>(): io.github.kmpfacelink.model/CandidateReadiness // io.github.kmpfacelink.research/CheekSignalThresholdObservation.readiness.<get-readiness>|<get-readiness>(){}[0]
+}
+
+final class io.github.kmpfacelink.research/CheekSignalThresholdSession { // io.github.kmpfacelink.research/CheekSignalThresholdSession|null[0]
+    final val offThreshold // io.github.kmpfacelink.research/CheekSignalThresholdSession.offThreshold|{}offThreshold[0]
+        final fun <get-offThreshold>(): kotlin/Float // io.github.kmpfacelink.research/CheekSignalThresholdSession.offThreshold.<get-offThreshold>|<get-offThreshold>(){}[0]
+    final val onThreshold // io.github.kmpfacelink.research/CheekSignalThresholdSession.onThreshold|{}onThreshold[0]
+        final fun <get-onThreshold>(): kotlin/Float // io.github.kmpfacelink.research/CheekSignalThresholdSession.onThreshold.<get-onThreshold>|<get-onThreshold>(){}[0]
+
+    final fun observe(io.github.kmpfacelink.model/CandidateInputIdentity, kotlin/Float?, io.github.kmpfacelink.model/CandidateReadiness): io.github.kmpfacelink.research/CheekSignalThresholdObservation // io.github.kmpfacelink.research/CheekSignalThresholdSession.observe|observe(io.github.kmpfacelink.model.CandidateInputIdentity;kotlin.Float?;io.github.kmpfacelink.model.CandidateReadiness){}[0]
+    final fun reset() // io.github.kmpfacelink.research/CheekSignalThresholdSession.reset|reset(){}[0]
+}
+
 final class io.github.kmpfacelink.research/FrozenC2C1Input { // io.github.kmpfacelink.research/FrozenC2C1Input|null[0]
     constructor <init>(kotlin/Long, kotlin.collections/Map<io.github.kmpfacelink.model/BlendShape, kotlin/Float>, kotlin.collections/List<io.github.kmpfacelink.model/FaceLandmark>, kotlin/Int, kotlin/Int) // io.github.kmpfacelink.research/FrozenC2C1Input.<init>|<init>(kotlin.Long;kotlin.collections.Map<io.github.kmpfacelink.model.BlendShape,kotlin.Float>;kotlin.collections.List<io.github.kmpfacelink.model.FaceLandmark>;kotlin.Int;kotlin.Int){}[0]
 
@@ -2928,6 +3205,19 @@ final class io.github.kmpfacelink.research/FrozenC2C1ResearchAdapter { // io.git
             final fun <get-PRODUCER_ID>(): kotlin/String // io.github.kmpfacelink.research/FrozenC2C1ResearchAdapter.Companion.PRODUCER_ID.<get-PRODUCER_ID>|<get-PRODUCER_ID>(){}[0]
         final const val VERIFIED_ORIGINAL_SOURCE_SHA256 // io.github.kmpfacelink.research/FrozenC2C1ResearchAdapter.Companion.VERIFIED_ORIGINAL_SOURCE_SHA256|{}VERIFIED_ORIGINAL_SOURCE_SHA256[0]
             final fun <get-VERIFIED_ORIGINAL_SOURCE_SHA256>(): kotlin/String // io.github.kmpfacelink.research/FrozenC2C1ResearchAdapter.Companion.VERIFIED_ORIGINAL_SOURCE_SHA256.<get-VERIFIED_ORIGINAL_SOURCE_SHA256>|<get-VERIFIED_ORIGINAL_SOURCE_SHA256>(){}[0]
+    }
+}
+
+final class io.github.kmpfacelink.research/HashBoundStaticAppearanceModelProvider { // io.github.kmpfacelink.research/HashBoundStaticAppearanceModelProvider|null[0]
+    constructor <init>(kotlin/String, io.github.kmpfacelink.research/StaticAppearanceModelByteLoader, io.github.kmpfacelink.research/StaticAppearanceModelParser) // io.github.kmpfacelink.research/HashBoundStaticAppearanceModelProvider.<init>|<init>(kotlin.String;io.github.kmpfacelink.research.StaticAppearanceModelByteLoader;io.github.kmpfacelink.research.StaticAppearanceModelParser){}[0]
+
+    final val absenceReason // io.github.kmpfacelink.research/HashBoundStaticAppearanceModelProvider.absenceReason|{}absenceReason[0]
+        final fun <get-absenceReason>(): kotlin/String? // io.github.kmpfacelink.research/HashBoundStaticAppearanceModelProvider.absenceReason.<get-absenceReason>|<get-absenceReason>(){}[0]
+    final val availability // io.github.kmpfacelink.research/HashBoundStaticAppearanceModelProvider.availability|{}availability[0]
+        final fun <get-availability>(): io.github.kmpfacelink.research/StaticAppearanceModelAvailability // io.github.kmpfacelink.research/HashBoundStaticAppearanceModelProvider.availability.<get-availability>|<get-availability>(){}[0]
+
+    final object Companion { // io.github.kmpfacelink.research/HashBoundStaticAppearanceModelProvider.Companion|null[0]
+        final fun c3bStaticCheekPatch(kotlin/String, io.github.kmpfacelink.research/StaticAppearanceModelByteLoader): io.github.kmpfacelink.research/HashBoundStaticAppearanceModelProvider // io.github.kmpfacelink.research/HashBoundStaticAppearanceModelProvider.Companion.c3bStaticCheekPatch|c3bStaticCheekPatch(kotlin.String;io.github.kmpfacelink.research.StaticAppearanceModelByteLoader){}[0]
     }
 }
 
@@ -3306,6 +3596,39 @@ final object io.github.kmpfacelink.model/LiveLinkBlendShapes { // io.github.kmpf
 final object io.github.kmpfacelink.model/ParticipantCalibrationDecisionFactory { // io.github.kmpfacelink.model/ParticipantCalibrationDecisionFactory|null[0]
     final fun disabled(io.github.kmpfacelink.model/DerivedFaceSignal = ..., io.github.kmpfacelink.model/BlendShapeRoute = ...): io.github.kmpfacelink.model/ParticipantCalibrationDecisionEngine // io.github.kmpfacelink.model/ParticipantCalibrationDecisionFactory.disabled|disabled(io.github.kmpfacelink.model.DerivedFaceSignal;io.github.kmpfacelink.model.BlendShapeRoute){}[0]
     final fun enabled(io.github.kmpfacelink.model/DerivedFaceSignal = ..., io.github.kmpfacelink.model/ParticipantCalibrationClock, io.github.kmpfacelink.model/ParticipantCalibrationFallbackPolicy = ...): io.github.kmpfacelink.model/ParticipantCalibrationDecisionEngine // io.github.kmpfacelink.model/ParticipantCalibrationDecisionFactory.enabled|enabled(io.github.kmpfacelink.model.DerivedFaceSignal;io.github.kmpfacelink.model.ParticipantCalibrationClock;io.github.kmpfacelink.model.ParticipantCalibrationFallbackPolicy){}[0]
+}
+
+final object io.github.kmpfacelink.research/C0NativeCheekPuffControl { // io.github.kmpfacelink.research/C0NativeCheekPuffControl|null[0]
+    final const val PRODUCER_ID // io.github.kmpfacelink.research/C0NativeCheekPuffControl.PRODUCER_ID|{}PRODUCER_ID[0]
+        final fun <get-PRODUCER_ID>(): kotlin/String // io.github.kmpfacelink.research/C0NativeCheekPuffControl.PRODUCER_ID.<get-PRODUCER_ID>|<get-PRODUCER_ID>(){}[0]
+
+    final fun read(io.github.kmpfacelink.model/CandidateObservationReceipt): io.github.kmpfacelink.model/CandidateProducerOutput // io.github.kmpfacelink.research/C0NativeCheekPuffControl.read|read(io.github.kmpfacelink.model.CandidateObservationReceipt){}[0]
+}
+
+final object io.github.kmpfacelink.research/C1FrozenContourCandidate { // io.github.kmpfacelink.research/C1FrozenContourCandidate|null[0]
+    final const val FRAME_ROLE_PLANE_KEY // io.github.kmpfacelink.research/C1FrozenContourCandidate.FRAME_ROLE_PLANE_KEY|{}FRAME_ROLE_PLANE_KEY[0]
+        final fun <get-FRAME_ROLE_PLANE_KEY>(): kotlin/String // io.github.kmpfacelink.research/C1FrozenContourCandidate.FRAME_ROLE_PLANE_KEY.<get-FRAME_ROLE_PLANE_KEY>|<get-FRAME_ROLE_PLANE_KEY>(){}[0]
+
+    final fun factory(): io.github.kmpfacelink.model/CandidateObservationProducerFactory // io.github.kmpfacelink.research/C1FrozenContourCandidate.factory|factory(){}[0]
+}
+
+final object io.github.kmpfacelink.research/CheekSignalCandidateFactories { // io.github.kmpfacelink.research/CheekSignalCandidateFactories|null[0]
+    final fun c2LipOnly(): kotlin.collections/List<io.github.kmpfacelink.model/CandidateObservationProducerFactory> // io.github.kmpfacelink.research/CheekSignalCandidateFactories.c2LipOnly|c2LipOnly(){}[0]
+    final fun c2LipPlusFrozenContour(): kotlin.collections/List<io.github.kmpfacelink.model/CandidateObservationProducerFactory> // io.github.kmpfacelink.research/CheekSignalCandidateFactories.c2LipPlusFrozenContour|c2LipPlusFrozenContour(){}[0]
+}
+
+final object io.github.kmpfacelink.research/CheekSignalThresholdPolicy { // io.github.kmpfacelink.research/CheekSignalThresholdPolicy|null[0]
+    final val onThresholds // io.github.kmpfacelink.research/CheekSignalThresholdPolicy.onThresholds|{}onThresholds[0]
+        final fun <get-onThresholds>(): kotlin.collections/List<kotlin/Float> // io.github.kmpfacelink.research/CheekSignalThresholdPolicy.onThresholds.<get-onThresholds>|<get-onThresholds>(){}[0]
+
+    final fun create(kotlin/Float): io.github.kmpfacelink.research/CheekSignalThresholdSession // io.github.kmpfacelink.research/CheekSignalThresholdPolicy.create|create(kotlin.Float){}[0]
+}
+
+final object io.github.kmpfacelink.research/StaticAppearanceCandidateFactories { // io.github.kmpfacelink.research/StaticAppearanceCandidateFactories|null[0]
+    final const val FEATURE_PLANE_KEY // io.github.kmpfacelink.research/StaticAppearanceCandidateFactories.FEATURE_PLANE_KEY|{}FEATURE_PLANE_KEY[0]
+        final fun <get-FEATURE_PLANE_KEY>(): kotlin/String // io.github.kmpfacelink.research/StaticAppearanceCandidateFactories.FEATURE_PLANE_KEY.<get-FEATURE_PLANE_KEY>|<get-FEATURE_PLANE_KEY>(){}[0]
+
+    final fun c3bStaticCheekPatch(io.github.kmpfacelink.research/HashBoundStaticAppearanceModelProvider): io.github.kmpfacelink.model/CandidateObservationProducerFactory // io.github.kmpfacelink.research/StaticAppearanceCandidateFactories.c3bStaticCheekPatch|c3bStaticCheekPatch(io.github.kmpfacelink.research.HashBoundStaticAppearanceModelProvider){}[0]
 }
 
 final object io.github.kmpfacelink.util/FaceLinkLogger { // io.github.kmpfacelink.util/FaceLinkLogger|null[0]

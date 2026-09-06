@@ -7,8 +7,8 @@ import io.github.kmpfacelink.util.BlendShapeMapPool
 /**
  * Maps MediaPipe FaceLandmarker blend shape output to our [BlendShape] enum.
  *
- * MediaPipe outputs 53 categories (index 0 = "_neutral", which is skipped).
- * The remaining 52 use the same naming as ARKit.
+ * The shipped MediaPipe task outputs 52 categories: `_neutral` plus 51 ARKit-named shapes.
+ * `_neutral` is skipped. `tongueOut` is the only canonical ARKit shape absent from that asset.
  */
 internal object BlendShapeMapper {
 

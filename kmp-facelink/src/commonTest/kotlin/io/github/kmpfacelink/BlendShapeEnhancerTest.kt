@@ -2,6 +2,7 @@ package io.github.kmpfacelink
 
 import io.github.kmpfacelink.model.BlendShape
 import io.github.kmpfacelink.model.BlendShapeEnhancerConfig
+import io.github.kmpfacelink.model.CandidateInputIdentity
 import io.github.kmpfacelink.model.FaceLandmark
 import io.github.kmpfacelink.util.BlendShapeEnhancer
 import kotlin.test.Test
@@ -265,6 +266,38 @@ class BlendShapeEnhancerTest {
 
         assertTrue(observed.alternatives.isEmpty())
         assertEquals(mapOf(BlendShape.JAW_OPEN to 0.2f), observed.estimator)
+    }
+
+    @Test
+    fun observedPlanesDoNotChangeWhenTheNextFrameRuns() {
+        val enhancer = assertNotNull(BlendShapeEnhancer.create(BlendShapeEnhancerConfig.Default()))
+        val estimator = mutableMapOf(BlendShape.CHEEK_PUFF to 0.2f)
+
+        val first = enhancer.observe(estimator, neutralFaceLandmarks())
+        estimator[BlendShape.CHEEK_PUFF] = 0.8f
+        enhancer.observe(estimator, neutralFaceLandmarks())
+
+        assertEquals(0.2f, first.estimator[BlendShape.CHEEK_PUFF])
+        assertTrue(first.alternatives.isNotEmpty())
+    }
+
+    @OptIn(ExperimentalFaceLinkApi::class)
+    @Test
+    fun genericCheekSolverCannotInheritFrozenContourEvidenceIdentity() {
+        val enhancer = assertNotNull(BlendShapeEnhancer.create(BlendShapeEnhancerConfig.Default()))
+        val receipt = enhancer.observeReceipt(
+            identity = CandidateInputIdentity(1u, 0u, faceIndex = 0, timestampMs = 1L),
+            blendShapes = emptyMap(),
+            landmarks = neutralFaceLandmarks(),
+            sourceImageWidth = 1,
+            sourceImageHeight = 1,
+        )
+        val cheek = assertNotNull(
+            receipt.alternatives.singleOrNull { it.proposedTarget == BlendShape.CHEEK_PUFF },
+        )
+
+        assertTrue(cheek.producerId != BlendShapeEnhancer.FROZEN_CONTOUR_PRODUCER_ID)
+        assertEquals(BlendShapeEnhancer.GENERIC_GEOMETRY_IMPLEMENTATION_REVISION, cheek.implementationRevision)
     }
 
     // endregion

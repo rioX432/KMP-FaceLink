@@ -493,6 +493,18 @@ val testSparseBlendShapeContract by tasks.registering(Exec::class) {
     commandLine("python3", "-m", "unittest", "scripts/test_verify_sparse_blendshape_contract.py")
 }
 
+val verifyFaceLandmarkerAssetContract by tasks.registering(Exec::class) {
+    group = "verification"
+    description = "Bind shipped Face Landmarker assets to _neutral plus 51 verified labels"
+    commandLine("python3", "scripts/verify_face_landmarker_asset_contract.py")
+}
+
+val testFaceLandmarkerAssetContract by tasks.registering(Exec::class) {
+    group = "verification"
+    description = "Mutation controls for the shipped Face Landmarker label contract"
+    commandLine("python3", "-m", "unittest", "scripts/test_face_landmarker_asset_contract.py")
+}
+
 val verifySdkDocumentation by tasks.registering(Exec::class) {
     group = "verification"
     description = "Verify current SDK documentation against source configuration and claim boundaries"
@@ -668,6 +680,8 @@ tasks.register("sdkQualityCheck") {
         testSdkPublicSafety,
         verifySparseBlendShapeContract,
         testSparseBlendShapeContract,
+        verifyFaceLandmarkerAssetContract,
+        testFaceLandmarkerAssetContract,
         verifySdkDocumentation,
         testSdkDocumentation,
         testCalibrationTooling,

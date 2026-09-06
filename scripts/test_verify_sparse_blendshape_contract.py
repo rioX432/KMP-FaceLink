@@ -127,6 +127,10 @@ class SparseBlendShapeContractTest(unittest.TestCase):
     def test_accepts_a_dense_container_in_a_file_with_no_blend_shapes(self) -> None:
         self.assertEqual([], violations_in("val buffer = FloatArray(COUNT)", "x.kt"))
 
+    def test_accepts_an_unrelated_fixed_feature_vector_in_a_blend_shape_file(self) -> None:
+        source = "val features = DoubleArray(FEATURE_COUNT)\nval input: BlendShapeData"
+        self.assertEqual([], violations_in(source, "x.kt"))
+
     def test_accepts_a_dense_container_named_only_in_a_comment(self) -> None:
         # `LiveLinkBlendShapes`' KDoc says "a fresh `FloatArray(52)`". The guard reported the
         # sentence. A comment cannot invent a value.

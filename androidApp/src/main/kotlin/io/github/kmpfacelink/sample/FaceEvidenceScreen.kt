@@ -50,7 +50,6 @@ import kotlinx.coroutines.flow.StateFlow
 import java.util.Locale
 
 private const val TRACE_CAPACITY = 180
-private const val GEOMETRY_SETTLING_MS = 1_500L
 private val CHEEK_COLOR = Color(0xFFB197FC)
 private val CONTROL_COLOR = Color(0xFF51CF66)
 private val GEOMETRY_COLOR = Color(0xFFFFB74D)
@@ -61,13 +60,6 @@ private data class EvidencePoint(
     val cheekPuff: Float?,
     val jawOpen: Float?,
 )
-
-private sealed interface GeometryStage {
-    data object NeedsNeutral : GeometryStage
-    data class Settling(val startedAtMs: Long) : GeometryStage
-    data class Collecting(val frames: Int) : GeometryStage
-    data object Ready : GeometryStage
-}
 
 /**
  * A recording-oriented Android screen that keeps the camera, landmarks, target coefficient and a
@@ -99,32 +91,9 @@ internal fun FaceEvidenceScreen(
             jawOpen = data.blendShapes[BlendShape.JAW_OPEN],
         )
         if (trace.size > TRACE_CAPACITY) trace.removeAt(0)
-
-        val landmarks = data.landmarks?.takeIf {
-            it.size == CheekPuffContourObservationSession.LANDMARK_COUNT
-        } ?: return@LaunchedEffect
-        val session = geometrySession ?: return@LaunchedEffect
-        when (val stage = geometryStage) {
-            GeometryStage.NeedsNeutral -> Unit
-            is GeometryStage.Settling -> {
-                if (data.timestampMs - stage.startedAtMs >= GEOMETRY_SETTLING_MS) {
-                    geometryStage = GeometryStage.Collecting(frames = 0)
-                }
-            }
-            is GeometryStage.Collecting -> {
-                session.addNeutralFrame(landmarks, data.timestampMs)
-                val count = stage.frames + 1
-                if (count >= CheekPuffContourObservationSession.RECOMMENDED_NEUTRAL_FRAMES) {
-                    session.finishNeutralCalibration()
-                    geometryStage = GeometryStage.Ready
-                } else {
-                    geometryStage = GeometryStage.Collecting(count)
-                }
-            }
-            GeometryStage.Ready -> {
-                geometryObservation = session.observe(landmarks, data.timestampMs)
-            }
-        }
+        val update = advanceGeometryEvidence(data, geometrySession, geometryStage)
+        geometryStage = update.stage
+        update.observation?.let { geometryObservation = it }
     }
 
     Box(modifier = Modifier.fillMaxSize().background(SampleColors.Background)) {
@@ -154,20 +123,10 @@ internal fun FaceEvidenceScreen(
                 geometryStage = geometryStage,
                 geometryObservation = geometryObservation,
                 onCalibrateGeometry = {
-                    val data = trackingData
-                    val landmarks = data?.landmarks
-                    if (
-                        data?.isTracking == true &&
-                        landmarks?.size == CheekPuffContourObservationSession.LANDMARK_COUNT &&
-                        data.sourceImageWidth > 0 &&
-                        data.sourceImageHeight > 0
-                    ) {
-                        geometrySession = CheekPuffContourObservationSession(
-                            imageWidth = data.sourceImageWidth,
-                            imageHeight = data.sourceImageHeight,
-                        )
+                    createGeometrySession(trackingData)?.let { session ->
+                        geometrySession = session
                         geometryObservation = null
-                        geometryStage = GeometryStage.Settling(data.timestampMs)
+                        geometryStage = GeometryStage.Settling(checkNotNull(trackingData).timestampMs)
                     }
                 },
             )
@@ -283,6 +242,20 @@ private fun GeometryEvidence(
     observation: CheekPuffContourObservation?,
     onCalibrate: () -> Unit,
 ) {
+    GeometryEvidenceHeader(active, stage, onCalibrate)
+    GeometryEvidenceStatus(stage)
+
+    if (stage == GeometryStage.Ready) {
+        GeometryObservation(observation)
+    }
+}
+
+@Composable
+private fun GeometryEvidenceHeader(
+    active: Boolean,
+    stage: GeometryStage,
+    onCalibrate: () -> Unit,
+) {
     val calibrating = stage is GeometryStage.Settling || stage is GeometryStage.Collecting
     Row(verticalAlignment = Alignment.CenterVertically) {
         Column(modifier = Modifier.weight(1f)) {
@@ -305,7 +278,10 @@ private fun GeometryEvidence(
             Text(if (stage == GeometryStage.Ready) "Recalibrate" else "Calibrate neutral")
         }
     }
+}
 
+@Composable
+private fun GeometryEvidenceStatus(stage: GeometryStage) {
     val status = when (stage) {
         GeometryStage.NeedsNeutral -> "Start tracking, keep a neutral face, then calibrate"
         is GeometryStage.Settling -> "Neutral: hold still · settling"
@@ -319,50 +295,53 @@ private fun GeometryEvidence(
         fontSize = 13.sp,
         modifier = Modifier.padding(top = 6.dp, bottom = 6.dp),
     )
+}
 
-    if (stage == GeometryStage.Ready) {
-        val fired = observation?.fired == true
-        Text(
-            text = "PUKU_FACE_GESTURE  ${if (fired) "ON" else "OFF"}",
-            color = if (fired) GEOMETRY_COLOR else SampleColors.TextPrimary,
-            fontSize = 22.sp,
-            fontWeight = FontWeight.Bold,
-            fontFamily = FontFamily.Monospace,
+@Composable
+private fun GeometryObservation(observation: CheekPuffContourObservation?) {
+    val fired = observation?.fired == true
+    Text(
+        text = "PUKU_FACE_GESTURE  ${if (fired) "ON" else "OFF"}",
+        color = if (fired) GEOMETRY_COLOR else SampleColors.TextPrimary,
+        fontSize = 22.sp,
+        fontWeight = FontWeight.Bold,
+        fontFamily = FontFamily.Monospace,
+    )
+    if (observation != null) {
+        GeometryMetricsRow(observation)
+    }
+}
+
+@Composable
+private fun GeometryMetricsRow(observation: CheekPuffContourObservation) {
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(top = 6.dp),
+        horizontalArrangement = Arrangement.spacedBy(10.dp),
+    ) {
+        RuleMetric(
+            label = "mouth width",
+            actual = observation.mouthWidthDelta,
+            operator = "≤",
+            threshold = CheekPuffContourObservationSession.MOUTH_WIDTH_MAXIMUM,
+            passes = observation.mouthWidthDelta <= CheekPuffContourObservationSession.MOUTH_WIDTH_MAXIMUM,
+            modifier = Modifier.weight(1f),
         )
-        if (observation != null) {
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(top = 6.dp),
-                horizontalArrangement = Arrangement.spacedBy(10.dp),
-            ) {
-                RuleMetric(
-                    label = "mouth width",
-                    actual = observation.mouthWidthDelta,
-                    operator = "≤",
-                    threshold = CheekPuffContourObservationSession.MOUTH_WIDTH_MAXIMUM,
-                    passes = observation.mouthWidthDelta <=
-                        CheekPuffContourObservationSession.MOUTH_WIDTH_MAXIMUM,
-                    modifier = Modifier.weight(1f),
-                )
-                RuleMetric(
-                    label = "oval jaw",
-                    actual = observation.ovalJawDelta,
-                    operator = "≥",
-                    threshold = CheekPuffContourObservationSession.OVAL_JAW_MINIMUM,
-                    passes = observation.ovalJawDelta >=
-                        CheekPuffContourObservationSession.OVAL_JAW_MINIMUM,
-                    modifier = Modifier.weight(1f),
-                )
-                RuleMetric(
-                    label = "oval chin",
-                    actual = observation.ovalChinDelta,
-                    operator = "≤",
-                    threshold = CheekPuffContourObservationSession.OVAL_CHIN_MAXIMUM,
-                    passes = observation.ovalChinDelta <=
-                        CheekPuffContourObservationSession.OVAL_CHIN_MAXIMUM,
-                    modifier = Modifier.weight(1f),
-                )
-            }
-        }
+        RuleMetric(
+            label = "oval jaw",
+            actual = observation.ovalJawDelta,
+            operator = "≥",
+            threshold = CheekPuffContourObservationSession.OVAL_JAW_MINIMUM,
+            passes = observation.ovalJawDelta >= CheekPuffContourObservationSession.OVAL_JAW_MINIMUM,
+            modifier = Modifier.weight(1f),
+        )
+        RuleMetric(
+            label = "oval chin",
+            actual = observation.ovalChinDelta,
+            operator = "≤",
+            threshold = CheekPuffContourObservationSession.OVAL_CHIN_MAXIMUM,
+            passes = observation.ovalChinDelta <= CheekPuffContourObservationSession.OVAL_CHIN_MAXIMUM,
+            modifier = Modifier.weight(1f),
+        )
     }
 }
 

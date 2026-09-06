@@ -15,10 +15,20 @@ private const val BYTE_MASK: Int = 0xff
 // Launch-route and study-protocol policy for the capture shell, kept apart from the Activity so
 // that deciding *what a run is allowed to be* can be read and tested without a lifecycle.
 /** Explicit developer-only shell route. The preview screen itself has no record or benchmark UI. */
-internal enum class CaptureLaunchRoute { CAPTURE, PREVIEW_CHECK }
+internal enum class CaptureLaunchRoute { CAPTURE, PREVIEW_CHECK, H2_SCORE_FREE }
 
 internal fun captureLaunchRoute(previewCheckRequested: Boolean): CaptureLaunchRoute =
     if (previewCheckRequested) CaptureLaunchRoute.PREVIEW_CHECK else CaptureLaunchRoute.CAPTURE
+
+/** H2 exists only behind its explicit developer route; absence preserves the ordinary route. */
+internal fun captureLaunchRoute(
+    previewCheckRequested: Boolean,
+    requestedStudyProtocol: String?,
+): CaptureLaunchRoute = when {
+    previewCheckRequested -> CaptureLaunchRoute.PREVIEW_CHECK
+    requestedStudyProtocol == H2_SCORE_FREE_INTENT_VALUE -> CaptureLaunchRoute.H2_SCORE_FREE
+    else -> CaptureLaunchRoute.CAPTURE
+}
 
 /** Preview-only is never a developer Session-C launch, even when its Intent has unrelated extras. */
 internal fun studyProtocolForLaunchRoute(
@@ -26,6 +36,8 @@ internal fun studyProtocolForLaunchRoute(
     requested: String?,
 ): CaptureStudyProtocol = if (route == CaptureLaunchRoute.PREVIEW_CHECK) {
     CaptureStudyProtocol.guided22()
+} else if (route == CaptureLaunchRoute.H2_SCORE_FREE) {
+    error("H2 has a distinct protocol and cannot reuse a historical capture protocol")
 } else {
     captureStudyProtocol(requested)
 }
@@ -35,6 +47,7 @@ internal const val STUDY_PROTOCOL_INTENT_EXTRA: String = "study_protocol"
 internal const val LEARNED_PATCH_SESSION_C_INTENT_VALUE: String = "learned_patch_session_c_v1"
 internal const val PARTICIPANT_QUALIFICATION_INTENT_VALUE: String =
     "participant_qualification_12_v1"
+internal const val H2_SCORE_FREE_INTENT_VALUE: String = "h2_c3b_confirmation_scorefree_v2"
 internal const val SESSION_C_AUTHORIZATION_INTENT_EXTRA: String = "session_c_authorization"
 internal const val SESSION_C_CHEEK_MODEL_SHA256 = "a304d132e36cad9f6dcc9a8c1c78f34201cbee90e640f39625a2fbe05fd12dd3"
 internal const val SESSION_C_MOUTH_MODEL_SHA256 = "70a340a7ee3ef25a526da8292fe06aecc2353e4d85c68f02c671cd189d8821b1"
@@ -49,6 +62,9 @@ internal fun captureStudyProtocol(requested: String?): CaptureStudyProtocol = wh
 
 internal fun isParticipantQualificationRoute(requested: String?): Boolean =
     requested == PARTICIPANT_QUALIFICATION_INTENT_VALUE
+
+internal fun isH2ScoreFreeRoute(requested: String?): Boolean =
+    requested == H2_SCORE_FREE_INTENT_VALUE
 
 internal data class ParticipantQualificationPrecameraReceipt(
     val evidence: ParticipantQualificationEvidence,

@@ -28,6 +28,7 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import io.github.kmpfacelink.api.PlatformContext
 import io.github.kmpfacelink.capture.AndroidCaptureSession
+import io.github.kmpfacelink.capture.AndroidH2CallbackRoute
 import io.github.kmpfacelink.capture.AuthorizedAndroidPerformanceRunner
 import io.github.kmpfacelink.capture.CaptureFailureCategory
 import io.github.kmpfacelink.capture.CapturePreflightObservation
@@ -35,6 +36,7 @@ import io.github.kmpfacelink.capture.CapturePreflightPolicy
 import io.github.kmpfacelink.capture.CaptureStorageProfile
 import io.github.kmpfacelink.capture.CaptureStudyProtocol
 import io.github.kmpfacelink.capture.CoefficientOnlyPreflightObservation
+import io.github.kmpfacelink.capture.H2SurfaceVisibilityMode
 import io.github.kmpfacelink.capture.InferenceRecordFormat
 import io.github.kmpfacelink.capture.InferenceRecordReader
 import io.github.kmpfacelink.capture.ParticipantQualificationEvidence
@@ -123,6 +125,13 @@ private fun referenceTake(session: AndroidCaptureSession) = session.takesDirecto
 // reading without an Activity.
 @Suppress("TooManyFunctions")
 class CaptureActivity : ComponentActivity() {
+    private val h2CallbackRoute = AndroidH2CallbackRoute.locked()
+    private val h2SurfaceState = H2AuthorizedSurfaceState.createOrNull(
+        h2CallbackRoute.status,
+        H2SurfaceVisibilityMode.UNDECIDED,
+        h2CallbackRoute::acknowledgeParticipantPresentation,
+        { cue, drawnNanos -> h2CallbackRoute.acknowledgeCuePresentation(cue.segment.name, drawnNanos) },
+    )
 
     private var session: AndroidCaptureSession? = null
     private var sourceProvenance: SourceProvenance? = null
@@ -174,19 +183,19 @@ class CaptureActivity : ComponentActivity() {
     @Suppress("LongMethod", "CyclomaticComplexMethod")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        val requestedStudyProtocol = intent?.getStringExtra(STUDY_PROTOCOL_INTENT_EXTRA)
         launchRoute = captureLaunchRoute(
             intent?.getBooleanExtra(PREVIEW_CHECK_INTENT_EXTRA, false) == true,
+            requestedStudyProtocol,
         )
-        val requestedStudyProtocol = intent?.getStringExtra(STUDY_PROTOCOL_INTENT_EXTRA)
         participantQualificationRoute = launchRoute == CaptureLaunchRoute.CAPTURE &&
             isParticipantQualificationRoute(requestedStudyProtocol)
-        val protocolSelection = runCatching {
-            studyProtocolForLaunchRoute(
-                launchRoute,
-                requestedStudyProtocol,
-            )
+        val protocolSelection = if (launchRoute == CaptureLaunchRoute.H2_SCORE_FREE) {
+            null
+        } else {
+            runCatching { studyProtocolForLaunchRoute(launchRoute, requestedStudyProtocol) }
         }
-        protocolSelection.onSuccess { protocol ->
+        protocolSelection?.onSuccess { protocol ->
             selectedStudyProtocol = protocol
             if (participantQualificationRoute) {
                 runCatching {
@@ -210,7 +219,7 @@ class CaptureActivity : ComponentActivity() {
                 }.onFailure { startFailure = it.toCaptureFailureReceipt().participantMessageJa }
             }
         }
-        protocolSelection.onFailure { startFailure = it.toCaptureFailureReceipt().participantMessageJa }
+        protocolSelection?.onFailure { startFailure = it.toCaptureFailureReceipt().participantMessageJa }
         // Enforced from API 35 anyway; calling it makes the intent explicit and gives the same
         // layout on older releases. The insets are then paid back below — the bottom row is the
         // record controls, and a button under the gesture bar is a mis-tap during a take.
@@ -219,6 +228,8 @@ class CaptureActivity : ComponentActivity() {
             MaterialTheme {
                 val current = session
                 when {
+                    launchRoute == CaptureLaunchRoute.H2_SCORE_FREE ->
+                        H2ScoreBlindRouteShell(h2CallbackRoute.status, h2SurfaceState)
                     permissionDenied -> CaptureMessage("収録にはカメラの許可が必要です。")
                     startFailure != null -> CaptureMessage("撮影を開始できませんでした: $startFailure")
                     participantQualificationRoute && !participantQualificationConfirmed ->
@@ -252,11 +263,9 @@ class CaptureActivity : ComponentActivity() {
                 }
             }
         }
-        if (
-            protocolSelection.isSuccess &&
-            startFailure == null &&
-            !participantQualificationRoute
-        ) {
+        val ordinaryCaptureMayRequestCamera =
+            protocolSelection?.isSuccess == true && startFailure == null && !participantQualificationRoute
+        if (ordinaryCaptureMayRequestCamera && h2CameraRequestAllowed(launchRoute, h2CallbackRoute.status)) {
             requestCamera()
         }
     }

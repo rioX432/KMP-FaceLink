@@ -23,6 +23,42 @@ public final class io/github/kmpfacelink/api/BodyTrackerFactory_jvmKt {
 	public static synthetic fun createBodyTracker$default (Lio/github/kmpfacelink/api/PlatformContext;Lio/github/kmpfacelink/model/BodyTrackerConfig;ILjava/lang/Object;)Lio/github/kmpfacelink/api/BodyTracker;
 }
 
+public final class io/github/kmpfacelink/api/CheekPuffContourObservation {
+	public fun <init> (ZDDD)V
+	public final fun component1 ()Z
+	public final fun component2 ()D
+	public final fun component3 ()D
+	public final fun component4 ()D
+	public final fun copy (ZDDD)Lio/github/kmpfacelink/api/CheekPuffContourObservation;
+	public static synthetic fun copy$default (Lio/github/kmpfacelink/api/CheekPuffContourObservation;ZDDDILjava/lang/Object;)Lio/github/kmpfacelink/api/CheekPuffContourObservation;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getFired ()Z
+	public final fun getMouthWidthDelta ()D
+	public final fun getOvalChinDelta ()D
+	public final fun getOvalJawDelta ()D
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/github/kmpfacelink/api/CheekPuffContourObservationSession {
+	public static final field Companion Lio/github/kmpfacelink/api/CheekPuffContourObservationSession$Companion;
+	public static final field LANDMARK_COUNT I
+	public static final field MINIMUM_NEUTRAL_FRAMES I
+	public static final field MOUTH_WIDTH_MAXIMUM D
+	public static final field OVAL_CHIN_MAXIMUM D
+	public static final field OVAL_JAW_MINIMUM D
+	public static final field RECOMMENDED_NEUTRAL_FRAMES I
+	public fun <init> (II)V
+	public final fun addNeutralFrame (Ljava/util/List;J)V
+	public final fun finishNeutralCalibration ()V
+	public final fun getNeutralFrameCount ()I
+	public final fun isReady ()Z
+	public final fun observe (Ljava/util/List;J)Lio/github/kmpfacelink/api/CheekPuffContourObservation;
+}
+
+public final class io/github/kmpfacelink/api/CheekPuffContourObservationSession$Companion {
+}
+
 public final class io/github/kmpfacelink/api/DeviceCapabilityDetector_jvmKt {
 	public static final fun assessDeviceCapabilities (Lio/github/kmpfacelink/api/PlatformContext;)Lio/github/kmpfacelink/model/DeviceCapabilityProfile;
 }
@@ -2757,6 +2793,64 @@ public final class io/github/kmpfacelink/research/CheekSignalThresholdSession {
 	public final fun getOnThreshold ()F
 	public final fun observe (Lio/github/kmpfacelink/model/CandidateInputIdentity;Ljava/lang/Float;Lio/github/kmpfacelink/model/CandidateReadiness;)Lio/github/kmpfacelink/research/CheekSignalThresholdObservation;
 	public final fun reset ()V
+}
+
+public final class io/github/kmpfacelink/research/FrozenC2C1Input {
+	public fun <init> (JLjava/util/Map;Ljava/util/List;II)V
+	public final fun component1 ()J
+	public final fun component2 ()Ljava/util/Map;
+	public final fun component3 ()Ljava/util/List;
+	public final fun component4 ()I
+	public final fun component5 ()I
+	public final fun copy (JLjava/util/Map;Ljava/util/List;II)Lio/github/kmpfacelink/research/FrozenC2C1Input;
+	public static synthetic fun copy$default (Lio/github/kmpfacelink/research/FrozenC2C1Input;JLjava/util/Map;Ljava/util/List;IIILjava/lang/Object;)Lio/github/kmpfacelink/research/FrozenC2C1Input;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getEstimator ()Ljava/util/Map;
+	public final fun getLandmarks ()Ljava/util/List;
+	public final fun getSourceHeight ()I
+	public final fun getSourceWidth ()I
+	public final fun getTimestampMillis ()J
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/github/kmpfacelink/research/FrozenC2C1Output {
+	public fun <init> (JLjava/lang/Float;Lio/github/kmpfacelink/research/FrozenResearchReadiness;Ljava/lang/String;)V
+	public final fun component1 ()J
+	public final fun component2 ()Ljava/lang/Float;
+	public final fun component3 ()Lio/github/kmpfacelink/research/FrozenResearchReadiness;
+	public final fun component4 ()Ljava/lang/String;
+	public final fun copy (JLjava/lang/Float;Lio/github/kmpfacelink/research/FrozenResearchReadiness;Ljava/lang/String;)Lio/github/kmpfacelink/research/FrozenC2C1Output;
+	public static synthetic fun copy$default (Lio/github/kmpfacelink/research/FrozenC2C1Output;JLjava/lang/Float;Lio/github/kmpfacelink/research/FrozenResearchReadiness;Ljava/lang/String;ILjava/lang/Object;)Lio/github/kmpfacelink/research/FrozenC2C1Output;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getReadiness ()Lio/github/kmpfacelink/research/FrozenResearchReadiness;
+	public final fun getReason ()Ljava/lang/String;
+	public final fun getTimestampMillis ()J
+	public final fun getValue ()Ljava/lang/Float;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/github/kmpfacelink/research/FrozenC2C1ResearchAdapter {
+	public static final field Companion Lio/github/kmpfacelink/research/FrozenC2C1ResearchAdapter$Companion;
+	public static final field IMPLEMENTATION_REVISION Ljava/lang/String;
+	public static final field PRODUCER_ID Ljava/lang/String;
+	public static final field VERIFIED_ORIGINAL_SOURCE_SHA256 Ljava/lang/String;
+	public fun <init> ()V
+	public final fun observe (Lio/github/kmpfacelink/research/FrozenC2C1Input;)Lio/github/kmpfacelink/research/FrozenC2C1Output;
+	public final fun reset ()V
+}
+
+public final class io/github/kmpfacelink/research/FrozenC2C1ResearchAdapter$Companion {
+}
+
+public final class io/github/kmpfacelink/research/FrozenResearchReadiness : java/lang/Enum {
+	public static final field NOT_READY Lio/github/kmpfacelink/research/FrozenResearchReadiness;
+	public static final field READY Lio/github/kmpfacelink/research/FrozenResearchReadiness;
+	public static final field REJECTED Lio/github/kmpfacelink/research/FrozenResearchReadiness;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lio/github/kmpfacelink/research/FrozenResearchReadiness;
+	public static fun values ()[Lio/github/kmpfacelink/research/FrozenResearchReadiness;
 }
 
 public final class io/github/kmpfacelink/research/HashBoundStaticAppearanceModelProvider {

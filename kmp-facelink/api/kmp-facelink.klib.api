@@ -628,6 +628,18 @@ final enum class io.github.kmpfacelink.research/C1StandaloneFrameRole : kotlin/E
     final fun values(): kotlin/Array<io.github.kmpfacelink.research/C1StandaloneFrameRole> // io.github.kmpfacelink.research/C1StandaloneFrameRole.values|values#static(){}[0]
 }
 
+final enum class io.github.kmpfacelink.research/FrozenResearchReadiness : kotlin/Enum<io.github.kmpfacelink.research/FrozenResearchReadiness> { // io.github.kmpfacelink.research/FrozenResearchReadiness|null[0]
+    enum entry NOT_READY // io.github.kmpfacelink.research/FrozenResearchReadiness.NOT_READY|null[0]
+    enum entry READY // io.github.kmpfacelink.research/FrozenResearchReadiness.READY|null[0]
+    enum entry REJECTED // io.github.kmpfacelink.research/FrozenResearchReadiness.REJECTED|null[0]
+
+    final val entries // io.github.kmpfacelink.research/FrozenResearchReadiness.entries|#static{}entries[0]
+        final fun <get-entries>(): kotlin.enums/EnumEntries<io.github.kmpfacelink.research/FrozenResearchReadiness> // io.github.kmpfacelink.research/FrozenResearchReadiness.entries.<get-entries>|<get-entries>#static(){}[0]
+
+    final fun valueOf(kotlin/String): io.github.kmpfacelink.research/FrozenResearchReadiness // io.github.kmpfacelink.research/FrozenResearchReadiness.valueOf|valueOf#static(kotlin.String){}[0]
+    final fun values(): kotlin/Array<io.github.kmpfacelink.research/FrozenResearchReadiness> // io.github.kmpfacelink.research/FrozenResearchReadiness.values|values#static(){}[0]
+}
+
 final enum class io.github.kmpfacelink.research/StaticAppearanceModelAvailability : kotlin/Enum<io.github.kmpfacelink.research/StaticAppearanceModelAvailability> { // io.github.kmpfacelink.research/StaticAppearanceModelAvailability|null[0]
     enum entry ABSENT // io.github.kmpfacelink.research/StaticAppearanceModelAvailability.ABSENT|null[0]
     enum entry AVAILABLE // io.github.kmpfacelink.research/StaticAppearanceModelAvailability.AVAILABLE|null[0]
@@ -1171,6 +1183,56 @@ sealed interface io.github.kmpfacelink.model/TechnicalContextMatch { // io.githu
         final fun equals(kotlin/Any?): kotlin/Boolean // io.github.kmpfacelink.model/TechnicalContextMatch.NoFrameContext.equals|equals(kotlin.Any?){}[0]
         final fun hashCode(): kotlin/Int // io.github.kmpfacelink.model/TechnicalContextMatch.NoFrameContext.hashCode|hashCode(){}[0]
         final fun toString(): kotlin/String // io.github.kmpfacelink.model/TechnicalContextMatch.NoFrameContext.toString|toString(){}[0]
+    }
+}
+
+final class io.github.kmpfacelink.api/CheekPuffContourObservation { // io.github.kmpfacelink.api/CheekPuffContourObservation|null[0]
+    constructor <init>(kotlin/Boolean, kotlin/Double, kotlin/Double, kotlin/Double) // io.github.kmpfacelink.api/CheekPuffContourObservation.<init>|<init>(kotlin.Boolean;kotlin.Double;kotlin.Double;kotlin.Double){}[0]
+
+    final val fired // io.github.kmpfacelink.api/CheekPuffContourObservation.fired|{}fired[0]
+        final fun <get-fired>(): kotlin/Boolean // io.github.kmpfacelink.api/CheekPuffContourObservation.fired.<get-fired>|<get-fired>(){}[0]
+    final val mouthWidthDelta // io.github.kmpfacelink.api/CheekPuffContourObservation.mouthWidthDelta|{}mouthWidthDelta[0]
+        final fun <get-mouthWidthDelta>(): kotlin/Double // io.github.kmpfacelink.api/CheekPuffContourObservation.mouthWidthDelta.<get-mouthWidthDelta>|<get-mouthWidthDelta>(){}[0]
+    final val ovalChinDelta // io.github.kmpfacelink.api/CheekPuffContourObservation.ovalChinDelta|{}ovalChinDelta[0]
+        final fun <get-ovalChinDelta>(): kotlin/Double // io.github.kmpfacelink.api/CheekPuffContourObservation.ovalChinDelta.<get-ovalChinDelta>|<get-ovalChinDelta>(){}[0]
+    final val ovalJawDelta // io.github.kmpfacelink.api/CheekPuffContourObservation.ovalJawDelta|{}ovalJawDelta[0]
+        final fun <get-ovalJawDelta>(): kotlin/Double // io.github.kmpfacelink.api/CheekPuffContourObservation.ovalJawDelta.<get-ovalJawDelta>|<get-ovalJawDelta>(){}[0]
+
+    final fun component1(): kotlin/Boolean // io.github.kmpfacelink.api/CheekPuffContourObservation.component1|component1(){}[0]
+    final fun component2(): kotlin/Double // io.github.kmpfacelink.api/CheekPuffContourObservation.component2|component2(){}[0]
+    final fun component3(): kotlin/Double // io.github.kmpfacelink.api/CheekPuffContourObservation.component3|component3(){}[0]
+    final fun component4(): kotlin/Double // io.github.kmpfacelink.api/CheekPuffContourObservation.component4|component4(){}[0]
+    final fun copy(kotlin/Boolean = ..., kotlin/Double = ..., kotlin/Double = ..., kotlin/Double = ...): io.github.kmpfacelink.api/CheekPuffContourObservation // io.github.kmpfacelink.api/CheekPuffContourObservation.copy|copy(kotlin.Boolean;kotlin.Double;kotlin.Double;kotlin.Double){}[0]
+    final fun equals(kotlin/Any?): kotlin/Boolean // io.github.kmpfacelink.api/CheekPuffContourObservation.equals|equals(kotlin.Any?){}[0]
+    final fun hashCode(): kotlin/Int // io.github.kmpfacelink.api/CheekPuffContourObservation.hashCode|hashCode(){}[0]
+    final fun toString(): kotlin/String // io.github.kmpfacelink.api/CheekPuffContourObservation.toString|toString(){}[0]
+}
+
+final class io.github.kmpfacelink.api/CheekPuffContourObservationSession { // io.github.kmpfacelink.api/CheekPuffContourObservationSession|null[0]
+    constructor <init>(kotlin/Int, kotlin/Int) // io.github.kmpfacelink.api/CheekPuffContourObservationSession.<init>|<init>(kotlin.Int;kotlin.Int){}[0]
+
+    final var isReady // io.github.kmpfacelink.api/CheekPuffContourObservationSession.isReady|{}isReady[0]
+        final fun <get-isReady>(): kotlin/Boolean // io.github.kmpfacelink.api/CheekPuffContourObservationSession.isReady.<get-isReady>|<get-isReady>(){}[0]
+    final var neutralFrameCount // io.github.kmpfacelink.api/CheekPuffContourObservationSession.neutralFrameCount|{}neutralFrameCount[0]
+        final fun <get-neutralFrameCount>(): kotlin/Int // io.github.kmpfacelink.api/CheekPuffContourObservationSession.neutralFrameCount.<get-neutralFrameCount>|<get-neutralFrameCount>(){}[0]
+
+    final fun addNeutralFrame(kotlin.collections/List<io.github.kmpfacelink.model/FaceLandmark>, kotlin/Long) // io.github.kmpfacelink.api/CheekPuffContourObservationSession.addNeutralFrame|addNeutralFrame(kotlin.collections.List<io.github.kmpfacelink.model.FaceLandmark>;kotlin.Long){}[0]
+    final fun finishNeutralCalibration() // io.github.kmpfacelink.api/CheekPuffContourObservationSession.finishNeutralCalibration|finishNeutralCalibration(){}[0]
+    final fun observe(kotlin.collections/List<io.github.kmpfacelink.model/FaceLandmark>, kotlin/Long): io.github.kmpfacelink.api/CheekPuffContourObservation // io.github.kmpfacelink.api/CheekPuffContourObservationSession.observe|observe(kotlin.collections.List<io.github.kmpfacelink.model.FaceLandmark>;kotlin.Long){}[0]
+
+    final object Companion { // io.github.kmpfacelink.api/CheekPuffContourObservationSession.Companion|null[0]
+        final const val LANDMARK_COUNT // io.github.kmpfacelink.api/CheekPuffContourObservationSession.Companion.LANDMARK_COUNT|{}LANDMARK_COUNT[0]
+            final fun <get-LANDMARK_COUNT>(): kotlin/Int // io.github.kmpfacelink.api/CheekPuffContourObservationSession.Companion.LANDMARK_COUNT.<get-LANDMARK_COUNT>|<get-LANDMARK_COUNT>(){}[0]
+        final const val MINIMUM_NEUTRAL_FRAMES // io.github.kmpfacelink.api/CheekPuffContourObservationSession.Companion.MINIMUM_NEUTRAL_FRAMES|{}MINIMUM_NEUTRAL_FRAMES[0]
+            final fun <get-MINIMUM_NEUTRAL_FRAMES>(): kotlin/Int // io.github.kmpfacelink.api/CheekPuffContourObservationSession.Companion.MINIMUM_NEUTRAL_FRAMES.<get-MINIMUM_NEUTRAL_FRAMES>|<get-MINIMUM_NEUTRAL_FRAMES>(){}[0]
+        final const val MOUTH_WIDTH_MAXIMUM // io.github.kmpfacelink.api/CheekPuffContourObservationSession.Companion.MOUTH_WIDTH_MAXIMUM|{}MOUTH_WIDTH_MAXIMUM[0]
+            final fun <get-MOUTH_WIDTH_MAXIMUM>(): kotlin/Double // io.github.kmpfacelink.api/CheekPuffContourObservationSession.Companion.MOUTH_WIDTH_MAXIMUM.<get-MOUTH_WIDTH_MAXIMUM>|<get-MOUTH_WIDTH_MAXIMUM>(){}[0]
+        final const val OVAL_CHIN_MAXIMUM // io.github.kmpfacelink.api/CheekPuffContourObservationSession.Companion.OVAL_CHIN_MAXIMUM|{}OVAL_CHIN_MAXIMUM[0]
+            final fun <get-OVAL_CHIN_MAXIMUM>(): kotlin/Double // io.github.kmpfacelink.api/CheekPuffContourObservationSession.Companion.OVAL_CHIN_MAXIMUM.<get-OVAL_CHIN_MAXIMUM>|<get-OVAL_CHIN_MAXIMUM>(){}[0]
+        final const val OVAL_JAW_MINIMUM // io.github.kmpfacelink.api/CheekPuffContourObservationSession.Companion.OVAL_JAW_MINIMUM|{}OVAL_JAW_MINIMUM[0]
+            final fun <get-OVAL_JAW_MINIMUM>(): kotlin/Double // io.github.kmpfacelink.api/CheekPuffContourObservationSession.Companion.OVAL_JAW_MINIMUM.<get-OVAL_JAW_MINIMUM>|<get-OVAL_JAW_MINIMUM>(){}[0]
+        final const val RECOMMENDED_NEUTRAL_FRAMES // io.github.kmpfacelink.api/CheekPuffContourObservationSession.Companion.RECOMMENDED_NEUTRAL_FRAMES|{}RECOMMENDED_NEUTRAL_FRAMES[0]
+            final fun <get-RECOMMENDED_NEUTRAL_FRAMES>(): kotlin/Int // io.github.kmpfacelink.api/CheekPuffContourObservationSession.Companion.RECOMMENDED_NEUTRAL_FRAMES.<get-RECOMMENDED_NEUTRAL_FRAMES>|<get-RECOMMENDED_NEUTRAL_FRAMES>(){}[0]
     }
 }
 
@@ -3081,6 +3143,69 @@ final class io.github.kmpfacelink.research/CheekSignalThresholdSession { // io.g
 
     final fun observe(io.github.kmpfacelink.model/CandidateInputIdentity, kotlin/Float?, io.github.kmpfacelink.model/CandidateReadiness): io.github.kmpfacelink.research/CheekSignalThresholdObservation // io.github.kmpfacelink.research/CheekSignalThresholdSession.observe|observe(io.github.kmpfacelink.model.CandidateInputIdentity;kotlin.Float?;io.github.kmpfacelink.model.CandidateReadiness){}[0]
     final fun reset() // io.github.kmpfacelink.research/CheekSignalThresholdSession.reset|reset(){}[0]
+}
+
+final class io.github.kmpfacelink.research/FrozenC2C1Input { // io.github.kmpfacelink.research/FrozenC2C1Input|null[0]
+    constructor <init>(kotlin/Long, kotlin.collections/Map<io.github.kmpfacelink.model/BlendShape, kotlin/Float>, kotlin.collections/List<io.github.kmpfacelink.model/FaceLandmark>, kotlin/Int, kotlin/Int) // io.github.kmpfacelink.research/FrozenC2C1Input.<init>|<init>(kotlin.Long;kotlin.collections.Map<io.github.kmpfacelink.model.BlendShape,kotlin.Float>;kotlin.collections.List<io.github.kmpfacelink.model.FaceLandmark>;kotlin.Int;kotlin.Int){}[0]
+
+    final val estimator // io.github.kmpfacelink.research/FrozenC2C1Input.estimator|{}estimator[0]
+        final fun <get-estimator>(): kotlin.collections/Map<io.github.kmpfacelink.model/BlendShape, kotlin/Float> // io.github.kmpfacelink.research/FrozenC2C1Input.estimator.<get-estimator>|<get-estimator>(){}[0]
+    final val landmarks // io.github.kmpfacelink.research/FrozenC2C1Input.landmarks|{}landmarks[0]
+        final fun <get-landmarks>(): kotlin.collections/List<io.github.kmpfacelink.model/FaceLandmark> // io.github.kmpfacelink.research/FrozenC2C1Input.landmarks.<get-landmarks>|<get-landmarks>(){}[0]
+    final val sourceHeight // io.github.kmpfacelink.research/FrozenC2C1Input.sourceHeight|{}sourceHeight[0]
+        final fun <get-sourceHeight>(): kotlin/Int // io.github.kmpfacelink.research/FrozenC2C1Input.sourceHeight.<get-sourceHeight>|<get-sourceHeight>(){}[0]
+    final val sourceWidth // io.github.kmpfacelink.research/FrozenC2C1Input.sourceWidth|{}sourceWidth[0]
+        final fun <get-sourceWidth>(): kotlin/Int // io.github.kmpfacelink.research/FrozenC2C1Input.sourceWidth.<get-sourceWidth>|<get-sourceWidth>(){}[0]
+    final val timestampMillis // io.github.kmpfacelink.research/FrozenC2C1Input.timestampMillis|{}timestampMillis[0]
+        final fun <get-timestampMillis>(): kotlin/Long // io.github.kmpfacelink.research/FrozenC2C1Input.timestampMillis.<get-timestampMillis>|<get-timestampMillis>(){}[0]
+
+    final fun component1(): kotlin/Long // io.github.kmpfacelink.research/FrozenC2C1Input.component1|component1(){}[0]
+    final fun component2(): kotlin.collections/Map<io.github.kmpfacelink.model/BlendShape, kotlin/Float> // io.github.kmpfacelink.research/FrozenC2C1Input.component2|component2(){}[0]
+    final fun component3(): kotlin.collections/List<io.github.kmpfacelink.model/FaceLandmark> // io.github.kmpfacelink.research/FrozenC2C1Input.component3|component3(){}[0]
+    final fun component4(): kotlin/Int // io.github.kmpfacelink.research/FrozenC2C1Input.component4|component4(){}[0]
+    final fun component5(): kotlin/Int // io.github.kmpfacelink.research/FrozenC2C1Input.component5|component5(){}[0]
+    final fun copy(kotlin/Long = ..., kotlin.collections/Map<io.github.kmpfacelink.model/BlendShape, kotlin/Float> = ..., kotlin.collections/List<io.github.kmpfacelink.model/FaceLandmark> = ..., kotlin/Int = ..., kotlin/Int = ...): io.github.kmpfacelink.research/FrozenC2C1Input // io.github.kmpfacelink.research/FrozenC2C1Input.copy|copy(kotlin.Long;kotlin.collections.Map<io.github.kmpfacelink.model.BlendShape,kotlin.Float>;kotlin.collections.List<io.github.kmpfacelink.model.FaceLandmark>;kotlin.Int;kotlin.Int){}[0]
+    final fun equals(kotlin/Any?): kotlin/Boolean // io.github.kmpfacelink.research/FrozenC2C1Input.equals|equals(kotlin.Any?){}[0]
+    final fun hashCode(): kotlin/Int // io.github.kmpfacelink.research/FrozenC2C1Input.hashCode|hashCode(){}[0]
+    final fun toString(): kotlin/String // io.github.kmpfacelink.research/FrozenC2C1Input.toString|toString(){}[0]
+}
+
+final class io.github.kmpfacelink.research/FrozenC2C1Output { // io.github.kmpfacelink.research/FrozenC2C1Output|null[0]
+    constructor <init>(kotlin/Long, kotlin/Float?, io.github.kmpfacelink.research/FrozenResearchReadiness, kotlin/String?) // io.github.kmpfacelink.research/FrozenC2C1Output.<init>|<init>(kotlin.Long;kotlin.Float?;io.github.kmpfacelink.research.FrozenResearchReadiness;kotlin.String?){}[0]
+
+    final val readiness // io.github.kmpfacelink.research/FrozenC2C1Output.readiness|{}readiness[0]
+        final fun <get-readiness>(): io.github.kmpfacelink.research/FrozenResearchReadiness // io.github.kmpfacelink.research/FrozenC2C1Output.readiness.<get-readiness>|<get-readiness>(){}[0]
+    final val reason // io.github.kmpfacelink.research/FrozenC2C1Output.reason|{}reason[0]
+        final fun <get-reason>(): kotlin/String? // io.github.kmpfacelink.research/FrozenC2C1Output.reason.<get-reason>|<get-reason>(){}[0]
+    final val timestampMillis // io.github.kmpfacelink.research/FrozenC2C1Output.timestampMillis|{}timestampMillis[0]
+        final fun <get-timestampMillis>(): kotlin/Long // io.github.kmpfacelink.research/FrozenC2C1Output.timestampMillis.<get-timestampMillis>|<get-timestampMillis>(){}[0]
+    final val value // io.github.kmpfacelink.research/FrozenC2C1Output.value|{}value[0]
+        final fun <get-value>(): kotlin/Float? // io.github.kmpfacelink.research/FrozenC2C1Output.value.<get-value>|<get-value>(){}[0]
+
+    final fun component1(): kotlin/Long // io.github.kmpfacelink.research/FrozenC2C1Output.component1|component1(){}[0]
+    final fun component2(): kotlin/Float? // io.github.kmpfacelink.research/FrozenC2C1Output.component2|component2(){}[0]
+    final fun component3(): io.github.kmpfacelink.research/FrozenResearchReadiness // io.github.kmpfacelink.research/FrozenC2C1Output.component3|component3(){}[0]
+    final fun component4(): kotlin/String? // io.github.kmpfacelink.research/FrozenC2C1Output.component4|component4(){}[0]
+    final fun copy(kotlin/Long = ..., kotlin/Float? = ..., io.github.kmpfacelink.research/FrozenResearchReadiness = ..., kotlin/String? = ...): io.github.kmpfacelink.research/FrozenC2C1Output // io.github.kmpfacelink.research/FrozenC2C1Output.copy|copy(kotlin.Long;kotlin.Float?;io.github.kmpfacelink.research.FrozenResearchReadiness;kotlin.String?){}[0]
+    final fun equals(kotlin/Any?): kotlin/Boolean // io.github.kmpfacelink.research/FrozenC2C1Output.equals|equals(kotlin.Any?){}[0]
+    final fun hashCode(): kotlin/Int // io.github.kmpfacelink.research/FrozenC2C1Output.hashCode|hashCode(){}[0]
+    final fun toString(): kotlin/String // io.github.kmpfacelink.research/FrozenC2C1Output.toString|toString(){}[0]
+}
+
+final class io.github.kmpfacelink.research/FrozenC2C1ResearchAdapter { // io.github.kmpfacelink.research/FrozenC2C1ResearchAdapter|null[0]
+    constructor <init>() // io.github.kmpfacelink.research/FrozenC2C1ResearchAdapter.<init>|<init>(){}[0]
+
+    final fun observe(io.github.kmpfacelink.research/FrozenC2C1Input): io.github.kmpfacelink.research/FrozenC2C1Output // io.github.kmpfacelink.research/FrozenC2C1ResearchAdapter.observe|observe(io.github.kmpfacelink.research.FrozenC2C1Input){}[0]
+    final fun reset() // io.github.kmpfacelink.research/FrozenC2C1ResearchAdapter.reset|reset(){}[0]
+
+    final object Companion { // io.github.kmpfacelink.research/FrozenC2C1ResearchAdapter.Companion|null[0]
+        final const val IMPLEMENTATION_REVISION // io.github.kmpfacelink.research/FrozenC2C1ResearchAdapter.Companion.IMPLEMENTATION_REVISION|{}IMPLEMENTATION_REVISION[0]
+            final fun <get-IMPLEMENTATION_REVISION>(): kotlin/String // io.github.kmpfacelink.research/FrozenC2C1ResearchAdapter.Companion.IMPLEMENTATION_REVISION.<get-IMPLEMENTATION_REVISION>|<get-IMPLEMENTATION_REVISION>(){}[0]
+        final const val PRODUCER_ID // io.github.kmpfacelink.research/FrozenC2C1ResearchAdapter.Companion.PRODUCER_ID|{}PRODUCER_ID[0]
+            final fun <get-PRODUCER_ID>(): kotlin/String // io.github.kmpfacelink.research/FrozenC2C1ResearchAdapter.Companion.PRODUCER_ID.<get-PRODUCER_ID>|<get-PRODUCER_ID>(){}[0]
+        final const val VERIFIED_ORIGINAL_SOURCE_SHA256 // io.github.kmpfacelink.research/FrozenC2C1ResearchAdapter.Companion.VERIFIED_ORIGINAL_SOURCE_SHA256|{}VERIFIED_ORIGINAL_SOURCE_SHA256[0]
+            final fun <get-VERIFIED_ORIGINAL_SOURCE_SHA256>(): kotlin/String // io.github.kmpfacelink.research/FrozenC2C1ResearchAdapter.Companion.VERIFIED_ORIGINAL_SOURCE_SHA256.<get-VERIFIED_ORIGINAL_SOURCE_SHA256>|<get-VERIFIED_ORIGINAL_SOURCE_SHA256>(){}[0]
+    }
 }
 
 final class io.github.kmpfacelink.research/HashBoundStaticAppearanceModelProvider { // io.github.kmpfacelink.research/HashBoundStaticAppearanceModelProvider|null[0]

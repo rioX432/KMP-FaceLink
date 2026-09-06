@@ -35,8 +35,8 @@ public object SampleColors {
     public val StatusActive: Color = Color(0xFF51CF66)
     public val StatusInactive: Color = Color.Gray
 
-    public val LandmarkFace: Color = Color(0xFF00FF88)
-    public val LandmarkEye: Color = Color(0xFF00CCFF)
+    public val LandmarkFace: Color = Color(0xFF00E5FF)
+    public val LandmarkEye: Color = Color(0xFF7CFF00)
     public val LandmarkBrow: Color = Color(0xFFFFCC00)
     public val LandmarkLip: Color = Color(0xFFFF6688)
 

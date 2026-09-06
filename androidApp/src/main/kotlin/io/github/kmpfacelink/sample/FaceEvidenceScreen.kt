@@ -58,8 +58,8 @@ private val PASS_COLOR = Color(0xFF69DB7C)
 private val FAIL_COLOR = Color(0xFFFF6B6B)
 
 private data class EvidencePoint(
-    val cheekPuff: Float,
-    val jawOpen: Float,
+    val cheekPuff: Float?,
+    val jawOpen: Float?,
 )
 
 private sealed interface GeometryStage {
@@ -95,8 +95,8 @@ internal fun FaceEvidenceScreen(
     LaunchedEffect(trackingData?.timestampMs) {
         val data = trackingData?.takeIf { it.isTracking } ?: return@LaunchedEffect
         trace += EvidencePoint(
-            cheekPuff = data.blendShapes[BlendShape.CHEEK_PUFF] ?: 0f,
-            jawOpen = data.blendShapes[BlendShape.JAW_OPEN] ?: 0f,
+            cheekPuff = data.blendShapes[BlendShape.CHEEK_PUFF],
+            jawOpen = data.blendShapes[BlendShape.JAW_OPEN],
         )
         if (trace.size > TRACE_CAPACITY) trace.removeAt(0)
 
@@ -223,8 +223,8 @@ private fun EvidencePanel(
     onCalibrateGeometry: () -> Unit,
 ) {
     val active = trackingData?.isTracking == true
-    val cheekPuff = if (active) trackingData.blendShapes[BlendShape.CHEEK_PUFF] ?: 0f else 0f
-    val jawOpen = if (active) trackingData.blendShapes[BlendShape.JAW_OPEN] ?: 0f else 0f
+    val cheekPuff = if (active) trackingData.blendShapes[BlendShape.CHEEK_PUFF] else null
+    val jawOpen = if (active) trackingData.blendShapes[BlendShape.JAW_OPEN] else null
     val landmarkCount = if (active) trackingData.landmarks?.size ?: 0 else 0
 
     Column(
@@ -397,7 +397,7 @@ private fun RuleMetric(
 private fun EvidenceValue(
     label: String,
     role: String,
-    value: Float,
+    value: Float?,
     color: Color,
     modifier: Modifier = Modifier,
 ) {
@@ -430,11 +430,18 @@ private fun SignalTrace(trace: List<EvidencePoint>, modifier: Modifier = Modifie
         )
         if (trace.size < 2) return@Canvas
 
-        fun pathOf(value: (EvidencePoint) -> Float): Path = Path().apply {
+        fun pathOf(value: (EvidencePoint) -> Float?): Path = Path().apply {
+            var previousWasMeasured = false
             trace.forEachIndexed { index, point ->
                 val x = index.toFloat() / (TRACE_CAPACITY - 1) * size.width
-                val y = bottom - value(point).coerceIn(0f, 1f) * bottom
-                if (index == 0) moveTo(x, y) else lineTo(x, y)
+                val measured = value(point)
+                if (measured == null) {
+                    previousWasMeasured = false
+                    return@forEachIndexed
+                }
+                val y = bottom - measured.coerceIn(0f, 1f) * bottom
+                if (previousWasMeasured) lineTo(x, y) else moveTo(x, y)
+                previousWasMeasured = true
             }
         }
 
@@ -451,6 +458,7 @@ private fun SignalTrace(trace: List<EvidencePoint>, modifier: Modifier = Modifie
     }
 }
 
-internal fun formatEvidenceValue(value: Float): String = String.format(Locale.US, "%.6f", value)
+internal fun formatEvidenceValue(value: Float?): String =
+    value?.let { String.format(Locale.US, "%.6f", it) } ?: "unavailable"
 
 internal fun formatGeometryValue(value: Double): String = String.format(Locale.US, "%.2f", value)

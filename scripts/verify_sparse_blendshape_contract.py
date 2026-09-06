@@ -64,7 +64,7 @@ ABSENT_AS_VALUE = re.compile(
 # A fixed-width container sized by the vocabulary. Kotlin zero-initialises it, so every shape the
 # estimator did not produce leaves a measured-looking zero behind with no elvis in sight.
 DENSE_CONTAINER = re.compile(
-    r"\b(?:FloatArray|DoubleArray)\s*\(\s*(?:\w*BLEND_SHAPE\w*|\w*COUNT\w*|52)\s*\)"
+    r"\b(?:FloatArray|DoubleArray)\s*\(\s*(?:\w*BLEND_SHAPE\w*|52)\s*\)"
 )
 
 # Files that state why a dense form is correct for them are allowed. The marker applies to the whole

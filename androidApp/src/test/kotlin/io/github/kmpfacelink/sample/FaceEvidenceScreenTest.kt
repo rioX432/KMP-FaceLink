@@ -16,6 +16,11 @@ class FaceEvidenceScreenTest {
     }
 
     @Test
+    fun reportsAnUnmeasuredShapeAsUnavailable() {
+        assertEquals("unavailable", formatEvidenceValue(null))
+    }
+
+    @Test
     fun formatsGeometryDeltaInPercentOfInterOcularDistance() {
         assertEquals("1.54", formatGeometryValue(1.536))
     }

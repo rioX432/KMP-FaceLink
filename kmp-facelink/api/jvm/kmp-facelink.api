@@ -608,6 +608,158 @@ public final class io/github/kmpfacelink/model/CameraFacing : java/lang/Enum {
 	public static fun values ()[Lio/github/kmpfacelink/model/CameraFacing;
 }
 
+public final class io/github/kmpfacelink/model/CandidateInputIdentity {
+	public synthetic fun <init> (JJIJLkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun getContextEpochId-s-VKNKU ()J
+	public final fun getFaceIndex ()I
+	public final fun getProcessingStateRevision-s-VKNKU ()J
+	public final fun getTimestampMs ()J
+}
+
+public final class io/github/kmpfacelink/model/CandidateObservation {
+	public fun <init> (Lio/github/kmpfacelink/model/CandidateInputIdentity;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lio/github/kmpfacelink/model/CandidateSemanticIntent;Lio/github/kmpfacelink/model/BlendShape;Ljava/lang/Float;Lio/github/kmpfacelink/model/CandidateReadiness;Ljava/lang/String;)V
+	public final fun getIdentity ()Lio/github/kmpfacelink/model/CandidateInputIdentity;
+	public final fun getImplementationRevision ()Ljava/lang/String;
+	public final fun getProducerId ()Ljava/lang/String;
+	public final fun getProposedTarget ()Lio/github/kmpfacelink/model/BlendShape;
+	public final fun getReadiness ()Lio/github/kmpfacelink/model/CandidateReadiness;
+	public final fun getReason ()Ljava/lang/String;
+	public final fun getSemanticId ()Ljava/lang/String;
+	public final fun getSemanticIntent ()Lio/github/kmpfacelink/model/CandidateSemanticIntent;
+	public final fun getValue ()Ljava/lang/Float;
+}
+
+public final class io/github/kmpfacelink/model/CandidateObservationInput {
+	public fun <init> (Lio/github/kmpfacelink/model/CandidateInputIdentity;Ljava/util/Map;Ljava/util/List;II)V
+	public fun <init> (Lio/github/kmpfacelink/model/CandidateInputIdentity;Ljava/util/Map;Ljava/util/List;IILjava/util/Map;)V
+	public final fun getEstimator ()Ljava/util/Map;
+	public final fun getFeaturePlanes ()Ljava/util/Map;
+	public final fun getIdentity ()Lio/github/kmpfacelink/model/CandidateInputIdentity;
+	public final fun getLandmarks ()Ljava/util/List;
+	public final fun getSourceImageHeight ()I
+	public final fun getSourceImageWidth ()I
+}
+
+public abstract interface class io/github/kmpfacelink/model/CandidateObservationProducer {
+	public abstract fun observe (Lio/github/kmpfacelink/model/CandidateObservationInput;)Lio/github/kmpfacelink/model/CandidateProducerOutput;
+}
+
+public abstract interface class io/github/kmpfacelink/model/CandidateObservationProducerFactory {
+	public abstract fun create ()Lio/github/kmpfacelink/model/CandidateObservationProducer;
+	public abstract fun getDescriptor ()Lio/github/kmpfacelink/model/CandidateProducerDescriptor;
+}
+
+public final class io/github/kmpfacelink/model/CandidateObservationReceipt {
+	public fun <init> (Lio/github/kmpfacelink/model/CandidateInputIdentity;Ljava/util/Map;Ljava/util/List;Ljava/util/Map;Ljava/util/List;)V
+	public final fun getAlternatives ()Ljava/util/List;
+	public final fun getEstimator ()Ljava/util/Map;
+	public final fun getIdentity ()Lio/github/kmpfacelink/model/CandidateInputIdentity;
+	public final fun getSelected ()Ljava/util/Map;
+	public final fun getSelectionProvenance ()Ljava/util/List;
+}
+
+public final class io/github/kmpfacelink/model/CandidateObservationSession {
+	public fun <init> ()V
+	public fun <init> (Ljava/util/List;)V
+	public synthetic fun <init> (Ljava/util/List;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun observe (Lio/github/kmpfacelink/model/CandidateObservationInput;Lio/github/kmpfacelink/model/CandidateSelectionPolicy;)Lio/github/kmpfacelink/model/CandidateObservationReceipt;
+	public static synthetic fun observe$default (Lio/github/kmpfacelink/model/CandidateObservationSession;Lio/github/kmpfacelink/model/CandidateObservationInput;Lio/github/kmpfacelink/model/CandidateSelectionPolicy;ILjava/lang/Object;)Lio/github/kmpfacelink/model/CandidateObservationReceipt;
+	public final fun reset ()V
+}
+
+public final class io/github/kmpfacelink/model/CandidateProducerDescriptor {
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lio/github/kmpfacelink/model/CandidateSemanticIntent;Lio/github/kmpfacelink/model/BlendShape;)V
+	public final fun getImplementationRevision ()Ljava/lang/String;
+	public final fun getProducerId ()Ljava/lang/String;
+	public final fun getProposedTarget ()Lio/github/kmpfacelink/model/BlendShape;
+	public final fun getSemanticId ()Ljava/lang/String;
+	public final fun getSemanticIntent ()Lio/github/kmpfacelink/model/CandidateSemanticIntent;
+}
+
+public final class io/github/kmpfacelink/model/CandidateProducerOutput {
+	public static final field Companion Lio/github/kmpfacelink/model/CandidateProducerOutput$Companion;
+	public fun <init> (Ljava/lang/Float;Lio/github/kmpfacelink/model/CandidateReadiness;Ljava/lang/String;)V
+	public final fun getReadiness ()Lio/github/kmpfacelink/model/CandidateReadiness;
+	public final fun getReason ()Ljava/lang/String;
+	public final fun getValue ()Ljava/lang/Float;
+}
+
+public final class io/github/kmpfacelink/model/CandidateProducerOutput$Companion {
+	public final fun absent (Lio/github/kmpfacelink/model/CandidateReadiness;Ljava/lang/String;)Lio/github/kmpfacelink/model/CandidateProducerOutput;
+	public final fun ready (F)Lio/github/kmpfacelink/model/CandidateProducerOutput;
+}
+
+public final class io/github/kmpfacelink/model/CandidateReadiness : java/lang/Enum {
+	public static final field DUPLICATE_INPUT Lio/github/kmpfacelink/model/CandidateReadiness;
+	public static final field MISSING_INPUT Lio/github/kmpfacelink/model/CandidateReadiness;
+	public static final field NON_FINITE Lio/github/kmpfacelink/model/CandidateReadiness;
+	public static final field NOT_READY Lio/github/kmpfacelink/model/CandidateReadiness;
+	public static final field OUT_OF_ORDER_INPUT Lio/github/kmpfacelink/model/CandidateReadiness;
+	public static final field READY Lio/github/kmpfacelink/model/CandidateReadiness;
+	public static final field REJECTED Lio/github/kmpfacelink/model/CandidateReadiness;
+	public static final field RESET Lio/github/kmpfacelink/model/CandidateReadiness;
+	public static final field UNAVAILABLE Lio/github/kmpfacelink/model/CandidateReadiness;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lio/github/kmpfacelink/model/CandidateReadiness;
+	public static fun values ()[Lio/github/kmpfacelink/model/CandidateReadiness;
+}
+
+public final class io/github/kmpfacelink/model/CandidateSelectionMode : java/lang/Enum {
+	public static final field MAX_WITH_ESTIMATOR Lio/github/kmpfacelink/model/CandidateSelectionMode;
+	public static final field REPLACE Lio/github/kmpfacelink/model/CandidateSelectionMode;
+	public static final field WEIGHTED_WITH_ESTIMATOR Lio/github/kmpfacelink/model/CandidateSelectionMode;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lio/github/kmpfacelink/model/CandidateSelectionMode;
+	public static fun values ()[Lio/github/kmpfacelink/model/CandidateSelectionMode;
+}
+
+public final class io/github/kmpfacelink/model/CandidateSelectionPolicy {
+	public static final field Companion Lio/github/kmpfacelink/model/CandidateSelectionPolicy$Companion;
+	public fun <init> ()V
+	public fun <init> (Ljava/util/Map;)V
+	public synthetic fun <init> (Ljava/util/Map;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun getRoutes ()Ljava/util/Map;
+}
+
+public final class io/github/kmpfacelink/model/CandidateSelectionPolicy$Companion {
+	public final fun getDEFAULT_OFF ()Lio/github/kmpfacelink/model/CandidateSelectionPolicy;
+}
+
+public final class io/github/kmpfacelink/model/CandidateSelectionProvenance {
+	public fun <init> (Lio/github/kmpfacelink/model/BlendShape;Lio/github/kmpfacelink/model/CandidateSelectionSource;Ljava/lang/String;Lio/github/kmpfacelink/model/CandidateSelectionMode;Ljava/lang/String;)V
+	public final fun getMode ()Lio/github/kmpfacelink/model/CandidateSelectionMode;
+	public final fun getProducerId ()Ljava/lang/String;
+	public final fun getReason ()Ljava/lang/String;
+	public final fun getSource ()Lio/github/kmpfacelink/model/CandidateSelectionSource;
+	public final fun getTarget ()Lio/github/kmpfacelink/model/BlendShape;
+}
+
+public final class io/github/kmpfacelink/model/CandidateSelectionRoute {
+	public fun <init> (Ljava/lang/String;Lio/github/kmpfacelink/model/CandidateSelectionMode;F)V
+	public synthetic fun <init> (Ljava/lang/String;Lio/github/kmpfacelink/model/CandidateSelectionMode;FILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun getAlternativeWeight ()F
+	public final fun getMode ()Lio/github/kmpfacelink/model/CandidateSelectionMode;
+	public final fun getProducerId ()Ljava/lang/String;
+}
+
+public final class io/github/kmpfacelink/model/CandidateSelectionSource : java/lang/Enum {
+	public static final field ABSENT Lio/github/kmpfacelink/model/CandidateSelectionSource;
+	public static final field ALTERNATIVE Lio/github/kmpfacelink/model/CandidateSelectionSource;
+	public static final field ESTIMATOR Lio/github/kmpfacelink/model/CandidateSelectionSource;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lio/github/kmpfacelink/model/CandidateSelectionSource;
+	public static fun values ()[Lio/github/kmpfacelink/model/CandidateSelectionSource;
+}
+
+public final class io/github/kmpfacelink/model/CandidateSemanticIntent : java/lang/Enum {
+	public static final field CANONICAL_ALTERNATIVE_CANDIDATE Lio/github/kmpfacelink/model/CandidateSemanticIntent;
+	public static final field INDEPENDENT_OBSERVATION Lio/github/kmpfacelink/model/CandidateSemanticIntent;
+	public static final field UNRESOLVED Lio/github/kmpfacelink/model/CandidateSemanticIntent;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lio/github/kmpfacelink/model/CandidateSemanticIntent;
+	public static fun values ()[Lio/github/kmpfacelink/model/CandidateSemanticIntent;
+}
+
 public final class io/github/kmpfacelink/model/CanonicalContextFingerprint {
 	public static final field INSTANCE Lio/github/kmpfacelink/model/CanonicalContextFingerprint;
 	public final fun computeConfiguration (Lio/github/kmpfacelink/model/TrackingContextEpoch;)Ljava/lang/String;
@@ -2550,6 +2702,101 @@ public final class io/github/kmpfacelink/model/ValidationClass : java/lang/Enum 
 	public static fun getEntries ()Lkotlin/enums/EnumEntries;
 	public static fun valueOf (Ljava/lang/String;)Lio/github/kmpfacelink/model/ValidationClass;
 	public static fun values ()[Lio/github/kmpfacelink/model/ValidationClass;
+}
+
+public final class io/github/kmpfacelink/research/C0NativeCheekPuffControl {
+	public static final field INSTANCE Lio/github/kmpfacelink/research/C0NativeCheekPuffControl;
+	public static final field PRODUCER_ID Ljava/lang/String;
+	public final fun read (Lio/github/kmpfacelink/model/CandidateObservationReceipt;)Lio/github/kmpfacelink/model/CandidateProducerOutput;
+}
+
+public final class io/github/kmpfacelink/research/C1FrozenContourCandidate {
+	public static final field FRAME_ROLE_PLANE_KEY Ljava/lang/String;
+	public static final field INSTANCE Lio/github/kmpfacelink/research/C1FrozenContourCandidate;
+	public final fun factory ()Lio/github/kmpfacelink/model/CandidateObservationProducerFactory;
+}
+
+public final class io/github/kmpfacelink/research/C1StandaloneFrameRole : java/lang/Enum {
+	public static final field BEFORE_CALIBRATION Lio/github/kmpfacelink/research/C1StandaloneFrameRole;
+	public static final field EVALUATION Lio/github/kmpfacelink/research/C1StandaloneFrameRole;
+	public static final field OPENING_NEUTRAL_CALIBRATION Lio/github/kmpfacelink/research/C1StandaloneFrameRole;
+	public final fun getEncodedValue ()F
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lio/github/kmpfacelink/research/C1StandaloneFrameRole;
+	public static fun values ()[Lio/github/kmpfacelink/research/C1StandaloneFrameRole;
+}
+
+public final class io/github/kmpfacelink/research/CheekSignalCandidateFactories {
+	public static final field INSTANCE Lio/github/kmpfacelink/research/CheekSignalCandidateFactories;
+	public final fun c2LipOnly ()Ljava/util/List;
+	public final fun c2LipPlusFrozenContour ()Ljava/util/List;
+}
+
+public final class io/github/kmpfacelink/research/CheekSignalThresholdObservation {
+	public fun <init> (Lio/github/kmpfacelink/model/CandidateInputIdentity;FFZZLio/github/kmpfacelink/model/CandidateReadiness;)V
+	public final fun getActive ()Z
+	public final fun getAvailable ()Z
+	public final fun getIdentity ()Lio/github/kmpfacelink/model/CandidateInputIdentity;
+	public final fun getOffThreshold ()F
+	public final fun getOnThreshold ()F
+	public final fun getReadiness ()Lio/github/kmpfacelink/model/CandidateReadiness;
+}
+
+public final class io/github/kmpfacelink/research/CheekSignalThresholdPolicy {
+	public static final field INSTANCE Lio/github/kmpfacelink/research/CheekSignalThresholdPolicy;
+	public final fun create (F)Lio/github/kmpfacelink/research/CheekSignalThresholdSession;
+	public final fun getOnThresholds ()Ljava/util/List;
+}
+
+public final class io/github/kmpfacelink/research/CheekSignalThresholdSession {
+	public static final field ACTIVATION_DWELL_MS J
+	public static final field MAX_GAP_MS J
+	public static final field OFF_RATIO F
+	public static final field RELEASE_DWELL_MS J
+	public final fun getOffThreshold ()F
+	public final fun getOnThreshold ()F
+	public final fun observe (Lio/github/kmpfacelink/model/CandidateInputIdentity;Ljava/lang/Float;Lio/github/kmpfacelink/model/CandidateReadiness;)Lio/github/kmpfacelink/research/CheekSignalThresholdObservation;
+	public final fun reset ()V
+}
+
+public final class io/github/kmpfacelink/research/HashBoundStaticAppearanceModelProvider {
+	public static final field Companion Lio/github/kmpfacelink/research/HashBoundStaticAppearanceModelProvider$Companion;
+	public fun <init> (Ljava/lang/String;Lio/github/kmpfacelink/research/StaticAppearanceModelByteLoader;Lio/github/kmpfacelink/research/StaticAppearanceModelParser;)V
+	public final fun getAbsenceReason ()Ljava/lang/String;
+	public final fun getAvailability ()Lio/github/kmpfacelink/research/StaticAppearanceModelAvailability;
+}
+
+public final class io/github/kmpfacelink/research/HashBoundStaticAppearanceModelProvider$Companion {
+	public final fun c3bStaticCheekPatch (Ljava/lang/String;Lio/github/kmpfacelink/research/StaticAppearanceModelByteLoader;)Lio/github/kmpfacelink/research/HashBoundStaticAppearanceModelProvider;
+}
+
+public final class io/github/kmpfacelink/research/StaticAppearanceCandidateFactories {
+	public static final field FEATURE_PLANE_KEY Ljava/lang/String;
+	public static final field INSTANCE Lio/github/kmpfacelink/research/StaticAppearanceCandidateFactories;
+	public final fun c3bStaticCheekPatch (Lio/github/kmpfacelink/research/HashBoundStaticAppearanceModelProvider;)Lio/github/kmpfacelink/model/CandidateObservationProducerFactory;
+}
+
+public final class io/github/kmpfacelink/research/StaticAppearanceModelAvailability : java/lang/Enum {
+	public static final field ABSENT Lio/github/kmpfacelink/research/StaticAppearanceModelAvailability;
+	public static final field AVAILABLE Lio/github/kmpfacelink/research/StaticAppearanceModelAvailability;
+	public static final field HASH_MISMATCH Lio/github/kmpfacelink/research/StaticAppearanceModelAvailability;
+	public static final field LOAD_FAILED Lio/github/kmpfacelink/research/StaticAppearanceModelAvailability;
+	public static final field PARSE_FAILED Lio/github/kmpfacelink/research/StaticAppearanceModelAvailability;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lio/github/kmpfacelink/research/StaticAppearanceModelAvailability;
+	public static fun values ()[Lio/github/kmpfacelink/research/StaticAppearanceModelAvailability;
+}
+
+public abstract interface class io/github/kmpfacelink/research/StaticAppearanceModelByteLoader {
+	public abstract fun load ()[B
+}
+
+public abstract interface class io/github/kmpfacelink/research/StaticAppearanceModelParser {
+	public abstract fun parse ([B)Lio/github/kmpfacelink/research/StaticAppearanceScoreModel;
+}
+
+public abstract interface class io/github/kmpfacelink/research/StaticAppearanceScoreModel {
+	public abstract fun score (Ljava/util/List;)F
 }
 
 public final class io/github/kmpfacelink/util/CompositeGestureStrategy : io/github/kmpfacelink/api/GestureClassificationStrategy {

@@ -10,10 +10,10 @@ package io.github.kmpfacelink.model
  *
  * @property producerId which producer proposed this, stable across frames.
  * @property value the proposed value.
- * @property proposedTarget the canonical shape this is a candidate for, or `null` when the producer
- *   reports something the ARKit-compatible vocabulary has no equivalent for. A `null` target is not
- *   a missing field: it is the difference between "another way to get `cheekPuff`" and "a signal
- *   that is not `cheekPuff` at all", and the two lead to different designs.
+ * @property proposedTarget the canonical shape this is a candidate for, or `null` when it is not a
+ *   qualified canonical alternative. A `null` target does not mean the canonical vocabulary lacks
+ *   `cheekPuff`: [CandidateSemanticIntent] distinguishes an independent signal from an unresolved
+ *   observation, while a canonical alternative must name its target explicitly.
  */
 public class AlternativeSignalObservation(
     public val producerId: String,
@@ -34,6 +34,12 @@ public class AlternativeSignalObservation(
  * @property alternatives every proposal made for this frame, including ones that were not used.
  */
 public class FaceSignalCandidates(
-    public val estimator: BlendShapeData,
-    public val alternatives: List<AlternativeSignalObservation>,
-)
+    estimator: BlendShapeData,
+    alternatives: List<AlternativeSignalObservation>,
+) {
+    /** A frame-stable copy of the estimator plane. */
+    public val estimator: BlendShapeData = HashMap(estimator)
+
+    /** A frame-stable copy of the alternative plane. */
+    public val alternatives: List<AlternativeSignalObservation> = alternatives.toList()
+}

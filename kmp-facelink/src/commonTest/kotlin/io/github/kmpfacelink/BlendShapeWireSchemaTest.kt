@@ -36,6 +36,13 @@ class BlendShapeWireSchemaTest {
     }
 
     @Test
+    fun canonicalCountAndOrdinalFingerprintRemainFixed() {
+        assertEquals(52, BlendShape.entries.size)
+        assertEquals(52, BlendShapeWireSchema.CHANNEL_COUNT)
+        assertEquals(391656451, BlendShapeWireSchema.FINGERPRINT)
+    }
+
+    @Test
     fun fingerprintIsComputedOverTheOrderedNames() {
         assertEquals(fingerprintOf(currentNames), BlendShapeWireSchema.FINGERPRINT)
     }

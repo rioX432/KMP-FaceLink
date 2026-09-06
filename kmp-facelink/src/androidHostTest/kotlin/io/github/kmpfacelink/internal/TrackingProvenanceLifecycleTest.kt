@@ -1,5 +1,6 @@
 package io.github.kmpfacelink.internal
 
+import io.github.kmpfacelink.ExperimentalFaceLinkApi
 import io.github.kmpfacelink.model.BlendShape
 import io.github.kmpfacelink.model.CalibrationConfig
 import io.github.kmpfacelink.model.CalibrationPhase
@@ -28,6 +29,7 @@ import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 @RunWith(RobolectricTestRunner::class)
+@OptIn(ExperimentalFaceLinkApi::class)
 class TrackingProvenanceLifecycleTest {
 
     @Test
@@ -102,6 +104,12 @@ class TrackingProvenanceLifecycleTest {
         assertEquals(newEpoch.epochId, current.provenance.contextEpochId)
         assertEquals(0u, delayedOld.provenance.processingStateRevision)
         assertEquals(1u, current.provenance.processingStateRevision)
+        assertEquals(1f, delayedOld.candidateObservation.estimator[BlendShape.CHEEK_PUFF])
+        assertEquals(1f, delayedOld.candidateObservation.selected[BlendShape.CHEEK_PUFF])
+        assertEquals(oldEpoch.epochId, delayedOld.candidateObservation.identity.contextEpochId)
+        assertEquals(0u, delayedOld.candidateObservation.identity.processingStateRevision)
+        assertEquals(0, delayedOld.candidateObservation.identity.faceIndex)
+        assertEquals(2L, delayedOld.candidateObservation.identity.timestampMs)
         assertTrue(delayedOld.provenance.appliedTransforms != current.provenance.appliedTransforms)
     }
 

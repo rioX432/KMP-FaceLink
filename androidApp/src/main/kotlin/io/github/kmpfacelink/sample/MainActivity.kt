@@ -15,7 +15,7 @@ import androidx.lifecycle.lifecycleScope
 import io.github.kmpfacelink.api.PlatformContext
 
 internal enum class TrackingMode {
-    HOME, FACE, HAND, HOLISTIC, ACTIONS, VOICE, INTERACT
+    HOME, FACE, FACE_EVIDENCE, HAND, HOLISTIC, ACTIONS, VOICE, INTERACT
 }
 
 class MainActivity : ComponentActivity() {

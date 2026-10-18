@@ -124,7 +124,7 @@ consumer), and `head_translate_x_0p1m` (`+0.1 m` passed through unchanged).
 
 ## References
 
-- Seam contract issue: [#944](https://github.com/AnotherBall/KMP-FaceLink/issues/944)
+- Seam contract issue: [#944](https://github.com/rioX432/KMP-FaceLink/issues/944)
   — Live Link 52-ordered, name-keyed lowering API + head-transform units contract.
-- This document's issue: [#945](https://github.com/AnotherBall/KMP-FaceLink/issues/945).
+- This document's issue: [#945](https://github.com/rioX432/KMP-FaceLink/issues/945).
 - Bridge overview: [`kmp-facelink-cbridge/README.md`](../kmp-facelink-cbridge/README.md).

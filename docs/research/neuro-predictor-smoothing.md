@@ -1,6 +1,6 @@
 # N-euro Predictor: Neural Smoothing Filter Research
 
-Research for [#472](https://github.com/AnotherBall/KMP-FaceLink/issues/472).
+Research for [#472](https://github.com/rioX432/KMP-FaceLink/issues/472).
 
 ## Algorithm Summary
 

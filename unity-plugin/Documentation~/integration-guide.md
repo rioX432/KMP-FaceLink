@@ -17,7 +17,7 @@ The KMP-FaceLink Unity plugin provides real-time face and hand tracking for VTub
 In Unity, go to **Window > Package Manager > + > Add package from git URL**:
 
 ```
-https://github.com/AnotherBall/KMP-FaceLink.git?path=unity-plugin
+https://github.com/rioX432/KMP-FaceLink.git?path=unity-plugin
 ```
 
 ### Option 2: Local path

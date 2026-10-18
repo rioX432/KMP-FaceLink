@@ -1,12 +1,12 @@
 # KMP-FaceLink
 
-[![CI](https://github.com/AnotherBall/KMP-FaceLink/actions/workflows/ci.yml/badge.svg)](https://github.com/AnotherBall/KMP-FaceLink/actions/workflows/ci.yml)
-[![Release](https://img.shields.io/github/v/release/AnotherBall/KMP-FaceLink)](https://github.com/AnotherBall/KMP-FaceLink/releases)
+[![CI](https://github.com/rioX432/KMP-FaceLink/actions/workflows/ci.yml/badge.svg)](https://github.com/rioX432/KMP-FaceLink/actions/workflows/ci.yml)
+[![Release](https://img.shields.io/github/v/release/rioX432/KMP-FaceLink)](https://github.com/rioX432/KMP-FaceLink/releases)
 [![Kotlin](https://img.shields.io/badge/Kotlin-2.3.10-7F52FF.svg?logo=kotlin)](https://kotlinlang.org)
 [![Platforms](https://img.shields.io/badge/Platforms-Android%20%7C%20iOS%20%7C%20JVM%20%7C%20Wasm-blue)](https://kotlinlang.org/docs/multiplatform.html)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![API Docs](https://img.shields.io/badge/API%20Docs-Dokka-blue)](https://anotherball.github.io/KMP-FaceLink/)
-[![Coverage](https://img.shields.io/badge/Coverage-Report-brightgreen)](https://github.com/AnotherBall/KMP-FaceLink/actions/workflows/ci.yml)
+[![API Docs](https://img.shields.io/badge/API%20Docs-Dokka-blue)](https://riox432.github.io/KMP-FaceLink/)
+[![Coverage](https://img.shields.io/badge/Coverage-Report-brightgreen)](https://github.com/rioX432/KMP-FaceLink/actions/workflows/ci.yml)
 
 Unified face, hand & body tracking SDK for Kotlin Multiplatform — one API across platforms. The
 shared API does not imply equal estimator capability or measured quality on every platform.
@@ -83,7 +83,7 @@ performance remain experimental and require Tier 3 qualification.
 
 ## Documentation
 
-Full API documentation is available at **[anotherball.github.io/KMP-FaceLink](https://anotherball.github.io/KMP-FaceLink/)**, generated with [Dokka](https://github.com/Kotlin/dokka) and deployed automatically on each release.
+Full API documentation is available at **[riox432.github.io/KMP-FaceLink](https://riox432.github.io/KMP-FaceLink/)**, generated with [Dokka](https://github.com/Kotlin/dokka) and deployed automatically on each release.
 
 ### LLM-Friendly Docs
 

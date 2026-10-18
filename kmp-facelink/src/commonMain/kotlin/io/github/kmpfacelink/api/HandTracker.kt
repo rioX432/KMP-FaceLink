@@ -83,7 +83,7 @@ public interface HandTracker : Releasable {
      * collects [trackingData] or [state] **before** calling this method. Failing
      * to do so leaves an orphaned Task collecting from a stopped tracker and may
      * prevent the camera from being released. See the
-     * [iOS Lifecycle Management](https://github.com/AnotherBall/KMP-FaceLink/blob/master/docs/quick-start-ios.md#ios-lifecycle-management)
+     * [iOS Lifecycle Management](https://github.com/rioX432/KMP-FaceLink/blob/master/docs/quick-start-ios.md#ios-lifecycle-management)
      * section for the full required sequence.
      */
     public suspend fun stop()
@@ -94,7 +94,7 @@ public interface HandTracker : Releasable {
      * **iOS lifecycle note:** Call this in your ViewModel's `deinit` to free
      * native resources (AVCaptureSession, buffers). Omitting this call causes
      * resource leaks across create/destroy cycles. See the
-     * [iOS Lifecycle Management](https://github.com/AnotherBall/KMP-FaceLink/blob/master/docs/quick-start-ios.md#ios-lifecycle-management)
+     * [iOS Lifecycle Management](https://github.com/rioX432/KMP-FaceLink/blob/master/docs/quick-start-ios.md#ios-lifecycle-management)
      * section for the full required sequence.
      */
     public override fun release()

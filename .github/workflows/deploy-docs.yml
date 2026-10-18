@@ -25,7 +25,7 @@ env:
 jobs:
   deploy-docs:
     name: Generate Dokka Docs
-    runs-on: [ self-hosted, macOS, ARM64 ]
+    runs-on: macos-15
     timeout-minutes: 60
     steps:
       - uses: actions/checkout@v6
@@ -34,8 +34,6 @@ jobs:
         with:
           distribution: ${{ env.JAVA_DISTRIBUTION }}
           java-version: ${{ env.JAVA_VERSION }}
-
-      - uses: android-actions/setup-android@v3
 
       - uses: gradle/actions/setup-gradle@v5
 

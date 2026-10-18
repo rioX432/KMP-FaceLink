@@ -2,7 +2,7 @@
 
 Add KMP-FaceLink to your project via GitHub Packages (Android/JVM/Wasm) or Swift Package Manager (iOS).
 
-> **Versioning:** Every merge to `master` publishes a unique, immutable version of the form `0.<minor>.<UTC YYYYMMDDHHMM>` (e.g. `0.3.202606290230`) to GitHub Packages and creates a matching GitHub Release with the iOS XCFrameworks. Pick the latest version from [Packages](https://github.com/orgs/AnotherBall/packages?repo_name=KMP-FaceLink) (Maven) or [Releases](https://github.com/AnotherBall/KMP-FaceLink/releases) (SPM). See [Publishing](publishing.md) for details.
+> **Versioning:** Every merge to `master` publishes a unique, immutable version of the form `0.<minor>.<UTC YYYYMMDDHHMM>` (e.g. `0.3.202606290230`) to GitHub Packages and creates a matching GitHub Release with the iOS XCFrameworks. Pick the latest version from [Packages](https://github.com/rioX432?tab=packages&repo_name=KMP-FaceLink) (Maven) or [Releases](https://github.com/rioX432/KMP-FaceLink/releases) (SPM). See [Publishing](publishing.md) for details.
 
 ## Requirements
 
@@ -81,7 +81,7 @@ KMP-FaceLink is published to **GitHub Packages**. Add the Maven repository and a
 repositories {
     mavenCentral() // for transitive dependencies
     maven {
-        url = uri("https://maven.pkg.github.com/AnotherBall/KMP-FaceLink")
+        url = uri("https://maven.pkg.github.com/rioX432/KMP-FaceLink")
         credentials {
             username = providers.gradleProperty("gpr.user").orNull ?: System.getenv("GITHUB_ACTOR")
             password = providers.gradleProperty("gpr.key").orNull ?: System.getenv("GITHUB_TOKEN")
@@ -98,7 +98,7 @@ Provide `gpr.user` / `gpr.key` in `~/.gradle/gradle.properties` (or `GITHUB_ACTO
 
 1. Open your project in Xcode
 2. Go to **File > Add Package Dependencies...**
-3. Enter the repository URL: `https://github.com/AnotherBall/KMP-FaceLink`
+3. Enter the repository URL: `https://github.com/rioX432/KMP-FaceLink`
 4. Select the version rule (e.g., **Up to Next Major Version** from `0.3.0`)
 5. Choose the libraries you need:
    - `KMPFaceLink` — Core tracking
@@ -115,7 +115,7 @@ Provide `gpr.user` / `gpr.key` in `~/.gradle/gradle.properties` (or `GITHUB_ACTO
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/AnotherBall/KMP-FaceLink", from: "0.3.0"),
+    .package(url: "https://github.com/rioX432/KMP-FaceLink", from: "0.3.0"),
 ],
 targets: [
     .target(
@@ -185,7 +185,7 @@ tracker.start()
 
 ## API Reference
 
-Full API documentation is available at: https://anotherball.github.io/KMP-FaceLink/
+Full API documentation is available at: https://riox432.github.io/KMP-FaceLink/
 
 ## Next Steps
 

@@ -38,12 +38,12 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/AnotherBall/KMP-FaceLink.git",
+    "url": "https://github.com/rioX432/KMP-FaceLink.git",
     "directory": "react-native-kmp-facelink"
   },
   "author": "KMP-FaceLink contributors",
   "license": "Apache-2.0",
-  "homepage": "https://github.com/AnotherBall/KMP-FaceLink#readme",
+  "homepage": "https://github.com/rioX432/KMP-FaceLink#readme",
   "peerDependencies": {
     "react": ">=18.0.0",
     "react-native": ">=0.82.0"

@@ -4,37 +4,37 @@
 
 ## Docs
 
-- [API Overview](https://github.com/AnotherBall/KMP-FaceLink/blob/master/docs/api-overview.md): Full module reference with architecture diagram, key types, code examples, and common use cases
-- [Quick Start: Android](https://github.com/AnotherBall/KMP-FaceLink/blob/master/docs/quick-start-android.md): Camera setup, MediaPipe model download, permissions, and tracking in 5 minutes
-- [Quick Start: iOS](https://github.com/AnotherBall/KMP-FaceLink/blob/master/docs/quick-start-ios.md): ARKit configuration, XCFramework integration, and SwiftUI usage with SKIE Flow bridging
-- [Integration Guide](https://github.com/AnotherBall/KMP-FaceLink/blob/master/docs/quick-start-integration.md): Gradle and SPM dependency setup with version catalog examples
-- [Extension Strategy](https://github.com/AnotherBall/KMP-FaceLink/blob/master/docs/extension-strategy.md): Module architecture, roadmap, and SDK design philosophy
-- [On-Device LLM](https://github.com/AnotherBall/KMP-FaceLink/blob/master/docs/on-device-llm.md): Model selection, benchmarks, and hybrid routing for the LLM module
-- [Dokka API Reference](https://anotherball.github.io/KMP-FaceLink/): Generated KDoc reference for all public APIs
-- [Detailed LLM Reference](https://github.com/AnotherBall/KMP-FaceLink/blob/master/llms-full.txt): Expanded API signatures, all module details, and platform-specific notes
+- [API Overview](https://github.com/rioX432/KMP-FaceLink/blob/master/docs/api-overview.md): Full module reference with architecture diagram, key types, code examples, and common use cases
+- [Quick Start: Android](https://github.com/rioX432/KMP-FaceLink/blob/master/docs/quick-start-android.md): Camera setup, MediaPipe model download, permissions, and tracking in 5 minutes
+- [Quick Start: iOS](https://github.com/rioX432/KMP-FaceLink/blob/master/docs/quick-start-ios.md): ARKit configuration, XCFramework integration, and SwiftUI usage with SKIE Flow bridging
+- [Integration Guide](https://github.com/rioX432/KMP-FaceLink/blob/master/docs/quick-start-integration.md): Gradle and SPM dependency setup with version catalog examples
+- [Extension Strategy](https://github.com/rioX432/KMP-FaceLink/blob/master/docs/extension-strategy.md): Module architecture, roadmap, and SDK design philosophy
+- [On-Device LLM](https://github.com/rioX432/KMP-FaceLink/blob/master/docs/on-device-llm.md): Model selection, benchmarks, and hybrid routing for the LLM module
+- [Dokka API Reference](https://riox432.github.io/KMP-FaceLink/): Generated KDoc reference for all public APIs
+- [Detailed LLM Reference](https://github.com/rioX432/KMP-FaceLink/blob/master/llms-full.txt): Expanded API signatures, all module details, and platform-specific notes
 
 ## Modules
 
-- [kmp-facelink](https://github.com/AnotherBall/KMP-FaceLink/tree/master/kmp-facelink): Core tracking — face (52 blend shapes + head transform), hand (landmarks + gestures), body (33 keypoints), holistic (combined). Platforms: Android, iOS, JVM, Wasm.
-- [kmp-facelink-avatar](https://github.com/AnotherBall/KMP-FaceLink/tree/master/kmp-facelink-avatar): BlendShape to Live2D (ParamAngleX, ParamEyeLOpen, etc.) and VRM parameter mapping. Platforms: Android, iOS, JVM, Wasm.
-- [kmp-facelink-actions](https://github.com/AnotherBall/KMP-FaceLink/tree/master/kmp-facelink-actions): Gesture triggers, expression triggers, combined triggers, emotion classification (FACS-based), DefaultStreamBindings for stream interaction. Platforms: Android, iOS, JVM, Wasm.
-- [kmp-facelink-interact](https://github.com/AnotherBall/KMP-FaceLink/tree/master/kmp-facelink-interact): Streaming platform event sources (Twitch EventSub, YouTube Live Chat). MockStreamEventSource for demo/testing. StreamEventAggregator for multi-platform. Platforms: Android, iOS, JVM, Wasm.
-- [kmp-facelink-voice](https://github.com/AnotherBall/KMP-FaceLink/tree/master/kmp-facelink-voice): TTS (OpenAI, ElevenLabs, Voicevox), ASR (Whisper on-device), multilingual lip sync. Experimental.
-- [kmp-facelink-llm](https://github.com/AnotherBall/KMP-FaceLink/tree/master/kmp-facelink-llm): Streaming LLM API — cloud (OpenAI, Anthropic), on-device (Gemma 3n, llama.cpp), hybrid routing. Experimental.
-- [kmp-facelink-pipeline](https://github.com/AnotherBall/KMP-FaceLink/tree/master/kmp-facelink-pipeline): AI avatar pipeline orchestration: ASR -> LLM -> TTS -> LipSync -> Expression. Experimental.
-- [kmp-facelink-vmc](https://github.com/AnotherBall/KMP-FaceLink/tree/master/kmp-facelink-vmc): VMC Protocol (OSC over UDP) sender/receiver for VRM apps (VSeeFace, VMagicMirror).
-- [kmp-facelink-ifm](https://github.com/AnotherBall/KMP-FaceLink/tree/master/kmp-facelink-ifm): iFacialMocap protocol output compatible with VTube Studio.
-- [kmp-facelink-stream](https://github.com/AnotherBall/KMP-FaceLink/tree/master/kmp-facelink-stream): WebSocket streaming server for phone-as-tracker use cases. Experimental.
-- [kmp-facelink-vts](https://github.com/AnotherBall/KMP-FaceLink/tree/master/kmp-facelink-vts): VTube Studio Plugin API direct integration via WebSocket.
-- [kmp-facelink-networking](https://github.com/AnotherBall/KMP-FaceLink/tree/master/kmp-facelink-networking): Shared UDP socket, time utilities, mDNS discovery. Internal module used by protocol modules.
+- [kmp-facelink](https://github.com/rioX432/KMP-FaceLink/tree/master/kmp-facelink): Core tracking — face (52 blend shapes + head transform), hand (landmarks + gestures), body (33 keypoints), holistic (combined). Platforms: Android, iOS, JVM, Wasm.
+- [kmp-facelink-avatar](https://github.com/rioX432/KMP-FaceLink/tree/master/kmp-facelink-avatar): BlendShape to Live2D (ParamAngleX, ParamEyeLOpen, etc.) and VRM parameter mapping. Platforms: Android, iOS, JVM, Wasm.
+- [kmp-facelink-actions](https://github.com/rioX432/KMP-FaceLink/tree/master/kmp-facelink-actions): Gesture triggers, expression triggers, combined triggers, emotion classification (FACS-based), DefaultStreamBindings for stream interaction. Platforms: Android, iOS, JVM, Wasm.
+- [kmp-facelink-interact](https://github.com/rioX432/KMP-FaceLink/tree/master/kmp-facelink-interact): Streaming platform event sources (Twitch EventSub, YouTube Live Chat). MockStreamEventSource for demo/testing. StreamEventAggregator for multi-platform. Platforms: Android, iOS, JVM, Wasm.
+- [kmp-facelink-voice](https://github.com/rioX432/KMP-FaceLink/tree/master/kmp-facelink-voice): TTS (OpenAI, ElevenLabs, Voicevox), ASR (Whisper on-device), multilingual lip sync. Experimental.
+- [kmp-facelink-llm](https://github.com/rioX432/KMP-FaceLink/tree/master/kmp-facelink-llm): Streaming LLM API — cloud (OpenAI, Anthropic), on-device (Gemma 3n, llama.cpp), hybrid routing. Experimental.
+- [kmp-facelink-pipeline](https://github.com/rioX432/KMP-FaceLink/tree/master/kmp-facelink-pipeline): AI avatar pipeline orchestration: ASR -> LLM -> TTS -> LipSync -> Expression. Experimental.
+- [kmp-facelink-vmc](https://github.com/rioX432/KMP-FaceLink/tree/master/kmp-facelink-vmc): VMC Protocol (OSC over UDP) sender/receiver for VRM apps (VSeeFace, VMagicMirror).
+- [kmp-facelink-ifm](https://github.com/rioX432/KMP-FaceLink/tree/master/kmp-facelink-ifm): iFacialMocap protocol output compatible with VTube Studio.
+- [kmp-facelink-stream](https://github.com/rioX432/KMP-FaceLink/tree/master/kmp-facelink-stream): WebSocket streaming server for phone-as-tracker use cases. Experimental.
+- [kmp-facelink-vts](https://github.com/rioX432/KMP-FaceLink/tree/master/kmp-facelink-vts): VTube Studio Plugin API direct integration via WebSocket.
+- [kmp-facelink-networking](https://github.com/rioX432/KMP-FaceLink/tree/master/kmp-facelink-networking): Shared UDP socket, time utilities, mDNS discovery. Internal module used by protocol modules.
 
 ## Gradle Plugin (Not Yet Published)
 
 - Plugin ID: `com.anotherball.facelink` — exists in the codebase but is **not yet published** to the Gradle Plugin Portal. Will be available after the first tagged release.
 - Once published: automates MediaPipe model downloads (face, hand, body) with SHA-256 checksum verification
-- Until then: download models manually (see [Android Quick Start](https://github.com/AnotherBall/KMP-FaceLink/blob/master/docs/quick-start-android.md) for instructions)
+- Until then: download models manually (see [Android Quick Start](https://github.com/rioX432/KMP-FaceLink/blob/master/docs/quick-start-android.md) for instructions)
 
 ## Optional
 
-- [Changelog](https://github.com/AnotherBall/KMP-FaceLink/blob/master/CHANGELOG.md): Release history and breaking changes
-- [Extension Strategy](https://github.com/AnotherBall/KMP-FaceLink/blob/master/docs/extension-strategy.md): Long-term roadmap and commercialization strategy
+- [Changelog](https://github.com/rioX432/KMP-FaceLink/blob/master/CHANGELOG.md): Release history and breaking changes
+- [Extension Strategy](https://github.com/rioX432/KMP-FaceLink/blob/master/docs/extension-strategy.md): Long-term roadmap and commercialization strategy

@@ -95,7 +95,7 @@ jobs:
 
   sdk-foundation-quality:
     name: Face tracking foundation contracts
-    runs-on: ubuntu-latest
+    runs-on: macos-15
     timeout-minutes: 60
     steps:
       - uses: actions/checkout@v6
@@ -147,6 +147,9 @@ jobs:
 
       - name: Setup whisper.cpp for iOS
         run: ./scripts/setup-whisper-ios.sh
+
+      - name: Setup pinned OpenSeeFace models for JVM tests
+        run: ./scripts/setup-openseeface-models.sh
 
       - name: Run tests with coverage
         run: >-

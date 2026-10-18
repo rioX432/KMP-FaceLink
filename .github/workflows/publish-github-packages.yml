@@ -32,7 +32,7 @@ env:
 jobs:
   resolve-version:
     name: Resolve version
-    runs-on: [ self-hosted, macOS, ARM64 ]
+    runs-on: ubuntu-latest
     outputs:
       version: ${{ steps.ver.outputs.version }}
       tag: ${{ steps.ver.outputs.tag }}
@@ -61,10 +61,10 @@ jobs:
   publish-packages:
     name: Publish Maven packages
     needs: resolve-version
-    # self-hosted macOS ARM64 is required: kmp-facelink-voice has iOS whisper.cpp
-    # cinterop, so publishing the iOS klib publications needs macOS + the whisper
-    # setup script and the Kotlin/Native toolchain.
-    runs-on: [ self-hosted, macOS, ARM64 ]
+    # macOS is required: kmp-facelink-voice has iOS whisper.cpp cinterop, so
+    # publishing the iOS klib publications needs macOS + the whisper setup script
+    # and the Kotlin/Native toolchain.
+    runs-on: macos-15
     timeout-minutes: 90
     steps:
       - uses: actions/checkout@v6
@@ -101,7 +101,7 @@ jobs:
   build-xcframeworks:
     name: Build XCFrameworks
     needs: resolve-version
-    runs-on: [ self-hosted, macOS, ARM64 ]
+    runs-on: macos-15
     timeout-minutes: 60
     strategy:
       matrix:
@@ -163,7 +163,7 @@ jobs:
   create-release:
     name: Create GitHub Release
     needs: [resolve-version, publish-packages, build-xcframeworks]
-    runs-on: [ self-hosted, macOS, ARM64 ]
+    runs-on: ubuntu-latest
     timeout-minutes: 30
     env:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -172,8 +172,8 @@ jobs:
       VERSION: ${{ needs.resolve-version.outputs.version }}
     steps:
       # Check out master with full history so we can commit Package.swift and move
-      # the tag. With the single self-hosted runner + serialized concurrency,
-      # master HEAD equals the built commit in the normal flow.
+      # the tag. With serialized concurrency, master HEAD equals the built commit in
+      # the normal flow.
       - uses: actions/checkout@v6
         with:
           ref: master

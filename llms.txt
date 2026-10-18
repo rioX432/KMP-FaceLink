@@ -8,7 +8,7 @@
 - [Quick Start: Android](https://github.com/rioX432/KMP-FaceLink/blob/master/docs/quick-start-android.md): Camera setup, MediaPipe model download, permissions, and tracking in 5 minutes
 - [Quick Start: iOS](https://github.com/rioX432/KMP-FaceLink/blob/master/docs/quick-start-ios.md): ARKit configuration, XCFramework integration, and SwiftUI usage with SKIE Flow bridging
 - [Integration Guide](https://github.com/rioX432/KMP-FaceLink/blob/master/docs/quick-start-integration.md): Gradle and SPM dependency setup with version catalog examples
-- [Extension Strategy](https://github.com/rioX432/KMP-FaceLink/blob/master/docs/extension-strategy.md): Module architecture, roadmap, and SDK design philosophy
+- [Extension Strategy](https://github.com/rioX432/KMP-FaceLink/blob/master/docs/extension-strategy.md): Module architecture and SDK design philosophy
 - [On-Device LLM](https://github.com/rioX432/KMP-FaceLink/blob/master/docs/on-device-llm.md): Model selection, benchmarks, and hybrid routing for the LLM module
 - [Dokka API Reference](https://riox432.github.io/KMP-FaceLink/): Generated KDoc reference for all public APIs
 - [Detailed LLM Reference](https://github.com/rioX432/KMP-FaceLink/blob/master/llms-full.txt): Expanded API signatures, all module details, and platform-specific notes
@@ -37,4 +37,4 @@
 ## Optional
 
 - [Changelog](https://github.com/rioX432/KMP-FaceLink/blob/master/CHANGELOG.md): Release history and breaking changes
-- [Extension Strategy](https://github.com/rioX432/KMP-FaceLink/blob/master/docs/extension-strategy.md): Long-term roadmap and commercialization strategy
+- [Extension Strategy](https://github.com/rioX432/KMP-FaceLink/blob/master/docs/extension-strategy.md): Market position, module design, and competitive advantages

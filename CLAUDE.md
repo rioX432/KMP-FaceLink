@@ -39,7 +39,7 @@ Before acting, always pause and reconsider. Re-read the requirements, re-check y
 - iOS: After `xcodegen generate`, re-set the signing team in Xcode
 - iOS device ID changes between sessions — always check with `xcrun xctrace list devices`
 - SKIE: K/N adds `do` prefix to `init`-prefixed functions (e.g. `initKoin` → `doInitKoin`), but SKIE generates its own Swift async extension without the prefix
-- Android build target device: `adb connect 100.89.4.71:5555` (check if still valid each session)
+- Android build target device: `adb connect <device-ip>:5555` (check the address each session)
 
 ## Language
 

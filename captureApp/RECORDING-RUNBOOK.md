@@ -64,7 +64,7 @@ Session Cの前に、guided-22を取り出して構造検証し、別レビュ�
 `kmp-facelink` / `kmp-facelink-capture` SDKのconsumer要件はminSdk 24のままである。
 
 ```bash
-cd KMP-FaceLink  # repository root
+cd /path/to/KMP-FaceLink
 ./gradlew :captureApp:installDebug
 ```
 

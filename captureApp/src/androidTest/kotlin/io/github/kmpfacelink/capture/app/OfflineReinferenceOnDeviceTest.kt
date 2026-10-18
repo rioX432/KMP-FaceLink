@@ -157,7 +157,7 @@ class OfflineReinferenceOnDeviceTest {
         const val FRAMES = 5
         const val SYNTHETIC_SEED = 8_290
 
-        /** The face_landmarker model a production Android host app bundles, and the one every published figure used. */
+        /** The face_landmarker model shipped in the Android host app under study; every published figure used it. */
         const val STUDIED_MODEL_SHA256 =
             "64184e229b263107bc2b804c6625db1341ff2bb731874b0bcc2fe6544e0bc9ff"
     }

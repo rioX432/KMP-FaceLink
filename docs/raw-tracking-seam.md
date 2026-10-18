@@ -1,8 +1,7 @@
 # Raw-Tracking Seam
 
 This document records how KMP-FaceLink fits into a host app that brings its own avatar
-pipeline, following a cross-repo design decision. It exists so future contributors do not
-re-derive the seam or accidentally break it.
+pipeline. It exists so future contributors do not re-derive the seam or accidentally break it.
 
 ## TL;DR
 
@@ -34,7 +33,7 @@ flowchart TD
     end
 
     subgraph ext["External avatar pipeline path"]
-        AC["consumer adapter<br/>owns mapping + transport + rendering"]
+        AC["External avatar pipeline<br/>owns mapping + transport + rendering"]
     end
 
     T --> AV

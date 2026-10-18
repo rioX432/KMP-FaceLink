@@ -518,9 +518,9 @@ kmp-facelink (core)                      AI Companion App
 kmp-facelink-avatar                        - UX, design, onboarding
 kmp-facelink-actions                       - Character/persona management
 kmp-facelink-effects                       - Subscription billing
-kmp-facelink-stream                        - Tuned prompts & voice config
-kmp-facelink-live2d                        - App Store distribution
-Sample apps (demo only)
+kmp-facelink-stream
+kmp-facelink-live2d                        - Tuned prompts & voice config
+Sample apps (demo only)                    - App Store distribution
 
 ↓                                        ↓
 "Distribute the pickaxes"               "Mine the gold"

@@ -74,8 +74,6 @@ jobs:
           distribution: ${{ env.JAVA_DISTRIBUTION }}
           java-version: ${{ env.JAVA_VERSION }}
 
-      - uses: android-actions/setup-android@v3
-
       - uses: gradle/actions/setup-gradle@v5
 
       - name: Set up local.properties
@@ -133,8 +131,6 @@ jobs:
         with:
           distribution: ${{ env.JAVA_DISTRIBUTION }}
           java-version: ${{ env.JAVA_VERSION }}
-
-      - uses: android-actions/setup-android@v3
 
       - uses: gradle/actions/setup-gradle@v5
 

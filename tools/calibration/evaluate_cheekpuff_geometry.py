@@ -859,27 +859,6 @@ def read_optional_json(path: Path) -> dict[str, Any] | None:
     return value if isinstance(value, dict) else {"value": value}
 
 
-def production_source_path() -> Path:
-    """Resolve the Kotlin source in the shared AnotherBall workspace."""
-    anotherball_root = Path(__file__).resolve().parents[3]
-    return (
-        anotherball_root
-        / "persona-android"
-        / "core"
-        / "face_tracking"
-        / "src"
-        / "main"
-        / "java"
-        / "com"
-        / "anotherball"
-        / "avvy"
-        / "core"
-        / "face_tracking"
-        / "cheekpuff"
-        / "CheekPuffGeometricDetector.kt"
-    )
-
-
 def write_frame_csv(
     path: Path,
     artifact: LandmarkArtifact,
@@ -1081,6 +1060,7 @@ def evaluate_session(
     alignment_tolerance_ms: float,
     make_plot: bool,
     min_calibration_frames: int = MIN_CALIBRATION_FRAMES,
+    production_source: Path | None = None,
 ) -> dict[str, Any]:
     """Run the complete fixed-window paired geometry evaluation."""
     landmarks_path = session_dir / "mediapipe_landmarks.npz"
@@ -1174,7 +1154,6 @@ def evaluate_session(
             artifact.rotation_mode,
         )
 
-    production_source = production_source_path()
     processing_metadata = read_optional_json(session_dir / "mediapipe_processing.json")
     capture_metadata = read_optional_json(session_dir / "metadata.json")
     calibration_reference = arkit_reference[calibration_mask]
@@ -1222,9 +1201,13 @@ def evaluate_session(
                 "lift_narrow_max": LIFT_NARROW_MAX,
                 "on_delay_ms": ON_DELAY_MS,
             },
-            "production_source": str(production_source),
+            "production_source": (
+                str(production_source) if production_source is not None else None
+            ),
             "production_source_sha256": (
-                sha256_file(production_source) if production_source.is_file() else None
+                sha256_file(production_source)
+                if production_source is not None and production_source.is_file()
+                else None
             ),
         },
         "input": {
@@ -1348,6 +1331,14 @@ def parse_args() -> argparse.Namespace:
         help="Minimum neutral frames accepted (default: 15, matching production)",
     )
     parser.add_argument(
+        "--production-source",
+        type=Path,
+        help=(
+            "Kotlin source of the production detector to record with its SHA-256 "
+            "(default: not recorded)"
+        ),
+    )
+    parser.add_argument(
         "--no-plot",
         action="store_true",
         help="Skip timeline PNG generation",
@@ -1380,6 +1371,11 @@ def main() -> int:
             alignment_tolerance_ms=args.alignment_tolerance_ms,
             make_plot=not args.no_plot,
             min_calibration_frames=args.min_calibration_frames,
+            production_source=(
+                args.production_source.resolve()
+                if args.production_source is not None
+                else None
+            ),
         )
     except (OSError, ValueError, json.JSONDecodeError) as error:
         print(f"Error: {error}", file=sys.stderr)

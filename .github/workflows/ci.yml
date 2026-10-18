@@ -6,6 +6,9 @@ on:
   pull_request:
     branches: [ master ]
 
+permissions:
+  contents: read
+
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
@@ -115,6 +118,14 @@ jobs:
 
       - name: Set up local.properties
         run: echo "sdk.dir=$ANDROID_HOME" > local.properties
+
+      # scripts/verify_sample_xcode_project.py requires exactly this XcodeGen release.
+      - name: Install pinned XcodeGen
+        run: |
+          curl -fsSL -o xcodegen.zip https://github.com/yonaskolb/XcodeGen/releases/download/2.45.4/xcodegen.zip
+          echo "090ec29491aad50aec10631bf6e62253fed733c50f3aab0f5ffc86bc170bdbef  xcodegen.zip" | shasum -a 256 -c -
+          unzip -q xcodegen.zip -d "$RUNNER_TEMP/xcodegen"
+          echo "$RUNNER_TEMP/xcodegen/xcodegen/bin" >> "$GITHUB_PATH"
 
       - name: Setup pinned OpenSeeFace models for JVM contract tests
         run: ./scripts/setup-openseeface-models.sh

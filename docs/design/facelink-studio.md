@@ -327,41 +327,9 @@ The app itself needs relatively little new code since it composes existing modul
 
 ---
 
-## 4. Monetization Strategy
+## 4. Platform Strategy
 
-### 4.1 Pricing Tiers
-
-| Tier | Price | Features |
-|---|---|---|
-| **Free** | $0 | 10-minute sessions, small watermark, VMC + iFM protocols, 30 FPS max |
-| **Pro** | $14.99 (one-time) | Unlimited sessions, no watermark, all protocols (VMC + iFM + VTS), 60 FPS, background mode |
-| **Hand Tracking DLC** | $9.99 (one-time) | 21-point hand landmarks + gesture data via VMC/iFM |
-| **Commercial License** | $49.99/year | Pro + Hand + priority support + commercial use rights + API access |
-
-### 4.2 Pricing Rationale
-
-- **Free tier is generous enough to validate quality.** 10 minutes is enough for a streaming test but too short for actual streaming. This matches VTube Studio's 5-minute limit strategy.
-- **$14.99 Pro matches VTube Studio Pro DLC** and is nearly 2x iFacialMocap ($7.99), justified by: multi-protocol support, cross-platform, and better Android tracking than VTS Mobile.
-- **Hand tracking as DLC** keeps the base price competitive while monetizing power users who want upper-body capture.
-- **Commercial license** targets professional mocap studios and game developers who need licensing clarity.
-
-### 4.3 Revenue Projection (Conservative, Year 1)
-
-| Source | Units/Year | Revenue |
-|---|---|---|
-| Pro IAP | 2,000 | $29,980 |
-| Hand Tracking DLC | 500 | $4,995 |
-| Commercial License | 20 | $999 |
-| **Total (before platform cut)** | | **$35,974** |
-| **After 30% platform cut** | | **$25,182** |
-
-Revenue is modest but the strategic value (SDK adoption, ecosystem growth, brand recognition in VTuber tooling space) significantly exceeds direct revenue.
-
----
-
-## 5. Platform Strategy
-
-### 5.1 Recommendation: Android First, iOS Fast-Follow
+### 4.1 Recommendation: Android First, iOS Fast-Follow
 
 | Factor | Android First | iOS First | Simultaneous |
 |---|---|---|---|
@@ -377,7 +345,7 @@ Revenue is modest but the strategic value (SDK adoption, ecosystem growth, brand
 2. **v0.2 iOS** (2 weeks) -- Fast-follow with iOS, leveraging ~70% shared code from KMP.
 3. **v0.3+ Both platforms** -- Simultaneous updates from this point.
 
-### 5.2 KMP Advantage
+### 4.2 KMP Advantage
 
 The KMP-FaceLink architecture provides a decisive advantage for cross-platform development:
 
@@ -393,7 +361,7 @@ Estimated code sharing: **~65-70%** between Android and iOS.
 
 ---
 
-## 6. Release Roadmap
+## 5. Release Roadmap
 
 ### v0.1 MVP -- Android (Target: 5 weeks from start)
 
@@ -469,9 +437,9 @@ Week:  1  2  3  4  5  6  7  8  9  10 11 12 13 14 15 16
 
 ---
 
-## 7. Risk Assessment
+## 6. Risk Assessment
 
-### 7.1 Technical Risks
+### 6.1 Technical Risks
 
 | Risk | Likelihood | Impact | Mitigation |
 |---|---|---|---|
@@ -483,7 +451,7 @@ Week:  1  2  3  4  5  6  7  8  9  10 11 12 13 14 15 16
 | **Phone overheating during long sessions** | Medium | Medium | Thermal throttling monitoring. Reduce FPS automatically when thermal state is elevated. Allow hiding camera preview to reduce GPU load. |
 | **Android device fragmentation** | Medium | Medium | MediaPipe handles most of the ML abstraction. Test on popular budget devices (Samsung A-series, Pixel). Min SDK 24 covers 98%+ of active devices. |
 
-### 7.2 Market Risks
+### 6.2 Market Risks
 
 | Risk | Likelihood | Impact | Mitigation |
 |---|---|---|---|
@@ -494,7 +462,7 @@ Week:  1  2  3  4  5  6  7  8  9  10 11 12 13 14 15 16
 | **Platform policy changes (Play Store / App Store)** | Low | Medium | Standard app; no unusual permissions. Comply with all store policies from day one. |
 | **Webcam tracking quality catches up** | Medium | Low | NVIDIA Broadcast tracker already provides good webcam tracking on RTX GPUs. Phone tracking advantage: no GPU cost on PC, works with any PC, higher quality on budget setups. These advantages persist. |
 
-### 7.3 Business Risks
+### 6.3 Business Risks
 
 | Risk | Likelihood | Impact | Mitigation |
 |---|---|---|---|
@@ -504,9 +472,9 @@ Week:  1  2  3  4  5  6  7  8  9  10 11 12 13 14 15 16
 
 ---
 
-## 8. Success Metrics
+## 7. Success Metrics
 
-### 8.1 Launch Metrics (v0.1, first 30 days)
+### 7.1 Launch Metrics (v0.1, first 30 days)
 
 | Metric | Target | Measurement |
 |---|---|---|
@@ -517,7 +485,7 @@ Week:  1  2  3  4  5  6  7  8  9  10 11 12 13 14 15 16
 | Pro conversion rate | >5% | Play Billing analytics |
 | Play Store rating | >4.0 | Play Store |
 
-### 8.2 Growth Metrics (v1.0, first 90 days)
+### 7.2 Growth Metrics (v1.0, first 90 days)
 
 | Metric | Target | Measurement |
 |---|---|---|
@@ -529,7 +497,7 @@ Week:  1  2  3  4  5  6  7  8  9  10 11 12 13 14 15 16
 
 ---
 
-## 9. Open Questions
+## 8. Open Questions
 
 1. **App name:** "FaceLink Studio" vs "FaceLink Tracker" vs another name? "Studio" implies creation; "Tracker" is more descriptive of the phone-as-tracker use case.
 2. **Free tier limits:** 10 minutes per session vs 5 minutes (VTube Studio's limit) vs time-unlimited with watermark only?

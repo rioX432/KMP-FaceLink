@@ -567,4 +567,4 @@ Output is at `build/dokka/html/index.html`. The reference covers all public APIs
 - [Quick Start: Android](quick-start-android.md)
 - [Quick Start: iOS](quick-start-ios.md)
 - [On-Device LLM](on-device-llm.md) — model selection, benchmarks, hybrid routing
-- [Extension Strategy](extension-strategy.md) — module architecture and roadmap
+- [Extension Strategy](extension-strategy.md) — module architecture and design

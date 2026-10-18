@@ -6,24 +6,20 @@ on:
       - master
   workflow_dispatch:
 
-# GitHub Pages is disabled at the organization level for this repository, so the
-# Dokka HTML is published as a build artifact instead of being deployed to Pages.
-# When an org owner enables Pages (Settings -> Pages -> Source: GitHub Actions),
-# switch the final step back to actions/upload-pages-artifact + actions/deploy-pages
-# and restore the `pages`/`id-token` permissions and the `github-pages` environment.
 permissions:
   contents: read
 
+# Pages deployments must not be cancelled midway, so a newer run queues instead.
 concurrency:
-  group: deploy-docs-${{ github.ref }}
-  cancel-in-progress: true
+  group: pages
+  cancel-in-progress: false
 
 env:
   JAVA_VERSION: '17'
   JAVA_DISTRIBUTION: 'zulu'
 
 jobs:
-  deploy-docs:
+  build:
     name: Generate Dokka Docs
     runs-on: macos-15
     timeout-minutes: 60
@@ -52,10 +48,23 @@ jobs:
       - name: Generate Dokka HTML
         run: ./gradlew dokkaGenerate
 
-      - name: Upload Dokka HTML as artifact
-        uses: actions/upload-artifact@v4
+      - name: Upload Dokka HTML as Pages artifact
+        uses: actions/upload-pages-artifact@v5
         with:
-          name: dokka-html
           path: build/dokka/html
-          retention-days: 14
-          if-no-files-found: error
+
+  deploy:
+    name: Deploy to GitHub Pages
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    # Only this job gets the Pages/OIDC write scopes.
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v5

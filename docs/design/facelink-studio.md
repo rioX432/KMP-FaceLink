@@ -41,7 +41,7 @@ FaceLink Studio is a phone-as-tracker app that sends pro-grade face tracking dat
 - Streams on PC using OBS + VTube Studio / VSeeFace / VNyan
 - Wants high-quality face tracking without buying a dedicated tracker (e.g., iPhone + iFacialMocap)
 - Currently using webcam tracking (low quality) or MeowFace (broken)
-- Price-sensitive indie VTuber, willing to pay $10-15 for a good tool
+- Indie VTuber looking for a low-cost setup
 - Technical comfort: can follow a setup guide, not a developer
 
 **Secondary: "iPhone VTuber wanting more protocols"**
@@ -52,7 +52,7 @@ FaceLink Studio is a phone-as-tracker app that sends pro-grade face tracking dat
 **Tertiary: "Mocap professional / Unity developer"**
 
 - Needs reliable phone-to-PC tracking for production
-- Wants commercial license and API access
+- Wants API access
 
 ### 1.3 Market Size Estimation
 
@@ -61,10 +61,6 @@ FaceLink Studio is a phone-as-tracker app that sends pro-grade face tracking dat
 | Global VTuber market | $3.13B (2026) | Mordor Intelligence |
 | VTuber market CAGR | 9.5-20% through 2031-2035 | Multiple analysts |
 | Active VTuber streamers (Twitch + YouTube) | ~60,000+ active channels | Streams Charts Q2 2025 |
-| Estimated % using phone trackers | ~15-25% | Based on iFacialMocap rankings, community surveys |
-| **Addressable phone-tracker users** | **~10,000-15,000** | Conservative estimate |
-| Average willingness to pay | $8-15 one-time | Based on iFacialMocap ($7.99) and VTS Pro ($14.99) pricing |
-| **TAM for phone-tracker segment** | **$80K-$225K/year** | Steady state, excluding growth |
 
 The market is small in absolute terms but has near-zero competition on Android. The real value is in the ecosystem play: FaceLink Studio drives adoption of the KMP-FaceLink SDK, which has broader applications (game dev, accessibility, avatar apps).
 
@@ -175,9 +171,8 @@ The app itself needs relatively little new code since it composes existing modul
 | Connection screen | ~300 | mDNS discovery, manual IP entry, connection status |
 | Tracking session screen | ~300 | Camera preview, stats overlay, protocol status |
 | Onboarding flow | ~200 | First-launch setup wizard |
-| Session management | ~150 | Timer (free tier), background keep-alive |
-| IAP integration | ~300 | Play Billing / StoreKit |
-| **Total new code** | **~1,850** | Excluding existing module code |
+| Session management | ~150 | Background keep-alive |
+| **Total new code** | **~1,550** | Excluding existing module code |
 
 ---
 
@@ -195,8 +190,6 @@ The app itself needs relatively little new code since it composes existing modul
 | **P0** | FPS counter | Real-time tracking FPS display |
 | **P1** | mDNS auto-discovery | Zero-config: automatically find PC receivers on LAN |
 | **P1** | VTS Plugin API output | Send tracking data to VTube Studio via WebSocket |
-| **P1** | Free tier session limit | 10-minute sessions with watermark for free users |
-| **P1** | Pro IAP | Unlock unlimited sessions + remove watermark |
 | **P1** | Background tracking | Continue tracking when app is minimized (screen off) |
 | **P1** | Tracking quality settings | FPS target (30/60), tracking smoothing level |
 | **P2** | Onboarding wizard | Step-by-step first-time setup guide |
@@ -218,7 +211,6 @@ The app itself needs relatively little new code since it composes existing modul
 │                  │                    │   (3 steps)      │
 │  [Start Track]   │◀───────────────── └──────────────────┘
 │  [Settings]      │
-│  [Pro]           │
 └────────┬─────────┘
          │ Start Tracking
          ▼
@@ -287,14 +279,6 @@ The app itself needs relatively little new code since it composes existing modul
 │  │  quality           │  │
 │  └───────────────────┘  │
 │                         │
-│  ┌───────────────────┐  │
-│  │ ⭐ Go Pro         │  │
-│  │  Remove limits    │  │
-│  │  $14.99 one-time  │  │
-│  └───────────────────┘  │
-│                         │
-├─────────────────────────┤
-│ Free: 10 min sessions   │
 └─────────────────────────┘
 ```
 
@@ -336,7 +320,6 @@ The app itself needs relatively little new code since it composes existing modul
 | Market gap | **Vacant** (MeowFace dead) | Competitive (iFacialMocap active) | Both covered |
 | Development effort | Lower (MediaPipe simpler to integrate) | Medium (ARKit already works) | ~1.5x single platform |
 | KMP advantage | High (shared code reduces iOS follow-up to ~30% effort) | High | Maximized |
-| Revenue potential | Lower (Android users more price-sensitive) | Higher (iOS users pay more) | Highest |
 | Brand impact | **Highest** (first-to-market on vacant platform) | Low (yet-another iOS tracker) | High |
 
 **Recommended sequence:**
@@ -375,10 +358,7 @@ Estimated code sharing: **~65-70%** between Android and iOS.
 - FPS counter, latency display, connection status
 - Settings screen (protocol selection, FPS target)
 
-**Week 4: Monetization + session management**
-- Free tier 10-minute session timer
-- Watermark overlay
-- Google Play Billing integration for Pro IAP
+**Week 4: Session management**
 - Background tracking (foreground service)
 
 **Week 5: Testing + release prep**
@@ -394,7 +374,6 @@ Estimated code sharing: **~65-70%** between Android and iOS.
 - iOS app shell using SwiftUI / Compose Multiplatform
 - ARKit face tracking (already implemented in `kmp-facelink`)
 - VTube Studio Plugin API output using `kmp-facelink-vts`
-- StoreKit IAP integration
 - App Store submission
 
 **Dependencies:**
@@ -406,7 +385,7 @@ Estimated code sharing: **~65-70%** between Android and iOS.
 - Onboarding wizard
 - Connection history / favorites
 - Battery optimization (adaptive FPS)
-- Hand tracking DLC (reuse existing hand tracking from `kmp-facelink`)
+- Hand tracking (reuse existing hand tracking from `kmp-facelink`)
 - Crash reporting (Firebase Crashlytics)
 - Analytics (usage patterns, protocol popularity)
 
@@ -466,9 +445,7 @@ Week:  1  2  3  4  5  6  7  8  9  10 11 12 13 14 15 16
 
 | Risk | Likelihood | Impact | Mitigation |
 |---|---|---|---|
-| **Low conversion rate (free → Pro)** | Medium | Medium | Free tier is deliberately limited (10 min, watermark). VTubers who stream regularly will convert. Monitor and adjust limits. |
 | **Support burden from diverse Android devices** | High | Medium | Automated crash reporting. Community Discord for peer support. FAQ/troubleshooting in-app. |
-| **Revenue insufficient to justify maintenance** | Medium | Low | Strategic value (SDK adoption) exceeds direct revenue. Maintenance cost is low thanks to shared KMP-FaceLink modules. |
 
 ---
 
@@ -482,7 +459,6 @@ Week:  1  2  3  4  5  6  7  8  9  10 11 12 13 14 15 16
 | DAU | 200+ | Firebase Analytics |
 | Crash-free rate | >99% | Firebase Crashlytics |
 | Average session length | >15 min | Firebase Analytics |
-| Pro conversion rate | >5% | Play Billing analytics |
 | Play Store rating | >4.0 | Play Store |
 
 ### 7.2 Growth Metrics (v1.0, first 90 days)
@@ -491,7 +467,6 @@ Week:  1  2  3  4  5  6  7  8  9  10 11 12 13 14 15 16
 |---|---|---|
 | Total downloads | 5,000+ | Store analytics |
 | MAU | 1,500+ | Firebase Analytics |
-| Pro conversions | 500+ | Billing analytics |
 | Protocol usage split | Track VMC vs iFM vs VTS popularity | In-app analytics |
 | Average latency | <15ms | In-app telemetry |
 
@@ -500,10 +475,7 @@ Week:  1  2  3  4  5  6  7  8  9  10 11 12 13 14 15 16
 ## 8. Open Questions
 
 1. **App name:** "FaceLink Studio" vs "FaceLink Tracker" vs another name? "Studio" implies creation; "Tracker" is more descriptive of the phone-as-tracker use case.
-2. **Free tier limits:** 10 minutes per session vs 5 minutes (VTube Studio's limit) vs time-unlimited with watermark only?
-3. **Simultaneous multi-protocol:** Should free tier allow VMC + iFM simultaneously, or require Pro for multi-protocol?
-4. **VTS module iOS target:** `kmp-facelink-vts` currently only targets JVM. Adding iOS/Android targets is straightforward but needs to be scheduled before v0.2.
-5. **Commercial license enforcement:** How to technically distinguish commercial use? Honor system vs license key?
+2. **VTS module iOS target:** `kmp-facelink-vts` currently only targets JVM. Adding iOS/Android targets is straightforward but needs to be scheduled before v0.2.
 
 ---
 

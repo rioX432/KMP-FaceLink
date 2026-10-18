@@ -168,8 +168,8 @@ jobs:
       VERSION: ${{ needs.resolve-version.outputs.version }}
     steps:
       # Check out master with full history so we can commit Package.swift and move
-      # the tag. With serialized concurrency, master HEAD equals the built commit in
-      # the normal flow.
+      # the tag. Runs of this workflow are serialized, but a merge that lands while
+      # a run is in progress can still move master past the built commit.
       - uses: actions/checkout@v6
         with:
           ref: master

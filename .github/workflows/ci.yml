@@ -6,6 +6,9 @@ on:
   pull_request:
     branches: [ master ]
 
+permissions:
+  contents: read
+
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
@@ -17,7 +20,7 @@ env:
 jobs:
   lint:
     name: Lint (detekt)
-    runs-on: [ self-hosted, macOS, ARM64 ]
+    runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v6
@@ -26,8 +29,6 @@ jobs:
         with:
           distribution: ${{ env.JAVA_DISTRIBUTION }}
           java-version: ${{ env.JAVA_VERSION }}
-
-      - uses: android-actions/setup-android@v3
 
       - uses: gradle/actions/setup-gradle@v5
 
@@ -38,7 +39,7 @@ jobs:
 
   api-check:
     name: API compatibility
-    runs-on: [ self-hosted, macOS, ARM64 ]
+    runs-on: macos-15
     timeout-minutes: 60
     steps:
       - uses: actions/checkout@v6
@@ -47,8 +48,6 @@ jobs:
         with:
           distribution: ${{ env.JAVA_DISTRIBUTION }}
           java-version: ${{ env.JAVA_VERSION }}
-
-      - uses: android-actions/setup-android@v3
 
       - uses: gradle/actions/setup-gradle@v5
 
@@ -68,7 +67,7 @@ jobs:
 
   test:
     name: Test
-    runs-on: [ self-hosted, macOS, ARM64 ]
+    runs-on: macos-15
     timeout-minutes: 60
     steps:
       - uses: actions/checkout@v6
@@ -77,8 +76,6 @@ jobs:
         with:
           distribution: ${{ env.JAVA_DISTRIBUTION }}
           java-version: ${{ env.JAVA_VERSION }}
-
-      - uses: android-actions/setup-android@v3
 
       - uses: gradle/actions/setup-gradle@v5
 
@@ -101,7 +98,7 @@ jobs:
 
   sdk-foundation-quality:
     name: Face tracking foundation contracts
-    runs-on: [ self-hosted, macOS, ARM64 ]
+    runs-on: macos-15
     timeout-minutes: 60
     steps:
       - uses: actions/checkout@v6
@@ -110,8 +107,6 @@ jobs:
         with:
           distribution: ${{ env.JAVA_DISTRIBUTION }}
           java-version: ${{ env.JAVA_VERSION }}
-
-      - uses: android-actions/setup-android@v3
 
       - uses: gradle/actions/setup-gradle@v5
 
@@ -124,6 +119,14 @@ jobs:
       - name: Set up local.properties
         run: echo "sdk.dir=$ANDROID_HOME" > local.properties
 
+      # scripts/verify_sample_xcode_project.py requires exactly this XcodeGen release.
+      - name: Install pinned XcodeGen
+        run: |
+          curl -fsSL -o xcodegen.zip https://github.com/yonaskolb/XcodeGen/releases/download/2.45.4/xcodegen.zip
+          echo "090ec29491aad50aec10631bf6e62253fed733c50f3aab0f5ffc86bc170bdbef  xcodegen.zip" | shasum -a 256 -c -
+          unzip -q xcodegen.zip -d "$RUNNER_TEMP/xcodegen"
+          echo "$RUNNER_TEMP/xcodegen/xcodegen/bin" >> "$GITHUB_PATH"
+
       - name: Setup pinned OpenSeeFace models for JVM contract tests
         run: ./scripts/setup-openseeface-models.sh
 
@@ -132,7 +135,7 @@ jobs:
 
   coverage:
     name: Coverage
-    runs-on: [ self-hosted, macOS, ARM64 ]
+    runs-on: macos-15
     timeout-minutes: 60
     steps:
       - uses: actions/checkout@v6
@@ -141,8 +144,6 @@ jobs:
         with:
           distribution: ${{ env.JAVA_DISTRIBUTION }}
           java-version: ${{ env.JAVA_VERSION }}
-
-      - uses: android-actions/setup-android@v3
 
       - uses: gradle/actions/setup-gradle@v5
 
@@ -157,6 +158,9 @@ jobs:
 
       - name: Setup whisper.cpp for iOS
         run: ./scripts/setup-whisper-ios.sh
+
+      - name: Setup pinned OpenSeeFace models for JVM tests
+        run: ./scripts/setup-openseeface-models.sh
 
       - name: Run tests with coverage
         run: >-
@@ -194,7 +198,7 @@ jobs:
 
   build:
     name: Build
-    runs-on: [ self-hosted, macOS, ARM64 ]
+    runs-on: macos-15
     timeout-minutes: 45
     steps:
       - uses: actions/checkout@v6
@@ -203,8 +207,6 @@ jobs:
         with:
           distribution: ${{ env.JAVA_DISTRIBUTION }}
           java-version: ${{ env.JAVA_VERSION }}
-
-      - uses: android-actions/setup-android@v3
 
       - uses: gradle/actions/setup-gradle@v5
 

@@ -40,7 +40,7 @@ The BOM (`kmp-facelink-bom`) is a `java-platform` module managing versions for a
 ## CI Details
 
 - **Triggers**: push to `master`, or manual `workflow_dispatch` (optional explicit `version`).
-- **Runner**: `self-hosted, macOS, ARM64` with `scripts/setup-whisper-ios.sh` — required because `kmp-facelink-voice` has an iOS `whisper.cpp` cinterop, so the iOS klib publications cannot be built on Linux.
+- **Runner**: GitHub-hosted `macos-15` for the build jobs, with `scripts/setup-whisper-ios.sh`. macOS is required because `kmp-facelink-voice` has an iOS `whisper.cpp` cinterop, so the iOS klib publications cannot be built on Linux. Version resolution and release creation run on `ubuntu-latest`.
 - **Auth**: the built-in `GITHUB_TOKEN` (`permissions: packages: write` / `contents: write`), injected explicitly into the Gradle process as `GITHUB_TOKEN` / `GITHUB_ACTOR`.
 - **No signing**: GitHub Packages does not require GPG signatures, so no `Sign` tasks run and no `.asc` artifacts are produced.
 

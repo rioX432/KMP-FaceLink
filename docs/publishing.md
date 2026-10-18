@@ -9,7 +9,7 @@ This document describes how KMP-FaceLink is published to **GitHub Packages** (An
 Publishing is fully automated via GitHub Actions (`.github/workflows/publish-github-packages.yml`). **Every merge to `master`** triggers:
 
 1. **Version resolution** — `0.<minor>.<UTC YYYYMMDDHHMM>` (MAJOR.MINOR from `VERSION_NAME`, patch replaced by a UTC timestamp). Each merge yields a unique, immutable version, so there are no `-SNAPSHOT` artifacts and no 409 conflicts.
-2. **GitHub Packages** — all publishable modules are published to `https://maven.pkg.github.com/AnotherBall/KMP-FaceLink`.
+2. **GitHub Packages** — all publishable modules are published to `https://maven.pkg.github.com/rioX432/KMP-FaceLink`.
 3. **XCFramework builds** — each iOS-capable module is built into a release XCFramework and zipped.
 4. **GitHub Release** — a `v<version>` release is created at the built commit with the XCFramework zips attached.
 5. **Package.swift** — `scripts/generate-package-swift.py` regenerates the manifest from the release assets, pointing each binary target at the GitHub REST API asset URL (required because this is a **private** repo — public `releases/download/...` URLs are not resolvable by SwiftPM). The manifest is committed to `master` with `[skip ci]` (so the auto-commit does not re-trigger the workflow), and the `v<version>` tag is force-moved onto that commit so SwiftPM consumers resolving the tag read the correct manifest.
@@ -40,7 +40,7 @@ The BOM (`kmp-facelink-bom`) is a `java-platform` module managing versions for a
 ## CI Details
 
 - **Triggers**: push to `master`, or manual `workflow_dispatch` (optional explicit `version`).
-- **Runner**: `self-hosted, macOS, ARM64` with `scripts/setup-whisper-ios.sh` — required because `kmp-facelink-voice` has an iOS `whisper.cpp` cinterop, so the iOS klib publications cannot be built on Linux.
+- **Runner**: GitHub-hosted `macos-15` for the build jobs, with `scripts/setup-whisper-ios.sh`. macOS is required because `kmp-facelink-voice` has an iOS `whisper.cpp` cinterop, so the iOS klib publications cannot be built on Linux. Version resolution and release creation run on `ubuntu-latest`.
 - **Auth**: the built-in `GITHUB_TOKEN` (`permissions: packages: write` / `contents: write`), injected explicitly into the Gradle process as `GITHUB_TOKEN` / `GITHUB_ACTOR`.
 - **No signing**: GitHub Packages does not require GPG signatures, so no `Sign` tasks run and no `.asc` artifacts are produced.
 
@@ -64,11 +64,11 @@ Merge a PR to `master`. The workflow publishes `0.<minor>.<timestamp>` to GitHub
 
 ### Verify
 
-- [ ] Check [Packages](https://github.com/orgs/AnotherBall/packages?repo_name=KMP-FaceLink) for the published Maven artifacts
-- [ ] Check the [Releases](https://github.com/AnotherBall/KMP-FaceLink/releases) page for XCFramework downloads
+- [ ] Check [Packages](https://github.com/rioX432?tab=packages&repo_name=KMP-FaceLink) for the published Maven artifacts
+- [ ] Check the [Releases](https://github.com/rioX432/KMP-FaceLink/releases) page for XCFramework downloads
 - [ ] Verify the `Update Package.swift for v<version> [skip ci]` commit landed on `master` and the `v<version>` tag points at it
 - [ ] Verify SPM resolution by adding the package in a fresh Xcode project (with an authenticated GitHub token, since the repo is private)
-- [ ] Check API docs at https://anotherball.github.io/KMP-FaceLink/
+- [ ] Check API docs at https://riox432.github.io/KMP-FaceLink/
 
 ## Local Development
 

@@ -121,7 +121,7 @@ subprojects {
                 repositories {
                     maven {
                         name = "GitHubPackages"
-                        url = uri("https://maven.pkg.github.com/anotherball/KMP-FaceLink")
+                        url = uri("https://maven.pkg.github.com/rioX432/KMP-FaceLink")
                         credentials {
                             username = (findProperty("gpr.user") as String?)
                                 ?: System.getenv("GITHUB_ACTOR")

@@ -11,7 +11,7 @@ Pod::Spec.new do |s|
   s.authors      = package["author"]
 
   s.platforms    = { :ios => "17.0" }
-  s.source       = { :git => "https://github.com/AnotherBall/KMP-FaceLink.git", :tag => "#{s.version}" }
+  s.source       = { :git => "https://github.com/rioX432/KMP-FaceLink.git", :tag => "#{s.version}" }
   s.source_files = "ios/**/*.{h,m,mm}", "../kmp-facelink-cbridge/include/*.h", "../kmp-facelink-cbridge/src/kmpfacelink_bridge_ios.m"
   s.header_mappings_dir = "../kmp-facelink-cbridge/include"
 

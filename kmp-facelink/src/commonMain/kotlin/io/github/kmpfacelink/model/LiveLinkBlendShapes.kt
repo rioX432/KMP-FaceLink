@@ -11,7 +11,7 @@ package io.github.kmpfacelink.model
  * KMP-FaceLink's [BlendShape] enum is declared in *anatomical* groups (eyes, jaw,
  * mouth, brow, cheek, nose, tongue), which is **not** the order the Apple ARKit
  * Live Link Face protocol streams. Consumers that expect the Live Link wire order
- * (e.g. avatar-core, Unreal `ELiveLinkFaceBlendShape`, most VRM/ARKit pipelines)
+ * (e.g. external avatar pipelines, Unreal `ELiveLinkFaceBlendShape`, most VRM/ARKit pipelines)
  * must receive channels in the exact index order defined here.
  *
  * This object is the **single source of truth** for that ordering. It is shared by

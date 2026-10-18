@@ -1,19 +1,18 @@
-# avatar-core Raw-Tracking Seam
+# Raw-Tracking Seam
 
-This document records how KMP-FaceLink fits into the Avvy avatar pipeline, following the
-2026-07-09 cross-repo design decision. It exists so future contributors do not
-re-derive the seam or accidentally break it.
+This document records how KMP-FaceLink fits into a host app that brings its own avatar
+pipeline. It exists so future contributors do not re-derive the seam or accidentally break it.
 
 ## TL;DR
 
 - **KMP-FaceLink is a full, standalone VTuber SDK.** It is not "just a tracker for
-  avatar-core." Consumers who do **not** use avatar-core keep using the whole stack:
-  tracking → `kmp-facelink-avatar` (VRM / Live2D / VRChat param mapping) →
-  `kmp-facelink-stream` (streaming).
-- **Consumers that use avatar-core** (e.g. Avvy via persona-viewer) tap the
-  **cbridge raw-tracking output only**. avatar-core owns mapping, transport, and
-  rendering, so the KMP-FaceLink downstream (`kmp-facelink-avatar` /
-  `kmp-facelink-stream`) is **not used by them**.
+  an external avatar engine." Consumers without their own avatar pipeline keep using
+  the whole stack: tracking → `kmp-facelink-avatar` (VRM / Live2D / VRChat param
+  mapping) → `kmp-facelink-stream` (streaming).
+- **Consumers with their own avatar pipeline** (e.g. a host app that renders in a
+  separate avatar engine) tap the **cbridge raw-tracking output only**. That pipeline
+  owns mapping, transport, and rendering, so the KMP-FaceLink downstream
+  (`kmp-facelink-avatar` / `kmp-facelink-stream`) is **not used by them**.
 - This is **"downstream optional", not "downstream removed".** Both consumption modes
   are first-class and supported side by side.
 
@@ -33,8 +32,8 @@ flowchart TD
         AV --> ST
     end
 
-    subgraph ext["avatar-core path (Avvy / persona-viewer)"]
-        AC["avatar-core adapter<br/>owns mapping + transport + rendering"]
+    subgraph ext["External avatar pipeline path"]
+        AC["External avatar pipeline<br/>owns mapping + transport + rendering"]
     end
 
     T --> AV
@@ -46,11 +45,11 @@ flowchart TD
 ASCII layer stack (top = consumer, bottom = tracker):
 
 ```
-                    Full-SDK consumer            avatar-core consumer (Avvy)
+                    Full-SDK consumer            External-pipeline consumer
                     ┌───────────────────┐        ┌────────────────────────────┐
-   downstream       │ kmp-facelink-     │        │  avatar-core owns:         │
+   downstream       │ kmp-facelink-     │        │  external pipeline owns:   │
    (optional for    │ stream            │        │  mapping / transport /     │
-    avatar-core)    │ (streaming)       │        │  rendering                 │
+    ext. pipelines) │ (streaming)       │        │  rendering                 │
                     ├───────────────────┤        └──────────────┬─────────────┘
                     │ kmp-facelink-     │                       │ raw tracking only
                     │ avatar (mapping)  │                       │
@@ -66,16 +65,16 @@ ASCII layer stack (top = consumer, bottom = tracker):
 
 ## The seam: cbridge raw-tracking API
 
-avatar-core consumers integrate at exactly one point — the cbridge polling API. They
+External-pipeline consumers integrate at exactly one point — the cbridge polling API. They
 read the latest tracking frame and do their own mapping/rendering downstream.
 
 | API (Android facade / C entry point) | Returns | Used by |
 |---|---|---|
-| `getLatestBlendShapesLiveLink()` / `KmpFaceLink_GetLatestBlendShapesLiveLink` | `float[52]` in ARKit Live Link Face wire order | **avatar-core** and other Live Link consumers |
-| `getLatestHeadTransform()` / `KmpFaceLink_GetLatestHeadTransform` | `float[6]` `[pitch, yaw, roll, posX, posY, posZ]` | **avatar-core** and other head-pose consumers |
+| `getLatestBlendShapesLiveLink()` / `KmpFaceLink_GetLatestBlendShapesLiveLink` | `float[52]` in ARKit Live Link Face wire order | External avatar pipelines and other Live Link consumers |
+| `getLatestHeadTransform()` / `KmpFaceLink_GetLatestHeadTransform` | `float[6]` `[pitch, yaw, roll, posX, posY, posZ]` | External avatar pipelines and other head-pose consumers |
 | `getLatestBlendShapes()` / `KmpFaceLink_GetLatestBlendShapes` | `float[52]` in legacy `BlendShape.ordinal` (anatomical) order | Existing Unity / React Native / Flutter consumers (stable binary contract) |
 
-> avatar-core taps the **Live Link–ordered** blendshape variant
+> External avatar pipelines tap the **Live Link–ordered** blendshape variant
 > (`getLatestBlendShapesLiveLink`). The legacy `getLatestBlendShapes` remains the
 > unchanged binary contract for existing Unity/RN/Flutter consumers. Both are `float[52]`;
 > only the meaning of each index differs. See
@@ -103,7 +102,7 @@ sides** against a shared golden fixture so it cannot silently drift.
 - **Position unit: meters**, right-handed (+X right, +Y up, −Z forward).
 - **Identity baseline:** a neutral pose yields `[0, 0, 0, 0, 0, 0]`; no auto re-centering.
 - **Consumer-side conversion:** degrees→radians (`deg × π/180`) and any axis remapping are
-  performed by the consumer adapter (avatar-core), **not** by the bridge.
+  performed by the consumer adapter, **not** by the bridge.
   Example: `yaw = 10°` → `0.17453293 rad`.
 
 Full field-by-field definition (handedness, origin, per-platform matrix source):
@@ -112,7 +111,7 @@ Full field-by-field definition (handedness, origin, per-platform matrix source):
 ## Shared conformance fixture
 
 The seam is pinned by a golden fixture asserted by **both** KMP-FaceLink and the
-avatar-core adapter:
+consumer adapter:
 
 - Fixture: [`kmp-facelink-cbridge/conformance/live_link_conformance.json`](../kmp-facelink-cbridge/conformance/live_link_conformance.json)
 - Format & cases: [`kmp-facelink-cbridge/conformance/README.md`](../kmp-facelink-cbridge/conformance/README.md)

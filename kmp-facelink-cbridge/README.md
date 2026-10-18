@@ -42,7 +42,7 @@ the only difference is the meaning of each index.
 | API (iOS / Android) | Order | Use |
 |---|---|---|
 | `KmpFaceLink_GetLatestBlendShapes` / `getLatestBlendShapes()` | Legacy: `BlendShape.ordinal` (anatomical groups) | Existing Unity/RN/Flutter consumers. **Stable binary contract — unchanged.** |
-| `KmpFaceLink_GetLatestBlendShapesLiveLink` / `getLatestBlendShapesLiveLink()` | **ARKit Live Link Face** wire order | avatar-core and other Live Link consumers. |
+| `KmpFaceLink_GetLatestBlendShapesLiveLink` / `getLatestBlendShapesLiveLink()` | **ARKit Live Link Face** wire order | External avatar pipelines and other Live Link consumers. |
 
 The Live Link order is the single source of truth defined in
 `kmp-facelink/.../model/LiveLinkBlendShapes.kt` and is the canonical ARKit Live Link
@@ -100,12 +100,12 @@ Live Link channel order (index → name):
   There is no automatic re-centering — values are the raw pose relative to the
   tracker origin.
 - **Consumer conversion:** degrees→radians (`deg × π/180`) and any axis remapping
-  are done by the consumer adapter (e.g. avatar-core), NOT by this bridge. Example:
+  are done by the consumer adapter, NOT by this bridge. Example:
   `yaw = 10°` → `0.17453293 rad`.
 
 ## Conformance fixture
 
 `conformance/live_link_conformance.json` is the shared golden fixture (input →
 expected Live Link blendshape array + head values). Both this bridge and the
-avatar-core adapter assert against it so the seam cannot silently drift. See
+downstream consumer adapter assert against it so the seam cannot silently drift. See
 `conformance/README.md`.

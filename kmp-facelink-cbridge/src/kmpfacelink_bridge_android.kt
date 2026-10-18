@@ -130,7 +130,7 @@ class FaceLinkBridgeFacade(
      * Returns the 52 blend shape values in canonical ARKit **Live Link Face** wire
      * order (see [LiveLinkBlendShapes]), mapped **by name** — never by enum ordinal.
      *
-     * This is the ordering expected by avatar-core and other Live Link consumers.
+     * This is the ordering expected by external avatar pipelines and other Live Link consumers.
      * Channels the tracker does not produce (e.g. `tongueOut` on Android/MediaPipe)
      * are 0-filled. Returns null if no face data is available.
      *

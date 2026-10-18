@@ -58,7 +58,7 @@ void KmpFaceLink_GetLatestBlendShapes(float* blendShapes, int count);
 // declaration order == Unreal ELiveLinkFaceBlendShape). Channel 0 = eyeBlinkLeft ...
 // channel 51 = tongueOut. Mapped BY NAME, never by ordinal. Channels the tracker does
 // not produce (e.g. tongueOut on Android/MediaPipe) are 0-filled.
-// This is the ordering avatar-core and other Live Link consumers expect.
+// This is the ordering external avatar pipelines and other Live Link consumers expect.
 void KmpFaceLink_GetLatestBlendShapesLiveLink(float* blendShapes, int count);
 
 // Copies 6 head transform floats into the buffer. `count` must be >= 6.

@@ -3,7 +3,7 @@
 
 This tool ports the frozen feature extraction, evidence gate, 350 ms causal onset,
 and 0.20 release hysteresis from the reviewed research implementation. It is not
-present in the Avvy release branch. A neutral baseline is fixed from explicit
+part of any shipped release. A neutral baseline is fixed from explicit
 calibration windows; evaluation is restricted to separately declared windows.
 
 ARKit ``cheekPuff`` is a paired reference signal, not physical ground truth.

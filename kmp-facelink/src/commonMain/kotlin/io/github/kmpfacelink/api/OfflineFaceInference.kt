@@ -115,8 +115,8 @@ public class OfflineFaceResult(
  *
  * Not thread-safe; drive it from one thread. Close it when done.
  *
- * Nothing in the product uses this: Avvy's face tracking is always live. It is a measurement
- * tool, which is why it is opt-in rather than stable API surface.
+ * Live tracking never uses this. It is a measurement tool, which is why it is opt-in rather
+ * than stable API surface.
  */
 @ExperimentalFaceLinkApi
 public interface OfflineFaceInference : Releasable {

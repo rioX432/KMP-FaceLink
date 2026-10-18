@@ -100,7 +100,7 @@ Full mapping covers all 52 blend shapes. The table above shows key conversions.
 - **Configurable mapping** — Live2D models vary in parameter naming. The default follows Live2D Cubism standard parameters, but users can override any mapping
 - **Output format**: `Map<String, Float>` (parameter name → value)
 - **Kalidokit-inspired** approach: landmarks → blend shapes → avatar params
-- **Avvy 43-float protocol compatible** — output can be serialized to match Avvy's memory bridge format
+- **Fixed-layout output** — the mapped values can be serialized into a host app's fixed-size float protocol (e.g. a shared-memory bridge to a Unity-based renderer)
 
 #### API Sketch
 
@@ -347,7 +347,7 @@ Creating a Live2D model requires:
 | Source | Pros | Cons |
 |---|---|---|
 | **Self-made (Cubism Editor)** | Full control, unique | Requires illustration + rigging skills |
-| **Avvy** | Easy creation, high quality | Service-dependent |
+| **Avatar-maker apps** | Easy creation, high quality | Service-dependent |
 | **VRoid Studio** | Free, 3D → VRM export | 3D style only, not Live2D |
 | **BOOTH / nizima marketplace** | Professional quality, variety | Cost, license restrictions |
 | **AI-generated + manual rigging** | Fast illustration, unique | Still needs Cubism Editor rigging |
@@ -405,7 +405,6 @@ Aligned with the phases defined in `strategy.md`. Estimated as quarterly milesto
 | AI Companion app — アバター表示プロトタイプ (SDK 連携) | Q4 | App |
 
 **この Phase の戦略的意味**:
-- Avvy の UaaL 脱却検証に直結 → 本業への還元が最も大きいフェーズ
 - 「KMP で Live2D アバターをネイティブ駆動」は現状どのライブラリにも存在しない
 - 商用アプリが SDK の「最初の外部ユーザー」になり、API 設計のフィードバックループが回り始める
 
@@ -444,7 +443,6 @@ Aligned with the phases defined in `strategy.md`. Estimated as quarterly milesto
 | SDK — LLM 統合モジュール (`kmp-facelink-llm`) | Q3 | SDK |
 | SDK — ドキュメント・チュートリアル整備 | Q3–Q4 | SDK |
 | AI Companion app — サブスクリプション課金 (RevenueCat) | Q3 | App |
-| AI Companion app — Avvy アバターインポート連携 | Q3 | App |
 | AI Companion app — エフェクト課金パック | Q4 | App |
 | AI Companion app — クローズドベータ → App Store 公開 | Q4 | App |
 
@@ -505,16 +503,6 @@ VTuber Toolkit   — 「モバイルで VTuber 配信する」配信者向けプ
 2028〜       ████████ Phase 5: Ecosystem           ████████ Multi-app expansion
 ```
 
-### Avvy Synergy at Each Phase
-
-| Phase | Avvy への還元 |
-|---|---|
-| 1: SDK Foundation | Calculator 改善 → 精度向上 |
-| 2: Native Rendering | UaaL 脱却 → アプリ軽量化・高速起動 |
-| 3: Communication | ストリーミング技術 → リモートトラッキング |
-| 4: App Launch | リップシンク・AI 機能 → コンパニオン化 |
-| 5: Ecosystem | 技術ブランディング → 採用・認知 |
-
 ---
 
 ## 6. OSS Boundary & Commercialization
@@ -530,9 +518,9 @@ kmp-facelink (core)                      AI Companion App
 kmp-facelink-avatar                        - UX, design, onboarding
 kmp-facelink-actions                       - Character/persona management
 kmp-facelink-effects                       - Subscription billing
-kmp-facelink-stream                        - Avvy avatar import integration
-kmp-facelink-live2d                        - Tuned prompts & voice config
-Sample apps (demo only)                    - App Store distribution
+kmp-facelink-stream                        - Tuned prompts & voice config
+kmp-facelink-live2d                        - App Store distribution
+Sample apps (demo only)
 
 ↓                                        ↓
 "Distribute the pickaxes"               "Mine the gold"

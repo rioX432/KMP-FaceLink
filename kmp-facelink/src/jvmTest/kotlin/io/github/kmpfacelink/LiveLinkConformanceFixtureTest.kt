@@ -19,7 +19,7 @@ import kotlin.test.assertTrue
 
 /**
  * Asserts `kmp-facelink-cbridge/conformance/live_link_conformance.json` — the shared
- * cross-repo golden fixture (see `docs/avatar-core-seam.md`) — against the actual
+ * cross-repo golden fixture (see `docs/raw-tracking-seam.md`) — against the actual
  * [LiveLinkBlendShapes] lowering, so the fixture and the Kotlin implementation cannot
  * silently drift in either direction.
  *

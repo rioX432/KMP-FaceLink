@@ -5,7 +5,7 @@ raw-tracking seam. It is the single cross-repo contract asserted by:
 
 - **KMP-FaceLink** — the Live Link blendshape lowering (`LiveLinkBlendShapes`) and the
   head-transform format/units contract exposed by `kmp-facelink-cbridge`.
-- **avatar-core** — the consumer adapter golden test, which additionally verifies the
+- **A downstream consumer adapter** — its golden test, which additionally verifies the
   degrees→radians / meters conversion into the `[pitch, yaw, roll (rad), x, y, z (m)]`
   frame it expects.
 
@@ -54,6 +54,5 @@ The KMP-FaceLink Kotlin side of these assertions lives in two places:
 - `kmp-facelink/src/commonTest/kotlin/io/github/kmpfacelink/LiveLinkBlendShapesTest.kt` —
   target-portable literal smoke tests (no file I/O, run on every KMP target).
 
-When this fixture changes, avatar-core must re-mirror it into
-`crates/avatar-protocol/conformance/` (and update the SHA-256 in its conformance
-README) — its sibling drift-check test fails until re-mirrored.
+When this fixture changes, the downstream consumer must re-mirror its copy (and update
+the SHA-256 it records) — its drift-check test fails until re-mirrored.

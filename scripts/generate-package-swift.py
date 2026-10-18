@@ -4,7 +4,7 @@
 KMP-FaceLink is a PRIVATE repository, so SwiftPM cannot resolve binary targets
 from public `releases/download/...` URLs. Instead we point each binaryTarget at
 the GitHub REST API asset URL (`.../releases/assets/<id>.zip`), which SwiftPM can
-fetch with an authenticated token (matches the persona-domain-kmm convention).
+fetch with an authenticated token.
 
 Usage:
     generate-package-swift.py <out_path> <version> <release_json> <zips_dir>

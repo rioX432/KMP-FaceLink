@@ -456,7 +456,7 @@ The VTuber developer ecosystem is niche and does not have direct survey data for
 
 4. **Community size and reach:** React Native has ~6x more job postings and deeper enterprise adoption. Publishing a high-quality RN wrapper first maximizes initial reach and early adopter feedback.
 
-5. **Open-LLM-VTuber integration:** The project's sibling (`Mobile-LLM-VTuber`) targets a mobile AITuber client. If this client were built in RN (common for chat/WebSocket apps), the RN wrapper would provide direct integration. Flutter is also viable but less common for this type of app.
+5. **Open-LLM-VTuber integration:** A mobile AITuber client built on top of the SDK is a likely consumer. If such a client were built in RN (common for chat/WebSocket apps), the RN wrapper would provide direct integration. Flutter is also viable but less common for this type of app.
 
 ### Recommendation
 
